@@ -29,31 +29,30 @@ onRequest( env ) {
 
 onResponse( env, req, resp ) {
     if (env.req === req) {
-        // handling the original request
+        // response to the original request
         if (resp.status === 404) {
             // try to generate HTML on the fly
             var env.parsoidRequest = { uri: '/parsoid' + env.req.uri };
-			return { reqs: env.parsoidRequest };
-		} else {
-			return { resp: resp };
-		}
-	} else if (req === env.parsoidRequest) {
-		if (resp.status === 200) {
-			return { 
-				// Asynchronously save back the HTML
-				reqs: [
-					{
-						method: 'PUT',
-						uri: '/pages' + env.req.uri
-					}
-				],
-				// And return the HTML to the client
-				resp: resp
-			};
-		} else {
-			// return error
-			return { resp: resp };
-		}
-	}
+            return { reqs: env.parsoidRequest };
+        } else {
+            return { resp: resp };
+        }
+    } else if (req === env.parsoidRequest) {
+        // handle the response from Parsoid
+        if (resp.status === 200) {
+            return { 
+                // Asynchronously save back the HTML
+                reqs: [{
+                        method: 'PUT',
+                        uri: '/pages' + env.req.uri
+                      }],
+                // And return the HTML to the client
+                resp: resp
+            };
+        } else {
+            // return error
+            return { resp: resp };
+        }
+    }
 }
 ```
