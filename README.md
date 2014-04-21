@@ -9,7 +9,7 @@ Middleware interface
 Handlers register per path:
 
 ```javascript
-rf.addHandler('/users', { 
+rf.addHandler('/v1/pages', { 
     // Handler for incoming requests
     onRequest: requestHandler,
     // Handler for returned backend requests
@@ -23,7 +23,7 @@ Handlers are expected to return requests and/or responses:
 // Simple request handler
 onRequest( env ) {
     // Rewrite the URI to the backend
-	env.req.uri = '/pages' + env.req.uri;
+	env.req.uri = '/v1/' + env.account + '/pages' + env.req.uri;
     return { reqs: [env.req] };
 }
 
@@ -32,7 +32,7 @@ onResponse( env, req, resp ) {
         // response to the original request
         if (resp.status === 404) {
             // try to generate HTML on the fly by calling Parsoid
-            var env.parsoidRequest = { uri: '/parsoid' + env.req.uri };
+            var env.parsoidRequest = { uri: '/v1/_parsoid/' + env.account + env.req.uri };
             return { reqs: env.parsoidRequest };
         } else {
             return { resp: resp };
@@ -44,7 +44,9 @@ onResponse( env, req, resp ) {
                 // Asynchronously save back the HTML
                 reqs: [{
                         method: 'PUT',
-                        uri: '/pages' + env.req.uri
+                        uri: '/v1/' + account + '/pages' + env.req.uri,
+						headers: resp.headers,
+						body: resp.body
                       }],
                 // And return the HTML to the client
                 resp: resp
