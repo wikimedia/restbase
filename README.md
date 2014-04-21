@@ -31,7 +31,7 @@ onResponse( env, req, resp ) {
     if (env.req === req) {
         // response to the original request
         if (resp.status === 404) {
-            // try to generate HTML on the fly
+            // try to generate HTML on the fly by calling Parsoid
             var env.parsoidRequest = { uri: '/parsoid' + env.req.uri };
             return { reqs: env.parsoidRequest };
         } else {
@@ -50,7 +50,7 @@ onResponse( env, req, resp ) {
                 resp: resp
             };
         } else {
-            // return error
+            // return error to client
             return { resp: resp };
         }
     }
