@@ -23,7 +23,7 @@ Handlers are expected to return requests and/or responses:
 // Simple request handler
 onRequest( env ) {
     // Rewrite the URI to the backend
-	env.req.uri = '/v1/' + env.account + '/pages' + env.req.uri;
+    env.req.uri = '/v1/' + env.account + '/pages' + env.req.uri;
     return { reqs: [env.req] };
 }
 
@@ -45,8 +45,8 @@ onResponse( env, req, resp ) {
                 reqs: [{
                         method: 'PUT',
                         uri: '/v1/' + account + '/pages' + env.req.uri,
-						headers: resp.headers,
-						body: resp.body
+                        headers: resp.headers,
+                        body: resp.body
                       }],
                 // And return the HTML to the client
                 resp: resp
