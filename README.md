@@ -57,4 +57,37 @@ onResponse( env, req, resp ) {
         }
     }
 }
+
+// Alternative more compact & readable form, taking advantage of generators in
+// node 0.11
+// run with node --harmony --harmony_generators
+function* onRequest (env, req) {
+    // Rewrite the URI to the backend
+	req.uri = '/v1/' + env.account + '/pages' + req.uri;
+	// Try the backend first
+	var beResp = (yield { reqs: [req] })[0];
+	if (beResp.status === 200) {
+		// all done
+		return { resp: beResp };
+	} else if (beResp.status === 404) {
+		// Try to generate the request with Parsoid
+		var parsoidResp = (yield { uri: '/v1/_parsoid/' + env.account + env.req.uri })[0];
+		if (parsoidResp.status === 200) {
+			return { 
+                // Asynchronously save back the HTML
+                reqs: [{
+                        method: 'PUT',
+                        uri: req.uri,
+                        headers: parsoidResp.headers,
+                        body: parsoidResp.body
+                      }],
+                // And return the HTML to the client
+                resp: parsoidResp
+            };
+		} else {
+			return { resp: parsoidResp };
+		}
+	}
+}
 ```
+
