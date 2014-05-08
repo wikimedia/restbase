@@ -58,7 +58,7 @@ onResponse( env, req, resp ) {
     }
 }
 ```
-=== Cleaner handler using ES6 generators 
+### Cleaner handler using ES6 generators 
 ```javascript
 // Alternative more compact & readable form, taking advantage of generators in
 // node 0.11
