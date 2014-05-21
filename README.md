@@ -21,8 +21,8 @@ Goals
 	- handlers are not expected to perform CPU-intense computations
 		- move those to separate services on separate machine / process
 
-Middleware interface
-====================
+Handler interface
+=================
 
 ### Leverage ES6 generators + promises for readable code
 
