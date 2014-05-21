@@ -28,4 +28,4 @@ Handler interface
 
 Requires Node 0.11+, which is scheduled to be released Real Soon Now™.
 
-[https://github.com/gwicke/restface/blob/master/handlers](Single file per handler in a directory); require is wrapped in try/catch for robustness.
+[Single file per handler in a directory](https://github.com/gwicke/restface/blob/master/handlers); require is wrapped in try/catch for robustness.
