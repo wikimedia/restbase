@@ -27,5 +27,12 @@ function* handleGet (env, req) {
 
 // Register handler for end point
 module.exports = {
-	get: ['/v1/:account/pages/:title/rev/:rev/html', handleGet]
+	routes: [
+		{
+			route: '/v1/:account/pages/:title/rev/:rev/html',
+			handlers: {
+				get: handleGet
+			}
+		}
+	]
 };
