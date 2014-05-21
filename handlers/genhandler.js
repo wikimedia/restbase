@@ -15,11 +15,11 @@ function* handleGet (env, req) {
         var parsoidResp = yield env.GET('/v1/_parsoid/' + env.account + req.uri);
         if (parsoidResp.status === 200) {
             // Asynchronously save back the HTML, don't wait for it to finish
-			env.PUT({
-				uri: req.uri,
-				headers: parsoidResp.headers,
-				body: parsoidResp.body
-			});
+            env.PUT({
+                uri: req.uri,
+                headers: parsoidResp.headers,
+                body: parsoidResp.body
+            });
         }
         return parsoidResp;
     }
@@ -27,12 +27,12 @@ function* handleGet (env, req) {
 
 // Register handler for end point
 module.exports = {
-	routes: [
-		{
-			route: '/v1/:account/pages/:title/rev/:rev/html',
-			handlers: {
-				get: handleGet
-			}
-		}
-	]
+    routes: [
+        {
+            route: '/v1/:account/pages/:title/rev/:rev/html',
+            handlers: {
+                get: handleGet
+            }
+        }
+    ]
 };
