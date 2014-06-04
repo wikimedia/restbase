@@ -29,9 +29,23 @@ function* handleGet (env, req) {
 module.exports = {
     routes: [
         {
-            route: '/v1/:account/pages/:title/rev/:rev/html',
-            handlers: {
-                get: handleGet
+            path: '/v1/:account/pages/:title/rev/:rev/html',
+            methods: {
+                get: {
+                    handler: handleGet,
+                    doc: { /* swagger docs */
+                        "summary": "Retrieves the HTML of a specific revision",
+                        "notes": "Returns HTML+RDFa.",
+                        "type": "html",
+                        "produces": ["text/html;spec=mediawiki.org/specs/html/1.0"],
+                        "responseMessages": [
+                            {
+                                "code": 404,
+                                "message": "No HTML for page & revision found"
+                            }
+                        ]
+                    }
+                }
             }
         }
     ]

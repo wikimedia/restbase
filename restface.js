@@ -13,7 +13,7 @@ var fs = require('fs'),
     };
 
 function isGenerator(fn) {
-    return fn.constructor === (function*(){}).constructor;
+    return fn.constructor === function*(){}.constructor;
 }
 
 // Load all handlers from the handlers directory
@@ -71,9 +71,10 @@ function* mainGen() {
         routes.forEach(function(route) {
             console.log(route);
 			// Add the route to express
-            var appRoute = app.route(route.route);
-            Object.keys(route.handlers).forEach(function(verb) {
-                var handlerFunc = route.handlers[verb];
+            var appRoute = app.route(route.path);
+            Object.keys(route.methods).forEach(function(verb) {
+                var handler = route.methods[verb],
+                    handlerFunc = handler.handler;
                 if (isGenerator(handlerFunc)) {
                     // Convert into promise-returning function
                     handlerFunc = Promise.async(handlerFunc);
