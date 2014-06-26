@@ -38,7 +38,7 @@ function handleGet (env, req) {
 module.exports = {
     routes: [
         {
-            path: '/v1/:account/pages/:title/rev/:rev/html',
+            path: '/v1/{account}/pages/{title}/rev/{rev}/html',
             methods: {
                 get: {
                     handler: handleGet,

@@ -29,7 +29,7 @@ function* handleGet (env, req) {
 module.exports = {
     routes: [
         {
-            path: '/v1/:account/pages/:title/rev/:rev/html',
+            path: '/v1/{account}/pages/{title}/rev/{rev}/html',
             methods: {
                 get: {
                     handler: handleGet,
@@ -37,7 +37,7 @@ module.exports = {
                         "summary": "Retrieves the HTML of a specific revision",
                         "notes": "Returns HTML+RDFa.",
                         "type": "html",
-                        "produces": ["text/html;spec=mediawiki.org/specs/html/1.0"],
+                        "produces": ["text/html;profile=mediawiki.org/specs/html/1.0"],
                         "responseMessages": [
                             {
                                 "code": 404,
