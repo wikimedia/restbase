@@ -7,11 +7,12 @@ var fs = require('fs'),
     pathToRegexp = require('path-to-regexp'),
     readdir = Promise.promisify(fs.readdir),
     express = require('express'),
-    log = function (level, msg) {
+    log = function (level) {
+        var msg = JSON.stringify(Array.prototype.slice.call(arguments), null, 2);
         if (/^error/.test(level)) {
-            console.error(arguments);
+            console.error(msg);
         } else {
-            console.log(arguments);
+            console.log(msg);
         }
     };
 
@@ -46,13 +47,13 @@ function* makeRouter (kind) {
             });
         });
     });
-    console.log(kind, allRoutes);
+    log('notice', kind, allRoutes);
     return new RouteSwitch(allRoutes);
 }
 
 // Handle a single request
 function* handleRequestGen (req, resp) {
-    console.log('New request:', req.path);
+    log('request', 'New request:', req.path);
     var verbs = new Verbs(null, {}, req.app.frontendRouter, req.app.backendRouter);
     try {
         var newReq = {
@@ -90,7 +91,7 @@ function* mainGen() {
     app.backendRouter = yield* makeRouter('backend');
 
     app.listen(8888);
-    console.log('listening on port 8888');
+    log('notice', 'listening on port 8888');
 }
 var main = Promise.async(mainGen);
 

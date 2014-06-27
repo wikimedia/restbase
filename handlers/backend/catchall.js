@@ -11,7 +11,6 @@ var prfun = require('prfun'),
  * backend requests. Returns promises.
  */
 function* handleAll (env, req) {
-    console.log('backend handleall');
     //yield requestPr(req);
     return {
         body: 'mock body!',

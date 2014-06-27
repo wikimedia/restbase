@@ -23,16 +23,18 @@ Verbs.prototype.request = function* request (req) {
     if (!frontEndMatch || frontEndMatch.route === this.route) {
         // No front-end handler, or matches the same route.
         // Point to backend.
-        console.log('trying backend for', req.uri);
+        //console.log('trying backend for', req.uri);
         var backendMatch = this.backEndRouter.match(req.uri);
-        console.log(backendMatch);
+        if (!backendMatch) {
+            return {
+                status: 404,
+            };
+        }
         handler = backendMatch.route.methods[req.method]
                     || backendMatch.route.methods.all;
         res = yield* handler.handler(this, req);
-        console.log('be res', res);
     } else {
         // call the frount-end route
-        console.log('request', frontEndMatch);
         handler = frontEndMatch.route.methods[req.method]
                     || frontEndMatch.route.methods.all ;
         if (handler) {
@@ -61,8 +63,7 @@ Verbs.prototype.GET = function* GET (uri, req) {
     } else {
         req = uri;
     }
-    var res = yield* this.request(req);
-    return res;
+    return yield* this.request(req);
 };
 
 module.exports = Verbs;
