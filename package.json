@@ -1,0 +1,29 @@
+{
+  "name": "restface",
+  "version": "0.1.0",
+  "description": "REST API proxy prototype",
+  "main": "restface.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gwicke/restface.git"
+  },
+  "keywords": [
+    "REST",
+    "API"
+  ],
+  "author": "Gabriel Wicke <gwicke@wikimedia.org>",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/gwicke/restface/issues"
+  },
+  "homepage": "https://github.com/gwicke/restface",
+  "dependencies": {
+    "express": "^4.3.0",
+    "prfun": "^0.1.0",
+    "path-to-regexp": "^0.2.1",
+    "routeswitch": "~0.1.0"
+  }
+}

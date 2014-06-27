@@ -8,6 +8,7 @@
 
 // Simple request handler
 function handleGet (env, req) {
+    console.log('in handleget');
     // Try the backend first
     return env.GET(req)
     .then(function(resp) {
