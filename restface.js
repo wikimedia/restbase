@@ -6,7 +6,7 @@ var fs = require('fs'),
     Verbs = require('./Verbs'),
     pathToRegexp = require('path-to-regexp'),
     readdir = Promise.promisify(fs.readdir),
-    express = require('express'),
+    http = require('http'),
     log = function (level) {
         var msg = JSON.stringify(Array.prototype.slice.call(arguments), null, 2);
         if (/^error/.test(level)) {
@@ -14,7 +14,8 @@ var fs = require('fs'),
         } else {
             console.log(msg);
         }
-    };
+    },
+    app = {};
 
 function isGenerator(fn) {
     return fn.constructor === function*(){}.constructor;
@@ -53,29 +54,27 @@ function* makeRouter (kind) {
 
 // Handle a single request
 function* handleRequestGen (req, resp) {
-    log('request', 'New request:', req.path);
-    var verbs = new Verbs(null, {}, req.app.frontendRouter, req.app.backendRouter);
+    //log('request', 'New request:', req.path);
+    var verbs = new Verbs(null, {}, app.frontendRouter, app.backendRouter);
     try {
         var newReq = {
-            uri: req.path,
+            uri: req.url,
             method: req.method.toLowerCase(),
             headers: req.headers,
             query: req.query
         };
         var response = yield* verbs.request(newReq);
 
-        if (response.headers) {
-            resp.set(response.headers);
-        }
-
         if (response.body) {
-            resp.send(response.status || 500, response.body);
+            resp.writeHead(response.status || 500, '', response.headers);
+            resp.end(response.body);
         }
 
     } catch (e) {
         log('error/request', e, e.stack);
 		// XXX: proper error reporting
-		resp.send(500, e);
+		resp.writeHead(500, "Internal error");
+        resp.end(e);
     }
 }
 var handleRequest = Promise.async(handleRequestGen);
@@ -83,15 +82,14 @@ var handleRequest = Promise.async(handleRequestGen);
 
 // Main app setup
 function* mainGen() {
-    var app = express();
-    app.all('*', handleRequest);
-
     // Load handlers & set up routers
     app.frontendRouter = yield* makeRouter('frontend');
     app.backendRouter = yield* makeRouter('backend');
 
-    app.listen(8888);
-    log('notice', 'listening on port 8888');
+    var server = new http.Server();
+    server.on('request', handleRequest);
+    server.listen(8888);
+    yield log('notice', 'listening on port 8888');
 }
 var main = Promise.async(mainGen);
 

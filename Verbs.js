@@ -1,7 +1,7 @@
 "use strict";
 
 /*
- * if URI maps to the same route: call backend handler, return promise
+ * If URI maps to the same route: call backend handler, return promise
  * else: call front-end handler, return promise
  *
  * Need access to {
@@ -49,21 +49,66 @@ Verbs.prototype.request = function* request (req) {
     return res;
 };
 
-Verbs.prototype.GET = function* GET (uri, req) {
-    if (uri && uri.constructor === String) {
-        if (req) {
-            req.uri = uri;
-            req.method = 'get';
-        } else {
-            req = {
-                uri: uri,
-                method: 'get'
-            };
-        }
-    } else {
-        req = uri;
+function makeRequest (args, method) {
+    var argPos = args.length - 1,
+        lastArg = args[argPos],
+        req = {};
+    if (lastArg && lastArg.constructor === Object) {
+        req = lastArg;
+        argPos--;
     }
-    return yield* this.request(req);
+    switch (argPos) {
+    case 1: req.body = args[argPos]; argPos--; // fall through
+    case 0: req.uri = args[argPos]; break;
+    case -1: break;
+    default: throw new Error('Invalid arguments supplied to Verb');
+    }
+    req.method = method;
+    return req;
+}
+
+Verbs.prototype.GET = function* GET (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'get'));
+};
+
+Verbs.prototype.POST = function* POST (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'put'));
+};
+
+Verbs.prototype.PUT = function* PUT (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'put'));
+};
+
+Verbs.prototype.DELETE = function* DELETE (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'put'));
+};
+
+Verbs.prototype.HEAD = function* HEAD (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'head'));
+};
+
+Verbs.prototype.OPTIONS = function* OPTIONS (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'options'));
+};
+
+Verbs.prototype.TRACE = function* TRACE (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'trace'));
+};
+
+Verbs.prototype.CONNECT = function* CONNECT (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'connect'));
+};
+
+Verbs.prototype.COPY = function* COPY (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'copy'));
+};
+
+Verbs.prototype.MOVE = function* MOVE (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'move'));
+};
+
+Verbs.prototype.PURGE = function* PURGE (uri, req) {
+    return yield* this.request(makeRequest(arguments, 'purge'));
 };
 
 module.exports = Verbs;
