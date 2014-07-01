@@ -49,6 +49,11 @@ Verbs.prototype.request = function* request (req) {
     return res;
 };
 
+// Generic parameter massaging:
+// * If last parameter is an object, it is expected to be the request object.
+// * If the first parameter is a string, it's expected to be the URL.
+// * If the second parameter is a String or Buffer, it's expected to be a
+//   resource body.
 function makeRequest (args, method) {
     var argPos = args.length - 1,
         lastArg = args[argPos],

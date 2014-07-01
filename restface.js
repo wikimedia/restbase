@@ -1,7 +1,10 @@
 "use strict";
+
 var fs = require('fs'),
     path = require('path'),
     prfun = require('prfun'),
+    url = require('url'),
+    qs = require('querystring'),
     RouteSwitch = require('routeswitch'),
     Verbs = require('./Verbs'),
     pathToRegexp = require('path-to-regexp'),
@@ -16,10 +19,6 @@ var fs = require('fs'),
         }
     },
     app = {};
-
-function isGenerator(fn) {
-    return fn.constructor === function*(){}.constructor;
-}
 
 // Load all handlers from the handlers directory
 function* loadHandlers (kind) {
@@ -52,22 +51,47 @@ function* makeRouter (kind) {
     return new RouteSwitch(allRoutes);
 }
 
+// Optimized URL parser
+function parseURL (uri) {
+    // Fast path
+    var fastMatch = uri.match(/^(\/[^\?]*)(\?.*)?$/);
+    if (fastMatch) {
+        return {
+            pathname: fastMatch[1],
+            query: fastMatch[2] && qs.parse(fastMatch[2]) || {}
+        };
+    } else {
+        return url.parse(uri, true);
+    }
+}
+
+
 // Handle a single request
 function* handleRequestGen (req, resp) {
-    //log('request', 'New request:', req.path);
+    //log('request', 'New request:', req.url);
+    var urlData = parseURL(req.url);
     var verbs = new Verbs(null, {}, app.frontendRouter, app.backendRouter);
     try {
         var newReq = {
-            uri: req.url,
+            uri: urlData.pathname,
+            query: urlData.query,
             method: req.method.toLowerCase(),
-            headers: req.headers,
-            query: req.query
+            headers: req.headers
         };
         var response = yield* verbs.request(newReq);
 
-        if (response.body) {
+        var body = response.body;
+        if (body) {
+            if (body.constructor === Object) {
+                body = JSON.stringify(body);
+            }
+            if (body.constructor === String) {
+                response.headers['Content-Length'] = Buffer.byteLength(body);
+            } else if (body.constructor === Buffer) {
+                response.headers['Content-Length'] = body.length;
+            }
             resp.writeHead(response.status || 500, '', response.headers);
-            resp.end(response.body);
+            resp.end(body);
         }
 
     } catch (e) {
