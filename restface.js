@@ -51,14 +51,26 @@ function* makeRouter (kind) {
     return new RouteSwitch(allRoutes);
 }
 
-// Optimized URL parser
+// Optimized URL parsing
+// XXX: contribute patch to node proper?
+var SIMPLE_PATH = /^(\/(?!\/)[^\?#\s]*)(\?[^#\s]*)?$/;
 function parseURL (uri) {
-    // Fast path
-    var fastMatch = uri.match(/^(\/[^\?]*)(\?.*)?$/);
+    // Fast path for simple path uris
+    var fastMatch = SIMPLE_PATH.exec(uri);
     if (fastMatch) {
         return {
+            protocol: null,
+            slashes: null,
+            auth: null,
+            host: null,
+            port: null,
+            hostname: null,
+            hash: null,
+            search: fastMatch[2] || '',
             pathname: fastMatch[1],
-            query: fastMatch[2] && qs.parse(fastMatch[2]) || {}
+            path: fastMatch[1],
+            query: fastMatch[2] && qs.parse(fastMatch[2]) || {},
+            href: uri
         };
     } else {
         return url.parse(uri, true);
@@ -70,6 +82,8 @@ function parseURL (uri) {
 function* handleRequestGen (req, resp) {
     //log('request', 'New request:', req.url);
     var urlData = parseURL(req.url);
+
+    // Create the virtual HTTP service
     var verbs = new Verbs(null, {}, app.frontendRouter, app.backendRouter);
     try {
         var newReq = {
@@ -82,14 +96,13 @@ function* handleRequestGen (req, resp) {
 
         var body = response.body;
         if (body) {
+            // Convert to a buffer
             if (body.constructor === Object) {
-                body = JSON.stringify(body);
+                body = new Buffer(JSON.stringify(body));
+            } else if (body.constructor !== Buffer) {
+                body = new Buffer(body);
             }
-            if (body.constructor === String) {
-                response.headers['Content-Length'] = Buffer.byteLength(body);
-            } else if (body.constructor === Buffer) {
-                response.headers['Content-Length'] = body.length;
-            }
+            response.headers['Content-Length'] = body.length;
             resp.writeHead(response.status || 500, '', response.headers);
             resp.end(body);
         }
@@ -110,8 +123,7 @@ function* mainGen() {
     app.frontendRouter = yield* makeRouter('frontend');
     app.backendRouter = yield* makeRouter('backend');
 
-    var server = new http.Server();
-    server.on('request', handleRequest);
+    var server = http.createServer(handleRequest);
     server.listen(8888);
     yield log('notice', 'listening on port 8888');
 }
