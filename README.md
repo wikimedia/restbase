@@ -1,12 +1,29 @@
 RESTFace
 ========
 
-REST API interface proxy prototype
+REST API interface service prototype.
 
-Provides a consistent external REST API
+Provides a consistent & performance-oriented REST API for 
 
-Goals
-=====
+Usage
+-----
+We are leveraging ES6 generators & promises, which means that node 0.11+ is
+required.
+
+```sh
+node --harmony restface
+```
+
+You can now benchmark the service with
+```sh
+ab -c10 -n10000 'http://localhost:8888/v1/enwiki/pages/foo/rev/latest/html'
+```
+On a single core & with a simple static 'hello world' backend, this currently
+yields around 7500 req/s. The routing & generator-based handler overhead is
+very low.
+
+Implementation goals
+====================
 - easy to register end point handlers without interfering with other handlers
 - generic monitoring of all backend requests
 	- backend perf / issue monitoring
@@ -23,9 +40,12 @@ Goals
 
 Handler interface
 =================
+- [Single file per handler in a directory](https://github.com/gwicke/restface/blob/master/handlers/)
+- require is wrapped in try/catch for robustness
+- integrates routing and documentation
 
-### Leverage ES6 generators + promises for readable code
+Architecture docs
+=================
 
-Requires Node 0.11+, which is scheduled to be released Real Soon Now™.
+See [here](https://github.com/gwicke/restface/blob/master/doc/Architecture.md).
 
-[Single file per handler in a directory](https://github.com/gwicke/restface/blob/master/handlers); require is wrapped in try/catch for robustness.

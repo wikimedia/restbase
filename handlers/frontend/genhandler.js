@@ -1,5 +1,3 @@
-// Run with 'node --harmony' using node 0.11+
-
 /*
  * env.{GET,PUT,..} provides a virtual REST service by mapping paths to
  * backend requests. Returns promises.
