@@ -1,9 +1,10 @@
 RESTFace
 ========
 
-REST API interface service prototype.
+[REST content
+API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) service prototype.
 
-Provides a consistent & performance-oriented REST API for 
+Provides a consistent & performance-oriented REST API.
 
 Usage
 -----
