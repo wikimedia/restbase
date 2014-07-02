@@ -3,12 +3,14 @@ RestFace Implementation
 
 Data flow inside RestFace
 -------------------------
+```
 frontend handler
 -> frontend req handlers
 -> request opts
 -> getHandler
 -> backendHandler()
   handler can use retrying request wrapper
+```
 
 ### When to go to the backend
 when it would match the same front-end handler function
