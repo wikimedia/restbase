@@ -1,13 +1,13 @@
 "use strict";
 
 /*
- * If URI maps to the same route: call backend handler, return promise
- * else: call front-end handler, return promise
+ * General HTTP request routing / interface
  *
- * Need access to {
- *      - front-end router
- *      - back-end router
- * }
+ * Dispatches a request to
+ * - A matching front-end handler, or
+ * - A back-end handler iff
+ *   - there is no front-end match
+ *   - the request would map to the front-end handler making the request.
  */
 
 function Verbs (route, env, frontEndRouter, backEndRouter) {
@@ -32,20 +32,18 @@ Verbs.prototype.request = function* request (req) {
         }
         handler = backendMatch.route.methods[req.method]
                     || backendMatch.route.methods.all;
-        res = yield* handler.handler(this, req);
     } else {
         // call the frount-end route
         handler = frontEndMatch.route.methods[req.method]
                     || frontEndMatch.route.methods.all ;
-        if (handler) {
-            if (this.route === null) {
-                this.route = frontEndMatch.route;
-            }
-            res = yield *handler.handler(this, req);
-        } else {
+        if (!handler) {
             throw new Error('No handler found for ' + req.method + ' ' + req.uri);
         }
+        if (this.route === null) {
+            this.route = frontEndMatch.route;
+        }
     }
+    res = yield* handler.handler(this, req);
     return res;
 };
 
@@ -63,7 +61,8 @@ function makeRequest (args, method) {
         argPos--;
     }
     switch (argPos) {
-    case 1: req.body = args[argPos]; argPos--; // fall through
+    case 1: req.body = args[argPos]; argPos--;
+            /* falls through */
     case 0: req.uri = args[argPos]; break;
     case -1: break;
     default: throw new Error('Invalid arguments supplied to Verb');

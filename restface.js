@@ -1,5 +1,15 @@
 "use strict";
 
+/*
+ * Simple RestFace server
+ *
+ * Using node 0.11+:
+ *   node --harmony restface
+ *
+ * Simple benchmark:
+ * ab -c10 -n10000 'http://localhost:8888/v1/enwiki/pages/foo/rev/latest/html'
+ */
+
 var fs = require('fs'),
     path = require('path'),
     prfun = require('prfun'),
@@ -10,6 +20,7 @@ var fs = require('fs'),
     pathToRegexp = require('path-to-regexp'),
     readdir = Promise.promisify(fs.readdir),
     http = require('http'),
+    // TODO: use bunyan or the Parsoid logger backend!
     log = function (level) {
         var msg = JSON.stringify(Array.prototype.slice.call(arguments), null, 2);
         if (/^error/.test(level)) {
@@ -102,6 +113,7 @@ function* handleRequestGen (req, resp) {
             } else if (body.constructor !== Buffer) {
                 body = new Buffer(body);
             }
+            response.headers['Connection'] = 'close';
             response.headers['Content-Length'] = body.length;
             resp.writeHead(response.status || 500, '', response.headers);
             resp.end(body);
