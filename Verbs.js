@@ -17,7 +17,7 @@ function Verbs (route, env, frontEndRouter, backEndRouter) {
     this.backEndRouter = backEndRouter;
 }
 
-Verbs.prototype.request = function* request (req) {
+Verbs.prototype.request = function request (req) {
     var frontEndMatch = this.frontEndRouter.match(req.uri),
         handler, res;
     if (!frontEndMatch || frontEndMatch.route === this.route) {
@@ -26,9 +26,9 @@ Verbs.prototype.request = function* request (req) {
         //console.log('trying backend for', req.uri);
         var backendMatch = this.backEndRouter.match(req.uri);
         if (!backendMatch) {
-            return {
+            return Promise.resolve({
                 status: 404,
-            };
+            });
         }
         handler = backendMatch.route.methods[req.method]
                     || backendMatch.route.methods.all;
@@ -43,8 +43,7 @@ Verbs.prototype.request = function* request (req) {
             this.route = frontEndMatch.route;
         }
     }
-    res = yield* handler.handler(this, req);
-    return res;
+    return handler.handler(this, req);
 };
 
 // Generic parameter massaging:
@@ -71,48 +70,48 @@ function makeRequest (args, method) {
     return req;
 }
 
-Verbs.prototype.GET = function* GET (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'get'));
+Verbs.prototype.GET = function GET (uri, req) {
+    return this.request(makeRequest(arguments, 'get'));
 };
 
-Verbs.prototype.POST = function* POST (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'put'));
+Verbs.prototype.POST = function POST (uri, req) {
+    return this.request(makeRequest(arguments, 'put'));
 };
 
-Verbs.prototype.PUT = function* PUT (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'put'));
+Verbs.prototype.PUT = function PUT (uri, req) {
+    return this.request(makeRequest(arguments, 'put'));
 };
 
-Verbs.prototype.DELETE = function* DELETE (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'put'));
+Verbs.prototype.DELETE = function DELETE (uri, req) {
+    return this.request(makeRequest(arguments, 'put'));
 };
 
-Verbs.prototype.HEAD = function* HEAD (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'head'));
+Verbs.prototype.HEAD = function HEAD (uri, req) {
+    return this.request(makeRequest(arguments, 'head'));
 };
 
-Verbs.prototype.OPTIONS = function* OPTIONS (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'options'));
+Verbs.prototype.OPTIONS = function OPTIONS (uri, req) {
+    return this.request(makeRequest(arguments, 'options'));
 };
 
-Verbs.prototype.TRACE = function* TRACE (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'trace'));
+Verbs.prototype.TRACE = function TRACE (uri, req) {
+    return this.request(makeRequest(arguments, 'trace'));
 };
 
-Verbs.prototype.CONNECT = function* CONNECT (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'connect'));
+Verbs.prototype.CONNECT = function CONNECT (uri, req) {
+    return this.request(makeRequest(arguments, 'connect'));
 };
 
-Verbs.prototype.COPY = function* COPY (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'copy'));
+Verbs.prototype.COPY = function COPY (uri, req) {
+    return this.request(makeRequest(arguments, 'copy'));
 };
 
-Verbs.prototype.MOVE = function* MOVE (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'move'));
+Verbs.prototype.MOVE = function MOVE (uri, req) {
+    return this.request(makeRequest(arguments, 'move'));
 };
 
-Verbs.prototype.PURGE = function* PURGE (uri, req) {
-    return yield* this.request(makeRequest(arguments, 'purge'));
+Verbs.prototype.PURGE = function PURGE (uri, req) {
+    return this.request(makeRequest(arguments, 'purge'));
 };
 
 module.exports = Verbs;

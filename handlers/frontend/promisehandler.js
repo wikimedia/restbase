@@ -1,36 +1,36 @@
+"use strict";
 /*
 ### Alternative version with ES6 promises, but without generators
 
 - Disadvantage: slightly uglier & more verbose than generators.
 - Advantage: Compatible with node 0.10 using for example es6-shim. Native
   promise implementation is in Node 0.11+.
+- Can be optimized in node 0.11, while generators can't yet
 */
 
 // Simple request handler
 function handleGet (env, req) {
-    console.log('in handleget');
     // Try the backend first
     return env.GET(req)
-    .then(function(resp) {
-        if (resp.status === 404) {
-            // try to generate HTML on the fly by calling Parsoid
-            var parsoidRequest = { uri: '/v1/_parsoid/' + env.account + env.req.uri };
-            env.GET(parsoidRequest)
-            .then(function(resp) {
+    .then(function(beResp) {
+        if (beResp.status === 200) {
+            return beResp;
+        } else if (beResp.status === 404) {
+            // Try to generate HTML on the fly by calling Parsoid
+            return env.GET('/v1/_parsoid/' + env.account + env.req.uri)
+            .then(function(parsoidResp) {
                 // handle the response from Parsoid
-                if (resp.status === 200) {
+                if (parsoidResp.status === 200) {
                     // Asynchronously save back the HTML
                     env.PUT({
-                        uri: '/v1/' + account + '/pages' + env.req.uri,
-                        headers: resp.headers,
-                        body: resp.body
+                        uri: req.uri,
+                        headers: parsoidResp.headers,
+                        body: parsoidResp.body
                     });
                 }
                 // And return the response to the client
-                return resp;
+                return parsoidResp;
             });
-        } else {
-            return resp;
         }
     });
 }
