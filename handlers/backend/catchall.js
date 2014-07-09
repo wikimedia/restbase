@@ -10,13 +10,13 @@ var prfun = require('prfun'),
  * env.{GET,PUT,..} provides a virtual REST service by mapping paths to
  * backend requests. Returns promises.
  */
-function* handleAll (env, req) {
+function handleAll (env, req) {
     //yield requestPr(req);
-    return {
+    return Promise.resolve({
         body: 'mock body!',
         status: 200,
         headers: {}
-    };
+    });
 }
 
 // Register handler for end point
