@@ -32,34 +32,38 @@ var fs = require('fs'),
     app = {};
 
 // Load all handlers from the handlers directory
-function* loadHandlers (kind) {
-    var handlerNames = yield readdir('./handlers/' + kind),
-        handlers = [];
-    handlerNames.forEach(function(handlerName) {
-        try {
-            handlers.push(require(path.resolve('./handlers/'
-                        + kind + '/' + handlerName)));
-        } catch (e) {
-            log('error/handler', e, handlerName, e.stack);
-        }
+function loadHandlers (kind) {
+    return readdir('./handlers/' + kind)
+    .then(function(handlerNames) {
+        var handlers = [];
+        handlerNames.forEach(function(handlerName) {
+            try {
+                handlers.push(require(path.resolve('./handlers/'
+                            + kind + '/' + handlerName)));
+            } catch (e) {
+                log('error/handler', e, handlerName, e.stack);
+            }
+        });
+        return handlers;
     });
-    return handlers;
 }
 
-function* makeRouter (kind) {
+function makeRouter (kind) {
 	// Load routes & handlers
-    var handlers = yield* loadHandlers(kind);
-    var allRoutes = [];
-    handlers.forEach(function(handler) {
-        handler.routes.forEach(function(route) {
-            allRoutes.push({
-                pattern: route.path,
-                methods: route.methods
+    return loadHandlers(kind)
+    .then(function(handlers) {
+        var allRoutes = [];
+        handlers.forEach(function(handler) {
+            handler.routes.forEach(function(route) {
+                allRoutes.push({
+                    pattern: route.path,
+                    methods: route.methods
+                });
             });
         });
+        log('notice', kind, allRoutes);
+        return new RouteSwitch(allRoutes);
     });
-    log('notice', kind, allRoutes);
-    return new RouteSwitch(allRoutes);
 }
 
 // Optimized URL parsing
@@ -90,21 +94,20 @@ function parseURL (uri) {
 
 
 // Handle a single request
-function* handleRequestGen (req, resp) {
+function handleRequest (req, resp) {
     //log('request', 'New request:', req.url);
     var urlData = parseURL(req.url);
 
     // Create the virtual HTTP service
     var verbs = new Verbs(null, {}, app.frontendRouter, app.backendRouter);
-    try {
-        var newReq = {
-            uri: urlData.pathname,
-            query: urlData.query,
-            method: req.method.toLowerCase(),
-            headers: req.headers
-        };
-        var response = yield* verbs.request(newReq);
-
+    var newReq = {
+        uri: urlData.pathname,
+        query: urlData.query,
+        method: req.method.toLowerCase(),
+        headers: req.headers
+    };
+    return verbs.request(newReq)
+    .then(function(response) {
         var body = response.body;
         if (body) {
             // Convert to a buffer
@@ -113,35 +116,37 @@ function* handleRequestGen (req, resp) {
             } else if (body.constructor !== Buffer) {
                 body = new Buffer(body);
             }
-            response.headers['Connection'] = 'close';
+            response.headers.Connection = 'close';
             response.headers['Content-Length'] = body.length;
             resp.writeHead(response.status || 500, '', response.headers);
             resp.end(body);
         }
-
-    } catch (e) {
+    })
+    .catch (function(e) {
         log('error/request', e, e.stack);
-		// XXX: proper error reporting
-		resp.writeHead(500, "Internal error");
+        // XXX: proper error reporting
+        resp.writeHead(500, "Internal error");
         resp.end(e);
-    }
+    });
 }
-var handleRequest = Promise.async(handleRequestGen);
-
 
 // Main app setup
-function* mainGen() {
+function main() {
     // Load handlers & set up routers
-    app.frontendRouter = yield* makeRouter('frontend');
-    app.backendRouter = yield* makeRouter('backend');
-
-    var server = http.createServer(handleRequest);
-    server.listen(8888);
-    yield log('notice', 'listening on port 8888');
+    return Promise.all([
+            makeRouter('frontend'),
+            makeRouter('backend')
+            ])
+    .then(function(routers) {
+        app.frontendRouter = routers[0];
+        app.backendRouter = routers[1];
+        var server = http.createServer(handleRequest);
+        server.listen(8888);
+        log('notice', 'listening on port 8888');
+    })
+    .catch(function(e) {
+        log('error', e, e.stack);
+    });
 }
-var main = Promise.async(mainGen);
 
-main()
-.catch(function(e) {
-	log('error', e, e.stack);
-});
+main();
