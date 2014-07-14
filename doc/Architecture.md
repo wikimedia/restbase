@@ -80,3 +80,51 @@ RestFace {html,data-mw} -> Parsoid
     {wikitext,sanitized html, data-mw, data-parsoid} -> Storage Service
     <- {sanitized HTML,revision}
 ```
+
+## Namespacing: separate storoid / svc prefix
+### Advantages
+- makes mapping onto backend easy (storoid backend)
+- rules out conflicts, can create arbitrary buckets
+- clean urls for both buckets & services, no need for special prefixes
+- could map DNS to different backends
+    - although use case questionable; can also map popular entry points to
+      different backend in Varnish
+
+### Disadvantages
+- Not 100% obvious what's a service & what storage -- users should not care
+- Most entry points habe bits of both
+- Converting one to the other would imply name change
+
+### Pure service use cases: don't use storoid
+- search / action=query type stuff
+- citation service; actually likely to use storage later (cache)
+- PHP API:
+    - feeds: recent changes, contributions
+    - purge
+    - emailuser
+    - globalblock
+    - abusefilter\*
+    - pagetriage\*
+    - titleblacklist
+
+### Other considerations
+- Still need a separation between public buckets (pages etc) and private ones
+- Prefix by `_feature`
+```
+/_search_foo/
+```
+
+## Integrating RestFace & Storoid
+### Advantages
+- Lower latency on fast / common read path
+
+### Disadvantages
+- Potential for higher store read latency if expensive operations are
+  performed in main workers
+    - but also true if all store requests are routed through restface
+    - address this with separate threads / servers for expensive ops
+
+### Challenges
+- want a clearly defined interface between front-end & back-end code, so that
+  we could separate the two later
+
