@@ -127,4 +127,5 @@ RestFace {html,data-mw} -> Parsoid
 ### Challenges
 - want a clearly defined interface between front-end & back-end code, so that
   we could separate the two later
+- make storoid handler a restface backend handler
 

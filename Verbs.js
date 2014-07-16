@@ -30,6 +30,7 @@ Verbs.prototype.request = function request (req) {
                 status: 404,
             });
         }
+        req.params = backendMatch.params;
         handler = backendMatch.route.methods[req.method]
                     || backendMatch.route.methods.all;
     } else {
@@ -42,6 +43,10 @@ Verbs.prototype.request = function request (req) {
         if (this.route === null) {
             this.route = frontEndMatch.route;
         }
+        req.params = frontEndMatch.params;
+    }
+    if (!req.query) {
+        req.query = {};
     }
     return handler.handler(this, req);
 };

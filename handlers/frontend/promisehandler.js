@@ -17,7 +17,7 @@ function handleGet (env, req) {
             return beResp;
         } else if (beResp.status === 404) {
             // Try to generate HTML on the fly by calling Parsoid
-            return env.GET('/v1/_parsoid/' + env.account + env.req.uri)
+            return env.GET('/v1/_parsoid/' + env.account + req.uri)
             .then(function(parsoidResp) {
                 // handle the response from Parsoid
                 if (parsoidResp.status === 200) {

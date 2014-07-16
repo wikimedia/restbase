@@ -21,9 +21,7 @@
   },
   "homepage": "https://github.com/gwicke/restface",
   "dependencies": {
-    "express": "^4.3.0",
     "prfun": "^0.1.0",
-    "path-to-regexp": "^0.2.1",
-    "routeswitch": "~0.1.0"
+    "routeswitch": "^0.2.3"
   }
 }

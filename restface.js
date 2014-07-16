@@ -10,64 +10,27 @@
  * ab -c10 -n10000 'http://localhost:8888/v1/enwiki/pages/foo/rev/latest/html'
  */
 
-var fs = require('fs'),
-    path = require('path'),
-    prfun = require('prfun'),
-    url = require('url'),
-    qs = require('querystring'),
-    RouteSwitch = require('routeswitch'),
-    Verbs = require('./Verbs'),
-    pathToRegexp = require('path-to-regexp'),
-    readdir = Promise.promisify(fs.readdir),
-    http = require('http'),
+var fs = require('fs');
+//var prfun = require('prfun');
+var Verbs = require('./Verbs');
+var http = require('http');
+var url = require('url');
+var RouteSwitch = require('routeswitch');
+
     // TODO: use bunyan or the Parsoid logger backend!
-    log = function (level) {
-        var msg = JSON.stringify(Array.prototype.slice.call(arguments), null, 2);
-        if (/^error/.test(level)) {
-            console.error(msg);
-        } else {
-            console.log(msg);
-        }
-    },
-    app = {};
-
-// Load all handlers from the handlers directory
-function loadHandlers (kind) {
-    return readdir('./handlers/' + kind)
-    .then(function(handlerNames) {
-        var handlers = [];
-        handlerNames.forEach(function(handlerName) {
-            try {
-                handlers.push(require(path.resolve('./handlers/'
-                            + kind + '/' + handlerName)));
-            } catch (e) {
-                log('error/handler', e, handlerName, e.stack);
-            }
-        });
-        return handlers;
-    });
-}
-
-function makeRouter (kind) {
-	// Load routes & handlers
-    return loadHandlers(kind)
-    .then(function(handlers) {
-        var allRoutes = [];
-        handlers.forEach(function(handler) {
-            handler.routes.forEach(function(route) {
-                allRoutes.push({
-                    pattern: route.path,
-                    methods: route.methods
-                });
-            });
-        });
-        log('notice', kind, allRoutes);
-        return new RouteSwitch(allRoutes);
-    });
-}
+var log = function (level) {
+    var msg = JSON.stringify(Array.prototype.slice.call(arguments), null, 2);
+    if (/^error/.test(level)) {
+        console.error(msg);
+    } else {
+        console.log(msg);
+    }
+};
+var app = {};
 
 // Optimized URL parsing
-// XXX: contribute patch to node proper?
+var qs = require('querystring');
+// Should make it into 0.12, see https://github.com/joyent/node/pull/7878
 var SIMPLE_PATH = /^(\/(?!\/)[^\?#\s]*)(\?[^#\s]*)?$/;
 function parseURL (uri) {
     // Fast path for simple path uris
@@ -92,7 +55,6 @@ function parseURL (uri) {
     }
 }
 
-
 // Handle a single request
 function handleRequest (req, resp) {
     //log('request', 'New request:', req.url);
@@ -108,6 +70,7 @@ function handleRequest (req, resp) {
     };
     return verbs.request(newReq)
     .then(function(response) {
+        console.log('resp', response);
         var body = response.body;
         if (body) {
             // Convert to a buffer
@@ -120,7 +83,11 @@ function handleRequest (req, resp) {
             response.headers['Content-Length'] = body.length;
             resp.writeHead(response.status || 500, '', response.headers);
             resp.end(body);
+        } else {
+            resp.writeHead(response.status || 500, '', response.headers);
+            resp.end();
         }
+
     })
     .catch (function(e) {
         log('error/request', e, e.stack);
@@ -134,8 +101,8 @@ function handleRequest (req, resp) {
 function main() {
     // Load handlers & set up routers
     return Promise.all([
-            makeRouter('frontend'),
-            makeRouter('backend')
+            RouteSwitch.fromHandlers('./handlers/frontend', log),
+            RouteSwitch.fromHandlers('./handlers/backend', log)
             ])
     .then(function(routers) {
         app.frontendRouter = routers[0];
