@@ -39,15 +39,15 @@ Usage
 ```sh
 # add a new revision
 curl -d "_timestamp=`date -Iseconds`&_rev=1234&wikitext=some wikitext `date -Iseconds`"\
-  http://localhost:8888/v1/en.wikipedia.org/page/Foo/rev/latest/wikitext
+  http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/latest/wikitext
 # fetch the latest revision
-curl http://localhost:8888/v1/en.wikipedia.org/page/Foo/rev/latest/wikitext
+curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/latest/wikitext
 # fetch a specific MediaWiki revision ID:
-curl http://localhost:8888/v1/en.wikipedia.org/page/Foo/rev/1234/wikitext
+curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/1234/wikitext
 # fetch the wikitext at or before a given date
-curl http://localhost:8888/v1/en.wikipedia.org/page/Foo/rev/`date -Iseconds`/wikitext
+curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/`date -Iseconds`/wikitext
 # fetch a specific uuid (adjust to uid returned when you added the revision)
-curl http://localhost:8888/v1/en.wikipedia.org/page/Foo/rev/6c745300-eb62-11e0-9234-0123456789ab/wikitext
+curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/6c745300-eb62-11e0-9234-0123456789ab/wikitext
 ```
 You can also benchmark the service with
 ```sh
