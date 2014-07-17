@@ -16,6 +16,7 @@ var Verbs = require('./Verbs');
 var http = require('http');
 var url = require('url');
 var RouteSwitch = require('routeswitch');
+var Busboy = require('busboy');
 
     // TODO: use bunyan or the Parsoid logger backend!
 var log = function (level) {
@@ -55,22 +56,61 @@ function parseURL (uri) {
     }
 }
 
+// Parse a POST request into request.body with BusBoy
+// Drops file uploads on the floor without creating temporary files
+//
+// @param {request} HTTP request
+// @returns {Promise<>}
+function parsePOST(req) {
+    if (req.method.toLowerCase() !== 'post') {
+        return Promise.resolve();
+    } else {
+        return new Promise(function(resolve) {
+            // Parse POST data
+            var bboy = new Busboy({
+                headers: req.headers,
+                // Increase the form field size limit from the 1M default.
+                limits: { fieldSize: 15 * 1024 * 1024 }
+            });
+            req.body = req.body || {};
+            bboy.on('field', function (field, val) {
+                req.body[field] = val;
+            });
+            bboy.on('finish', function () {
+                resolve();
+            });
+            req.pipe(bboy);
+        });
+    }
+}
+
+
 // Handle a single request
 function handleRequest (req, resp) {
-    //log('request', 'New request:', req.url);
-    var urlData = parseURL(req.url);
 
-    // Create the virtual HTTP service
-    var verbs = new Verbs(null, {}, app.frontendRouter, app.backendRouter);
-    var newReq = {
-        uri: urlData.pathname,
-        query: urlData.query,
-        method: req.method.toLowerCase(),
-        headers: req.headers
-    };
-    return verbs.request(newReq)
+    // Start off by parsing any POST data with BusBoy
+    return parsePOST(req)
+
+    // Then process the request
+    .then(function() {
+        // Create the virtual HTTP service
+        var verbs = new Verbs(null, {}, app.frontendRouter, app.backendRouter);
+
+        // Create a new, clean request object
+        var urlData = parseURL(req.url);
+        var newReq = {
+            uri: urlData.pathname,
+            query: urlData.query,
+            method: req.method.toLowerCase(),
+            headers: req.headers,
+            body: req.body
+        };
+        return verbs.request(newReq);
+    })
+
+    // And finally handle the response
     .then(function(response) {
-        console.log('resp', response);
+        //console.log('resp', response);
         var body = response.body;
         if (body) {
             // Convert to a buffer
@@ -78,6 +118,9 @@ function handleRequest (req, resp) {
                 body = new Buffer(JSON.stringify(body));
             } else if (body.constructor !== Buffer) {
                 body = new Buffer(body);
+            }
+            if (!response.headers) {
+                response.headers = {};
             }
             response.headers.Connection = 'close';
             response.headers['Content-Length'] = body.length;

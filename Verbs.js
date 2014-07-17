@@ -28,6 +28,7 @@ Verbs.prototype.request = function request (req) {
         if (!backendMatch) {
             return Promise.resolve({
                 status: 404,
+                body: 'No backend found!'
             });
         }
         req.params = backendMatch.params;
