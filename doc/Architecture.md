@@ -45,6 +45,25 @@ Data Flow
 - might need some kind of key per handler x bucket
     - although same would be true for other services
 
+## Making Storoid a backend of RestFace
+### Advantages
+- Those mentioned for Going through RestFace
+- Lower latency on fast / common read path by avoiding a network hop
+
+### Disadvantages
+- Potential for higher store read latency if expensive operations are
+  performed in main workers
+    - but also true if all store requests are routed through restface
+    - address this with separate threads / servers for expensive ops
+
+### Challenges
+- want a clearly defined interface between front-end & back-end code, so that
+  we could separate the two later
+- Solution: Make storoid handler a restface backend handler using a HTTP
+  request interface. The narrow HTTP interface makes it easy to run Storoid as
+  a separate service later.
+
+
 Use cases
 =========
 
@@ -109,23 +128,8 @@ RestFace {html,data-mw} -> Parsoid
 
 ### Other considerations
 - Still need a separation between public buckets (pages etc) and private ones
-- Prefix by `_feature`
+- Prefix by `_feature` ?
 ```
 /_search_foo/
 ```
-
-## Integrating RestFace & Storoid
-### Advantages
-- Lower latency on fast / common read path
-
-### Disadvantages
-- Potential for higher store read latency if expensive operations are
-  performed in main workers
-    - but also true if all store requests are routed through restface
-    - address this with separate threads / servers for expensive ops
-
-### Challenges
-- want a clearly defined interface between front-end & back-end code, so that
-  we could separate the two later
-- make storoid handler a restface backend handler
 
