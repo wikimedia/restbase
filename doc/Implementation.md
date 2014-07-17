@@ -113,7 +113,7 @@ Map of response HTTP headers.
 Status: Design draft. Feedback wanted.
 
 Lightweight HTTP transaction requests are a collection of requests whose
-execution is conditional on a primary request suceeding. Typically the primary
+execution is conditional on a primary request succeeding. Typically the primary
 request is made conditional using HTTP `If-Match`, `If-None-Match` and similar
 headers. This allows for atomic updates to a primary entity while avoiding
 *lost updates*.
