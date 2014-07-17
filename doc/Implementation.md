@@ -118,6 +118,10 @@ request is made conditional using HTTP `If-Match`, `If-None-Match` and similar
 headers. This allows for atomic updates to a primary entity while avoiding
 *lost updates*.
 
+The transaction executor ensures that all dependent requests are performed
+after a successful primary request, even if the executor goes down in the
+middle of the transaction, or the client connection is lost.
+
 The collection of requests is encoded as JSON, reusing the request spec above:
 ```javascript
 {
@@ -166,3 +170,34 @@ The collection of requests is encoded as JSON, reusing the request spec above:
 
 Within restface, the base64 transfer-encoding is automatically managed for
 Buffer `body` objects in a JavaScript HTTP transaction object.
+
+
+The response mirrors the structure of the request object:
+```javascript
+{
+    status: 200, -- status of primary request
+    headers: {
+        'Content-Type':
+            'application/json;profile=http://mediawiki.org/schema/transaction_response'
+    },
+    body: {
+        primary: {
+            status: 200,
+            body: 'response body',
+            headers: {
+                ...
+            }
+        },
+        dependents: [
+            {
+                status: 200,
+                headers: {}
+            },
+            {
+                status: 200,
+                headers: {}
+            }
+        ]
+    }
+}
+```
