@@ -38,9 +38,9 @@ Goals for request library
 #### Request example
 ```javascript
 {
-    uri: '/v1/foo', -- required
-    -- optional from here
-    method: 'GET', -- default: 'GET',
+    uri: '/v1/foo', // required
+    // optional from here
+    method: 'GET', // default: 'GET',
     query: {
         q: 'some query parameter'
     }
@@ -82,8 +82,8 @@ Request data:
 #### Response example
 ```javascript
 {
-    body: 'Hello world', -- default: ''
-    status: 200, -- default: 200
+    body: 'Hello world', // default: ''
+    status: 200, // default: 200
     headers: {
         'Cache-control': 'no-cache'
     }
@@ -150,8 +150,8 @@ The collection of requests is encoded as JSON, reusing the request spec above:
                     'Content-type':
                       'application/json;profile=https://mediawiki.org/specs/foo'
                 },
-                // inline json support?
-                body_json: {..}
+                // Objects implicitly serialized to JSON
+                body: {..}
             },
             // binary content using base64 encoding
             {
@@ -161,15 +161,14 @@ The collection of requests is encoded as JSON, reusing the request spec above:
                     'Content-type': 'image/png',
                     'Content-transfer-encoding': 'base64'
                 },
+                // Binary data is transmitted as base64 string; Automatically
+                // handled in restface for Buffer objects.
                 body: 'aGVsbG8gd29ybG..'
             }
         ]
     }
 }
 ```
-
-Within restface, the base64 transfer-encoding is automatically managed for
-Buffer `body` objects in a JavaScript HTTP transaction object.
 
 
 The response mirrors the structure of the request object:

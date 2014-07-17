@@ -14,7 +14,7 @@ module.exports = {
         {
             path: '/v1/helloworld',
             methods: {
-                all: {
+                ALL: {
                     handler: handleAll,
                     doc: { /* swagger docs */
                         "summary": "Mock 'hello world' handler for benchmarking purposes.",

@@ -33,11 +33,11 @@ Verbs.prototype.request = function request (req) {
         }
         req.params = backendMatch.params;
         handler = backendMatch.route.methods[req.method]
-                    || backendMatch.route.methods.all;
+                    || backendMatch.route.methods.ALL;
     } else {
         // call the frount-end route
         handler = frontEndMatch.route.methods[req.method]
-                    || frontEndMatch.route.methods.all ;
+                    || frontEndMatch.route.methods.ALL ;
         if (!handler) {
             throw new Error('No handler found for ' + req.method + ' ' + req.uri);
         }
@@ -77,47 +77,47 @@ function makeRequest (args, method) {
 }
 
 Verbs.prototype.GET = function GET (uri, req) {
-    return this.request(makeRequest(arguments, 'get'));
+    return this.request(makeRequest(arguments, 'GET'));
 };
 
 Verbs.prototype.POST = function POST (uri, req) {
-    return this.request(makeRequest(arguments, 'put'));
+    return this.request(makeRequest(arguments, 'POST'));
 };
 
 Verbs.prototype.PUT = function PUT (uri, req) {
-    return this.request(makeRequest(arguments, 'put'));
+    return this.request(makeRequest(arguments, 'PUT'));
 };
 
 Verbs.prototype.DELETE = function DELETE (uri, req) {
-    return this.request(makeRequest(arguments, 'put'));
+    return this.request(makeRequest(arguments, 'DELETE'));
 };
 
 Verbs.prototype.HEAD = function HEAD (uri, req) {
-    return this.request(makeRequest(arguments, 'head'));
+    return this.request(makeRequest(arguments, 'HEAD'));
 };
 
 Verbs.prototype.OPTIONS = function OPTIONS (uri, req) {
-    return this.request(makeRequest(arguments, 'options'));
+    return this.request(makeRequest(arguments, 'OPTIONS'));
 };
 
 Verbs.prototype.TRACE = function TRACE (uri, req) {
-    return this.request(makeRequest(arguments, 'trace'));
+    return this.request(makeRequest(arguments, 'TRACE'));
 };
 
 Verbs.prototype.CONNECT = function CONNECT (uri, req) {
-    return this.request(makeRequest(arguments, 'connect'));
+    return this.request(makeRequest(arguments, 'CONNECT'));
 };
 
 Verbs.prototype.COPY = function COPY (uri, req) {
-    return this.request(makeRequest(arguments, 'copy'));
+    return this.request(makeRequest(arguments, 'COPY'));
 };
 
 Verbs.prototype.MOVE = function MOVE (uri, req) {
-    return this.request(makeRequest(arguments, 'move'));
+    return this.request(makeRequest(arguments, 'MOVE'));
 };
 
 Verbs.prototype.PURGE = function PURGE (uri, req) {
-    return this.request(makeRequest(arguments, 'purge'));
+    return this.request(makeRequest(arguments, 'PURGE'));
 };
 
 module.exports = Verbs;

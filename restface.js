@@ -62,7 +62,7 @@ function parseURL (uri) {
 // @param {request} HTTP request
 // @returns {Promise<>}
 function parsePOST(req) {
-    if (req.method.toLowerCase() !== 'post') {
+    if (req.method !== 'POST') {
         return Promise.resolve();
     } else {
         return new Promise(function(resolve) {
@@ -101,7 +101,7 @@ function handleRequest (req, resp) {
         var newReq = {
             uri: urlData.pathname,
             query: urlData.query,
-            method: req.method.toLowerCase(),
+            method: req.method,
             headers: req.headers,
             body: req.body
         };

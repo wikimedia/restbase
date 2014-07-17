@@ -41,7 +41,7 @@ module.exports = {
         {
             path: '/v1/{account}/pages/{title}/rev/{rev}/html',
             methods: {
-                get: {
+                GET: {
                     handler: handleGet,
                     doc: { /* swagger docs */
                         "summary": "Retrieves the HTML of a specific revision",
