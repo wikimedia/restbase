@@ -51,10 +51,18 @@ curl http://localhost:8888/v1/en.wikipedia.org/page/Foo/rev/6c745300-eb62-11e0-9
 ```
 You can also benchmark the service with
 ```sh
+// 'Hello world' backend
+ab -c 10 -n 10000 http://localhost:8888/v1/helloworld
+```
+This 'hello world' backend should yield around 4k req/s using node 0.10, and
+around 7k on node 0.11.
+
+The actual cassandra backend can be benchmarked with:
+```
 ab -c10 -n10000 'http://localhost:8888/v1/enwiki/pages/foo/rev/latest/wikitext'
 ```
-On a single core this currently yields around 1800req/s with a 95th percentile
-latency of 1ms.
+On a single core this currently yields around 3500req/s with a 95th percentile
+latency of 1ms. Using node 0.11 speeds this up to around 5700 req/s.
 
 Implementation goals
 ====================
