@@ -3,11 +3,8 @@
 /*
  * Simple RestFace server
  *
- * Using node 0.11+:
- *   node --harmony restface
- *
- * Simple benchmark:
- * ab -c10 -n10000 'http://localhost:8888/v1/enwiki/pages/foo/rev/latest/html'
+ * Dynamically loads & runs front & back-end handlers, and dispatches between
+ * them.
  */
 
 var fs = require('fs');
@@ -159,4 +156,8 @@ function main() {
     });
 }
 
-main();
+if (module.parent === null) {
+    main();
+} else {
+    module.exports = main;
+}
