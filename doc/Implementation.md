@@ -126,26 +126,30 @@ The collection of requests is encoded as JSON, reusing the request spec above:
 ```javascript
 {
     method: 'POST',
-    uri: '/v1/bucket/foo',
+    uri: '/v1/transactions/<uuid>',
     headers: {
         'Content-type':
-            'application/json;profile=https://mediawiki.org/schema/transaction'
+            'application/json;profile=https://mediawiki.org/schema/transaction',
+        // precondition for the entire transaction
+        'If-None-Match': '*'
     },
     body: {
         primary: {
             method: 'PUT',
-            uri: '/v1/bucket/foo',
+            uri: '/v1/bucket/foo/html',
             headers: {
-                'If-Match': 'abcde',
-                'Content-type': 'text/html'
+                'Content-type': 'text/html',
+                // ETag used as deterministic uuid by server
+                'ETag': '<uuid>'
             },
             // string body by default
             body: "<html>...</html>"
         },
         dependents: [
+            // should be idempotent
             {
                 method: 'PUT',
-                uri: '/bar',
+                uri: '/bar/<uuid>',
                 headers: {
                     'Content-type':
                       'application/json;profile=https://mediawiki.org/specs/foo'
@@ -156,7 +160,7 @@ The collection of requests is encoded as JSON, reusing the request spec above:
             // binary content using base64 encoding
             {
                 method: 'PUT',
-                uri: '/bar/image.png',
+                uri: '/bar/<hash>.png',
                 headers: {
                     'Content-type': 'image/png',
                     'Content-transfer-encoding': 'base64'
@@ -200,3 +204,31 @@ The response mirrors the structure of the request object:
     }
 }
 ```
+
+### Transaction execution and retry
+1. Save transaction to a global transaction table
+   `PUT /v1/transactions/<uuid>`
+2. Try to execute primary request, passing in ETag if provided
+    - Used by server for new revisioned content
+3. Check primary request result.
+    - Precondition failure: Delete transaction and return error to the client.
+    - Success: Execute dependents unconditionally
+4. Replace transaction with its response structure & a short TTL
+5. Return success to client
+
+#### Recovery after coordinator failure
+Other requests check the transaction table for old transactions from other
+processes. If an old transaction is found, it is retried:
+
+1. Re-execute the primary request.
+    - On condition failure, check existence of entity suggested by ETag.
+      Return success if that exists, failure otherwise.
+2. Follow normal execution procedure (3 onwards)
+
+#### Figuring out the transaction state from a disconnected client
+A `GET /v1/transactions/<uuid>` will return
+- 40x if the uuid is too far in the past (short TTL)
+- 404 if the transaction was never performed
+- 200
+    - the original transaction is returned if it was not yet executed
+    - otherwise, the transaction result is returned

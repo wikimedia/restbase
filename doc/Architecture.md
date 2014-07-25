@@ -133,3 +133,6 @@ RestFace {html,data-mw} -> Parsoid
 /_search_foo/
 ```
 
+    -- Short keyspace prefix, max 8 chars
+    ksprefix text,
+
