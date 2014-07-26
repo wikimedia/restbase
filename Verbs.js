@@ -42,6 +42,7 @@ Verbs.prototype.request = function request (req) {
             throw new Error('No handler found for ' + req.method + ' ' + req.uri);
         }
         if (this.route === null) {
+            // XXX: There can still be indirect cycles here.
             this.route = frontEndMatch.route;
         }
         req.params = frontEndMatch.params;
