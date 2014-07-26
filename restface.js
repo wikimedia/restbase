@@ -119,8 +119,8 @@ function handleRequest (req, resp) {
             if (!response.headers) {
                 response.headers = {};
             }
-            response.headers.Connection = 'close';
-            response.headers['Content-Length'] = body.length;
+            response.headers.connection = 'close';
+            response.headers['content-length'] = body.length;
             resp.writeHead(response.status || 500, '', response.headers);
             resp.end(body);
         } else {
