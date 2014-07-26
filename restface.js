@@ -59,13 +59,32 @@ function parseURL (uri) {
 // @param {request} HTTP request
 // @returns {Promise<>}
 function parsePOST(req) {
-    if (req.method !== 'POST') {
+    if (req.method === 'PUT') {
+        return new Promise(function(resolve) {
+            var chunks = [];
+            req.on('data', function(chunk) {
+                chunks.push(chunk);
+            });
+
+            req.on('end', function() {
+                req.body = Buffer.concat(chunks);
+                resolve();
+            });
+        });
+    } else if (req.method !== 'POST') {
         return Promise.resolve();
     } else {
+        var headers = req.headers;
+        if (!headers['content-type']) {
+            headers = {
+                'content-type': 'application/binary'
+            };
+        }
+
         return new Promise(function(resolve) {
             // Parse POST data
             var bboy = new Busboy({
-                headers: req.headers,
+                headers: headers,
                 // Increase the form field size limit from the 1M default.
                 limits: { fieldSize: 15 * 1024 * 1024 }
             });
@@ -111,7 +130,7 @@ function handleRequest (req, resp) {
         var body = response.body;
         if (body) {
             // Convert to a buffer
-            if (body.constructor === Object) {
+            if (typeof body === 'object') {
                 body = new Buffer(JSON.stringify(body));
             } else if (body.constructor !== Buffer) {
                 body = new Buffer(body);
