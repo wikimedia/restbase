@@ -232,3 +232,6 @@ A `GET /v1/transactions/<uuid>` will return
 - 200
     - the original transaction is returned if it was not yet executed
     - otherwise, the transaction result is returned
+
+#### Similar libraries
+- [DynamoDB transaction library](http://java.awsblog.com/post/Tx13H2W58QMAOA7/Performing-Conditional-Writes-Using-the-Amazon-DynamoDB-Transaction-Library)
