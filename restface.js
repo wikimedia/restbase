@@ -130,10 +130,12 @@ function handleRequest (req, resp) {
         var body = response.body;
         if (body) {
             // Convert to a buffer
-            if (typeof body === 'object') {
-                body = new Buffer(JSON.stringify(body));
-            } else if (body.constructor !== Buffer) {
-                body = new Buffer(body);
+            if (!Buffer.isBuffer(body)) {
+                if (typeof body === 'object') {
+                    body = new Buffer(JSON.stringify(body));
+                } else  {
+                    body = new Buffer(body);
+                }
             }
             if (!response.headers) {
                 response.headers = {};
