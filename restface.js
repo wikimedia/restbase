@@ -8,6 +8,9 @@
  */
 
 var fs = require('fs');
+if (!global.Promise) {
+    global.Promise = require('bluebird');
+}
 //var prfun = require('prfun');
 var Verbs = require('./Verbs');
 var http = require('http');
