@@ -103,7 +103,6 @@ function parsePOST(req) {
     }
 }
 
-
 // Handle a single request
 function handleRequest (req, resp) {
 

@@ -11,25 +11,47 @@
 // Simple request handler
 function handleGet (env, req) {
     // Try the backend first
+    var p = req.params;
+    var backendURL = '/v1/' + p.domain + '/pages_T_html/' + p.title;
+    req.uri = backendURL;
+    if (p.revision !== undefined) {
+        req.uri += '/' + p.revision;
+    }
+    console.log(req.uri);
     return env.GET(req)
     .then(function(beResp) {
         if (beResp.status === 200) {
             return beResp;
         } else if (beResp.status === 404) {
             // Try to generate HTML on the fly by calling Parsoid
-            return env.GET('/v1/_parsoid/' + env.account + req.uri)
+            var prefix = {
+                'en.wikipedia.org': 'enwiki',
+                'de.wikipedia.org': 'dewiki',
+                'es.wikipedia.org': 'eswiki'
+            }[p.domain];
+            var parsoidURL = 'http://parsoid-lb.eqiad.wikimedia.org/' + prefix + '/' + p.title;
+            if (p.revision) {
+                // XXX: validate
+                url += '?oldid=' + p.revision;
+            }
+            return env.GET({ uri: parsoidURL })
             .then(function(parsoidResp) {
                 // handle the response from Parsoid
+                console.log(parsoidResp.status, parsoidResp.headers);
                 if (parsoidResp.status === 200) {
+                    console.log('PUT', backendURL);
                     // Asynchronously save back the HTML
                     env.PUT({
-                        uri: req.uri,
+                        uri: backendURL,
                         headers: parsoidResp.headers,
                         body: parsoidResp.body
                     });
                 }
                 // And return the response to the client
                 return parsoidResp;
+            })
+            .catch(function(err) {
+                console.error(err.stack);
             });
         }
     });
@@ -39,7 +61,12 @@ function handleGet (env, req) {
 module.exports = {
     routes: [
         {
-            path: '/v1/{account}/pages/{title}/rev/{rev}/html',
+            // TODO:
+            // - generalize for other content types
+            // - redirect /{title}/html to /{title}/html/{revision} (?)
+            // - redirect /{title} to /{title}/html/{revision}
+            // - support MediaWiki oldids
+            path: '/v1/{domain}/pages/{title}/html{/revision}',
             methods: {
                 GET: {
                     handler: handleGet,

@@ -68,8 +68,9 @@ Use cases
 =========
 
 Parsoid: 
-  GET html, data-parsoid, data-mw, wikitext
-  POST html, wikitext, json (transactions)
+- GET html, data-parsoid, data-mw, wikitext
+- POST html, wikitext, json (transactions)
+- /v1/transform/{wt2html,html2wt}
 
 
 ## POST html, data-mw to RestFace
