@@ -50,7 +50,14 @@ Verbs.prototype.request = function request (req) {
     if (!req.query) {
         req.query = {};
     }
-    return handler.handler(this, req);
+    if (handler) {
+        return handler.handler(this, req);
+    } else {
+        return Promise.resolve({
+            status: 404,
+            body: 'No backend found!'
+        });
+    }
 };
 
 // Generic parameter massaging:
