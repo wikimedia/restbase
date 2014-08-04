@@ -32,6 +32,10 @@ var cluster = require('cluster'),
         .alias( "n", "num-workers" ),
     argv = opts.argv;
 
+// Disable cluster RR balancing; direct socket sharing has better throughput /
+// lower overhead.
+cluster.schedulingPolicy = cluster.SCHED_NONE;
+
 if (cluster.isMaster && argv.n > 0) {
     var fs = require( "fs" ),
         path = require( "path" ),

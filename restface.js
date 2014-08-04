@@ -172,7 +172,10 @@ function main() {
         app.frontendRouter = routers[0];
         app.backendRouter = routers[1];
         var server = http.createServer(handleRequest);
-        server.listen(8888);
+        // Use a large listen queue
+        // Also, echo 1024 | sudo tee /proc/sys/net/core/somaxconn
+        // (from 128 default)
+        server.listen(8888, null, 6000);
         log('notice', 'listening on port 8888');
     })
     .catch(function(e) {
