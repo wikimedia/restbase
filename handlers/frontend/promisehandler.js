@@ -12,12 +12,12 @@
 function handleGet (env, req) {
     // Try the backend first
     var p = req.params;
-    var backendURL = '/v1/' + p.domain + '/pages_T_html/' + p.title;
+    var backendURL = '/v1/' + p.domain + '/pages.html/' + p.title;
     req.uri = backendURL;
     if (p.revision !== undefined) {
         req.uri += '/' + p.revision;
     }
-    console.log(req.uri);
+    //console.log(req.uri);
     return env.GET(req)
     .then(function(beResp) {
         if (beResp.status === 200) {
@@ -57,6 +57,11 @@ function handleGet (env, req) {
     });
 }
 
+function listPages (env, req) {
+    req.uri = req.uri.replace(/\/$/, '') + '.html/';
+    return env.GET(req);
+}
+
 // Register handler for end point
 module.exports = {
     routes: [
@@ -81,6 +86,54 @@ module.exports = {
                                 "message": "No HTML for page & revision found"
                             }
                         ]
+                    }
+                }
+            }
+        },
+        {
+            path: '/v1/{domain}/pages/',
+            methods: {
+                GET: {
+                    handler: listPages,
+                    doc: { /* swagger docs */
+                        "summary": "List all pages",
+                    }
+                }
+            }
+        },
+        {
+            path: '/v1/{domain}/pages/{title}',
+            methods: {
+                GET: {
+                    handler: function (env, req) {
+                        return {
+                            status: 302,
+                            headers: {
+                                location: req.uri + '/html'
+                            }
+                        };
+                    },
+                    doc: { /* swagger docs */
+                        "summary": "Redirect to HTML by default.",
+                    }
+                }
+            }
+        },
+        {
+            path: '/v1/{domain}/pages/{title}/',
+            methods: {
+                GET: {
+                    handler: function (env, req) {
+                        return {
+                            status: 200,
+                            headers: {
+                                'content-type': 'application/json'
+                            },
+                            body: ['html', 'data-mw', 'data-parsoid']
+                        };
+                    },
+                    doc: { /* swagger docs */
+                        "summary": "List the publicly accessible content types.",
                     }
                 }
             }

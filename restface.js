@@ -129,8 +129,8 @@ function handleRequest (req, resp) {
     // And finally handle the response
     .then(function(response) {
         //console.log('resp', response);
-        var body = response.body;
-        if (body) {
+        if (response && response.body) {
+            var body = response.body;
             // Convert to a buffer
             if (!Buffer.isBuffer(body)) {
                 if (typeof body === 'object') {
@@ -147,8 +147,10 @@ function handleRequest (req, resp) {
             resp.writeHead(response.status || 500, '', response.headers);
             resp.end(body);
         } else {
-            resp.writeHead(response.status || 500, '', response.headers);
-            resp.end();
+            resp.writeHead(response && response.status || 500, '', response && response.headers);
+            resp.end(JSON.stringify({
+                message: 'No content returned'
+            }));
         }
 
     })
@@ -156,7 +158,7 @@ function handleRequest (req, resp) {
         log('error/request', e, e.stack);
         // XXX: proper error reporting
         resp.writeHead(500, "Internal error");
-        resp.end(e);
+        resp.end(e.stack);
     });
 }
 
