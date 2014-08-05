@@ -129,7 +129,7 @@ module.exports = {
                             headers: {
                                 'content-type': 'application/json'
                             },
-                            body: ['html', 'data-mw', 'data-parsoid']
+                            body: ['html', 'wikitext', 'data-mw', 'data-parsoid']
                         };
                     },
                     doc: { /* swagger docs */
