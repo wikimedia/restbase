@@ -21,9 +21,9 @@
   },
   "homepage": "https://github.com/gwicke/restface",
   "dependencies": {
-    "prfun": "^0.1.0",
-    "routeswitch": "^0.2.3",
-    "busboy": "^0.2.8",
-    "bluebird": "^2.2.2"
+    "prfun": "~0.1.0",
+    "routeswitch": "~0.2.3",
+    "busboy": "~0.2.8",
+    "bluebird": "~2.2.2"
   }
 }
