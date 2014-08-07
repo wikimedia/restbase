@@ -1,3 +1,0 @@
-[submodule "handlers/backend/rashomon"]
-	path = handlers/backend/rashomon
-	url = git@github.com:gwicke/rashomon.git
