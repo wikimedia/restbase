@@ -58,6 +58,9 @@ module.exports = {
                         "notes": "Useful for measuring the overhead of the restface stack"
                     }
                 }
+            },
+            doc: {
+                summary: "Generic HTTPS? backend handler",
             }
         }
     ]

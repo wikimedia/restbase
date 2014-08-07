@@ -9,7 +9,7 @@
 */
 
 // Simple request handler
-function handleGet (env, req) {
+function handleItem (env, req) {
     // Try the backend first
     var p = req.params;
     var backendURL = '/v1/' + p.domain + '/pages.html/' + p.title;
@@ -73,8 +73,19 @@ module.exports = {
             // - support MediaWiki oldids
             path: '/v1/{domain}/pages/{title}/html{/revision}',
             methods: {
+                PUT: {
+                    handler: function (env, req) {
+                        var p = req.params;
+                        var backendURL = '/v1/' + p.domain + '/pages.html/' + p.title;
+                        if (p.revision) {
+                            backendURL += '/' + p.revision;
+                        }
+                        req.uri = backendURL;
+                        return env.PUT(req);
+                    }
+                },
                 GET: {
-                    handler: handleGet,
+                    handler: handleItem,
                     doc: { /* swagger docs */
                         "summary": "Retrieves the HTML of a specific revision",
                         "notes": "Returns HTML+RDFa.",
