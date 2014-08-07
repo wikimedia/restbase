@@ -26,8 +26,6 @@ cd handlers/backend
 git clone https://github.com/gwicke/rashomon.git
 cd rashomon
 npm install
-// create the keyspace and tables as documented in cassandra-revisions.cql
-cqlsh < buckets/revisioned-blob/cassandra/tables.cql
 
 // start the server
 cd ../../
@@ -37,32 +35,32 @@ node restface
 Usage
 -----
 ```sh
-# add a new revision
-curl -d "_timestamp=`date -Iseconds`&_rev=1234&wikitext=some wikitext `date -Iseconds`"\
-  http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/latest/wikitext
-# fetch the latest revision
-curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/latest/wikitext
-# fetch a specific MediaWiki revision ID:
-curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/1234/wikitext
-# fetch the wikitext at or before a given date
-curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/`date -Iseconds`/wikitext
-# fetch a specific uuid (adjust to uid returned when you added the revision)
-curl http://localhost:8888/v1/en.wikipedia.org/pages/Foo/rev/6c745300-eb62-11e0-9234-0123456789ab/wikitext
-```
-You can also benchmark the service with
-```sh
-// 'Hello world' backend
-ab -c 10 -n 10000 http://localhost:8888/v1/helloworld
-```
-This 'hello world' backend should yield around 4k req/s using node 0.10, and
-around 7k on node 0.11.
+# add a new domain (TODO: accept config)
+curl -X PUT http://localhost:8888/v1/en.wikipedia.org
 
+# add a new bucket to a domain (somewhat magic currently)
+curl -X PUT http://localhost:8888/v1/en.wikipedia.org/pages.html
+
+# add an entry
+curl -X PUT -d 'hello world' -H 'content-type: text/html' \
+    http://localhost:8888/v1/en.wikipedia.org/pages/Test/html
+
+# Retrieve HTML
+curl http://localhost:8888/v1/en.wikipedia.org/pages/{page}/html
+
+# Some listings:
+## All keys in bucket
+curl http://localhost:8888/v1/en.wikipedia.org/pages/
+## Properties for an item
+curl http://localhost:8888/v1/en.wikipedia.org/pages/{page}/
+## Revisions for a property
+curl http://localhost:8888/v1/en.wikipedia.org/pages/{page}/html/
+```
 The actual cassandra backend can be benchmarked with:
 ```
-ab -c10 -n10000 'http://localhost:8888/v1/enwiki/pages/foo/rev/latest/wikitext'
+ab -c10 -n10000 'http://localhost:8888/v1/en.wikipedia.org/pages/Test/html'
 ```
-On a single core this currently yields around 3500req/s with a 95th percentile
-latency of 1ms. Using node 0.11 speeds this up to around 5700 req/s.
+This currently yields around 2500 req/s on node 0.10.
 
 Implementation goals
 ====================
