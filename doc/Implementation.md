@@ -5,11 +5,11 @@ Data flow inside RestFace
 -------------------------
 ```
 frontend handler
--> frontend req handlers
--> request opts
--> getHandler
--> backendHandler()
-  handler can use retrying request wrapper
+-> Verbs.request 
+    front-end router
+    -> if match != current FE handler: call it
+       else: try backend router
+        -> if backend handler match: call it
 ```
 
 ### When to go to the backend
