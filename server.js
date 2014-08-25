@@ -33,7 +33,8 @@ var cluster = require('cluster'),
     argv = opts.argv;
 
 // Disable cluster RR balancing; direct socket sharing has better throughput /
-// lower overhead.
+// lower overhead. Also bump up somaxconn with this command:
+// sudo sysctl -w net.core.somaxconn=4096
 cluster.schedulingPolicy = cluster.SCHED_NONE;
 
 if (cluster.isMaster && argv.n > 0) {
