@@ -16,8 +16,7 @@ frontend handler
 when it would match the same front-end handler function
 
 
-API docs
---------
+## API docs
 - swagger most popular by far
     - some mock tools
     - bottom-up
@@ -27,11 +26,6 @@ API docs
     - JSON schema hypermedia http://json-schema.org/latest/json-schema-hypermedia.html
 
 
-Goals for request library
---------------------------
-- retrying request wrapper
-- more consistent API
-  can use request data for new request or response ('echo')
 
 ## Request & response format
 ### Request
@@ -134,23 +128,22 @@ The collection of requests is encoded as JSON, reusing the request spec above:
         'If-None-Match': '*'
     },
     body: {
-        primary: {
-            method: 'PUT',
-            uri: '/v1/bucket/foo/html',
-            headers: {
-                'Content-type': 'text/html',
-                // ETag used as deterministic uuid by server
-                'ETag': '<uuid>'
-            },
-            // string body by default
-            body: "<html>...</html>"
+        method: 'PUT',
+        uri: '/v1/bucket/foo/html',
+        headers: {
+            'Content-type': 'text/html',
+            // ETag used as deterministic uuid by server
+            'If-Match': '<uuid>'
         },
-        dependents: [
+        // string body by default
+        body: "<html>...</html>"
+        then: [
             // should be idempotent
             {
                 method: 'PUT',
                 uri: '/bar/<uuid>',
                 headers: {
+                    'if-match': '<uuid>',
                     'Content-type':
                       'application/json;profile=https://mediawiki.org/specs/foo'
                 },
@@ -184,14 +177,12 @@ The response mirrors the structure of the request object:
             'application/json;profile=http://mediawiki.org/schema/transaction_response'
     },
     body: {
-        primary: {
-            status: 200,
-            body: 'response body',
-            headers: {
-                ...
-            }
+        status: 200,
+        body: 'response body',
+        headers: {
+            ...
         },
-        dependents: [
+        then: [
             {
                 status: 200,
                 headers: {}
@@ -208,6 +199,7 @@ The response mirrors the structure of the request object:
 ### Transaction execution and retry
 1. Save transaction to a global transaction table
    `PUT /v1/transactions/<uuid>`
+    - or use a queue to avoid accumulating a large number of tombstones
 2. Try to execute primary request, passing in ETag if provided
     - Used by server for new revisioned content
 3. Check primary request result.
@@ -233,5 +225,26 @@ A `GET /v1/transactions/<uuid>` will return
     - the original transaction is returned if it was not yet executed
     - otherwise, the transaction result is returned
 
+#### App-level consististency of secondary updates on retry
+##### Use case: secondary index updates
+**Update strategy**: Retrieve original data (if any) & figure out necessary index updates
+by looking for changed indexed attributes. Schedule those as dependent updates
+in an internal light-weight transaction.
+
+**Challenge**: Retried index updates should not result in an inconsistent index.
+
+Example execution:
+1. T1 partly successful
+2. T2 successful
+3. T1 secondary updates retried
+Results:
+- possibly lost index entries if T1 removed entries that T2 added
+- possibly extra index entries if T1 added entries that T2 removed
+
+**Solution**: Assign a writetime to the entire transaction, and use this for
+both the primary & all retried dependent updates. The fixed writetime makes
+dependent updates idempotent. Re-execute dependents of both T1 and T2
+in-order.
+    
 #### Similar libraries
 - [DynamoDB transaction library](http://java.awsblog.com/post/Tx13H2W58QMAOA7/Performing-Conditional-Writes-Using-the-Amazon-DynamoDB-Transaction-Library)
