@@ -234,9 +234,11 @@ in an internal light-weight transaction.
 **Challenge**: Retried index updates should not result in an inconsistent index.
 
 Example execution:
+
 1. T1 partly successful
 2. T2 successful
 3. T1 secondary updates retried
+
 Results:
 - possibly lost index entries if T1 removed entries that T2 added
 - possibly extra index entries if T1 added entries that T2 removed
