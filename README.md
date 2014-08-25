@@ -60,7 +60,8 @@ The actual cassandra backend can be benchmarked with:
 ```
 ab -c10 -n10000 'http://localhost:8888/v1/en.wikipedia.org/pages/Test/html'
 ```
-This currently yields around 2500 req/s on node 0.10.
+This currently yields around 2900 req/s on node 0.10 for small blobs, and
+around 5GBit for large (3mb) blobs.
 
 Implementation goals
 ====================
