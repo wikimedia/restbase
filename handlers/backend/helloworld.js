@@ -1,5 +1,9 @@
 "use strict";
 
+// Simplistic static backend handler
+//
+// Primarily useful for baseline performance measurements of front-end
+// handlers & the dispatcher machinery.
 function handleAll (env, req) {
     //yield requestPr(req);
     return Promise.resolve({
