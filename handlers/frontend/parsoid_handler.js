@@ -1,14 +1,6 @@
 "use strict";
-/*
-### Alternative version with ES6 promises, but without generators
 
-- Disadvantage: slightly uglier & more verbose than generators.
-- Advantage: Compatible with node 0.10 using for example es6-shim. Native
-  promise implementation is in Node 0.11+.
-- Can be optimized in node 0.11, while generators can't yet
-*/
-
-// Simple request handler
+// Simple Parsoid request handler
 function handleItem (env, req) {
     // Try the backend first
     var p = req.params;
