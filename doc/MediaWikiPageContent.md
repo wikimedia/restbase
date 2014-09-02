@@ -4,11 +4,18 @@
 - public API implemented in front-end handler
 
 ## API
+### `GET /v1/en.wikipedia.org/pages/`
+List pages.
+
+### `GET /v1/en.wikipedia.org/pages/?ts=20140101T20:23:22.100Z`
+List pages, consistent snapshot at a specific time.
+
 ### `GET /v1/en.wikipedia.org/pages/{name}`
-Redirects to `/v1/en.wikipedia.org/pages/{name}/html`
+Redirects to `/v1/en.wikipedia.org/pages/{name}/html`, which returns the
+latest HTML.
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/`
-Lists properties
+Lists available properties
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/{html|wikitext|data-mw|data-parsoid}`
 Returns the *latest* HTML / wikitext / ..
@@ -23,7 +30,10 @@ Lists MediaWiki revisions for the given page.
 Get metadata for the given revision (e.g. user, timestamp, edit message).
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/html/12345`
-Redirects to the corresponding timeuuid-based URL
+Main entry point for Parsoid HTML currently.
+
+Redirects to the corresponding timeuuid-based URL, or directly returns the
+HTML (would need purging on re-render / refreshlinks)
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/html/12345`
 Returns HTML content for the given revision. Could also redirect to the
@@ -39,34 +49,64 @@ Returns content as it looked at the given time.
 Table:
 ```javascript
 {
-    name: 'mw_revs',
+    name: 'pages.revisions',
     attributes: {
-        name: 'string',
-        mw_rev: 'varint',
+        // listing: /pages.history/Barack_Obama/
+        // @specific time: /pages.history/Barack_Obama/20140312T20:22:33.3Z
+        key: 'string',
+        branch: 'string', // normally 'master'
         tid: 'timeuuid',
-        latest_tid: 'timeuuid',
+        rev: 'varint',
+        latest_tid: 'timeuuid', // static
+        tombstone: 'boolean',   // page was deleted
         // revision metadata
-        user: 'text',
-        info: 'json' // comment etc
+        user: 'string',
+        wikitext_size: varint,
+        info: 'json' // comment, wikitext size etc
     },
     index: {
-        hash: 'name',
-        range: 'mw_rev',
+        hash: 'key',
+        range: 'tid',
         order: 'asc', // get first *two* entries to determine tid limit
         static: 'latest_tid'
     },
     secondaryIndexes: {
-        by_rev: {
-            range: 'mw_rev', // Need range queries on mw_rev
-            proj: ['name', 'tid']
+        // accessible as: /pages.history//rev/12345
+        // @specific time: /pages.history//rev/12345/20140312T20:22:33.3Z
+        rev: {
+            hash: 'rev',
+            range: ['tid','key'],
+            order: ['desc','asc'], // easy to select the latest entry
+            proj: ['tombstone']
         }
     }
 }
 ```
-- Table needs to be mutable (renames), although some delay is fine.
+## Issues
+### Page renames: 
+- rev lookup: will get both old & new name
+- linear history: 
+    - follow renamed_from column & timestamp
+- consistency: CAS on destination followed by CAS on source (but edit on
+  source wins)
 - Redirects can be cached if we have a way to update the cache.
 - Reason for per-page structure: CAS per page
     - Disadvantage: Possibility of non-unique revid assignment
+
+### Non-linear history
+- need efficient access to master: denormalize to property in table
+- ability for CAS per branch, would like to minimize branches
+    - composite partition key
+- clean-up of non-merged branches: TTL or maintenance job with notifications
+    - use a timeuuid to identify non-master branches, but would need secondary
+      range key to find old branches
+- renames vs. branches: follow the rename on merge or move branch on rename
+
+#### Non-linear history use cases
+Review work-flow
+- want to converge on a single version to promote to production
+- should encourage single branch, but not force it to avoid blocking the edit
+  process
 
 ## `GET /{name}/{html|data-mw|data-parsoid|wikitext}/{oldid}`
 Get tid range for revid from revision table
@@ -78,9 +118,11 @@ Get tid range for revid from revision table
 
 - ELSE: 
     - request various data from Parsoid or MW (wikitext)
-    - save it back to respective backend buckets
-    - save the revision info to the rev table
-    - return the requested property
+    - if that succeeds:
+        - save it back to respective backend buckets
+        - save the revision info to the rev table
+        - return the requested property
+    - else: return error
 
 # Saving modified page content
 
