@@ -60,8 +60,8 @@ The actual cassandra backend can be benchmarked with:
 ```
 ab -c10 -n10000 'http://localhost:8888/v1/en.wikipedia.org/pages/Test/html'
 ```
-This currently yields around 2900 req/s on node 0.10 for small blobs, and
-around 5GBit for large (3mb) blobs.
+On my laptop this currently yields around 2900 req/s on node 0.10 for small
+blobs, and around 5GBit for large (3mb) blobs.
 
 Implementation goals
 ====================
@@ -83,10 +83,11 @@ Handler interface
 =================
 - [Single file per handler in a directory](https://github.com/gwicke/restface/blob/master/handlers/)
 - require is wrapped in try/catch for robustness
-- integrates routing and documentation
+- integrates routing and API documentation
 
-Architecture docs
-=================
+Design docs
+===========
 
-See [here](https://github.com/gwicke/restface/blob/master/doc/Architecture.md).
+- [RestFace](https://github.com/gwicke/restface/blob/master/doc/)
+- [Rashomon](https://github.com/gwicke/rashomon/blob/master/doc/)
 
