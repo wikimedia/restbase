@@ -14,12 +14,13 @@ middle of the transaction, or the client connection is lost.
 The collection of requests is encoded as JSON, reusing the request spec above:
 ```javascript
 {
-    method: 'POST',
-    uri: '/v1/transactions/<uuid>',
+    method: 'PUT',
+    uri: '/v1/en.wikipedia.org/transactions/<timeuuid>',
     headers: {
         'Content-type':
             'application/json;profile=https://mediawiki.org/schema/transaction',
-        // precondition for the entire transaction
+        // Precondition for the entire transaction for idempotency
+        // tids older than the normal transaction entry lifetime are rejected
         'If-None-Match': '*'
     },
     body: {
@@ -39,19 +40,19 @@ The collection of requests is encoded as JSON, reusing the request spec above:
                 uri: '/bar/<uuid>',
                 headers: {
                     'if-match': '<uuid>',
-                    'Content-type':
+                    'content-type':
                       'application/json;profile=https://mediawiki.org/specs/foo'
                 },
                 // Objects implicitly serialized to JSON
                 body: {..}
             },
-            // binary content using base64 encoding
+            // binary content using base64 encoding (blame JSON)
             {
                 method: 'PUT',
                 uri: '/bar/<hash>.png',
                 headers: {
-                    'Content-type': 'image/png',
-                    'Content-transfer-encoding': 'base64'
+                    'content-type': 'image/png',
+                    'content-transfer-encoding': 'base64'
                 },
                 // Binary data is transmitted as base64 string; Automatically
                 // handled in restface for Buffer objects.

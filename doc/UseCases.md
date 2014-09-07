@@ -31,9 +31,7 @@ Ordered key-value bucket
 ## Watch list
 user -> namespace / title
 
-
-
-# Bucket candidates
+# Low-level bucket candidates
 - queue bucket
     - value: blob
 - unordered key-value
@@ -43,3 +41,31 @@ user -> namespace / title
     - key: blob, int, tid
     - value: blob, set, map
 
+## High-level bucket candidates
+- pages: everything needed to back a wiki's textual content, but not media
+    - revisioned page store
+    - link tables
+    - recentchanges?
+    - search? might want to index this globally with domain attribute, then
+      query with domain for per-wiki search
+
+Potentially global:
+- media
+- users
+    - timeline / notifications
+    - contributions
+    - blocking
+    - watchlist with inverted index url -> watchers
+- subscriptions
+    - url pattern, event -> list of urls
+    - url, event -> list of urls
+- jobs
+    - rest job queues with execution in restbase
+- recent changes
+- search
+- persistent caches
+    - i18n
+    - RL
+- analytics
+    - logging
+    - counters

@@ -1,87 +1,97 @@
 # MediaWiki page content
 - mostly built around revisioned blob buckets per property
 - special requirement is support for MediaWiki revisions identified by int ids
-- public API implemented in front-end handler
+- a coherent content API integrating the more general back-end buckets and
+  back-end services like the MediaWiki core API or Parsoid is implemented in a
+  front-end handler
 
 ## API
 ### `GET /v1/en.wikipedia.org/pages/`
 List pages.
 
 ### `GET /v1/en.wikipedia.org/pages/?ts=20140101T20:23:22.100Z`
-List pages, consistent snapshot at a specific time.
+List pages, consistent snapshot at a specific time. No need to return oldids
+or tids, same timestamp can be used to retrieve each individual page. It
+should however be more efficient to directly return the matching tids.
 
 ### `GET /v1/en.wikipedia.org/pages/{name}`
 Redirects to `/v1/en.wikipedia.org/pages/{name}/html`, which returns the
 latest HTML.
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/`
-Lists available properties
+Lists available properties. 
+
+XXX: need a way to extend this for additional handlers
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/{html|wikitext|data-mw|data-parsoid}`
-Returns the *latest* HTML / wikitext / ..
+Returns the *latest* HTML / wikitext etc. Cached & purged.
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/html/`
 Lists timeuuid-based revisions for the HTML property.
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/rev/`
-Lists MediaWiki revisions for the given page.
+Returns a list of MediaWiki revisions for the given page. Contains the
+information needed to display the page history.
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/rev/12345`
 Get metadata for the given revision (e.g. user, timestamp, edit message).
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/html/12345`
-Main entry point for Parsoid HTML currently.
+Retrieve a property by MediaWiki oldid. Main entry point for Parsoid HTML currently.
 
 Redirects to the corresponding timeuuid-based URL, or directly returns the
 HTML (would need purging on re-render / refreshlinks)
 
-### `GET /v1/en.wikipedia.org/pages/{name}/html/12345`
-Returns HTML content for the given revision. Could also redirect to the
-corresponding timeuuid-based URL.
-
 ### `GET /v1/en.wikipedia.org/pages/{name}/html/<timeuuid>`
-Returns content for the given timeuuid
+Returns content for the given timeuuid. Cached & does not need to be purged.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/html/20140101T12:11:09.567Z`
+### `GET /v1/en.wikipedia.org/pages/{name}/html?ts=20140101T12:11:09.567Z`
 Returns content as it looked at the given time.
 
 # Support for MW revision ids
-Table:
+Revision table:
 ```javascript
 {
-    name: 'pages.revisions',
+    table: 'pages.revisions',
     attributes: {
-        // listing: /pages.history/Barack_Obama/
-        // @specific time: /pages.history/Barack_Obama/20140312T20:22:33.3Z
-        key: 'string',
+        // listing: /pages.revisions/Barack_Obama/master/
+        // @specific time: /pages.revisions/Barack_Obama?ts=20140312T20:22:33.3Z
+        page: 'string',
         branch: 'string', // normally 'master'
-        tid: 'timeuuid',
         rev: 'varint',
-        latest_tid: 'timeuuid', // static
+        tid: 'timeuuid',
         tombstone: 'boolean',   // page was deleted
-        // revision metadata
+        latest_tid: 'timeuuid', // static, synchronization point
+        // revision metadata in individual attributes for ease of indexing
         user: 'string',
-        wikitext_size: varint,
-        info: 'json' // comment, wikitext size etc
+        wikitext_size: 'varint',
+        comment: 'string',
+        is_minor: 'boolean'
     },
-    index: {
-        hash: 'key',
-        range: 'tid',
-        order: 'asc', // get first *two* entries to determine tid limit
-        static: 'latest_tid'
+    layout: {
+        hash: ['key','branch'],
+        range: ['tid'],
+        order: ['asc'], 
+        per_hash: ['latest_tid']
     },
-    secondaryIndexes: {
+    views: {
         // accessible as: /pages.history//rev/12345
-        // @specific time: /pages.history//rev/12345/20140312T20:22:33.3Z
+        // @specific time: /pages.history//rev/12345?time=20140312T20:22:33.3Z
+        // ?gt=foo&limit=10&time_ge=20140312T20:22:33.3Z&time_lt=20140312T20:22:33.3Z
+        //  ^^ range limit  ^^ time limit
         rev: {
-            hash: 'rev',
-            range: ['tid','key'],
-            order: ['desc','asc'], // easy to select the latest entry
+            hash: ['page'],
+            range: ['rev', 'tid'],  // tid would be included anyway
+            // make it easy to get the next revision as well to determine tid upper bound
+            order: ['asc','desc'],
             proj: ['tombstone']
         }
     }
 }
 ```
+Implementation note: Don't need support for range queries on secondary indexes
+for this index.
+
 ## Issues
 ### Page renames: 
 - rev lookup: will get both old & new name
@@ -89,9 +99,12 @@ Table:
     - follow renamed_from column & timestamp
 - consistency: CAS on destination followed by CAS on source (but edit on
   source wins)
+    - or multi-item transaction (concurrent write fails, retry follows rename)
 - Redirects can be cached if we have a way to update the cache.
 - Reason for per-page structure: CAS per page
-    - Disadvantage: Possibility of non-unique revid assignment
+    - Disadvantage: Possibility of non-unique revid assignment; could use
+      multi-item transaction to avoid this on page creation (if we care)
+    - Alternatively some reservation scheme for global revids with timeout
 
 ### Non-linear history
 - need efficient access to master: denormalize to property in table
