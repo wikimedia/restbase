@@ -45,20 +45,25 @@ Goals:
           description: Unexpected error
           schema: { $ref: Error }
       produces: text/html;profile=mw.org/specs/html/1.0
-      x-restbase:
-        on_response:
-        - status: 404
-          request:
-          - method: GET # From Parsoid
+
+      run: request
+      on_response:
+      - with:
+          status: 404
+        then:
+        - run:
+            method: GET # From Parsoid
             url: /v1/parsoid/{domain}/{title}
             headers: request.headers
             query:
               oldid: revision
-            on_response:
-            - status: 200
-              return: response # Directly return the response
-              request:
-              - method: PUT # .. and store it back to storage
+          on_response:
+          - with:
+              status: 200
+            then: 
+            - return: response # Directly return the response
+            - run:
+                method: PUT # .. and store it back to storage
                 headers: response.headers
                 body: response.body
     
@@ -74,24 +79,25 @@ Goals:
         - text/html
         - text/html;profile=mediawiki.org/specs/html/1.0
         - application/json;profile=mediawiki.org/specs/editbundle/1.0
-      x-restbase:
-        request: 
+
+      run: 
         # Sanitize the HTML first, and create derivative content like wikitext
-        - method: POST
-          # Forward to internal service for processing
-          url: /_svc/sanitizer/{domain}/{title}{/revision}
-          headers: request.headers
-          body: request.body
+        method: POST
+        # Forward to internal service for processing
+        url: /_svc/sanitizer/{domain}/{title}{/revision}
+        headers: request.headers
+        body: request.body
+      on_response:
+      - with:
+          status: 200
+          headers:
+            content-type: application/json;profile=mw.org/spec/requests
+          # The backend service returned a JSON structure containing a request
+          # structure (a HTTP transaction). Execute it & return the response.
+        then:
+        - run: response.request
           on_response:
-          - status: 200
-            headers:
-              content-type: application/json;profile=mw.org/spec/requests
-            # The backend service returned a JSON structure containing a request
-            # structure (a HTTP transaction). Execute it & return the response.
-            request:
-            - execute: response.request
-              on_response:
-              - return: response
+          - return: response
 ```
 
 ## Reasons for dispatching from restbase
