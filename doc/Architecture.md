@@ -27,7 +27,8 @@ Goals:
 - Limit restbase to very simple request routing for security & performance
 - Abstract common operations
 - Make it easy to port to another environment later
-- See issue #1 for a screenshot of swagger 2 in action
+- See [issue #1](https://github.com/gwicke/restbase/issues/1) for a screenshot
+  of swagger 2 in action
 
 ```yaml
 --- # 
