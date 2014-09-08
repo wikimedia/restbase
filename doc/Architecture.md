@@ -27,69 +27,70 @@ Goals:
 - Limit restbase to very simple request routing for security & performance
 - Abstract common operations
 - Make it easy to port to another environment later
+- See issue #1 for a screenshot of swagger 2 in action
 
 ```yaml
 --- # 
-/{domain}/pages/{title}/html{/revision}:
-
-  GET:
-    # This is a valid Swagger 2.0 spec. Try at
-    # http://editor.swagger.wordnik.com/.
-    summary: Get the HTML for a revision.
-    responses:
-      200:
-        description: The HTML for the given page and revision
-      default:
-        description: Unexpected error
-        schema: { $ref: Error }
-    produces: text/html;profile=mw.org/specs/html/1.0
-    x-restbase:
-      on_response:
-      - status: 404
-        request:
-        - method: GET # From Parsoid
-          url: /v1/parsoid/{domain}/{title}
+  /{domain}/pages/{title}/html{/revision}:
+  
+    GET:
+      # This is a valid Swagger 2.0 spec. Try at
+      # http://editor.swagger.wordnik.com/.
+      summary: Get the HTML for a revision.
+      responses:
+        200:
+          description: The HTML for the given page and revision
+        default:
+          description: Unexpected error
+          schema: { $ref: Error }
+      produces: text/html;profile=mw.org/specs/html/1.0
+      x-restbase:
+        on_response:
+        - status: 404
+          request:
+          - method: GET # From Parsoid
+            url: /v1/parsoid/{domain}/{title}
+            headers: request.headers
+            query:
+              oldid: revision
+            on_response:
+            - status: 200
+              return: response # Directly return the response
+              request:
+              - method: PUT # .. and store it back to storage
+                headers: response.headers
+                body: response.body
+    
+    PUT:
+      summary: Save a new version of the HTML page
+      responses:
+        201:
+          description: The new revision was successfully saved.
+        default:
+          description: Unexpected error
+          schema: { $ref: Error }
+      consumes:
+        - text/html
+        - text/html;profile=mediawiki.org/specs/html/1.0
+        - application/json;profile=mediawiki.org/specs/editbundle/1.0
+      x-restbase:
+        request: 
+        # Sanitize the HTML first, and create derivative content like wikitext
+        - method: POST
+          # Forward to internal service for processing
+          url: /_svc/sanitizer/{domain}/{title}{/revision}
           headers: request.headers
-          query:
-            oldid: revision
+          body: request.body
           on_response:
           - status: 200
-            return: response # Directly return the response
+            headers:
+              content-type: application/json;profile=mw.org/spec/requests
+            # The backend service returned a JSON structure containing a request
+            # structure (a HTTP transaction). Execute it & return the response.
             request:
-            - method: PUT # .. and store it back to storage
-              headers: response.headers
-              body: response.body
-  
-  PUT:
-    summary: Save a new version of the HTML page
-    responses:
-      201:
-        description: The new revision was successfully saved.
-      default:
-        description: Unexpected error
-        schema: { $ref: Error }
-    consumes:
-      - text/html
-      - text/html;profile=mediawiki.org/specs/html/1.0
-      - application/json;profile=mediawiki.org/specs/editbundle/1.0
-    x-restbase:
-      request: 
-      # Sanitize the HTML first, and create derivative content like wikitext
-      - method: POST
-        # Forward to internal service for processing
-        url: /_svc/sanitizer/{domain}/{title}{/revision}
-        headers: request.headers
-        body: request.body
-        on_response:
-        - status: 200
-          headers:
-            content-type: application/json;profile=mw.org/spec/requests
-          # The backend service returned a JSON structure containing a request
-          # structure (a HTTP transaction). Execute it & return the response.
-          request:
-          - execute: response.request
-            on_response:
-            - return: response
+            - execute: response.request
+              on_response:
+              - return: response
 ```
 
 ## Reasons for dispatching from restbase
