@@ -69,3 +69,15 @@ Potentially global:
 - analytics
     - logging
     - counters
+
+# Use cases for pure services without storage in restbase
+- search / action=query type stuff
+- citation service; actually likely to use storage later (cache)
+- PHP API:
+    - feeds: recent changes, contributions
+    - purge
+    - emailuser
+    - globalblock
+    - abusefilter\*
+    - pagetriage\*
+    - titleblacklist
