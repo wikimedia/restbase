@@ -83,11 +83,11 @@ Goals:
     consumes:
       - text/html
       - text/html;profile=mediawiki.org/specs/html/1.0
-      - application/json;profile=mediawiki.org/specs/editbundle/1.0
+      - application/json;profile=mediawiki.org/specs/pagebundle/1.0
 
     implementation:
     - send_request: 
-        # Sanitize the HTML first, and create derivative content like wikitext
+        # Sanitize the HTML first, and create derivate content like wikitext
         method: POST
         # Forward to internal service for processing
         url: /_svc/sanitizer/{domain}/{title}{/revision}
