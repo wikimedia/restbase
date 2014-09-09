@@ -46,26 +46,30 @@ Goals:
           schema: { $ref: Error }
       produces: text/html;profile=mw.org/specs/html/1.0
 
-      run: request
+      send: request
       on_response:
-      - with:
+      - if:
           status: 404
         then:
-        - run:
-            method: GET # From Parsoid
+        - send:
+            method: GET
             url: /v1/parsoid/{domain}/{title}
             headers: request.headers
             query:
               oldid: revision
           on_response:
-          - with:
+          - if:
               status: 200
             then: 
-            - return: response # Directly return the response
-            - run:
-                method: PUT # .. and store it back to storage
+            - return: response
+            - send:
+                method: PUT
                 headers: response.headers
                 body: response.body
+          - else:
+            - return: response
+      - else:
+        - return: response
     
     PUT:
       summary: Save a new version of the HTML page
@@ -80,7 +84,7 @@ Goals:
         - text/html;profile=mediawiki.org/specs/html/1.0
         - application/json;profile=mediawiki.org/specs/editbundle/1.0
 
-      run: 
+      send: 
         # Sanitize the HTML first, and create derivative content like wikitext
         method: POST
         # Forward to internal service for processing
@@ -88,16 +92,18 @@ Goals:
         headers: request.headers
         body: request.body
       on_response:
-      - with:
+      - if:
           status: 200
           headers:
             content-type: application/json;profile=mw.org/spec/requests
           # The backend service returned a JSON structure containing a request
           # structure (a HTTP transaction). Execute it & return the response.
         then:
-        - run: response.request
+        - send: response.request
           on_response:
           - return: response
+      - else:
+        - return: response
 ```
 
 ## Reasons for dispatching from restbase
