@@ -46,30 +46,31 @@ Goals:
         schema: { $ref: Error }
     produces: text/html;profile=mw.org/specs/html/1.0
 
-    send_request: request
-    on_response:
-    - if:
-        status: 404
-      then:
-      - send_request:
-          method: GET
-          url: /v1/parsoid/{domain}/{title}
-          headers: request.headers
-          query:
-            oldid: revision
-        on_response:
-        - if:
-            status: 200
-          then: 
-          - send_request:
-              method: PUT
-              headers: response.headers
-              body: response.body
-          - return: response
-        - else:
-          - return: response
-    - else:
-      - return: response
+    implementation:
+    - send_request: request
+      on_response:
+      - if:
+          status: 404
+        then:
+        - send_request:
+            method: GET
+            url: /v1/parsoid/{domain}/{title}
+            headers: request.headers
+            query:
+              oldid: revision
+          on_response:
+          - if:
+              status: 200
+            then: 
+            - send_request:
+                method: PUT
+                headers: response.headers
+                body: response.body
+            - return: response
+          - else:
+            - return: response
+      - else:
+        - return: response
   
   PUT:
     summary: Save a new version of the HTML page
@@ -84,26 +85,27 @@ Goals:
       - text/html;profile=mediawiki.org/specs/html/1.0
       - application/json;profile=mediawiki.org/specs/editbundle/1.0
 
-    send_request: 
-      # Sanitize the HTML first, and create derivative content like wikitext
-      method: POST
-      # Forward to internal service for processing
-      url: /_svc/sanitizer/{domain}/{title}{/revision}
-      headers: request.headers
-      body: request.body
-    on_response:
-    - if:
-        status: 200
-        headers:
-          content-type: application/json;profile=mw.org/spec/requests
-        # The backend service returned a JSON structure containing a request
-        # structure (a HTTP transaction). Execute it & return the response.
-      then:
-      - send_request: response.request
-        on_response:
+    implementation:
+    - send_request: 
+        # Sanitize the HTML first, and create derivative content like wikitext
+        method: POST
+        # Forward to internal service for processing
+        url: /_svc/sanitizer/{domain}/{title}{/revision}
+        headers: request.headers
+        body: request.body
+      on_response:
+      - if:
+          status: 200
+          headers:
+            content-type: application/json;profile=mw.org/spec/requests
+          # The backend service returned a JSON structure containing a request
+          # structure (a HTTP transaction). Execute it & return the response.
+        then:
+        - send_request: response.request
+          on_response:
+          - return: response
+      - else:
         - return: response
-    - else:
-      - return: response
 ```
 
 ## Reasons for dispatching from restbase
