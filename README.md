@@ -30,7 +30,7 @@ configuration](https://github.com/gwicke/restbase/blob/master/doc/Architecture.m
 npm install
 ```
 
-[Rashomon](https://github.com/gwicke/rashomon) provides a storage service backend for RestFace. It currently implements a Cassandra backend.
+[Rashomon](https://github.com/gwicke/rashomon) provides a storage service backend for RESTBase. It currently implements a Cassandra backend.
 
 
 - Download cassandra from
@@ -44,7 +44,7 @@ npm install
 
 // start the server
 cd ../../
-node restface
+node restbase
 ```
 
 Usage

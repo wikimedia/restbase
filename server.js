@@ -99,6 +99,6 @@ if (cluster.isMaster && argv.n > 0) {
         heapdump.writeSnapshot();
     });
 
-    var worker = require('./restface.js');
+    var worker = require('./restbase.js');
     worker();
 }
