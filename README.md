@@ -10,13 +10,15 @@ back-ends using HTTP-like requests against a virtual REST interface.
 The storage backends implement a distributed table storage service similar to
 [Amazon DynamoDB](http://aws.amazon.com/documentation/dynamodb/) and [Google
 DataStore](https://developers.google.com/datastore/), currently using Apache
-Cassandra as a backend. Noteworthy features include automatically maintained
+Cassandra as a backend. Notable features include automatically maintained
 secondary indexes (in development) and transactions (only CAS + dependent
-updates for now).
+updates for now). See [the
+tests](https://github.com/gwicke/rashomon/blob/8a55b377173b08a6c772a208e69d2edf9425ad3a/storage/cassandra/test.js#L86)
+for example schema definitions and queries.
 
 Table storage is in turn used to build higher-level storage buckets for common
-tasks. The first supported bucket type is a revisioned key-value store, and an
-even higher-level one for MediaWiki page content.
+tasks. The first supported bucket types are a revisioned key-value bucket, and
+an even higher-level MediaWiki page content bucket.
 
 ## Request flow
 RESTBase is optimized for a very direct and fast read path, with the
