@@ -4,21 +4,24 @@
 API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) and [storage service](https://www.mediawiki.org/wiki/Requests_for_comment/Storage_servicehttps://www.mediawiki.org/wiki/Requests_for_comment/Storage_service) prototype.
 
 Provides a consistent & performance-oriented REST content API. Internally it
-uses a very modular structure, with front-end handlers communicating with
-back-ends using HTTP-like requests against a virtual REST interface.
+uses a very modular structure, with proxy handlers communicating with
+storage back-ends using HTTP-like requests against a virtual REST interface.
 
-The storage backends implement a distributed table storage service similar to
-[Amazon DynamoDB](http://aws.amazon.com/documentation/dynamodb/) and [Google
-DataStore](https://developers.google.com/datastore/), currently using Apache
-Cassandra as a backend. Notable features include automatically maintained
+The main backend types provide *table storage* and *queues*. The table storage
+backends implement a distributed table storage service similar to [Amazon
+DynamoDB](http://aws.amazon.com/documentation/dynamodb/) and [Google
+DataStore](https://developers.google.com/datastore/). The first implementation
+uses Apache Cassandra. Notable features include automatically maintained
 secondary indexes (in development) and transactions (only CAS + dependent
 updates for now). See [the
-tests](https://github.com/gwicke/rashomon/blob/8a55b377173b08a6c772a208e69d2edf9425ad3a/storage/cassandra/test.js#L86)
+tests](https://github.com/gwicke/restbase-cassandra/blob/8a55b377173b08a6c772a208e69d2edf9425ad3a/storage/cassandra/test.js#L86)
 for example schema definitions and queries.
 
 Table storage is in turn used to build higher-level storage buckets for common
 tasks. The first supported bucket types are a revisioned key-value bucket, and
 an even higher-level MediaWiki page content bucket.
+
+A queue implementation using Kafka is planned. See [these design notes](https://github.com/gwicke/restbase-cassandra/blob/master/doc/QueueBucket.md) for details.
 
 ## Request flow
 ```
@@ -49,20 +52,10 @@ configuration](https://github.com/gwicke/restbase/blob/master/doc/Architecture.m
 npm install
 ```
 
-[Rashomon](https://github.com/gwicke/rashomon) provides a storage service backend for RESTBase. It currently implements a Cassandra backend.
+[RESTBase-cassandra](https://github.com/gwicke/restbase-cassandra) provides a table storage service backend for RESTBase. Download & install Cassandra: http://planetcassandra.org/Download/StartDownload
 
-
-- Download cassandra from
-  <http://planetcassandra.org/Download/StartDownload>
-- Clone the rashomon backend handler & npm install it
+- Start RESTBase
 ```sh
-cd handlers/backend
-git clone https://github.com/gwicke/rashomon.git
-cd rashomon
-npm install
-
-// start the server
-cd ../../
 node restbase
 ```
 
@@ -101,5 +94,5 @@ Design docs
 ===========
 
 - [RESTBase](https://github.com/gwicke/restbase/blob/master/doc/)
-- [Rashomon (storage backend)](https://github.com/gwicke/rashomon/blob/master/doc/)
+- [RESTBase-cassandra (storage backend)](https://github.com/gwicke/restbase-cassandra/blob/master/doc/)
 
