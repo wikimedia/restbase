@@ -1,14 +1,14 @@
 {
-  "name": "restface",
-  "version": "0.1.0",
-  "description": "REST API proxy prototype",
-  "main": "restface.js",
+  "name": "restbase",
+  "version": "0.0.1",
+  "description": "REST storage and service dispatcher",
+  "main": "restbase.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/gwicke/restface.git"
+    "url": "git://github.com/gwicke/restbase.git"
   },
   "keywords": [
     "REST",
@@ -17,9 +17,9 @@
   "author": "Gabriel Wicke <gwicke@wikimedia.org>",
   "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/gwicke/restface/issues"
+    "url": "https://github.com/gwicke/restbase/issues"
   },
-  "homepage": "https://github.com/gwicke/restface",
+  "homepage": "https://github.com/gwicke/restbase",
   "dependencies": {
     "prfun": "x.x.x",
     "routeswitch": "x.x.x",
