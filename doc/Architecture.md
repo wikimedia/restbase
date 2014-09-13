@@ -1,12 +1,27 @@
 # Data Flow
+
+```
+API Clients         Internet
+ |
+ V
+ .----------------. RESTBase
+ V                | 
+Proxy Handlers    |            Proxy Layer
+ |-> per-domain ->|
+ |-> global     ->| <---> Backend services
+ |-> bucket     ->' <---> MediaWiki
+ | 
+ | if no match or loop 
+ |
+ |-> table storage           Storage Layer
+ '-> queue backend
+```
 - Normal read / most requests: go directly to storage
 - On edit / storage miss: coordinate request in proxy handler
     - call configured backend service
     - process compound response (JSON structure with requests / urls per part)
         - mostly iterative processing for simplicity, consistent monitoring /
           logging etc
-
-# Layering
 
 ## Proxy layer
 - Simple request routing and response massaging
@@ -22,10 +37,11 @@
 - Abstract common operations
 - Make it easy to port to another environment later
 
-Example:
+Example for a bucket handler:
 ```yaml
---- # 
-/{domain}/pages/{title}/html{/revision}:
+---
+# /{domain}/ prefix is implicit in bucket handlers
+/{title}/html{/revision}:
 
   GET:
     # This is a valid Swagger 2.0 spec. Try at

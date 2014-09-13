@@ -21,6 +21,23 @@ tasks. The first supported bucket types are a revisioned key-value bucket, and
 an even higher-level MediaWiki page content bucket.
 
 ## Request flow
+```
+API Clients         Internet
+ |
+ V
+ .----------------. RESTBase
+ V                | 
+Proxy Handlers    |            Proxy Layer
+ |-> per-domain ->|
+ |-> global     ->| <---> Backend services
+ |-> bucket     ->' <---> MediaWiki
+ | 
+ | if no match or loop 
+ |
+ |-> table storage           Storage Layer
+ '-> queue backend
+```
+
 RESTBase is optimized for a very direct and fast read path, with the
 expectation that most requests are served straight from storage. The front-end
 layer allows very flexible request routing and -orchestration with a
