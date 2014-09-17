@@ -24,6 +24,7 @@
     "prfun": "x.x.x",
     "routeswitch": "x.x.x",
     "busboy": "~0.2.8",
-    "bluebird": "~2.2.2"
+    "bluebird": "~2.2.2",
+    "restbase-cassandra": "x.x.x"
   }
 }

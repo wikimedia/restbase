@@ -1,35 +1,67 @@
-RestFace Implementation
-=======================
+# RESTBase Implementation
 
-Data flow inside RestFace
--------------------------
+## Code structure
+- storage backends in separate npm packages
+    - `restbase-tables-cassandra`
+    - `restbase-queues-kafka`
+
+Tree:
 ```
-frontend handler
--> Verbs.request 
-    front-end router
-    -> if match != current FE handler: call it
-       else: try backend router
-        -> if backend handler match: call it
+restbase.js
+lib/
+    storage.js
+    util.js
+    proxy_handlers/
+        global/
+            network.js
+            parsoid.js
+        buckets/
+            kv_rev/
+            wikipages/
+# XXX: not quite final yet
+conf/
+    restbase.yaml
+    proxy_handlers/
+        global.pages.title.listing.yaml
+        someproject/
+            org.wikipedia.en.pages.title.listing.yaml
+doc/
+test/
 ```
 
-### When to go to the backend
-when it would match the same front-end handler function
+### Bucket & proxy handler config
+- global & per domain
+- FS: conf/global and conf/{domain}/
+    - doesn't scale too well, but integrates with code review, deploy testing
+      & typical development style
+- later, maybe: distributed through storage
 
+### Routing
+- global (or per-domain, later) proxy handler routeswitch
+- if no or same match: forward to storage backend
+    - checks domain & bucket
+    - calls per-bucket-type routeswitch with global env object
+    - on request from handler:
+        - if uri same (based on _origURI attribute): forward to table storage
+            - need to select the right backend
+        - else: route through proxy
 
-## API docs
-- swagger most popular by far
-    - some mock tools
-    - bottom-up
-- alternatives: RAML, API-Blueprint
-    - http://www.slideshare.net/SmartBear_Software/api-strat-2014metadataformatsshort
-    - http://apiux.com/2013/04/09/rest-metadata-formats/
-    - JSON schema hypermedia http://json-schema.org/latest/json-schema-hypermedia.html
+#### Bucket / table -> storage backend mapping
+- table registry
+    - bucket type ('kv')
+    - storage backend for table *with same name*
+    - possibly no table storage associated - storage entry null
+- flow through bucket to storage:
+    1) call bucket routeswitch & handler
+    2) on request with identical url, call underlying storage handler
+        - need to know storage backend
+        - hook that up on the proxy ahead of time (if not null), before
+          calling bucket handler
+    3) on requests to other tables, follow same procedure as above
+        - lets us move each table to separate storage
 
-
-
-## Request & response format
+## Internal request & response objects
 ### Request
-#### Request example
 ```javascript
 {
     uri: '/v1/foo', // required
@@ -73,7 +105,6 @@ Request data:
 
 
 ### Response
-#### Response example
 ```javascript
 {
     body: 'Hello world', // default: ''
@@ -103,3 +134,9 @@ The HTTP response status.
 Map of response HTTP headers.
 
 
+## API doc alternatives
+- RAML
+- API-Blueprint
+- http://www.slideshare.net/SmartBear_Software/api-strat-2014metadataformatsshort
+- http://apiux.com/2013/04/09/rest-metadata-formats/
+- JSON schema hypermedia http://json-schema.org/latest/json-schema-hypermedia.html
