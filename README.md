@@ -56,7 +56,7 @@ npm install
 
 - Start RESTBase
 ```sh
-node restbase
+node server
 ```
 
 Usage
