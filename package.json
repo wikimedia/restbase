@@ -1,8 +1,8 @@
 {
   "name": "restbase",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "REST storage and service dispatcher",
-  "main": "restbase.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,10 +12,18 @@
   },
   "keywords": [
     "REST",
-    "API"
+    "API",
+    "routing",
+    "orchestration",
+    "storage",
+    "buckets",
+    "tables",
+    "queues",
+    "cassandra",
+    "kafka"
   ],
   "author": "Gabriel Wicke <gwicke@wikimedia.org>",
-  "license": "GPLv3",
+  "license": "AGPLv3",
   "bugs": {
     "url": "https://github.com/gwicke/restbase/issues"
   },
