@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
@@ -30,7 +30,7 @@
   "homepage": "https://github.com/gwicke/restbase",
   "dependencies": {
     "prfun": "x.x.x",
-    "routeswitch": "x.x.x",
+    "routeswitch": "0.4.x",
     "busboy": "~0.2.8",
     "bluebird": "~2.2.2",
     "restbase-cassandra": "x.x.x"
