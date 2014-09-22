@@ -52,39 +52,39 @@ Returns content as it looked at the given time.
 Revision table:
 ```javascript
 {
-    table: 'pages.revisions',
+    table: 'pages.rev',
     attributes: {
-        // listing: /pages.revisions/Barack_Obama/master/
-        // @specific time: /pages.revisions/Barack_Obama?ts=20140312T20:22:33.3Z
+        // listing: /pages.rev/Barack_Obama/master/
+        // @specific time: /pages.rev/Barack_Obama?ts=20140312T20:22:33.3Z
         page: 'string',
-        branch: 'string', // normally 'master'
-        rev: 'varint',
         tid: 'timeuuid',
-        tombstone: 'boolean',   // page was deleted
-        latest_tid: 'timeuuid', // static, synchronization point
+        deleted: 'boolean',   // page (or revision) was deleted
+        rev: 'varint',
+        moves: 'set<string>', // page renames. null, to:destination or from:source
+        latest_tid: 'timeuuid', // static, CAS synchronization point
         // revision metadata in individual attributes for ease of indexing
-        user: 'string',
-        wikitext_size: 'varint',
+        user_id: 'varint', // could switch this to uuid later?
+        user_text: 'string',
         comment: 'string',
         is_minor: 'boolean'
     },
-    layout: {
-        hash: ['key','branch'],
+    index: {
+        hash: ['page'],
         range: ['tid'],
-        order: ['asc'], 
-        per_hash: ['latest_tid']
+        order: ['desc'], 
+        static: ['latest_tid']
     },
-    views: {
-        // accessible as: /pages.history//rev/12345
-        // @specific time: /pages.history//rev/12345?time=20140312T20:22:33.3Z
-        // ?gt=foo&limit=10&time_ge=20140312T20:22:33.3Z&time_lt=20140312T20:22:33.3Z
+    secondaryIndexes: {
+        // /pages.rev//page/Foo/12345
+        // @specific time: /pages.history//rev/12345?ts=20140312T20:22:33.3Z
+        // ?gt=foo&limit=10&ts_ge=20140312T20:22:33.3Z&ts_lt=20140312T20:22:33.3Z
         //  ^^ range limit  ^^ time limit
         rev: {
             hash: ['page'],
             range: ['rev', 'tid'],  // tid would be included anyway
             // make it easy to get the next revision as well to determine tid upper bound
             order: ['asc','desc'],
-            proj: ['tombstone']
+            proj: ['deleted']
         }
     }
 }
