@@ -1,7 +1,7 @@
 # RESTBase
 
 [REST content
-API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) and [storage service](https://www.mediawiki.org/wiki/Requests_for_comment/Storage_servicehttps://www.mediawiki.org/wiki/Requests_for_comment/Storage_service) prototype.
+API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) and [storage service](https://www.mediawiki.org/wiki/Requests_for_comment/Storage_service) prototype.
 
 Provides a consistent & performance-oriented REST content API. Internally it
 uses a very modular structure, with proxy handlers communicating with
