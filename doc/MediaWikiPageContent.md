@@ -58,12 +58,17 @@ Revision table:
         // @specific time: /pages.rev/Barack_Obama?ts=20140312T20:22:33.3Z
         page: 'string',
         tid: 'timeuuid',
-        deleted: 'boolean',   // page (or revision) was deleted
-        rev: 'varint',
-        moves: 'set<string>', // page renames. null, to:destination or from:source
+        // Page (or revision) was deleted
+        // Set on an otherwise null entry on page deletion
+        // XXX: move deleted revisions to a separate table?
+        deleted: 'boolean',
+        // Page renames. null, to:destination or from:source
+        // Followed for linear history, possibly useful for branches / drafts
+        renames: 'set<string>', 
+        rev: 'varint',          // MediaWiki oldid
         latest_tid: 'timeuuid', // static, CAS synchronization point
         // revision metadata in individual attributes for ease of indexing
-        user_id: 'varint', // could switch this to uuid later?
+        user_id: 'varint',      // stable for contributions etc
         user_text: 'string',
         comment: 'string',
         is_minor: 'boolean'
@@ -77,8 +82,6 @@ Revision table:
     secondaryIndexes: {
         // /pages.rev//page/Foo/12345
         // @specific time: /pages.history//rev/12345?ts=20140312T20:22:33.3Z
-        // ?gt=foo&limit=10&ts_ge=20140312T20:22:33.3Z&ts_lt=20140312T20:22:33.3Z
-        //  ^^ range limit  ^^ time limit
         rev: {
             hash: ['page'],
             range: ['rev', 'tid'],  // tid would be included anyway
