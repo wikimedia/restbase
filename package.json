@@ -33,9 +33,8 @@
     "busboy": "~0.2.8",
     "node-uuid": "^1.4.1",
     "preq": "^0.1.0",
-    "prfun": "x.x.x",
     "request": "^2.44.0",
-    "restbase-cassandra": "x.x.x",
+    "restbase-cassandra": "^0.1.1",
     "routeswitch": "0.4.x"
   },
   "devDependencies": {
