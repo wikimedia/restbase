@@ -17,6 +17,7 @@ function deepEqual (result, expected) {
 
 describe('Simple API tests', function () {
     before(function() {
+        this.timeout(20000);
         return restbase();
     });
     describe('Domain & bucket creation', function() {
@@ -34,7 +35,7 @@ describe('Simple API tests', function () {
     });
     describe('Bucket creation', function() {
         it('should create a page bucket', function() {
-            this.timeout(2000);
+            this.timeout(20000);
             return preq.put({
                 uri: baseURL,
                 headers: { 'content-type': 'application/json' },
