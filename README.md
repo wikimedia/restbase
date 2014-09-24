@@ -1,6 +1,5 @@
 # RESTBase 
 
-<span style="float:right">[![Build Status](https://travis-ci.org/gwicke/restbase-cassandra.svg?branch=master)](https://travis-ci.org/gwicke/restbase)</span>
 [REST content
 API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) and [storage service](https://www.mediawiki.org/wiki/Requests_for_comment/Storage_service) prototype.
 
@@ -23,6 +22,11 @@ tasks. The first supported bucket types are a revisioned key-value bucket, and
 an even higher-level MediaWiki page content bucket.
 
 A queue implementation using Kafka is planned. See [these design notes](https://github.com/gwicke/restbase-cassandra/blob/master/doc/QueueBucket.md) for details.
+
+## Status
+[![Build Status](https://travis-ci.org/gwicke/restbase-cassandra.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
+
+Prototype, preparing for basic production.
 
 ## Request flow
 ```
