@@ -8,4 +8,4 @@ before_install:
   - sudo service cassandra start
 
 before_script:
-  - sleep 5
+  - sleep 8
