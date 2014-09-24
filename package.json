@@ -4,7 +4,7 @@
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -29,10 +29,15 @@
   },
   "homepage": "https://github.com/gwicke/restbase",
   "dependencies": {
-    "prfun": "x.x.x",
-    "routeswitch": "0.4.x",
-    "busboy": "~0.2.8",
     "bluebird": "~2.2.2",
-    "restbase-cassandra": "x.x.x"
+    "busboy": "~0.2.8",
+    "preq": "^0.1.0",
+    "prfun": "x.x.x",
+    "request": "^2.44.0",
+    "restbase-cassandra": "x.x.x",
+    "routeswitch": "0.4.x"
+  },
+  "devDependencies": {
+    "mocha": "^1.x.x"
   }
 }
