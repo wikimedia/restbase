@@ -28,7 +28,6 @@ describe('Simple API tests', function () {
                 body: {}
             })
             .then(function(res) {
-                console.log(res);
                 deepEqual(res.status, 201);
             });
         });
@@ -42,7 +41,6 @@ describe('Simple API tests', function () {
                 body: { type: 'pagecontent' }
             })
             .then(function(res) {
-                console.log(res);
                 deepEqual(res.status, 201);
             });
         });
@@ -56,17 +54,8 @@ describe('Simple API tests', function () {
         //        deepEqual(res.status, 404);
         //    });
         //});
-        //it('should accept a new html save with a revision', function() {
-        //    return preq.put({
-        //        uri: baseURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
-        //        headers: { 'content-type': 'text/html' },
-        //        body: 'Hello there'
-        //    })
-        //    .then(function(res) {
-        //        deepEqual(res.status, 201);
-        //    });
-        //});
         it('should transparently create a new HTML revision', function() {
+            this.timeout(20000);
             return preq.get({
                 uri: baseURL + '/Foobar/html/624484477',
                 headers: { 'content-type': 'text/html' },
@@ -76,14 +65,29 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
             });
         });
-        it('should return the HTML revision just created', function() {
-            return preq.get({
-                uri: baseURL + '/Foobar/html/624484477',
+        it('should accept a new html save with a revision', function() {
+            return preq.put({
+                uri: baseURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
                 headers: { 'content-type': 'text/html' },
                 body: 'Hello there'
             })
             .then(function(res) {
+                deepEqual(res.status, 201);
+            })
+            .catch(function(e) {
+                console.dir(e.response);
+                throw e;
+            });
+        });
+        it('should return the HTML revision just created', function() {
+            return preq.get({
+                uri: baseURL + '/Foobar/html/624484477'
+            })
+            .then(function(res) {
                 deepEqual(res.status, 200);
+                deepEqual(res.headers['content-type'], 'text/html');
+                deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
+                deepEqual(res.body, 'Hello there');
             });
         });
     });
