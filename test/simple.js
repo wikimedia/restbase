@@ -19,6 +19,19 @@ describe('Simple API tests', function () {
     before(function() {
         return restbase();
     });
+    describe('Domain creation', function() {
+        it('should create a domain', function() {
+            return preq.put({
+                uri: 'http://localhost:8888/v1/en.wikipedia.org',
+                headers: { 'content-type': 'application/json' },
+                body: {}
+            })
+            .then(function(res) {
+                console.log(res);
+                deepEqual(res.status, 201);
+            });
+        });
+    });
     describe('Bucket creation', function() {
         it('should create a page bucket', function() {
             return preq.put({
