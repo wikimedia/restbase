@@ -1,3 +1,6 @@
+[![Build
+Status](https://travis-ci.org/gwicke/restbase-cassandra.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
+
 # RESTBase
 
 [REST content
