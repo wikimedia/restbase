@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
@@ -31,6 +31,7 @@
   "dependencies": {
     "bluebird": "~2.2.2",
     "busboy": "~0.2.8",
+    "node-uuid": "^1.4.1",
     "preq": "^0.1.0",
     "prfun": "x.x.x",
     "request": "^2.44.0",

@@ -24,7 +24,7 @@ an even higher-level MediaWiki page content bucket.
 A queue implementation using Kafka is planned. See [these design notes](https://github.com/gwicke/restbase-cassandra/blob/master/doc/QueueBucket.md) for details.
 
 ## Status
-[![Build Status](https://travis-ci.org/gwicke/restbase-cassandra.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
+[![Build Status](https://travis-ci.org/gwicke/restbase.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
 
 Prototype, preparing for basic production.
 
