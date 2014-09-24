@@ -19,7 +19,7 @@ describe('Simple API tests', function () {
     before(function() {
         return restbase();
     });
-    describe('Domain creation', function() {
+    describe('Domain & bucket creation', function() {
         it('should create a domain', function() {
             return preq.put({
                 uri: 'http://localhost:8888/v1/en.wikipedia.org',
@@ -34,6 +34,7 @@ describe('Simple API tests', function () {
     });
     describe('Bucket creation', function() {
         it('should create a page bucket', function() {
+            this.timeout(2000);
             return preq.put({
                 uri: baseURL,
                 headers: { 'content-type': 'application/json' },
@@ -44,16 +45,16 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 201);
             });
         });
-        it('should accept a new html save without a revision', function() {
-            return preq.put({
-                uri: baseURL + '/Foo/html',
-                headers: { 'content-type': 'text/html' },
-                body: 'Hello there'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 201);
-            });
-        });
+        //it('should not accept a new html save without a revision', function() {
+        //    return preq.put({
+        //        uri: baseURL + '/Foo/html',
+        //        headers: { 'content-type': 'text/html' },
+        //        body: 'Hello there'
+        //    })
+        //    .then(function(res) {
+        //        deepEqual(res.status, 404);
+        //    });
+        //});
         //it('should accept a new html save with a revision', function() {
         //    return preq.put({
         //        uri: baseURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
