@@ -65,6 +65,22 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
             });
         });
+        it('should return HTML just created', function() {
+            return preq.get({
+                uri: baseURL + '/Foobar/html/624484477'
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+            });
+        });
+        it('should return data-parsoid just created', function() {
+            return preq.get({
+                uri: baseURL + '/Foobar/data-parsoid/624484477'
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+            });
+        });
         it('should accept a new html save with a revision', function() {
             return preq.put({
                 uri: baseURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
