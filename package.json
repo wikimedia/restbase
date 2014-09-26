@@ -36,7 +36,7 @@
     "preq": "^0.1.1",
     "request": "^2.44.0",
     "restbase-cassandra": "^0.1.1",
-    "routeswitch": "0.4.x"
+    "routeswitch": "0.5.x"
   },
   "devDependencies": {
     "mocha": "^1.x.x"
