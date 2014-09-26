@@ -26,7 +26,8 @@ A queue implementation using Kafka is planned. See [these design notes](https://
 ## Status
 [![Build Status](https://travis-ci.org/gwicke/restbase.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
 
-Prototype, preparing for basic production.
+Prototype, preparing for basic production. You can try the
+**[demo](http://api.wmflabs.org/v1/en.wikipedia.org/pages/Paris/html/626969947)**.
 
 ## Request flow
 ```
