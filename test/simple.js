@@ -1,5 +1,13 @@
 'use strict';
 
+/*
+ * Simple API tests
+ */
+
+/*
+ * Could also check out the nock package to record / replay http interactions
+ */
+
 var restbase = require('../lib/server.js');
 var preq = require('preq');
 var assert = require('assert');

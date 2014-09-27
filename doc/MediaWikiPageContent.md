@@ -213,3 +213,20 @@ cache fragmentation for old content.
         - need tid for revision
         - but will need by-timestamp retrieval support in parsoid & PHP
           preprocessor for accurate old revisions
+
+## Page metadata API
+- red links
+    - [example query](http://en.wikipedia.org/w/api.php?action=query&prop=info&format=json&titles=Foo&generator=links&gpllimit=500)
+    - look for 'missing' in the result
+    - could / should save this, but will need cache invalidation
+    - will need to add pagelinks to job, currently only templatelinks
+- self links https://bugzilla.wikimedia.org/show_bug.cgi?id=67486
+- bad image list
+
+### Possibly later
+- page images not to render in MediaViewer (similar to image block list)
+- stub thresholds (for some users, separately, pref)
+
+### Needs pref info
+- section edit links
+- toc
