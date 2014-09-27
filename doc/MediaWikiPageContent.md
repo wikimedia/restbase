@@ -218,15 +218,16 @@ cache fragmentation for old content.
 - red links
     - [example query](http://en.wikipedia.org/w/api.php?action=query&prop=info&format=json&titles=Foo&generator=links&gpllimit=500)
     - look for 'missing' in the result
-    - could / should save this, but will need cache invalidation
-    - will need to add pagelinks to job, currently only templatelinks
+    - should save this, but will need cache invalidation on article creation /
+      deletion using pagelinks (currently only templatelinks)
 - self links https://bugzilla.wikimedia.org/show_bug.cgi?id=67486
+    - should be straightforward with CSS
 - bad image list
-
-### Possibly later
-- page images not to render in MediaViewer (similar to image block list)
-- stub thresholds (for some users, separately, pref)
 
 ### Needs pref info
 - section edit links
 - toc
+- stub thresholds (for some users, separately, pref)
+
+### Possibly later
+- page images not to render in MediaViewer (similar to image block list)
