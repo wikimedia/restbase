@@ -97,7 +97,6 @@ for this index.
 
 ## Issues
 ### Page renames: 
-- rev lookup: will get both old & new name
 - linear history: 
     - follow renamed_from column & timestamp
 - consistency: CAS on destination followed by CAS on source (but edit on
@@ -110,6 +109,8 @@ for this index.
     - Alternatively some reservation scheme for global revids with timeout
 
 ### Non-linear history
+- decided to keep this out of the pagecontent bucket for now
+    - can create another draft bucket for now
 - need efficient access to master: denormalize to property in table
 - ability for CAS per branch, would like to minimize branches
     - composite partition key

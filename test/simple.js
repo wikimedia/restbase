@@ -121,7 +121,7 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 201);
             })
             .catch(function(e) {
-                console.dir(e.response);
+                console.dir(e);
                 throw e;
             });
         });
@@ -143,8 +143,8 @@ describe('Simple API tests', function () {
                 uri: 'http://localhost:8888/v1/foobar.com'
             })
             .catch(function(e) {
-                deepEqual(e.response.status, 404);
-                deepEqual(e.response.headers['content-type'], 'application/problem+json');
+                deepEqual(e.status, 404);
+                deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when trying to list a non-existing domain', function() {
@@ -152,8 +152,8 @@ describe('Simple API tests', function () {
                 uri: 'http://localhost:8888/v1/foobar.com/'
             })
             .catch(function(e) {
-                deepEqual(e.response.status, 404);
-                deepEqual(e.response.headers['content-type'], 'application/problem+json');
+                deepEqual(e.status, 404);
+                deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when accessing an unknown bucket', function() {
@@ -161,8 +161,8 @@ describe('Simple API tests', function () {
                 uri: baseURL + '/some_nonexisting_bucket'
             })
             .catch(function(e) {
-                deepEqual(e.response.status, 404);
-                deepEqual(e.response.headers['content-type'], 'application/problem+json');
+                deepEqual(e.status, 404);
+                deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when trying to list an unknown bucket', function() {
@@ -170,8 +170,8 @@ describe('Simple API tests', function () {
                 uri: baseURL + '/some_nonexisting_bucket/'
             })
             .catch(function(e) {
-                deepEqual(e.response.status, 404);
-                deepEqual(e.response.headers['content-type'], 'application/problem+json');
+                deepEqual(e.status, 404);
+                deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when accessing an item in an unknown bucket', function() {
@@ -179,8 +179,8 @@ describe('Simple API tests', function () {
                 uri: baseURL + '/some_nonexisting_bucket/item'
             })
             .catch(function(e) {
-                deepEqual(e.response.status, 404);
-                deepEqual(e.response.headers['content-type'], 'application/problem+json');
+                deepEqual(e.status, 404);
+                deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
     });

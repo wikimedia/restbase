@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
@@ -33,7 +33,7 @@
     "busboy": "~0.2.8",
     "extend": "^1.3.0",
     "node-uuid": "^1.4.1",
-    "preq": "^0.1.1",
+    "preq": ">=0.2.0",
     "request": "^2.44.0",
     "restbase-cassandra": "^0.1.1",
     "routeswitch": "0.5.x"
