@@ -1,0 +1,13 @@
+# Defaults for restbase initscript
+
+# File where the restbase daemon will write stderr and stdout to
+RESTBASE_LOG_FILE=/var/log/restbase/restbase.log
+
+RESTBASE_SETTINGS_FILE=/etc/restbase/settings.js
+
+PORT="8142"
+
+# Default is to listen on all interfaces
+#INTERFACE="0.0.0.0"
+
+DAEMON_ARGS="-c $RESTBASE_SETTINGS_FILE"

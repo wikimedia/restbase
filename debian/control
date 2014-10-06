@@ -1,0 +1,17 @@
+Source: restbase
+Section: web
+Priority: optional
+Maintainer: Gabriel Wicke <gwicke@wikimedia.org>
+Build-Depends: debhelper (>= 8.0.0), npm
+Standards-Version: 3.9.4
+Homepage: https://github.com/gwicke/restbase
+Vcs-Git: https://github.com/gwicke/restbase.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/restbase.git;a=summary
+
+Package: restbase
+# we only package amd64 for now
+Architecture: amd64
+Depends: nodejs (>=0.10.0), cassandra (>=2.0.10), logrotate, adduser, ${shlibs:Depends}, ${misc:Depends}
+Enhances: mediawiki
+Description: REST storage service and backend orchestration layer
+ Distributed storage with REST interface and a flexible backend orchestration layer. See https://github.com/gwicke/restbase.
