@@ -9,6 +9,7 @@
 
 var cluster = require('cluster'),
     path = require('path'),
+    yaml = require('js-yaml'),
     // process arguments
     opts = require( "yargs" )
         .usage( "Usage: $0 [-h|-v] [--param[=val]]" )
@@ -19,7 +20,7 @@ var cluster = require('cluster'),
             // systems. A single long-running request would otherwise hold up
             // all concurrent short requests.
             n: require( "os" ).cpus().length,
-            c: __dirname + '/localsettings.js',
+            c: __dirname + '/config.yaml',
 
             v: false,
             h: false
@@ -36,6 +37,15 @@ var cluster = require('cluster'),
 // lower overhead. Also bump up somaxconn with this command:
 // sudo sysctl -w net.core.somaxconn=4096
 cluster.schedulingPolicy = cluster.SCHED_NONE;
+
+var conf = {};
+if (argv.c) {
+    try {
+        conf = yaml.safeLoad(fs.readFileSync(argv.c));
+    } catch (e) {
+        console.error('Error while reading config file: ' + e);
+    }
+}
 
 if (cluster.isMaster && argv.n > 0) {
     var fs = require( "fs" ),
@@ -100,5 +110,5 @@ if (cluster.isMaster && argv.n > 0) {
     });
 
     var worker = require('./lib/server.js');
-    worker();
+    worker(conf);
 }
