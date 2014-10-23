@@ -11,7 +11,8 @@
 var restbase = require('../lib/server.js');
 var preq = require('preq');
 var assert = require('assert');
-var baseURL = 'http://localhost:8888/v1/en.wikipedia.org';
+var hostPort = 'http://localhost:7231';
+var baseURL = hostPort + '/v1/en.wikipedia.org';
 var bucketURL = baseURL + '/test101';
 
 function deepEqual (result, expected) {
@@ -27,12 +28,17 @@ function deepEqual (result, expected) {
 describe('Simple API tests', function () {
     before(function() {
         this.timeout(20000);
-        return restbase();
+        return restbase({
+            logging: {
+                name: 'restbase-tests',
+                level: 'warn'
+            }
+        });
     });
     describe('Domain & bucket creation', function() {
         it('should create a domain', function() {
             return preq.put({
-                uri: 'http://localhost:8888/v1/en.wikipedia.org',
+                uri: hostPort + '/v1/en.wikipedia.org',
                 headers: { 'content-type': 'application/json' },
                 body: {}
             })
@@ -140,7 +146,7 @@ describe('Simple API tests', function () {
     describe('404 handling', function() {
         it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
             return preq.get({
-                uri: 'http://localhost:8888/v1/foobar.com'
+                uri: hostPort + '/v1/foobar.com'
             })
             .catch(function(e) {
                 deepEqual(e.status, 404);
@@ -149,7 +155,7 @@ describe('Simple API tests', function () {
         });
         it('should return a proper 404 when trying to list a non-existing domain', function() {
             return preq.get({
-                uri: 'http://localhost:8888/v1/foobar.com/'
+                uri: hostPort + '/v1/foobar.com/'
             })
             .catch(function(e) {
                 deepEqual(e.status, 404);
