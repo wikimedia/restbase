@@ -10,6 +10,7 @@
 var cluster = require('cluster'),
     path = require('path'),
     yaml = require('js-yaml'),
+    fs = require('fs'),
     // process arguments
     opts = require( "yargs" )
         .usage( "Usage: $0 [-h|-v] [--param[=val]]" )
