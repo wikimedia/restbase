@@ -20,3 +20,6 @@ logging:
     period: 1m  # daily rotation
     count: 7    # back copies
     level: info
+
+monitoring:
+  statdsHost: localhost:8125
