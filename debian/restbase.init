@@ -18,7 +18,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="RESTBase HTTP service"
 NAME=restbase
-SCRIPT_PATH=/usr/lib/restbase/src/api/server.js
+SCRIPT_PATH=/usr/lib/restbase/server.js
 DAEMON="/usr/bin/nodejs $SCRIPT_PATH"
 DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
@@ -60,12 +60,12 @@ do_start()
 	start-stop-daemon --start --quiet --pidfile $PIDFILE -bm \
 		-c restbase:restbase --test \
 		--exec /bin/sh -- \
-		-c "$DAEMON $DAEMON_ARGS >> /var/log/restbase/restbase.log 2>&1" \
+		-c "$DAEMON $DAEMON_ARGS >> $LOG_FILE 2>&1" \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE -bm \
 		-c restbase:restbase \
 		--exec /bin/sh -- \
-		-c "$DAEMON $DAEMON_ARGS >> /var/log/restbase/restbase.log 2>&1" \
+		-c "$DAEMON $DAEMON_ARGS >> $LOG_FILE 2>&1" \
 		|| return 2
 	echo "Started RESTBase server on port $PORT"
 
