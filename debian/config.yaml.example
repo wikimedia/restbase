@@ -1,0 +1,22 @@
+# RESTBase config
+storage:
+  default:
+    # module name
+    type: restbase-cassandra
+    hosts:
+      - localhost
+    id: <uuid>
+    keyspace: system
+    username: test
+    password: test
+    poolSize: 70
+
+logging:
+  name: restbase
+  streams:
+  # XXX: Use gelf-stream -> logstash
+  - type: rotating-file
+    path: /var/log/restbase/main.log
+    period: 1m  # daily rotation
+    count: 7    # back copies
+    level: info
