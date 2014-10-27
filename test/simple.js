@@ -26,8 +26,8 @@ function deepEqual (result, expected) {
 }
 
 describe('Simple API tests', function () {
+    this.timeout(20000);
     before(function() {
-        this.timeout(20000);
         return restbase({
             logging: {
                 name: 'restbase-tests',
