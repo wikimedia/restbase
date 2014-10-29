@@ -37,7 +37,7 @@
     "node-uuid": "^1.4.1",
     "preq": ">=0.2.0",
     "request": "^2.44.0",
-    "restbase-cassandra": "^0.1.1",
+    "restbase-cassandra": "git+https://github.com/gwicke/restbase-cassandra#index_cleanup",
     "routeswitch": "0.5.x",
     "yargs": ">=1.3.0" 
   },
