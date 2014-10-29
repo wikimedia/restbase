@@ -2,7 +2,7 @@
 
 Defination:
 
-defination here
+[Declarative proxy handlers defination] (https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-proxy-handler-definition)
 
 #Data Flow
 
