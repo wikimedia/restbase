@@ -1,17 +1,17 @@
 #Declarative Proxy Handler
 
-Defination:
+Definition:
 
-[Declarative proxy handlers defination] (https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-proxy-handler-definition)
+[Declarative proxy handlers definition] (https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-proxy-handler-definition)
 
 #Data Flow
 
 ```
 
-handler defination (yaml file)
+handler definition (yaml file)
  |
  V
-Custom Interpreter
+Declarative handler config get convered to a full restbase handler
  |
  V
 restbase
@@ -21,7 +21,7 @@ restbase
 
 Interpreter
 
-Interpreter will accept the yaml cofig file as input and will fetch the info accordingly. The main section we are interested in is request_handler. 
+Interpreter will accept the yaml cofig file as input. The main section we are interested in is request_handler. 
 
 request_handler will look something like 
 
@@ -52,43 +52,84 @@ request_handler:
     - else:
       - return: response
 ```
-Interpreter will convert this into an actual code.
+
+Interpreter will parse the yalm config and call corresponding predefined handler for each block, Eg - send_request will call 
+send_request() handler
+
+
+# Handlers
+
+
+###On response block
 
 ```javascript
-listBuckets = function (restbase, req) {
-    // send request
-    restbase.get(req);
-    .then(function(res) {
-        if ( status === 404 ) {
-            restbase.get(
-                uri: '/v1/parsoid/{domain}/{title}',
-                hearers: req.headers,
-                query { oldid : revision }
-            );
-            .then(funciton(res) {
-                if (satus === 200) {
-                    restbase.put(
-                        uri: '/v1/parsoid/{domain}/{title}',
-                        hearers: req.headers,
-                        body: req.body,
-                    );
-                } else {
-                    return res;
-                }
-            })
+function handle_response(config, res) {
+    for condition in cofig {
+        if ( match_response(condition, res) ) {
+            // execute then
+            childHandler = handle_condition(config.then, res);
+            break;
         } else {
-            return res;
+            // execute corresponding else tree
+            childHandler = handle_condition(config.else, res);
+            break;
+        }
+    }
+    return childHandler;
+}
+```
+
+###Send request block
+
+```javascript
+function send_request(restbase, req) {
+    return restbase.request(req);
+}
+```
+
+###match_response
+
+```javascript
+function match_response(condition, res) {
+    // execute condition against res
+    // Eg. { status : 404 } will check if res['status'] === 404
+    if (match) {
+        return true   
+    } else {
+        return false
+    }
+}
+```
+
+###Conditional handler
+
+```javascript
+function handle_condition(config, res) {
+    return new Promise(function(response, reject){
+        if(Object.keys(config[0])==="send_reuquest" && Object.keys(config[1])==="on_response") {
+            return send_reuquest(config.).then(handle_response.bind(self, config.on_response));
+        } else if (Object.keys(config[0])==="send_request") {
+            return send_request(config.send_request);
+        } else if (Object.keys(config[0])==="if") {
+            if ( match_response(config.if, res) ) {
+                return handle_condition(config.then, res);
+            } 
         }
     });
 }
 ```
 
-# Logical Mapping
+# Wrapper
 
-* GET <=> Send a GET request
-* PUT <=> Send a PUT request
-* send_request <=> Makes a Call to restbase.request()
-* on_request <=> Becomes a .then
-* method <=> method for the request
-* url, body, headers <=> paramerters to the send_request function
-* if .. else <=> converts to if, else conditonal
+A handler wrapper that will execute obove handlers will look something like
+
+```javascript
+function make_config_handler(restbase, config) {
+    if(Object.keys(config[0])==="send_request" && Object.keys(config[1])==="on_response") {
+        var handler = function handler(restabase, req) {
+            return send_request(config.send_request).then(handle_response.bind(self, config.on_response))
+        }
+    }
+    return handler
+}
+```
