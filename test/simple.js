@@ -175,6 +175,25 @@ describe('Simple API tests', function () {
                 deepEqual(res.body, 'Hello there');
             });
         });
+        it('should transparently create a new wikitext revision 2', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: '/Foobar/wikitext/624484477',
+                headers: { 'content-type': 'text/wikitext' },
+                body: 'Hello there'
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+            });
+        });
+        it('should return HTML just created 2', function() {
+            return preq.get({
+                uri: '/Foobar/wikitext/624484477'
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+            });
+        });
     });
     describe('404 handling', function() {
         it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
