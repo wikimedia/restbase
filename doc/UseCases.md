@@ -1,6 +1,6 @@
 # Use cases for buckets
 
-see maintenance/tables.sql
+see [maintenance/tables.sql](https://github.com/wikimedia/mediawiki/blob/master/maintenance/tables.sql)
 
 ## Page storage
 ### RevisonedBlob per page property
