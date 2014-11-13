@@ -1,4 +1,109 @@
-# Data Flow
+# Goals and constraints
+RESTBase aims to provide 
+
+1. flexible and scalable storage, and 
+2. a consistent and extensible REST API for internal and external access to
+   (typically stored) content and data.
+
+## The case for hooks in the read & write paths
+In the write path, we often need to ensure that a specific (configurable) set
+of validation and sanitization steps are applied *before* storing a bit of
+information. Such steps are often security-critical, so there should be no way
+to bypass them. This means that we can't trust each client to do the right
+checks before storing something. It is possible to use cryptographic signatures
+to check that certain steps have in fact been applied to a bit of content, but
+at that point it seems to be simpler to just handle the application of these
+steps centrally and without a duplication of code. Similar unconditional hooks
+are needed *after* a save went through (for dependent updates / async jobs).
+
+In the read path, we need to determine whether the user is authorized to read
+the resource. This might involve calls into the auth service, for example in
+the case of deleted revisions. Even if the user has access, there is a need to
+double-check & possibly re-sanitize old, stored content.  
+
+Additionally, we'd often like to handle *missing information* by *creating it
+on demand*. Examples would be parsing of wikitext to HTML, the generation of a
+specific HTML flavor (for mobile, say), the extraction of metadata from a
+revision, or the rendering of a mathematical formula.
+
+The pure orchestration of backend services through network requests can be
+done efficiently and with very little code. The physical separation between
+storage and back-end services avoids security and performance issues, and
+enforces the use of well-defined interfaces. The overall functionality
+provided is somewhat similar to MediaWiki's hooks, adapted to a distributed
+environment.
+
+## Extensible storage using tables and buckets with associated behavior
+For a flexible storage service, we need
+
+- storage primitives suitable for a variety of use cases, and 
+- the ability to dynamically configure and use these primitives.
+
+For the use cases we have in mind, the following storage primitives are very
+attractive:
+
+- Tables: A set of typed attributes with a primary index and optional
+  secondary indexes, defined by a JSON schema.
+- Buckets: Higher-level combinations of storage and behavior. Examples:
+  S3-like (revisioned) blob storage, Revisioned MediaWiki page content in
+  different formats (html, wikitext, JSON metadata, ..) with lookup by title,
+  time or revision. Buckets can, but don't need to be, implemented on top of
+  tables.
+
+The desired behavior of hooks as discussed in the preceding paragraph depends
+on the specific entry point. For example, a request for the HTML of a revision
+within a page content bucket should trigger sanitization and on-demand
+creation behavior that's different from that for wikitext of the same
+revision. A lot of this behavior can be hard-coded in a bucket implementation
+(or triggered by something like the content type), but some of it should also
+be configurable per type or instance. 
+
+As an example, it should be easy to 
+
+- create a new bucket for something like a bit of metadata extracted from a
+  page revision,
+- register a service end point to call if this data doesn't exist yet for a
+  revision, and
+- register another service end point to call after each edit, to pre-generate
+  the metadata as soon as possible.
+
+
+## Most API end points will (eventually) be storage-backed
+The focus of the content / data API is high-performance access to content and
+data. This means that [most entry points](UseCases.md) will be backed by storage or large,
+persistent caches. The primary exceptions to this are:
+
+- search & action=query-like functionality
+- imperatitive actions:
+    - emailuser
+    - purge
+    - auth related end points, user blocking (eventually: auth service)
+- many data access end points in the PHP API
+
+With a REST-style API it is relatively straightforward to route these entry
+points directly to their internal service end points in Varnish.
+
+# Data Flow & code structure
+Originally, RESTBase started out as two separate services: 
+
+- Rashomon, a storage service
+- RESTFace, an API service on top of Rashomon
+
+However, we soon realized that there would be basically no good use case for
+direct requests to Rashomon ([see old
+notes](https://github.com/wikimedia/restbase/blob/07e7b6a5cdcfc14807f8e7d033eefbc47150cf13/doc/Architecture.md#data-flow)).
+Separating the two services would just add a network hop in the common storage
+access path. 
+
+The desire to swap out storage backends made the table storage layer a very
+good frontend / backend interface. Higher-level functionality like buckets is
+implemented in RESTBase on top of table storage, and thus works across
+different table storage backends. None of the operations it exposes is in any
+way tied to Cassandra, and additional storage backends are planned in the
+future.
+
+
+Here is a (very rough) sketch of the current structure:
 
 ```
 API Clients         Internet
@@ -6,222 +111,65 @@ API Clients         Internet
  V
  .----------------. RESTBase
  V                | 
-Proxy Handlers    |            Proxy Layer
- |-> per-domain ->|
- |-> global     ->| <---> Backend services
+Proxy Handlers    |            Proxy / API Layer (restbase)
+ |-> global     ->|
+ |-> per-domain ->| <---> Backend services
  |-> bucket     ->' <---> MediaWiki
  | 
  | if no match or loop 
  |
- |-> table storage           Storage Layer
+ |-> table storage           Storage Layer (restbase-cassandra, ..)
  '-> queue backend
 ```
-- Normal read / most requests: go directly to storage
-- On edit / storage miss: coordinate request in proxy handler
-    - call configured backend service
-    - process compound response (JSON structure with requests / urls per part)
-        - mostly iterative processing for simplicity, consistent monitoring /
-          logging etc
 
-## Proxy layer
-- Simple request routing and response massaging
+# Detailed description of components
+
+## RESTBase
+- Simple request routing and response massaging ('hook' functionality)
 - Dispatch layer for backend services
 
-### Declarative proxy handlers
-#### Swagger API spec
-- Auto-generated documentation, sandbox, mocks / test clients
-- See [issue #1](https://github.com/gwicke/restbase/issues/1) for a
-  screenshot of swagger 2 in action
+### Proxy layer configuration: [HandlerConfiguration.md](Declarative proxy handlers)
+- declarative / language-independent request flow specs
+- currently working out the details
+- will likely be supported globally, per-domain & per-type (bucket / table)
+- can be layered (use wisely); can trace path of request through restbase &
+  log / monitor sub-requests generically
 
-#### Declarative proxy handler definition
-- Abstract common operations
-- Make it easy to port to another environment later
+### Buckets
+- higher-level, reusable storage abstractions on top of table storage
+- can be composed e.g. with multiple revisioned blob sub-buckets in a
+  pagecontent bucket
 
-Example for a bucket handler:
-```yaml
----
-# /{domain}/ prefix is implicit in bucket handlers
-/{title}/html{/revision}:
-
-  GET:
-    # This is a valid Swagger 2.0 spec. Try at
-    # http://editor.swagger.wordnik.com/.
-    summary: Get the HTML for a revision.
-    responses:
-      200:
-        description: The HTML for the given page and revision
-      default:
-        description: Unexpected error
-        schema: { $ref: Error }
-    produces: text/html;profile=mw.org/specs/html/1.0
-
-    request_handler:
-    - send_request: request
-      on_response:
-      - if:
-          status: 404
-        then:
-        - send_request:
-            method: GET
-            url: /v1/parsoid/{domain}/{title}
-            headers: request.headers
-            query:
-              oldid: revision
-          on_response:
-          - if:
-              status: 200
-            then: 
-            - send_request:
-                method: PUT
-                headers: response.headers
-                body: response.body
-            - return: response
-          - else:
-            - return: response
-      - else:
-        - return: response
-  
-  PUT:
-    summary: Save a new version of the HTML page
-    responses:
-      201:
-        description: The new revision was successfully saved.
-      default:
-        description: Unexpected error
-        schema: { $ref: Error }
-    consumes:
-      - text/html
-      - text/html;profile=mediawiki.org/specs/html/1.0
-      - application/json;profile=mediawiki.org/specs/pagebundle/1.0
-
-    request_handler:
-    - send_request: 
-        # Sanitize the HTML first, and create derivate content like wikitext
-        method: POST
-        # Forward to internal service for processing
-        url: /_svc/sanitizer/{domain}/{title}{/revision}
-        headers: request.headers
-        body: request.body
-      on_response:
-      - if:
-          status: 200
-          headers:
-            content-type: application/json;profile=mw.org/spec/requests
-          # The backend service returned a JSON structure containing a request
-          # structure (a HTTP transaction). Execute it & return the response.
-        then:
-        - send_request: response.request
-          on_response:
-          - return: response
-      - else:
-        - return: response
-```
-
-### 1.1: Buckets
-- provide pre-defined functionality / behavior and typically storage
-- still participate in the proxy layer, so can perform requests to arbitrary
-  backends
-- let users override proxy handlers per domain & globally
-    - example use cases: 
-        - extend / filter listings & documentation
-            - possibly interesting:
-              https://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10
-              https://github.com/bruth/jsonpatch-js
-            - alternative: chained JS expressions similar to templating
-              `response.body.set('some.sub.path', {some:value}).delete('some.path')`
-        - add custom handlers
-
-#### Issue: documentation of dynamic buckets / backend handlers
-- need to flatten structure for docs, per domain
-- requests dynamic api spec by calling a spec_handler on proxy handlers, if defined
-    - dynamic specs take precedence
-- need to merge paths
-    - strip the names for equality / sorting: `.replace(/({[\/?]?)[^}]*(})/g, '$1$2')`
-    - difficult case: `/{foo}/bar{/baz}` vs. `/{foo}/{bar}{/baz}`
-        - need to include both
-    - luckily: `['{','a'].sort() -> [ 'a', '{' ]`
-    - also use frontend / backend to break ties
-        - add global & domain proxy handlers last, so that they override
-- might need to strip / expand optional ones at the end ({/}) if
-  there are overlapping shorter routes
-
-#### Proxy handler levels
-- cross domain
-    - can project those down to per-domain
-    - use case: define a global service *within each domain's namespace*
-        - citoid, mathoid, parsoid
-- per-domain
-    - can use internal domains: `/v1/parsoid.svc.local/..`
-- per-bucket / table
-    - get front-end handlers per bucket at `?_spec` ?
-    - need to update handlers / specs
-        - on bucket creation / deletion
-        - solution would be useful for docs as well
-    - can also be cross-domain (`/v1/{domain}/pages/`)
-        - can use this for optimization in front-end (share code if json is
-          equal)
-
-## Layer 2: Table storage service
-- abstracts storage layer backend with a REST interface
-- used by buckets, but can also (eventually) be directly exposed
-
-### Other layering considerations
-- can do significant massaging / backend-specific logic in backend handlers
-    - example: unescape slashes in title for parsoid
-    - lets us keep proxy handlers simple
-    - consistent internal interface, but potentially different from external
-      service interfaces
-- property listings
-    - not all sub-buckets should be shown
-        - bucket proxy handler controls listing of regular sub-buckets
-            - can use property on sub-buckets to decide whether to list them
-            - alternatively, filter them in in a proxy handler
-
-
-## Reasons for dispatching from restbase, and integrating with storage
-- standardized data flow, retry & error handling, logging per backend
-- combines documentation and execution spec in readable spec
-- separation of concerns
-    - for example, only single save pipeline per bucket which can enforce
-      sanitization etc
-- can build atomic storage operations from several independent service results
-- consistent API to work against
-- keeps individual services simple (request - reply pattern), ease of
-  debugging
-- can later push some of this handling to Varnish (using declarative config)
-  where it makes sense for perf
-- low latency on fast / common read path by avoiding a network hop
+## Storage layer
+- currently only table storage backend interface
+    - first implementation: restbase-cassandra; others to follow
+- can use multiple backends at once
+- can add other backend *types* later (ex: queue, large blob storage)
 
 # Bucket access restrictions
 Goals: 
 - Allow fairly direct *read* access (bulk of requests)
-- Unconditionally enforce group access at lowest level
+- Unconditionally enforce group access at lowest (table access) level
 - Enforce additional service processing constraints (sanitization etc) by
-  limiting access to specific services
+    - calling those services unconditionally
+    - (ideally) verifying the authenticity of those services with signatures
+      or TLS certs
 
-- grant bucket operation (read, edit) to [user group, (service x handler)]
+- grant bucket operation (read, edit) to [user group, (service x entry point)]
     - user groups
     - some kind of request auth based on
         - private service key
         - bucket path
         - front-end handler name
         
-    - should all be doable in the backend if handler name accessible
+    - should all be doable just above the table storage layer
     - perhaps something like 
       hash(nonce or (ssl?) session key | private_restbase_key | bucket_path | handler_name)
 
-See [the SOA authentication RFC](https://www.mediawiki.org/wiki/Talk:Requests_for_comment/SOA_Authentication).
+- revision / page deletions:
+    - read access only for some users
+    - currently modeled as a property on the revision (as in MediaWiki), but
+      might be worth looking into time ranges instead
 
-# Error handling
-Use [application/problem+json](https://tools.ietf.org/html/draft-nottingham-http-problem):
-```json
-{
- "type": "http://example.com/probs/out-of-credit",
- "title": "You do not have enough credit.",
- "detail": "Your current balance is 30, but that costs 50.",
- "instance": "http://example.net/account/12345/msgs/abc",
- "balance": 30,
- "accounts": ["http://example.net/account/12345",
-              "http://example.net/account/67890"]
-}
-```
+See [the SOA authentication RFC for details](https://www.mediawiki.org/wiki/Talk:Requests_for_comment/SOA_Authentication).
+
