@@ -128,7 +128,7 @@ Proxy Handlers    |            Proxy / API Layer (restbase)
 - Simple request routing and response massaging ('hook' functionality)
 - Dispatch layer for backend services
 
-### Proxy layer configuration: [HandlerConfiguration.md](Declarative proxy handlers)
+### Proxy layer configuration: [Declarative proxy handlers](HandlerConfiguration.md)
 - declarative / language-independent request flow specs
 - currently working out the details
 - will likely be supported globally, per-domain & per-type (bucket / table)
