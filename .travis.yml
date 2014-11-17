@@ -8,4 +8,7 @@ before_install:
   - sudo service cassandra start
 
 before_script:
-  - sleep 8
+  - while [ `nc localhost 9042 < /dev/null; echo $?` != 0 ] ; do
+      echo 'waiting for cassandra...' ;
+      sleep 1 ;
+    done
