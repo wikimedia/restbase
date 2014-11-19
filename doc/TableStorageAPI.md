@@ -34,12 +34,15 @@ Example:
 ## Supported types
 - `blob`: arbitrary-sized blob; in practice, should be single-digit MB at most
   (at least for Cassandra backend)
-- `set<T>': A set of type T.
+- `set<T>`: A set of type T.
 - `int`: A 32-bit signed integer.
-- `varint`: A variable-length (arbitrary range) integer. Supports at least a
-  64 bit signed integer. Note that there might be further limitations in
-  client platforms; for example, Javascript can only represent 52bits at full
-  integer precision in its Number type.
+- `varint`: A variable-length (arbitrary range) integer. Backends support at
+  least a 64 bit signed integer. Note that there might be further limitations
+  in client platforms; for example, Javascript can only represent 52bits at
+  full integer precision in its Number type. Since our server-side
+  implementation decodes JSON to doubles, this is also the maximum range the
+  we currently support in practice. We might add support for an alternative
+  JSON string representation of larger integers in the future.
 - `decimal`: Decimal number.
 - `float`: Single-precision (32-bit) floating point number.
 - `double`: Double-precision (64-bit) floating point number.
