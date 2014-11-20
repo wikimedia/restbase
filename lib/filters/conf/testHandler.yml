@@ -9,19 +9,21 @@
         then:
         - send_request:
             method: GET
-            url: /v1/parsoid/{domain}/{title}
+            url: /v1/en.wikipedia.org/test101/{title}/html/624165266
             headers: request.headers
             query:
-            oldid: revision
+              oldid: revision
           on_response:
           - if:
               status: 200
             then: 
             - send_request:
-              method: PUT
-              headers: response.headers
-              body: response.body
-            - return: response
+                method: GET
+                url: /v1/en.wikipedia.org/test101/Foobar/html/{revision}
+                headers: response.headers
+                body: 'Hello there'
+              on_response:
+                - return: response
           - else:
             - return: response
       - else:

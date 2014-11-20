@@ -175,10 +175,10 @@ describe('Simple API tests', function () {
                 deepEqual(res.body, 'Hello there');
             });
         });
-        it('should transparently create a new wikitext revision 2', function() {
+        it('should transparently create a new wikitext revision using proxy handler', function() {
             this.timeout(20000);
             return preq.get({
-                uri: '/Foobar/wikitext/624484477',
+                uri: hostPort + '/Foobar/wikitext/624484477',
                 headers: { 'content-type': 'text/wikitext' },
                 body: 'Hello there'
             })
@@ -186,14 +186,16 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
             });
         });
-        it('should return HTML just created 2', function() {
+        it('should return data-parsoid just created, rev 2', function() {
             return preq.get({
-                uri: '/Foobar/wikitext/624484477'
+                uri: bucketURL + '/Foobar/data-parsoid/624484477'
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
+                deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
             });
         });
+
     });
     describe('404 handling', function() {
         it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
