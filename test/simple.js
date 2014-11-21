@@ -53,6 +53,19 @@ describe('Simple API tests', function () {
             return preq.put({
                 uri: bucketURL,
                 headers: { 'content-type': 'application/json' },
+                body: {}
+            })
+            .catch(function(e) {
+                deepEqual(e.status, 400);
+                deepEqual(e.body.title, 'Invalid bucket spec.');
+            });
+        });
+        it('should require a valid bucket type', function() {
+            this.timeout(20000);
+            return preq.put({
+                uri: bucketURL,
+                headers: { 'content-type': 'application/json' },
+                body: { type: 'wazzle' }
             })
             .catch(function(e) {
                 deepEqual(e.status, 400);
