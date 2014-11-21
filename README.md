@@ -72,7 +72,7 @@ Usage
 curl -X PUT http://localhost:8888/v1/en.wikipedia.org
 
 # add a new bucket to a domain (somewhat magic currently)
-curl -X PUT http://localhost:8888/v1/en.wikipedia.org/pages.html
+curl -X PUT -H 'Content-Type: application/json' -d '{ "type": "pagecontent" }' http://localhost:8888/v1/en.wikipedia.org/pages.html
 
 # add an entry
 curl -X PUT -d 'hello world' -H 'content-type: text/html' \
