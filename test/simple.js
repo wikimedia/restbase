@@ -8,6 +8,9 @@
  * Could also check out the nock package to record / replay http interactions
  */
 
+// mocha defines to avoid JSHint breakage
+/* global describe, it, before, beforeEach, after, afterEach */
+
 var restbase = require('../lib/server.js');
 var preq = require('preq');
 var assert = require('assert');
