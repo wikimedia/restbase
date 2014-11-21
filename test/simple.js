@@ -25,6 +25,19 @@ function deepEqual (result, expected) {
     }
 }
 
+Promise.prototype.fails = function(onRejected) {
+    var failed = false;
+    function trackFailure(e) {
+        failed = true;
+        return onRejected(e);
+    }
+    function check(x) {
+        if (!failed) throw new Error('expected error was not thrown');
+        return this;
+    }
+    return this.catch(trackFailure).then(check);
+}
+
 describe('Simple API tests', function () {
     this.timeout(20000);
     before(function() {
@@ -55,10 +68,7 @@ describe('Simple API tests', function () {
                 headers: { 'content-type': 'application/json' },
                 body: {}
             })
-            .then(function(res) {
-              should.fail('expected error was not thrown')
-            })
-            .catch(function(e) {
+            .fails(function(e) {
                 deepEqual(e.status, 400);
                 deepEqual(e.body.title, 'Invalid bucket spec.');
             });
@@ -70,10 +80,7 @@ describe('Simple API tests', function () {
                 headers: { 'content-type': 'application/json' },
                 body: { type: 'wazzle' }
             })
-            .then(function(res) {
-              should.fail('expected error was not thrown')
-            })
-            .catch(function(e) {
+            .fails(function(e) {
                 deepEqual(e.status, 400);
                 deepEqual(e.body.title, 'Invalid bucket spec.');
             });
