@@ -48,6 +48,17 @@ describe('Simple API tests', function () {
         });
     });
     describe('Bucket creation', function() {
+        it('should require a bucket type', function() {
+            this.timeout(20000);
+            return preq.put({
+                uri: bucketURL,
+                headers: { 'content-type': 'application/json' },
+            })
+            .catch(function(e) {
+                deepEqual(e.status, 400);
+                deepEqual(e.body.title, 'Invalid bucket spec.');
+            });
+        });
         it('should create a page bucket', function() {
             this.timeout(20000);
             return preq.put({
