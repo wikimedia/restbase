@@ -55,6 +55,9 @@ describe('Simple API tests', function () {
                 headers: { 'content-type': 'application/json' },
                 body: {}
             })
+            .then(function(res) {
+              should.fail('expected error was not thrown')
+            })
             .catch(function(e) {
                 deepEqual(e.status, 400);
                 deepEqual(e.body.title, 'Invalid bucket spec.');
@@ -66,6 +69,9 @@ describe('Simple API tests', function () {
                 uri: bucketURL,
                 headers: { 'content-type': 'application/json' },
                 body: { type: 'wazzle' }
+            })
+            .then(function(res) {
+              should.fail('expected error was not thrown')
             })
             .catch(function(e) {
                 deepEqual(e.status, 400);
