@@ -69,29 +69,29 @@ Usage
 -----
 ```sh
 # add a new domain (TODO: accept config)
-curl -X PUT http://localhost:8888/v1/en.wikipedia.org
+curl -X PUT http://localhost:7231/v1/en.wikipedia.org
 
 # add a new bucket to a domain (somewhat magic currently)
-curl -X PUT -H 'Content-Type: application/json' -d '{ "type": "pagecontent" }' http://localhost:8888/v1/en.wikipedia.org/pages.html
+curl -X PUT -H 'Content-Type: application/json' -d '{ "type": "pagecontent" }' http://localhost:7231/v1/en.wikipedia.org/pages.html
 
 # add an entry
 curl -X PUT -d 'hello world' -H 'content-type: text/html' \
-    http://localhost:8888/v1/en.wikipedia.org/pages/Test/html
+    http://localhost:7231/v1/en.wikipedia.org/pages/Test/html
 
 # Retrieve HTML
-curl http://localhost:8888/v1/en.wikipedia.org/pages/{page}/html
+curl http://localhost:7231/v1/en.wikipedia.org/pages/{page}/html
 
 # Some listings:
 ## All keys in bucket
-curl http://localhost:8888/v1/en.wikipedia.org/pages/
+curl http://localhost:7231/v1/en.wikipedia.org/pages/
 ## Properties for an item
-curl http://localhost:8888/v1/en.wikipedia.org/pages/{page}/
+curl http://localhost:7231/v1/en.wikipedia.org/pages/{page}/
 ## Revisions for a property
-curl http://localhost:8888/v1/en.wikipedia.org/pages/{page}/html/
+curl http://localhost:7231/v1/en.wikipedia.org/pages/{page}/html/
 ```
 The actual cassandra backend can be benchmarked with:
 ```
-ab -c10 -n10000 'http://localhost:8888/v1/en.wikipedia.org/pages/Test/html'
+ab -c10 -n10000 'http://localhost:7231/v1/en.wikipedia.org/pages/Test/html'
 ```
 On my laptop this currently yields around 2900 req/s on node 0.10 for small
 blobs, and around 5GBit for large (3mb) blobs.

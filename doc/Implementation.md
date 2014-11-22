@@ -22,9 +22,15 @@ lib/
 conf/
     restbase.yaml
     proxy_handlers/
-        global.pages.title.listing.yaml
+        global/
+        buckets/
+    projects/
+        # projects enable grouping of restbase configs per project
         someproject/
-            org.wikipedia.en.pages.title.listing.yaml
+            global/
+            buckets/
+                # kv:.pages.html.yaml -- kv bucket named 'html'
+                # pagecontent:.pages.yaml -- pagecontent buckets named 'pages'
 doc/
 test/
 ```
