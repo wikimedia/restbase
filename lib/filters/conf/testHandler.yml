@@ -1,4 +1,4 @@
-/{title}/wikitext/{revision}:
+/{title}/wikitext{/revision}:
   GET:
     summary: Get the HTML for a revision.
     request_handler: 
