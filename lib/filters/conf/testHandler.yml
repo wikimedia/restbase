@@ -2,7 +2,7 @@
   GET:
     summary: Get the HTML for a revision.
     request_handler: 
-    - send_request: request
+    - send_request: $request
       on_response:
       - if:  
           status: 404
@@ -10,9 +10,9 @@
         - send_request:
             method: GET
             url: /v1/en.wikipedia.org/test101/{title}/html/624165266
-            headers: request.headers
+            headers: $request.headers
             query:
-              oldid: revision
+              oldid: $request.params.revision
           on_response:
           - if:
               status: 200
@@ -20,11 +20,11 @@
             - send_request:
                 method: GET
                 url: /v1/en.wikipedia.org/test101/Foobar/html/{revision}
-                headers: response.headers
-                body: 'Hello there'
+                headers: $response.headers
+                body: $response.body
               on_response:
-                - return: response
+                - return: $response
           - else:
-            - return: response
+            - return: $response
       - else:
-        - return: response
+        - return: $response
