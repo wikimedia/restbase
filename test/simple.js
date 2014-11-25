@@ -188,7 +188,7 @@ describe('Simple API tests', function () {
         it('should transparently create a new wikitext revision using proxy handler', function() {
             this.timeout(20000);
             return preq.get({
-                uri: hostPort + '/Foobar/wikitext/624484477',
+                uri: baseURL + '/Foobar/wikitext/624484477',
                 headers: { 'content-type': 'text/wikitext' },
                 body: 'Hello there'
             })
