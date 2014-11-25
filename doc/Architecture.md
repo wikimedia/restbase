@@ -105,22 +105,7 @@ future.
 
 Here is a (very rough) sketch of the current structure:
 
-```
-API Clients         Internet
- |
- V
- .----------------. RESTBase
- V                | 
-Proxy Handlers    |            Proxy / API Layer (restbase)
- |-> global     ->|
- |-> per-domain ->| <---> Backend services
- |-> bucket     ->' <---> MediaWiki
- | 
- | if no match or loop 
- |
- |-> table storage           Storage Layer (restbase-cassandra, ..)
- '-> queue backend
-```
+![RESTBase request flow](images/RESTBase.svg)
 
 # Detailed description of components
 

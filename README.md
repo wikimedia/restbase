@@ -30,22 +30,7 @@ Prototype, preparing for basic production. You can try the
 **[demo](http://api.wmflabs.org/v1/en.wikipedia.org/pages/Paris/html/626969947)**.
 
 ## Request flow
-```
-API Clients         Internet
- |
- V
- .----------------. RESTBase
- V                | 
-Proxy Handlers    |            Proxy Layer
- |-> per-domain ->|
- |-> global     ->| <---> Backend services
- |-> bucket     ->' <---> MediaWiki
- | 
- | if no match or loop 
- |
- |-> table storage           Storage Layer
- '-> queue backend
-```
+![RESTBase request flow](doc/images/RESTBase.svg)
 
 RESTBase is optimized for a very direct and fast read path, with the
 expectation that most requests are served straight from storage. The front-end
