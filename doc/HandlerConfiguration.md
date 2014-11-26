@@ -6,8 +6,7 @@
 Example for a bucket handler:
 ```yaml
 ---
-# /{domain}/ prefix is implicit in bucket handlers
-/{title}/html{/revision}:
+/v1/{domain}/pages/{title}/html{/revision}:
 
   GET:
     # This is a valid Swagger 2.0 spec. Try at
@@ -29,7 +28,9 @@ Example for a bucket handler:
         then:
         - send_request:
             method: GET
-            url: /v1/parsoid/{domain}/{title}
+            url: | # Long URLs can be written as multi-line yaml syntax
+                /v1/{request.params.domain}/_/parsoid/
+                {request.params.domain}/{request.params.title}
             headers: $request.headers
             query:
               oldid: $request.params.revision
@@ -65,7 +66,9 @@ Example for a bucket handler:
         # Sanitize the HTML first, and create derivate content like wikitext
         method: POST
         # Forward to internal service for processing
-        url: /_svc/sanitizer/{domain}/{title}{/revision}
+        url: |
+            /v1/{request.params.domain/_/sanitizer/
+            {request.params.title}{/request.params.revision}
         headers: $request.headers
         body: $request.body
       on_response:

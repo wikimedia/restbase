@@ -30,7 +30,8 @@ Prototype, preparing for basic production. You can try the
 **[demo](http://api.wmflabs.org/v1/en.wikipedia.org/pages/Paris/html/626969947)**.
 
 ## Request flow
-![RESTBase request flow](doc/images/RESTBase.svg)
+![RESTBase request
+flow](https://upload.wikimedia.org/wikipedia/commons/a/ab/Restbase_request_flow.svg)
 
 RESTBase is optimized for a very direct and fast read path, with the
 expectation that most requests are served straight from storage. The front-end
