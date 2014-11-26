@@ -28,6 +28,22 @@ function deepEqual (result, expected) {
     }
 }
 
+Promise.prototype.fails = function(onRejected) {
+    var failed = false;
+    function trackFailure(e) {
+        failed = true;
+        return onRejected(e);
+    }
+    function check(x) {
+        if (!failed) {
+            throw new Error('expected error was not thrown');
+        } else {
+            return this;
+        }
+    }
+    return this.catch(trackFailure).then(check);
+};
+
 describe('Simple API tests', function () {
     this.timeout(20000);
     before(function() {
@@ -58,10 +74,7 @@ describe('Simple API tests', function () {
                 headers: { 'content-type': 'application/json' },
                 body: {}
             })
-            .then(function(res) {
-              should.fail('expected error was not thrown')
-            })
-            .catch(function(e) {
+            .fails(function(e) {
                 deepEqual(e.status, 400);
                 deepEqual(e.body.title, 'Invalid bucket spec.');
             });
@@ -73,10 +86,7 @@ describe('Simple API tests', function () {
                 headers: { 'content-type': 'application/json' },
                 body: { type: 'wazzle' }
             })
-            .then(function(res) {
-              should.fail('expected error was not thrown')
-            })
-            .catch(function(e) {
+            .fails(function(e) {
                 deepEqual(e.status, 400);
                 deepEqual(e.body.title, 'Invalid bucket spec.');
             });
@@ -175,6 +185,27 @@ describe('Simple API tests', function () {
                 deepEqual(res.body, 'Hello there');
             });
         });
+        it('should transparently create a new wikitext revision using proxy handler', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: hostPort + '/Foobar/wikitext/624484477',
+                headers: { 'content-type': 'text/wikitext' },
+                body: 'Hello there'
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+            });
+        });
+        it('should return data-parsoid just created, rev 2', function() {
+            return preq.get({
+                uri: bucketURL + '/Foobar/data-parsoid/624484477'
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+                deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+            });
+        });
+
     });
     describe('404 handling', function() {
         it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
