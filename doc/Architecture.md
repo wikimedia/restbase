@@ -105,7 +105,7 @@ future.
 
 Here is a (very rough) sketch of the current structure:
 
-![RESTBase request flow](https://raw.githubusercontent.com/wikimedia/restbase/master/doc/images/RESTBase.svg)
+![RESTBase request flow](https://upload.wikimedia.org/wikipedia/commons/a/ab/Restbase_request_flow.svg)
 
 # Detailed description of components
 
