@@ -4,7 +4,7 @@
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
-    "test": "mocha"
+    "test": "sh test/test-cleandb.sh && mocha"
   },
   "repository": {
     "type": "git",
