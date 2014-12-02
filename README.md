@@ -57,8 +57,8 @@ Usage
 # add a new domain (TODO: accept config)
 curl -X PUT http://localhost:7231/v1/en.wikipedia.org
 
-# add a new bucket to a domain (somewhat magic currently)
-curl -X PUT -H 'Content-Type: application/json' -d '{ "type": "pagecontent" }' http://localhost:7231/v1/en.wikipedia.org/pages.html
+# add a new 'pagecontent' bucket to a domain
+curl -X PUT -H 'Content-Type: application/json' -d '{ "type": "pagecontent" }' http://localhost:7231/v1/en.wikipedia.org/pages
 
 # add an entry
 curl -X PUT -d 'hello world' -H 'content-type: text/html' \
