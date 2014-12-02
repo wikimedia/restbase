@@ -157,7 +157,10 @@ describe('Simple API tests', function () {
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
-                deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+                deepEqual(
+                      res.headers['content-type']
+                    , 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
+                );
             });
         });
         it('should accept a new html save with a revision', function() {
@@ -202,7 +205,25 @@ describe('Simple API tests', function () {
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
-                deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+                deepEqual(
+                    res.headers['content-type'],
+                    'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
+                );
+            });
+        });
+        it('should regenerate and return data-parsoid on no-cache header', function() {
+            return preq.get({
+                uri: bucketURL + '/Foobar/data-parsoid/624484477',
+                headers: {
+                  'Cache-Control': 'no-cache'
+                }
+            })
+            .then(function(res) {
+                deepEqual(res.status, 200);
+                deepEqual(
+                    res.headers['content-type'],
+                    'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
+                );
             });
         });
 
