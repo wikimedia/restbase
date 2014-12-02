@@ -1,0 +1,27 @@
+# RESTBase config
+
+port: 7132
+
+# System domain (used to store restbase metadata) in reverse DNS notation
+sysdomain: restbase.local
+
+storage:
+  default:
+    # module name
+    type: restbase-cassandra
+    hosts: [localhost]
+    keyspace: system
+    username: cassandra
+    password: cassandra
+    defaultConsistency: localQuorum # or 'one' for single-node testing
+
+logging:
+  name: restbase
+  #streams:
+  ## XXX: Use gelf-stream -> logstash
+  #- type: gelf
+  #  host: <%= @logstash_host %>
+  #  port: <%= @logstash_port %>
+
+monitoring:
+    # statsdHost: localhost
