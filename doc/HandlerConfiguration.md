@@ -21,11 +21,10 @@ Example for a bucket handler:
     produces: text/html;profile=mw.org/specs/html/1.0
 
     request_handler:
-    - send_request: $request
-      on_response:
-      - if:
-          status: 404
-        then:
+    - if:
+        request.headers.cache-control:
+            matches: /no-cache/i # regexp match
+      then: &updateHTML # name the HTML update handler, so that we can ref it
         - send_request:
             method: GET
             url: | # Long URLs can be written as multi-line yaml syntax
@@ -36,7 +35,7 @@ Example for a bucket handler:
               oldid: $request.params.revision
           on_response:
           - if:
-              status: 200
+              response.status: 200
             then: 
             - send_request:
                 method: PUT
@@ -45,9 +44,15 @@ Example for a bucket handler:
             - return: $response
           - else:
             - return: $response
-      - else:
-        - return: $response
-  
+    - else:
+      - send_request: $request
+        on_response:
+        - if:
+            response.status: 404
+          then: *updateHTML # Call the HTML update handler above
+        - else:
+          - return: $response
+
   PUT:
     summary: Save a new version of the HTML page
     responses:
@@ -73,8 +78,8 @@ Example for a bucket handler:
         body: $request.body
       on_response:
       - if:
-          status: 200
-          headers:
+          response.status: 200
+          response.headers:
             content-type: application/json;profile=mw.org/spec/requests
           # The backend service returned a JSON structure containing a request
           # structure (a HTTP transaction). Execute it & return the response.
