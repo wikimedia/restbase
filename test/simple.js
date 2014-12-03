@@ -222,7 +222,7 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
                 deepEqual(
                     res.headers['content-type'],
-                    'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
+                    'application/json; charset=utf-8'
                 );
             });
         });
