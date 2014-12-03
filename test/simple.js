@@ -205,25 +205,23 @@ describe('Simple API tests', function () {
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
-                deepEqual(
-                    res.headers['content-type'],
-                    'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
-                );
             });
         });
         it('should regenerate and return data-parsoid on no-cache header', function() {
             return preq.get({
-                uri: bucketURL + '/Foobar/data-parsoid/624484477',
-                headers: {
-                  'Cache-Control': 'no-cache'
-                }
+                uri: bucketURL + '/Foobar/data-parsoid/624484477'
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
-                deepEqual(
-                    res.headers['content-type'],
-                    'application/json; charset=utf-8'
-                );
+                deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
+                return res.headers.etag;
+            }).then(function(etag) {
+                return preq.get({
+                    uri: bucketURL + '/Foobar/data-parsoid/624484477',
+                    headers: { 'Cache-Control': 'no-cache' }
+                }).then(function(res) {
+                   assert.notDeepEqual(etag, res.headers.etag);
+                });
             });
         });
 
