@@ -15,9 +15,9 @@ var restbase = require('../lib/server.js');
 var preq = require('preq');
 var assert = require('assert');
 var hostPort = 'http://localhost:7231';
-var baseURL = hostPort + '/v1/en.wikipedia.org';
-var bucketURL = baseURL + '/test101';
 var closeRestbase;
+var baseURL = hostPort + '/v1/en.wikipedia.test.local';
+var bucketURL = baseURL + '/page';
 
 function deepEqual (result, expected) {
     try {
@@ -100,7 +100,7 @@ describe('Simple API tests', function () {
     describe('Domain & bucket creation', function() {
         it('should create a domain', function() {
             return preq.put({
-                uri: hostPort + '/v1/en.wikipedia.org',
+                uri: hostPort + '/v1/en.wikipedia.test.local',
                 headers: { 'content-type': 'application/json' },
                 body: {}
             })
@@ -172,17 +172,6 @@ describe('Simple API tests', function () {
             this.timeout(20000);
             return preq.get({
                 uri: bucketURL + '/Foobar/html/624165266'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 200);
-            });
-        });
-        it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: baseURL + '/Foobar/wikitext/624484477',
-                headers: { 'content-type': 'text/wikitext' },
-                body: 'Hello there'
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
