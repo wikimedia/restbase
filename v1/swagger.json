@@ -1,0 +1,142 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "RESTBase",
+    "description": "Distributed storage with REST API & dispatcher for backend servicse",
+    "termsOfService": "https://github.com/wikimedia/restbase#restbase",
+    "contact": {
+      "name": "Services",
+      "email": "services@lists.wikimedia.org",
+      "url": "https://www.mediawiki.org/wiki/Services"
+    },
+    "license": {
+      "name": "GNU Affero",
+      "url": "http://opensource.org/licenses/AGPL-3.0"
+    }
+  },
+  "host": "localhost:7231",
+  "basePath": "/v1",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/{domain}/page/{title}/html/": {
+      "get": {
+        "description": "Returns the list of revisions",
+        "operationId": "listRevisions",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "description": "domain",
+            "type": "string",
+            "required": true,
+            "default": "en.wikipedia.org"
+          },
+          {
+            "name": "title",
+            "in": "path",
+            "description": "title of page content",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the latest html for the given page",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/revisions"
+              }
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/errorModel"
+            }
+          }
+        }
+      }
+    },
+    "/{domain}/page/{title}/html/{revision}": {
+      "get": {
+        "description": "Returns the html for the given revision",
+        "operationId": "getFormatRevision",
+        "produces": [
+          "text/html"
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "description": "domain",
+            "type": "string",
+            "required": true,
+            "default": "en.wikipedia.org"
+          },
+          {
+            "name": "title",
+            "in": "path",
+            "description": "title of page content",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "description": "revision",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the latest html for the given page"
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "#/definitions/errorModel"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "errorModel": {
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "revisions": {
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+        }
+      }
+    }
+  }
+}
