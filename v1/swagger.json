@@ -32,7 +32,7 @@
           {
             "name": "domain",
             "in": "path",
-            "description": "domain",
+            "description": "The domain under which the data resides",
             "type": "string",
             "required": true,
             "default": "en.wikipedia.org"
@@ -40,14 +40,14 @@
           {
             "name": "title",
             "in": "path",
-            "description": "title of page content",
+            "description": "The title of page content",
             "type": "string",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "the latest html for the given page",
+            "description": "The list of revisions",
             "schema": {
               "type": "array",
               "items": {
@@ -56,7 +56,7 @@
             }
           },
           "default": {
-            "description": "unexpected error",
+            "description": "rnexpected error",
             "schema": {
               "$ref": "#/definitions/errorModel"
             }
@@ -75,7 +75,7 @@
           {
             "name": "domain",
             "in": "path",
-            "description": "domain",
+            "description": "The domain under which the data resides",
             "type": "string",
             "required": true,
             "default": "en.wikipedia.org"
@@ -83,24 +83,24 @@
           {
             "name": "title",
             "in": "path",
-            "description": "title of page content",
+            "description": "The title of page content",
             "type": "string",
             "required": true
           },
           {
             "name": "revision",
             "in": "path",
-            "description": "revision",
+            "description": "The revision",
             "type": "string",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "the latest html for the given page"
+            "description": "The latest html for the given page"
           },
           "default": {
-            "description": "unexpected error",
+            "description": "Unexpected error",
             "schema": {
               "$ref": "#/definitions/errorModel"
             }
