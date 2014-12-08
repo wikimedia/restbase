@@ -40,13 +40,39 @@ layer allows very flexible request routing and -orchestration with a
 configuration](https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-configuration). This lets it dispatch requests to a variety of back-end services while providing a uniform API & a central point for logging & monitoring. The linked example shows the on-demand generation of HTML from wikitext with a call to the Parsoid service in case a revision was not found in storage.
 
 ## Installation
+
+From the *restbase* project directory, install the Node dependencies:
+
 ```sh
 npm install
 ```
 
 [RESTBase-cassandra](https://github.com/gwicke/restbase-cassandra) provides a table storage service backend for RESTBase. Download & install Cassandra: http://planetcassandra.org/Download/StartDownload
 
-- Start RESTBase
+Copy the example configuration:
+
+```sh
+cp config.example.yaml config.yaml
+```
+
+If you're running a single Cassandra instance (e.g. a local development environment), set `storage.default.defaultConsistency` to `one` in *config.yaml*:
+
+*config.yaml*:
+
+```yaml
+# ...
+
+storage:
+  default:
+    # module name
+    # ...
+    defaultConsistency: one
+
+# ...
+```
+
+Start RESTBase:
+
 ```sh
 node server
 ```
