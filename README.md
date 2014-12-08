@@ -37,7 +37,11 @@ RESTBase is optimized for a very direct and fast read path, with the
 expectation that most requests are served straight from storage. The front-end
 layer allows very flexible request routing and -orchestration with a
 [declarative
-configuration](https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-configuration). This lets it dispatch requests to a variety of back-end services while providing a uniform API & a central point for logging & monitoring. The linked example shows the on-demand generation of HTML from wikitext with a call to the Parsoid service in case a revision was not found in storage.
+configuration](https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-configuration).
+This lets it dispatch requests to a variety of back-end services while
+providing a uniform API & a central point for logging & monitoring. The linked
+example shows the on-demand generation of HTML from wikitext with a call to
+the Parsoid service in case a revision was not found in storage.
 
 ## Installation
 
@@ -47,15 +51,28 @@ From the *restbase* project directory, install the Node dependencies:
 npm install
 ```
 
-[RESTBase-cassandra](https://github.com/gwicke/restbase-cassandra) provides a table storage service backend for RESTBase. Download & install Cassandra: http://planetcassandra.org/Download/StartDownload
+[RESTBase-cassandra](https://github.com/gwicke/restbase-cassandra) provides a
+table storage service backend for RESTBase. Download & install Cassandra:
+http://planetcassandra.org/Download/StartDownload
 
-Copy the example configuration:
+Start RESTBase:
+
+```sh
+node server
+```
+
+The defaults without a config file should work for a local Cassandra
+installation with the default passwords. To customize RESTBase's behavior,
+copy the example config to its default location:
 
 ```sh
 cp config.example.yaml config.yaml
 ```
 
-If you're running a single Cassandra instance (e.g. a local development environment), set `storage.default.defaultConsistency` to `one` in *config.yaml*:
+You can also pass in the path to another file with the `-c` commandline option
+to `server.js`. If you're running a single Cassandra instance (e.g. a local
+development environment), set `storage.default.defaultConsistency` to `one` in
+*config.yaml`:
 
 *config.yaml*:
 
@@ -69,12 +86,6 @@ storage:
     defaultConsistency: one
 
 # ...
-```
-
-Start RESTBase:
-
-```sh
-node server
 ```
 
 Usage
