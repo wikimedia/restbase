@@ -17,6 +17,7 @@ var assert = require('assert');
 var hostPort = 'http://localhost:7231';
 var baseURL = hostPort + '/v1/en.wikipedia.org';
 var bucketURL = baseURL + '/test101';
+var closeRestbase;
 
 function deepEqual (result, expected) {
     try {
@@ -44,6 +45,46 @@ Promise.prototype.fails = function(onRejected) {
     return this.catch(trackFailure).then(check);
 };
 
+function commonTests() {
+    it('should return HTML just created with revision 624484477', function() {
+        return preq.get({
+            uri: bucketURL + '/Foobar/html/624484477'
+        })
+        .then(function(res) {
+            deepEqual(res.status, 200);
+        });
+    });
+    it('should return HTML just created by revision 624165266', function() {
+        return preq.get({
+            uri: bucketURL + '/Foobar/html/624165266'
+        })
+        .then(function(res) {
+            deepEqual(res.status, 200);
+            deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
+        });
+    });
+    it('should return data-parsoid just created by revision 624165266, rev 2', function() {
+        return preq.get({
+            uri: bucketURL + '/Foobar/data-parsoid/624165266'
+        })
+        .then(function(res) {
+            deepEqual(res.status, 200);
+            deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+        });
+    });
+
+    it('should return data-parsoid just created with revision 624484477, rev 2', function() {
+        return preq.get({
+            uri: bucketURL + '/Foobar/data-parsoid/624484477'
+        })
+        .then(function(res) {
+            deepEqual(res.status, 200);
+            deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+        });
+    });
+
+}
+
 describe('Simple API tests', function () {
     this.timeout(20000);
     before(function() {
@@ -52,6 +93,8 @@ describe('Simple API tests', function () {
                 name: 'restbase-tests',
                 level: 'warn'
             }
+        }).then(function(server){
+            closeRestbase = function () { server.close(); };
         });
     });
     describe('Domain & bucket creation', function() {
@@ -114,7 +157,7 @@ describe('Simple API tests', function () {
         //        deepEqual(res.status, 404);
         //    });
         //});
-        it('should transparently create a new HTML revision', function() {
+        it('should transparently create a new HTML revision with id 624484477', function() {
             this.timeout(20000);
             return preq.get({
                 uri: bucketURL + '/Foobar/html/624484477',
@@ -125,15 +168,7 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
             });
         });
-        it('should return HTML just created', function() {
-            return preq.get({
-                uri: bucketURL + '/Foobar/html/624484477'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 200);
-            });
-        });
-        it('should transparently create data-parsoid, rev 2', function() {
+        it('should transparently create data-parsoid with id 624165266, rev 2', function() {
             this.timeout(20000);
             return preq.get({
                 uri: bucketURL + '/Foobar/html/624165266'
@@ -142,24 +177,18 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
             });
         });
-        it('should return HTML just created, rev 2', function() {
+        it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
+            this.timeout(20000);
             return preq.get({
-                uri: bucketURL + '/Foobar/html/624165266'
+                uri: baseURL + '/Foobar/wikitext/624484477',
+                headers: { 'content-type': 'text/wikitext' },
+                body: 'Hello there'
             })
             .then(function(res) {
                 deepEqual(res.status, 200);
-                deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
             });
         });
-        it('should return data-parsoid just created, rev 2', function() {
-            return preq.get({
-                uri: bucketURL + '/Foobar/data-parsoid/624165266'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 200);
-                deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
-            });
-        });
+        commonTests();
         it('should accept a new html save with a revision', function() {
             return preq.put({
                 uri: bucketURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
@@ -185,27 +214,6 @@ describe('Simple API tests', function () {
                 deepEqual(res.body, 'Hello there');
             });
         });
-        it('should transparently create a new wikitext revision using proxy handler', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: baseURL + '/Foobar/wikitext/624484477',
-                headers: { 'content-type': 'text/wikitext' },
-                body: 'Hello there'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 200);
-            });
-        });
-        it('should return data-parsoid just created, rev 2', function() {
-            return preq.get({
-                uri: bucketURL + '/Foobar/data-parsoid/624484477'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 200);
-                deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
-            });
-        });
-
     });
     describe('404 handling', function() {
         it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
@@ -253,5 +261,22 @@ describe('Simple API tests', function () {
                 deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
+    });
+});
+
+describe('Phase 2 - running tests with a restart', function() {
+    this.timeout(20000);
+    setTimeout(function() {}, 5000);
+    before(function() {
+        closeRestbase();
+        return restbase({
+            logging: {
+                name: 'restbase-tests',
+                level: 'warn'
+            }
+        });
+    });
+    describe('It should pass some tests from phase 1', function() {
+        commonTests();
     });
 });
