@@ -106,9 +106,9 @@
             }
           },
           "404": {
-            "description": "Unknown bucket",
+            "description": "Unknown table, bucket, or page",
             "schema": {
-              "$ref": "#/definitions/bucketNotFound"
+              "$ref": "#/definitions/tableBucketOrPageNotFound"
             }
           },
           "default": {
@@ -123,84 +123,41 @@
   },
   "definitions": {
     "defaultError": {
-      "required": [
-        "code",
-        "message"
-      ],
+      "required": [ "code", "message" ],
       "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        }
+        "code": { "type": "integer", "format": "int32" },
+        "message": { "type": "string" }
       }
     },
     "invalidRevision": {
-      "required": [
-        "code",
-        "method",
-        "title",
-        "type",
-        "uri"
-      ],
+      "required": [ "code", "method", "title", "type", "uri" ],
       "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "method": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "uri": {
-          "type": "string"
-        }
+        "code": { "type": "integer", "format": "int32" },
+        "method": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "uri": { "type": "string" }
       }
     },
-    "bucketNotFound": {
-      "required": [
-        "code",
-        "method",
-        "title",
-        "type",
-        "uri"
-      ],
+    "tableBucketOrPageNotFound": {
+      "required": [ "code", "method", "title", "type", "uri" ],
       "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "method": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        },
-        "uri": {
-          "type": "string"
-        }
+        "code": { "type": "integer", "format": "int32" },
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "localURI": { "type": "string" },
+        "table": { "type": "string" },
+        "uri": { "type": "string" },
+        "method": { "type": "string" }
       }
     },
     "revisions": {
-      "required": [
-        "items"
-      ],
+      "required": [ "items" ],
       "properties": {
         "items": {
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "items": { "type": "string" }
         }
       }
     }
