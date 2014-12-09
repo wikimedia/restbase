@@ -5,6 +5,7 @@ module.exports = function() {
     Promise.prototype.fails = function(onRejected) {
         var failed = false;
         function trackFailure(e) {
+            //console.log(e);
             failed = true;
             return onRejected(e);
         }
