@@ -1,4 +1,4 @@
-/v1/{domain}/{title}/wikitext{/revision}:
+/v1/en.wikipedia.test.local/test/{title}/wikitext{/revision}:
   GET:
     summary: Get the HTML for a revision.
     request_handler: 
@@ -9,7 +9,7 @@
         then:
         - send_request:
             method: GET
-            url: /v1/{request.params.domain}/test101/{request.params.title}/html/624165266
+            url: /v1/en.wikipedia.test.local/page/{request.params.title}/html/624165266
             headers: $request.headers
             query:
               oldid: $request.params.revision
@@ -19,7 +19,7 @@
             then: 
             - send_request:
                 method: GET
-                url: /v1/{request.params.domain}/test101/Foobar/html/{request.params.revision}
+                url: /v1/en.wikipedia.test.local/page/Foobar/html/{request.params.revision}
                 headers: $response.headers
                 body: $response.body
               on_response:

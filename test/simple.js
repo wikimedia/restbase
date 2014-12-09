@@ -16,8 +16,8 @@ require('mocha-jshint')(); // run JSHint as part of testing
 var restbase = require('../lib/server.js');
 var preq = require('preq');
 var hostPort = 'http://localhost:7231';
-var baseURL = hostPort + '/v1/en.wikipedia.org';
-var bucketURL = baseURL + '/test101';
+var baseURL = hostPort + '/v1/en.wikipedia.test.local';
+var bucketURL = baseURL + '/pages';
 var assert = require('./util/assert.js');
 require('./util/promise.js')(); // augment the Promise prototype
 
@@ -78,7 +78,7 @@ describe('Simple API tests', function () {
     describe('Domain & bucket creation', function() {
         it('should create a domain', function() {
             return preq.put({
-                uri: hostPort + '/v1/en.wikipedia.org',
+                uri: hostPort + '/v1/en.wikipedia.test.local',
                 headers: { 'content-type': 'application/json' },
                 body: {}
             })
