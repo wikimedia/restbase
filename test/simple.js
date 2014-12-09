@@ -11,39 +11,17 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
+require('mocha-jshint')(); // run JSHint as part of testing
+
 var restbase = require('../lib/server.js');
 var preq = require('preq');
-var assert = require('assert');
 var hostPort = 'http://localhost:7231';
 var baseURL = hostPort + '/v1/en.wikipedia.org';
 var bucketURL = baseURL + '/test101';
+var assert = require('./util/assert.js');
+require('./util/promise.js')(); // augment the Promise prototype
+
 var closeRestbase;
-
-function deepEqual (result, expected) {
-    try {
-        assert.deepEqual(result, expected);
-    } catch (e) {
-        console.log('Expected:\n' + JSON.stringify(expected,null,2));
-        console.log('Result:\n' + JSON.stringify(result,null,2));
-        throw e;
-    }
-}
-
-Promise.prototype.fails = function(onRejected) {
-    var failed = false;
-    function trackFailure(e) {
-        failed = true;
-        return onRejected(e);
-    }
-    function check(x) {
-        if (!failed) {
-            throw new Error('expected error was not thrown');
-        } else {
-            return this;
-        }
-    }
-    return this.catch(trackFailure).then(check);
-};
 
 function commonTests() {
     it('should return HTML just created with revision 624484477', function() {
@@ -51,7 +29,7 @@ function commonTests() {
             uri: bucketURL + '/Foobar/html/624484477'
         })
         .then(function(res) {
-            deepEqual(res.status, 200);
+            assert.deepEqual(res.status, 200);
         });
     });
     it('should return HTML just created by revision 624165266', function() {
@@ -59,8 +37,8 @@ function commonTests() {
             uri: bucketURL + '/Foobar/html/624165266'
         })
         .then(function(res) {
-            deepEqual(res.status, 200);
-            deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
         });
     });
     it('should return data-parsoid just created by revision 624165266, rev 2', function() {
@@ -68,8 +46,8 @@ function commonTests() {
             uri: bucketURL + '/Foobar/data-parsoid/624165266'
         })
         .then(function(res) {
-            deepEqual(res.status, 200);
-            deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
         });
     });
 
@@ -78,8 +56,8 @@ function commonTests() {
             uri: bucketURL + '/Foobar/data-parsoid/624484477'
         })
         .then(function(res) {
-            deepEqual(res.status, 200);
-            deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
         });
     });
 
@@ -105,7 +83,7 @@ describe('Simple API tests', function () {
                 body: {}
             })
             .then(function(res) {
-                deepEqual(res.status, 201);
+                assert.deepEqual(res.status, 201);
             });
         });
     });
@@ -118,8 +96,8 @@ describe('Simple API tests', function () {
                 body: {}
             })
             .fails(function(e) {
-                deepEqual(e.status, 400);
-                deepEqual(e.body.title, 'Invalid bucket spec.');
+                assert.deepEqual(e.status, 400);
+                assert.deepEqual(e.body.title, 'Invalid bucket spec.');
             });
         });
         it('should require a valid bucket type', function() {
@@ -130,8 +108,8 @@ describe('Simple API tests', function () {
                 body: { type: 'wazzle' }
             })
             .fails(function(e) {
-                deepEqual(e.status, 400);
-                deepEqual(e.body.title, 'Invalid bucket spec.');
+                assert.deepEqual(e.status, 400);
+                assert.deepEqual(e.body.title, 'Invalid bucket spec.');
             });
         });
         it('should create a page bucket', function() {
@@ -142,7 +120,7 @@ describe('Simple API tests', function () {
                 body: { type: 'pagecontent' }
             })
             .then(function(res) {
-                deepEqual(res.status, 201);
+                assert.deepEqual(res.status, 201);
             });
         });
     });
@@ -154,9 +132,19 @@ describe('Simple API tests', function () {
         //        body: 'Hello there'
         //    })
         //    .then(function(res) {
-        //        deepEqual(res.status, 404);
+        //        assert.deepEqual(res.status, 404);
         //    });
         //});
+        it('should respond to OPTIONS request with CORS headers', function() {
+            this.timeout(20000);
+            return preq.options({ uri: bucketURL + '/Foobar/html/624484477' })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.headers['access-control-allow-origin'], '*');
+                assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
+                assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type');
+            });
+        });
         it('should transparently create a new HTML revision with id 624484477', function() {
             this.timeout(20000);
             return preq.get({
@@ -165,7 +153,7 @@ describe('Simple API tests', function () {
                 body: 'Hello there'
             })
             .then(function(res) {
-                deepEqual(res.status, 200);
+                assert.deepEqual(res.status, 200);
             });
         });
         it('should transparently create data-parsoid with id 624165266, rev 2', function() {
@@ -174,7 +162,7 @@ describe('Simple API tests', function () {
                 uri: bucketURL + '/Foobar/html/624165266'
             })
             .then(function(res) {
-                deepEqual(res.status, 200);
+                assert.deepEqual(res.status, 200);
             });
         });
         it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
@@ -185,7 +173,7 @@ describe('Simple API tests', function () {
                 body: 'Hello there'
             })
             .then(function(res) {
-                deepEqual(res.status, 200);
+                assert.deepEqual(res.status, 200);
             });
         });
         commonTests();
@@ -196,7 +184,7 @@ describe('Simple API tests', function () {
                 body: 'Hello there'
             })
             .then(function(res) {
-                deepEqual(res.status, 201);
+                assert.deepEqual(res.status, 201);
             })
             .catch(function(e) {
                 console.dir(e);
@@ -208,10 +196,10 @@ describe('Simple API tests', function () {
                 uri: bucketURL + '/Foobar/html/624484477'
             })
             .then(function(res) {
-                deepEqual(res.status, 200);
-                deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
-                deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-                deepEqual(res.body, 'Hello there');
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
+                assert.deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
+                assert.deepEqual(res.body, 'Hello there');
             });
         });
     });
@@ -221,8 +209,8 @@ describe('Simple API tests', function () {
                 uri: hostPort + '/v1/foobar.com'
             })
             .catch(function(e) {
-                deepEqual(e.status, 404);
-                deepEqual(e.headers['content-type'], 'application/problem+json');
+                assert.deepEqual(e.status, 404);
+                assert.deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when trying to list a non-existing domain', function() {
@@ -230,8 +218,8 @@ describe('Simple API tests', function () {
                 uri: hostPort + '/v1/foobar.com/'
             })
             .catch(function(e) {
-                deepEqual(e.status, 404);
-                deepEqual(e.headers['content-type'], 'application/problem+json');
+                assert.deepEqual(e.status, 404);
+                assert.deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when accessing an unknown bucket', function() {
@@ -239,8 +227,8 @@ describe('Simple API tests', function () {
                 uri: baseURL + '/some_nonexisting_bucket'
             })
             .catch(function(e) {
-                deepEqual(e.status, 404);
-                deepEqual(e.headers['content-type'], 'application/problem+json');
+                assert.deepEqual(e.status, 404);
+                assert.deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when trying to list an unknown bucket', function() {
@@ -248,8 +236,8 @@ describe('Simple API tests', function () {
                 uri: baseURL + '/some_nonexisting_bucket/'
             })
             .catch(function(e) {
-                deepEqual(e.status, 404);
-                deepEqual(e.headers['content-type'], 'application/problem+json');
+                assert.deepEqual(e.status, 404);
+                assert.deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
         it('should return a proper 404 when accessing an item in an unknown bucket', function() {
@@ -257,8 +245,8 @@ describe('Simple API tests', function () {
                 uri: baseURL + '/some_nonexisting_bucket/item'
             })
             .catch(function(e) {
-                deepEqual(e.status, 404);
-                deepEqual(e.headers['content-type'], 'application/problem+json');
+                assert.deepEqual(e.status, 404);
+                assert.deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
     });
