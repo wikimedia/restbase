@@ -1584,7 +1584,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
       if (!this.model.info.version) {
         this.model.info.version = this.model.apiVersion;
       }
-      if (this.model.swaggerVersion === "2.0") {
+      if (false && this.model.swaggerVersion === "2.0") {
         if ("validatorUrl" in opts.swaggerOptions) {
           return this.model.validatorUrl = opts.swaggerOptions.validatorUrl;
         } else if (this.model.url.indexOf("localhost") > 0) {
