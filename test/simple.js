@@ -177,17 +177,17 @@ describe('Simple API tests', function () {
                 deepEqual(res.status, 200);
             });
         });
-        it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: baseURL + '/Foobar/wikitext/624484477',
-                headers: { 'content-type': 'text/wikitext' },
-                body: 'Hello there'
-            })
-            .then(function(res) {
-                deepEqual(res.status, 200);
-            });
-        });
+        //it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
+        //    this.timeout(20000);
+        //    return preq.get({
+        //        uri: bucketURL + '/Foobar/wikitext/624484477',
+        //        headers: { 'content-type': 'text/wikitext' },
+        //        body: 'Hello there'
+        //    })
+        //    .then(function(res) {
+        //        deepEqual(res.status, 200);
+        //    });
+        //});
         commonTests();
         it('should accept a new html save with a revision', function() {
             return preq.put({
