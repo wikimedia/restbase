@@ -3,7 +3,7 @@
   "info": {
     "version": "1.0.0",
     "title": "RESTBase",
-    "description": "Distributed storage with REST API & dispatcher for backend servicse",
+    "description": "Distributed storage with REST API & dispatcher for backend service",
     "termsOfService": "https://github.com/wikimedia/restbase#restbase",
     "contact": {
       "name": "Services",
