@@ -67,6 +67,49 @@
         }
       }
     },
+    "/{domain}/page/{title}/html": {
+      "get": {
+        "tags": [
+          "Page content"
+        ],
+        "description": "Redirects to the latest html",
+        "operationId": "getLatestFormat",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "description": "The domain under which the data resides",
+            "type": "string",
+            "required": true,
+            "default": "en.wikipedia.org"
+          },
+          {
+            "name": "title",
+            "in": "path",
+            "description": "The title of page content",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirection to the latest html"
+          },
+          "404": {
+            "description": "Unknown table, bucket, or domain",
+            "schema": {
+              "$ref": "#/definitions/notFound"
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/defaultError"
+            }
+          }
+        }
+      }
+    },
     "/{domain}/page/{title}/html/{revision}": {
       "get": {
         "tags": [
@@ -112,9 +155,9 @@
             }
           },
           "404": {
-            "description": "Unknown table, bucket, or page",
+            "description": "Unknown table, bucket, page, or domain",
             "schema": {
-              "$ref": "#/definitions/tableBucketOrPageNotFound"
+              "$ref": "#/definitions/notFound"
             }
           },
           "default": {
@@ -145,7 +188,7 @@
         "uri": { "type": "string" }
       }
     },
-    "tableBucketOrPageNotFound": {
+    "notFound": {
       "required": [ "code", "method", "title", "type", "uri" ],
       "properties": {
         "code": { "type": "integer", "format": "int32" },
