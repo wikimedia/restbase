@@ -22,4 +22,4 @@ logging:
     level: info
 
 monitoring:
-  statdsHost: localhost:8125
+  statsdHost: localhost:8125
