@@ -56,9 +56,9 @@
             }
           },
           "default": {
-            "description": "rnexpected error",
+            "description": "Unexpected error",
             "schema": {
-              "$ref": "#/definitions/errorModel"
+              "$ref": "#/definitions/defaultError"
             }
           }
         }
@@ -99,10 +99,22 @@
           "200": {
             "description": "The latest html for the given page"
           },
+          "400": {
+            "description": "Invalid revision",
+            "schema": {
+              "$ref": "#/definitions/invalidRevision"
+            }
+          },
+          "404": {
+            "description": "Unknown bucket",
+            "schema": {
+              "$ref": "#/definitions/bucketNotFound"
+            }
+          },
           "default": {
             "description": "Unexpected error",
             "schema": {
-              "$ref": "#/definitions/errorModel"
+              "$ref": "#/definitions/defaultError"
             }
           }
         }
@@ -110,7 +122,7 @@
     }
   },
   "definitions": {
-    "errorModel": {
+    "defaultError": {
       "required": [
         "code",
         "message"
@@ -121,6 +133,60 @@
           "format": "int32"
         },
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "invalidRevision": {
+      "required": [
+        "code",
+        "method",
+        "title",
+        "type",
+        "uri"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "method": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      }
+    },
+    "bucketNotFound": {
+      "required": [
+        "code",
+        "method",
+        "title",
+        "type",
+        "uri"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "method": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "uri": {
           "type": "string"
         }
       }
