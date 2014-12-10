@@ -16,7 +16,7 @@ basePath: /v1
 schemes:
   - http
 paths:
-  /{domain}/page/{title}/html/:
+  /{domain}/pages/{title}/html/:
     get:
       tags:
         - Page content
@@ -61,12 +61,12 @@ paths:
               body:
                 type: 'pagecontent'
             - method: put
-              uri: /v1/en.wikipedia.test.local/page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab
+              uri: /v1/en.wikipedia.test.local/pages/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab
               headers:
                 content-type: 'text/html; charset=UTF-8'
               body: 'Hello there'
             - method: put
-              uri: /v1/en.wikipedia.test.local/page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab
+              uri: /v1/en.wikipedia.test.local/pages/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab
               headers:
                 content-type: 'text/html; charset=UTF-8'
               body: 'Hello there'
@@ -84,7 +84,7 @@ paths:
               items:
                 - 76f22880-362c-11e4-9234-0123456789ab
                 - 9843f080-3443-11e4-9234-0123456789ab
-  /{domain}/page/{title}/html:
+  /{domain}/pages/{title}/html:
     get:
       tags:
         - Page content
@@ -113,7 +113,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/defaultError'
-  /{domain}/page/{title}/html/{revision}:
+  /{domain}/pages/{title}/html/{revision}:
     get:
       tags:
         - Page content

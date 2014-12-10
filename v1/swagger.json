@@ -21,7 +21,7 @@
     "http"
   ],
   "paths": {
-    "/{domain}/page/{title}/html/": {
+    "/{domain}/pages/{title}/html/": {
       "get": {
         "tags": [
           "Page content"
@@ -88,7 +88,7 @@
               },
               {
                 "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab",
+                "uri": "/v1/en.wikipedia.test.local/pages/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab",
                 "headers": {
                   "content-type": "text/html; charset=UTF-8"
                 },
@@ -96,7 +96,7 @@
               },
               {
                 "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab",
+                "uri": "/v1/en.wikipedia.test.local/pages/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab",
                 "headers": {
                   "content-type": "text/html; charset=UTF-8"
                 },
@@ -127,7 +127,7 @@
         ]
       }
     },
-    "/{domain}/page/{title}/html": {
+    "/{domain}/pages/{title}/html": {
       "get": {
         "tags": [
           "Page content"
@@ -170,7 +170,7 @@
         }
       }
     },
-    "/{domain}/page/{title}/html/{revision}": {
+    "/{domain}/pages/{title}/html/{revision}": {
       "get": {
         "tags": [
           "Page content"
