@@ -288,6 +288,7 @@ describe('automated specification tests', function() {
 
     var specs = require('./util/specs.js');
 
+    // Wrap an HTTP request in a continuation
     function requestK(req) {
         return function () {
             return preq[req.method](req);
@@ -301,16 +302,20 @@ describe('automated specification tests', function() {
             var actual = 0;
             xamples.map(function (xample) {
                 it(xample.desc, function() {
-                    var pp = Promise.resolve(true);
-                    xample.prereqs.forEach(function (prereq) {
-                        pp = pp.then(requestK(prereq));
-                    });
-                    return pp.then(requestK(xample.request)).then(function (res) {
-                            if (res.headers && res.headers.date) {
-                                delete res.headers.date;
-                            }
-                            deepEqual(res, xample.response);
-                            actual = actual + 1;
+                    // Chain the prerequesites in order
+                    return xample.prereqs.reduce(function (p, prereq) {
+                        return p.then(requestK(prereq));
+                    }, Promise.resolve(true))
+                    // Fire off the main request
+                    .then(requestK(xample.request))
+                    // Validate the response
+                    .then(function (res) {
+                        // The date is too unpredictable to test -- toss it out
+                        if (res.headers && res.headers.date) {
+                            delete res.headers.date;
+                        }
+                        deepEqual(res, xample.response);
+                        actual = actual + 1;
                     });
                 });
             });
