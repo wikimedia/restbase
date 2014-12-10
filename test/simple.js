@@ -254,8 +254,6 @@ describe('Simple API tests', function () {
     });
 
     describe('automated specification tests', function() {
-        this.timeout(20000);
-        setTimeout(function() {}, 5000);
 
         var specs = require('./util/specs.js');
 
