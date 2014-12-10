@@ -70,7 +70,7 @@
             "prerequisites": [
               {
                 "method": "put",
-                "uri": "/v1/en.wikipedia.org",
+                "uri": "/v1/en.wikipedia.test.local",
                 "headers": {
                   "content-type": "application/json"
                 },
@@ -78,7 +78,7 @@
               },
               {
                 "method": "put",
-                "uri": "/v1/en.wikipedia.org/page",
+                "uri": "/v1/en.wikipedia.test.local/page",
                 "headers": {
                   "content-type": "application/json"
                 },
@@ -88,7 +88,7 @@
               },
               {
                 "method": "put",
-                "uri": "/v1/en.wikipedia.org/page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab",
+                "uri": "/v1/en.wikipedia.test.local/page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab",
                 "headers": {
                   "content-type": "text/html; charset=UTF-8"
                 },
@@ -96,7 +96,7 @@
               },
               {
                 "method": "put",
-                "uri": "/v1/en.wikipedia.org/page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab",
+                "uri": "/v1/en.wikipedia.test.local/page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab",
                 "headers": {
                   "content-type": "text/html; charset=UTF-8"
                 },
@@ -105,7 +105,7 @@
             ],
             "request": {
               "params": {
-                "domain": "en.wikipedia.org",
+                "domain": "en.wikipedia.test.local",
                 "title": "SpecTest"
               }
             },
