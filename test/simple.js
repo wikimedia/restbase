@@ -264,7 +264,9 @@ describe('Simple API tests', function () {
             };
         }
 
-        specs.getSpec('http://wikimedia.github.io/restbase/v1/swagger.yaml', function (spec) {
+        var specUrl = 'http://wikimedia.github.io/restbase/v1/swagger.yaml';
+
+        specs.getSpec(specUrl, function (spec) {
             var xamples = specs.parseXamples(spec, hostPort);
             describe('swagger.yaml', function() {
                 var expected = xamples.length;
