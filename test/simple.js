@@ -252,6 +252,51 @@ describe('Simple API tests', function () {
             });
         });
     });
+
+    describe('automated specification tests', function() {
+        this.timeout(20000);
+        setTimeout(function() {}, 5000);
+
+        var specs = require('./util/specs.js');
+
+        // Wrap an HTTP request in a continuation
+        function requestK(req) {
+            return function () {
+                return preq[req.method](req);
+            };
+        }
+
+        specs.getSpec('http://wikimedia.github.io/restbase/v1/swagger.yaml', function (spec) {
+            var xamples = specs.parseXamples(spec, hostPort);
+            describe('swagger.yaml', function() {
+                var expected = xamples.length;
+                var actual = 0;
+                xamples.map(function (xample) {
+                    it(xample.desc, function() {
+                        // Chain the prerequesites in order
+                        return xample.prereqs.reduce(function (p, prereq) {
+                            return p.then(requestK(prereq));
+                        }, Promise.resolve(true))
+                        // Fire off the main request
+                        .then(requestK(xample.request))
+                        // Validate the response
+                        .then(function (res) {
+                            // The date is too unpredictable to test -- toss it out
+                            if (res.headers && res.headers.date) {
+                                delete res.headers.date;
+                            }
+                            assert.deepEqual(res, xample.response);
+                            actual = actual + 1;
+                        });
+                    });
+                });
+                it('should have verified ' + expected + ' x-ample(s)', function () {
+                    assert.deepEqual(actual, expected);
+                });
+            });
+        });
+
+    });
 });
 
 describe('Phase 2 - running tests with a restart', function() {
@@ -269,49 +314,4 @@ describe('Phase 2 - running tests with a restart', function() {
     describe('It should pass some tests from phase 1', function() {
         commonTests();
     });
-});
-
-describe('automated specification tests', function() {
-    this.timeout(20000);
-    setTimeout(function() {}, 5000);
-
-    var specs = require('./util/specs.js');
-
-    // Wrap an HTTP request in a continuation
-    function requestK(req) {
-        return function () {
-            return preq[req.method](req);
-        };
-    }
-
-    specs.getSpec('http://wikimedia.github.io/restbase/v1/swagger.yaml', function (spec) {
-        var xamples = specs.parseXamples(spec, hostPort);
-        describe('swagger.yaml', function() {
-            var expected = xamples.length;
-            var actual = 0;
-            xamples.map(function (xample) {
-                it(xample.desc, function() {
-                    // Chain the prerequesites in order
-                    return xample.prereqs.reduce(function (p, prereq) {
-                        return p.then(requestK(prereq));
-                    }, Promise.resolve(true))
-                    // Fire off the main request
-                    .then(requestK(xample.request))
-                    // Validate the response
-                    .then(function (res) {
-                        // The date is too unpredictable to test -- toss it out
-                        if (res.headers && res.headers.date) {
-                            delete res.headers.date;
-                        }
-                        assert.deepEqual(res, xample.response);
-                        actual = actual + 1;
-                    });
-                });
-            });
-            it('should have verified ' + expected + ' x-ample(s)', function () {
-                assert.deepEqual(actual, expected);
-            });
-        });
-    });
-
 });
