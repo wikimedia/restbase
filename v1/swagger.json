@@ -64,7 +64,67 @@
               "$ref": "#/definitions/defaultError"
             }
           }
-        }
+        },
+        "x-amples": [
+          {
+            "prerequisites": [
+              {
+                "method": "put",
+                "uri": "",
+                "headers": {
+                  "content-type": "application/json"
+                },
+                "body": {}
+              },
+              {
+                "method": "put",
+                "uri": "/page",
+                "headers": {
+                  "content-type": "application/json"
+                },
+                "body": {
+                  "type": "pagecontent"
+                }
+              },
+              {
+                "method": "put",
+                "uri": "/page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab",
+                "headers": {
+                  "content-type": "text/html; charset=UTF-8"
+                },
+                "body": "Hello there"
+              },
+              {
+                "method": "put",
+                "uri": "/page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab",
+                "headers": {
+                  "content-type": "text/html; charset=UTF-8"
+                },
+                "body": "Hello there"
+              }
+            ],
+            "request": {
+              "params": {
+                "domain": "en.wikipedia.org",
+                "title": "SpecTest"
+              }
+            },
+            "response": {
+              "status": 200,
+              "headers": {
+                "content-type": "application/json",
+                "connection": "close",
+                "content-length": "89"
+              },
+              "body": {
+                "items": [
+                  "76f22880-362c-11e4-9234-0123456789ab",
+                  "9843f080-3443-11e4-9234-0123456789ab"
+                ]
+              }
+            }
+          }
+        ]
       }
     },
     "/{domain}/page/{title}/html": {
