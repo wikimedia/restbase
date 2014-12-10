@@ -50,23 +50,23 @@ paths:
       x-amples:
         - prerequisites:
             - method: put
-              uri: ''
+              uri: /v1/en.wikipedia.org
               headers:
                 content-type: application/json
               body: {}
             - method: put
-              uri: /page
+              uri: /v1/en.wikipedia.org/page
               headers:
                 content-type: 'application/json'
               body:
                 type: 'pagecontent'
             - method: put
-              uri: /page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab
+              uri: /v1/en.wikipedia.org/page/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab
               headers:
                 content-type: 'text/html; charset=UTF-8'
               body: 'Hello there'
             - method: put
-              uri: /page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab
+              uri: /v1/en.wikipedia.org/page/SpecTest/html/9843f080-3443-11e4-9234-0123456789ab
               headers:
                 content-type: 'text/html; charset=UTF-8'
               body: 'Hello there'
