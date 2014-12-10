@@ -156,6 +156,40 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/defaultError'
+      x-amples:
+        - prerequisites:
+            - method: put
+              uri: /v1/en.wikipedia.test.local
+              headers:
+                content-type: application/json
+              body: {}
+            - method: put
+              uri: /v1/en.wikipedia.test.local/page
+              headers:
+                content-type: 'application/json'
+              body:
+                type: 'pagecontent'
+            - method: put
+              uri: /v1/en.wikipedia.test.local/pages/SpecTest/html/76f22880-362c-11e4-9234-0123456789ab
+              headers:
+                content-type: 'text/html; charset=UTF-8'
+              body: 'Hello there'
+          request:
+            params:
+                domain: en.wikipedia.test.local
+                title: SpecTest
+                revision: 76f22880-362c-11e4-9234-0123456789ab
+          response:
+            status: 200
+            headers:
+                etag: 76f22880-362c-11e4-9234-0123456789ab
+                content-type: text/html; charset=UTF-8
+                connection: close
+                access-control-allow-origin: '*'
+                access-control-allow-methods: GET
+                access-control-allow-headers: 'accept, content-type'
+                content-length: "11"
+            body: Hello there
 definitions:
   defaultError:
     required:
