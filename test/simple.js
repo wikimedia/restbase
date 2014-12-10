@@ -286,92 +286,38 @@ describe('automated specification tests', function() {
     this.timeout(20000);
     setTimeout(function() {}, 5000);
 
-    var yaml = require('js-yaml');
-	  var template = require('url-template');
-    var http = require('http');
+    var specs = require('./util/specs.js');
 
-    function flatMap(f, xs) {
-        var ys = [];
-        for (var k in xs) {
-            ys = ys.concat(f(k, xs[k]));
-        }
-        return ys;
+    function requestK(req) {
+        return function () {
+            return preq[req.method](req);
+        };
     }
 
-    function createPrereqsFromXample(xample) {
-        var prereqs = Promise.resolve({});
-        if (xample.prerequisites) {
-            xample.prerequisites.forEach(function (prerequisite) {
-                prerequisite.uri = baseURL + prerequisite.uri;
-                prereqs = prereqs.then(function () {
-                    return preq[prerequisite.method](prerequisite);
-                });
-            });
-        }
-        return prereqs;
-    }
-    
-    function createTestFromXample(basePath, method, uri) {
-        return function(xample) {
-            var test = {
-                desc: method + ' ' + uri,
-                body: function () {
-                    var prereqs = createPrereqsFromXample(xample);
-                    return prereqs.then(function () {
-                        xample.request.method = method;
-                        var urlTemplate = template.parse(uri);
-                        xample.request.uri = hostPort + basePath + urlTemplate.expand(xample.request.params);
-
-                        return preq[xample.request.method](xample.request).then(function (res) {
+    specs.getSpec('http://wikimedia.github.io/restbase/v1/swagger.yaml', function (spec) {
+        var xamples = specs.parseXamples(spec, hostPort);
+        describe('swagger.yaml', function() {
+            var expected = xamples.length;
+            var actual = 0;
+            xamples.map(function (xample) {
+                it(xample.desc, function() {
+                    var pp = Promise.resolve(true);
+                    xample.prereqs.forEach(function (prereq) {
+                        pp = pp.then(requestK(prereq));
+                    });
+                    return pp.then(requestK(xample.request)).then(function (res) {
                             if (res.headers && res.headers.date) {
                                 delete res.headers.date;
                             }
                             deepEqual(res, xample.response);
-                        });
-                    });
-                }
-            };
-            return test;
-        };
-    }
-
-    function createTestsFromOperation(basePath, method, uri, operation) {
-        var tests = [];
-        var xamples = operation['x-amples'];
-        if (xamples) {
-            tests = tests.concat(xamples.map(createTestFromXample(basePath, method, uri)));
-        }
-        return tests;
-    }
-
-    function createTestsFromSpec(spec) {
-        var createTestsFromPath = function (uri, path) {
-            var tests = [];
-            for (var method in path) {
-                var operation = path[method];
-                tests = tests.concat(createTestsFromOperation(spec.basePath, method, uri, operation));
-            }
-            return tests;
-        };
-        var tests = [];
-        return flatMap(createTestsFromPath, spec.paths);
-    }
-
-    var specFragments = [];
-    var url = 'http://wikimedia.github.io/restbase/v1/swagger.yaml';
-    http.get(url, function (response) {
-            response.setEncoding('utf8');
-            response.on('data', function (data) { specFragments.push(data); });
-            response.on('error', console.error);
-            response.on('end', function () {
-                describe('swagger.yaml', function() {
-                    var spec = yaml.safeLoad(specFragments.join(''));
-                    var tests = createTestsFromSpec(spec);
-                    tests.map(function (test) {
-                        it(test.desc, test.body);
+                            actual = actual + 1;
                     });
                 });
             });
-     });
+            it('should have verified ' + expected + ' x-ample(s)', function () {
+                deepEqual(actual, expected);
+            });
+        });
+    });
 
 });
