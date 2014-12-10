@@ -79,9 +79,9 @@ paths:
             headers:
                 content-type: application/json
                 connection: close
-                access-control-allow-origin: *
+                access-control-allow-origin: '*'
                 access-control-allow-methods: GET
-                access-control-allow-headers: accept, content-type
+                access-control-allow-headers: 'accept, content-type'
                 content-length: "89"
             body:
               items:
