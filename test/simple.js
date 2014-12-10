@@ -251,6 +251,15 @@ describe('Simple API tests', function () {
                 assert.deepEqual(e.headers['content-type'], 'application/problem+json');
             });
         });
+        it('should return a proper 404 for the latest revision of a missing page', function() {
+            return preq.get({
+                uri: bucketURL + '/ThisIsProblablyNotARealPateTitle/html'
+            })
+            .catch(function(e) {
+                assert.deepEqual(e.status, 404);
+                assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            });
+        });
     });
 });
 
