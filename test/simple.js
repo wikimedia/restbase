@@ -320,7 +320,7 @@ describe('automated specification tests', function() {
                 });
             });
             it('should have verified ' + expected + ' x-ample(s)', function () {
-                deepEqual(actual, expected);
+                assert.equal(actual, expected);
             });
         });
     });
