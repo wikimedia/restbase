@@ -318,7 +318,8 @@ describe('Phase 2 - running tests with a restart', function() {
             logging: {
                 name: 'restbase-tests',
                 level: 'warn'
-            }
+            },
+            offline: true
         });
     });
     describe('It should pass some tests from phase 1', function() {
