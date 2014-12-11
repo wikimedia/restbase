@@ -168,20 +168,19 @@ describe('Simple API tests', function () {
                 assert.deepEqual(res.status, 200);
             });
         });
-        // This is meant to test ../lib/filters/conf/testHandler.yml
-        // Re-enable when that is fixed
-        //it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
-        //    this.timeout(20000);
-        //    return preq.get({
-        //        uri: bucketURL + '/Foobar/wikitext/624484477',
-        //        headers: { 'content-type': 'text/wikitext' },
-        //        body: 'Hello there'
-        //    })
-        //    .then(function(res) {
-        //        deepEqual(res.status, 200);
-        //    });
-        //});
         commonTests();
+        it('should return a new wikitext revision using proxy handler with id 624484477', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: baseURL + '/test/Foobar/wikitext/624488447',
+                headers: { 'content-type': 'text/wikitext' },
+                body: 'Hello there'
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
+
         it('should accept a new html save with a revision', function() {
             return preq.put({
                 uri: bucketURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
