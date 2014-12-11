@@ -22,6 +22,21 @@ function deepEqual(result, expected) {
     }
 }
 
+function isSuperset(parent, child) {
+    var result = true;
+    if (child instanceof Object) {
+        for (var k in child) {
+            isSuperset(parent[k], child[k]);
+        }
+    } else if (child instanceof Array) {
+        for (var i = 0; i < child.length; i++) {
+            isSuperset(parent[i], child[i]);
+        }
+    } else {
+        deepEqual(parent, child); 
+    }
+}
+
 function fails(promise, onRejected) {
     var failed = false;
     function trackFailure(e) {
@@ -39,3 +54,4 @@ function fails(promise, onRejected) {
 module.exports.fails = fails;
 module.exports.deepEqual = deepEqual;
 module.exports.notDeepEqual = notDeepEqual;
+module.exports.isSuperset = isSuperset;
