@@ -78,10 +78,6 @@ paths:
             status: 200
             headers:
                 content-type: application/json
-                connection: close
-                access-control-allow-origin: '*'
-                access-control-allow-methods: GET
-                access-control-allow-headers: 'accept, content-type'
                 content-length: "89"
             body:
               items:
@@ -147,10 +143,6 @@ paths:
             status: 200
             headers:
                 content-type: text/html; charset=UTF-8
-                connection: close
-                access-control-allow-origin: '*'
-                access-control-allow-methods: GET
-                access-control-allow-headers: 'accept, content-type'
   /{domain}/pages/{title}/html/{revision}:
     get:
       tags:
@@ -219,10 +211,6 @@ paths:
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
                 content-type: text/html; charset=UTF-8
-                connection: close
-                access-control-allow-origin: '*'
-                access-control-allow-methods: GET
-                access-control-allow-headers: 'accept, content-type'
                 content-length: "11"
             body: Hello there
 definitions:
