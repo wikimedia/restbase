@@ -27,5 +27,20 @@ function deepEqual (result, expected) {
     }
 }
 
+function fails(promise, onRejected) {
+    var failed = false;
+    function trackFailure(e) {
+        failed = true;
+        return onRejected(e);
+    }
+    function check() {
+        if (!failed) {
+            throw new Error('expected error was not thrown');
+        }
+    }
+    return promise.catch(trackFailure).then(check);
+}
+
+module.exports.fails = fails;
 module.exports.deepEqual = deepEqual;
 module.exports.isSuperset = isSuperset;
