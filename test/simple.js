@@ -282,11 +282,7 @@ describe('Simple API tests', function () {
                         .then(requestK(xample.request))
                         // Validate the response
                         .then(function (res) {
-                            // The date is too unpredictable to test -- toss it out
-                            if (res.headers && res.headers.date) {
-                                delete res.headers.date;
-                            }
-                            assert.deepEqual(res, xample.response);
+                            assert.isSuperset(res, xample.response);
                             actual = actual + 1;
                         });
                     });
