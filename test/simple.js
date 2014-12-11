@@ -270,6 +270,7 @@ describe('Simple API tests', function () {
         specs.getSpec(specUrl, function (spec) {
             var xamples = specs.parseXamples(spec, hostPort);
             describe('swagger.yaml', function() {
+                this.timeout(20000);
                 var expected = xamples.length;
                 var actual = 0;
                 xamples.map(function (xample) {
