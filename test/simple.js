@@ -19,6 +19,7 @@ var hostPort = 'http://localhost:7231';
 var baseURL = hostPort + '/v1/en.wikipedia.test.local';
 var bucketURL = baseURL + '/pages';
 var assert = require('./util/assert.js');
+var promise = require('./util/promise.js');
 
 var closeRestbase;
 
@@ -208,26 +209,24 @@ describe('Simple API tests', function () {
             });
         });
         it('should regenerate and return data-parsoid on no-cache header', function() {
-            return preq.get({
-                uri: bucketURL + '/Foobar/data-parsoid/624484477'
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-                assert.deepEqual(res.headers['x-powered-by'], undefined);
-                return res;
-            }).then(function(res) {
-                return preq.get({
-                           uri: bucketURL + '/Foobar/data-parsoid/624484477',
-                           headers: { 'Cache-Control': 'no-cache' }
-                       });
-            }).then(function(res) {
-                assert.deepEqual(res.headers['x-powered-by'], 'Express');
-                return res;
-            }).then(function(res) {
-                return preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' });
-            }).then(function(res) {
-                assert.deepEqual(res.headers['x-powered-by'], undefined);
+            return promise.collect([
+                preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' }),
+                preq.get({
+                    uri: bucketURL + '/Foobar/data-parsoid/624484477',
+                    headers: { 'Cache-Control': 'no-cache' }
+                }),
+                preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' })
+            ], function (res1, res2, res3) {
+
+                assert.deepEqual(res1.status, 200);
+                assert.deepEqual(res1.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
+
+                assert.deepEqual(res2.status, 200);
+                assert.notDeepEqual(res2.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
+
+                assert.deepEqual(res3.status, 200);
+                assert.notDeepEqual(res3.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
+
             });
         });
     });
