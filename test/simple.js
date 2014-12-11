@@ -19,7 +19,6 @@ var hostPort = 'http://localhost:7231';
 var baseURL = hostPort + '/v1/en.wikipedia.test.local';
 var bucketURL = baseURL + '/pages';
 var assert = require('./util/assert.js');
-require('./util/promise.js')(); // augment the Promise prototype
 
 var closeRestbase;
 
@@ -90,27 +89,31 @@ describe('Simple API tests', function () {
     describe('Bucket creation', function() {
         it('should require a bucket type', function() {
             this.timeout(20000);
-            return preq.put({
-                uri: bucketURL,
-                headers: { 'content-type': 'application/json' },
-                body: {}
-            })
-            .fails(function(e) {
-                assert.deepEqual(e.status, 400);
-                assert.deepEqual(e.body.title, 'Invalid bucket spec.');
-            });
+            return assert.fails(
+                preq.put({
+                    uri: bucketURL,
+                    headers: { 'content-type': 'application/json' },
+                    body: {}
+                }),
+                function (e) {
+                    assert.deepEqual(e.status, 400);
+                    assert.deepEqual(e.body.title, 'Invalid bucket spec.');
+                }
+            );
         });
         it('should require a valid bucket type', function() {
             this.timeout(20000);
-            return preq.put({
-                uri: bucketURL,
-                headers: { 'content-type': 'application/json' },
-                body: { type: 'wazzle' }
-            })
-            .fails(function(e) {
-                assert.deepEqual(e.status, 400);
-                assert.deepEqual(e.body.title, 'Invalid bucket spec.');
-            });
+            return assert.fails(
+                preq.put({
+                    uri: bucketURL,
+                    headers: { 'content-type': 'application/json' },
+                    body: { type: 'wazzle' }
+                }),
+                function (e) {
+                    assert.deepEqual(e.status, 400);
+                    assert.deepEqual(e.body.title, 'Invalid bucket spec.');
+                }
+            );
         });
         it('should create a page bucket', function() {
             this.timeout(20000);
