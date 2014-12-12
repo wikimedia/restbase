@@ -209,24 +209,25 @@ describe('Simple API tests', function () {
             });
         });
         it('should regenerate and return data-parsoid on no-cache header', function() {
-            return promise.collect([
-                preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' }),
-                preq.get({
-                    uri: bucketURL + '/Foobar/data-parsoid/624484477',
-                    headers: { 'Cache-Control': 'no-cache' }
-                }),
-                preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' })
-            ], function (res1, res2, res3) {
-
+            return preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' })
+            .then(function (res1) {
                 assert.deepEqual(res1.status, 200);
                 assert.deepEqual(res1.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-
-                assert.deepEqual(res2.status, 200);
-                assert.notDeepEqual(res2.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-
-                assert.deepEqual(res3.status, 200);
-                assert.notDeepEqual(res3.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-
+            }).then(function () {
+                return preq.get({
+                    uri: bucketURL + '/Foobar/data-parsoid/624484477',
+                    headers: { 'Cache-Control': 'no-cache' }
+                }).then(function (res2) {
+                    assert.deepEqual(res2.status, 200);
+                    assert.deepEqual(res2.headers.etag, 'b9f3f880-8153-11e4-9234-0123456789ab');
+                });
+            }).then(function () {
+                return preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' })
+                .then(function (res3) {
+                    assert.deepEqual(res3.status, 200);
+                    assert.deepEqual(res3.status, 200);
+                    assert.deepEqual(res3.headers.etag, 'b9f3f880-8153-11e4-9234-0123456789ab');
+                });
             });
         });
     });

@@ -41,5 +41,4 @@ function collect(promises, callback) {
     return p.then(function (r) { return f(r); });
 }
 
-
 module.exports.collect = collect;
