@@ -217,7 +217,6 @@ paths:
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
                 content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
-                content-length: "25604"
         - request:
             params:
                 domain: en.wikipedia.test.local
@@ -228,7 +227,6 @@ paths:
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
                 content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
-                content-length: "25604"
   /{domain}/pages/{title}/html/{revision}:
     get:
       tags:

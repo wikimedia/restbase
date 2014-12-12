@@ -331,8 +331,7 @@
               "status": 200,
               "headers": {
                 "etag": "76f22880-362c-11e4-9234-0123456789ab",
-                "content-type": "application/json; profile=mediawiki.org/specs/data-parsoid/1.0",
-                "content-length": "25604"
+                "content-type": "application/json; profile=mediawiki.org/specs/data-parsoid/1.0"
               }
             }
           },
@@ -348,8 +347,7 @@
               "status": 200,
               "headers": {
                 "etag": "76f22880-362c-11e4-9234-0123456789ab",
-                "content-type": "application/json; profile=mediawiki.org/specs/data-parsoid/1.0",
-                "content-length": "25604"
+                "content-type": "application/json; profile=mediawiki.org/specs/data-parsoid/1.0"
               }
             }
           }
