@@ -208,28 +208,6 @@ describe('Simple API tests', function () {
                 assert.deepEqual(res.body, 'Hello there');
             });
         });
-        it('should regenerate and return data-parsoid on no-cache header', function() {
-            return preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' })
-            .then(function (res1) {
-                assert.deepEqual(res1.status, 200);
-                assert.deepEqual(res1.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-            }).then(function () {
-                return preq.get({
-                    uri: bucketURL + '/Foobar/data-parsoid/624484477',
-                    headers: { 'Cache-Control': 'no-cache' }
-                }).then(function (res2) {
-                    assert.deepEqual(res2.status, 200);
-                    assert.deepEqual(res2.headers.etag, 'b9f3f880-8153-11e4-9234-0123456789ab');
-                });
-            }).then(function () {
-                return preq.get({ uri: bucketURL + '/Foobar/data-parsoid/624484477' })
-                .then(function (res3) {
-                    assert.deepEqual(res3.status, 200);
-                    assert.deepEqual(res3.status, 200);
-                    assert.deepEqual(res3.headers.etag, 'b9f3f880-8153-11e4-9234-0123456789ab');
-                });
-            });
-        });
     });
     describe('404 handling', function() {
         it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
