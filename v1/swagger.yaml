@@ -78,7 +78,6 @@ paths:
             status: 200
             headers:
                 content-type: application/json
-                content-length: "89"
             body:
               items:
                 - 76f22880-362c-11e4-9234-0123456789ab

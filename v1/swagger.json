@@ -112,8 +112,7 @@
             "response": {
               "status": 200,
               "headers": {
-                "content-type": "application/json",
-                "content-length": "89"
+                "content-type": "application/json"
               },
               "body": {
                 "items": [
