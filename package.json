@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "mocha": "~1.x.x",
-    "mocha-jshint": "0.0.9"
+    "mocha-jshint": "0.0.9",
+    "heapdump": "~0.3.3"
   }
 }
