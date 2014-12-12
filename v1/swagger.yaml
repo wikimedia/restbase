@@ -229,30 +229,6 @@ paths:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
                 content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
                 content-length: "25604"
-        - request:
-            headers:
-                cache-control: no-cache
-            params:
-                domain: en.wikipedia.test.local
-                title: Foobar
-                revision: 624484477
-          response:
-            status: 200
-            headers:
-                etag: b9f3f880-8153-11e4-9234-0123456789ab
-                content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
-                content-length: "25604"
-        - request:
-            params:
-                domain: en.wikipedia.test.local
-                title: Foobar
-                revision: 624484477
-          response:
-            status: 200
-            headers:
-                etag: b9f3f880-8153-11e4-9234-0123456789ab
-                content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
-                content-length: "25604"
   /{domain}/pages/{title}/html/{revision}:
     get:
       tags:
