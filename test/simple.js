@@ -19,6 +19,7 @@ var hostPort = 'http://localhost:7231';
 var baseURL = hostPort + '/v1/en.wikipedia.test.local';
 var bucketURL = baseURL + '/pages';
 var assert = require('./util/assert.js');
+var promise = require('./util/promise.js');
 
 var closeRestbase;
 
@@ -178,7 +179,7 @@ describe('Simple API tests', function () {
         //        body: 'Hello there'
         //    })
         //    .then(function(res) {
-        //        deepEqual(res.status, 200);
+        //        assert.deepEqual(res.status, 200);
         //    });
         //});
         commonTests();
