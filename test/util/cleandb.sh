@@ -1,7 +1,17 @@
-echo 'drop keyspace if exists "local_restbase_T_tables";
-drop keyspace if exists "local_restbase_T_domains";
-drop keyspace if exists "local_test_wikipedia_en_T_pages_dataY_5U7x32eajwQ";
-drop keyspace if exists "local_test_wikipedia_en_T_pages_html";
-drop keyspace if exists "local_test_wikipedia_en_T_pages_rev";
-drop keyspace if exists "local_test_wikipedia_en_T_pages_dataUweNiypIUmVNC";
-drop keyspace if exists "local_test_wikipedia_en_T_pages_wikitext";' | cqlsh
+#!/bin/bash
+
+dropKeyspaces ( ) {
+  if [ "$#" -eq 1 ]
+  then
+    PATTERN=$1
+    echo "looking for keyspaces named '*$PATTERN*'..."
+    for KEYSPACE in `echo 'select keyspace_name from system.schema_keyspaces;' | cqlsh | grep $PATTERN`
+    do
+      echo dropping keyspace $KEYSPACE
+      echo "drop keyspace if exists \"$KEYSPACE\";" | cqlsh
+    done
+  fi
+}
+
+dropKeyspaces "local_restbase"
+dropKeyspaces "local_test"
