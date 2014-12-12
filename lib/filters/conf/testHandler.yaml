@@ -9,7 +9,7 @@
         then:
         - send_request:
             method: GET
-            url: /v1/en.wikipedia.test.local/pages/{request.params.title}/html/624165266
+            url: /v1/en.wikipedia.test.local/pages/{request.params.title}/html/624484477
             headers: $request.headers
             query:
               oldid: $request.params.revision
@@ -21,9 +21,29 @@
                 method: GET
                 url: /v1/en.wikipedia.test.local/pages/Foobar/html/{request.params.revision}
                 headers: $request.headers
+                body: $request.body
               on_response:
                 - return: $response
           - else:
+            - return: $response
+      - else:
+        - return: $response
+  PUT:
+    summary: Save a new version of the HTML page
+    request_handler:
+    - send_request:
+        method: POST
+        url: /v1/{request.params.domain}/_/sanitizer/{request.params.title}{/request.params.revision}
+        headers: $request.headers
+        body: $request.body
+      on_response:
+      - if:
+          status: 404
+        then:
+        - send_request: 
+            method: GET
+            url: /v1/en.wikipedia.test.local/pages/{request.params.title}/wikitext/{request.params.revision}
+          on_response:
             - return: $response
       - else:
         - return: $response
