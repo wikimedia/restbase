@@ -19,11 +19,11 @@ lib/
             kv_rev/
             wikipages/
 # XXX: not quite final yet
-conf/
-    restbase.yaml
-    proxy_handlers/
-        global/
-        buckets/
+config.yaml
+conf.d
+    mediawiki
+        api/
+        bucket/
     projects/
         # projects enable grouping of restbase configs per project
         someproject/
