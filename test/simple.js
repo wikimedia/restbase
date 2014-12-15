@@ -306,9 +306,71 @@ describe('Simple API tests', function () {
         });
 
     });
+
+    describe('page re-rendering', function () {
+        this.timeout(20000);
+
+        var tid1 = '76f22880-362c-11e4-9234-0123456789ab';
+        var tid2 = tid1;
+
+        it('should retrieve Main_Page revision 624484477', function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/624484477'
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, tid1);
+                assert.deepEqual(res.body.length, 56771);
+            });
+        });
+
+        it('should re-render and retrieve Main_Page revision 624484477', function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/624484477',
+                headers: { 'cache-control': 'no-cache' }
+            })
+            .then(function (res) {
+                tid2 = res.headers.etag;
+                assert.notDeepEqual(tid1, tid2);
+                assert.deepEqual(res.body.length, 56771);
+            });
+        });
+
+        it('should retrieve Main_Page revision ' + tid1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + tid1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, tid1);
+                assert.deepEqual(res.body.length, 56771);
+            });
+        });
+
+        it('should retrieve re-rendered Main_Page revision 624484477', function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/624484477'
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, tid2);
+                assert.deepEqual(res.body.length, 56771);
+            });
+        });
+
+        it('should retrieve re-rendered Main_Page revision ' + tid2, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + tid2
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, tid2);
+                assert.deepEqual(res.body.length, 56771);
+            });
+        });
+
+    });
+
     after(function(){
         test_with_restart();
-    })
+    });
+
 });
 
 function test_with_restart() {
