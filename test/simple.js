@@ -264,7 +264,6 @@ describe('Simple API tests', function () {
             });
         });
     });
-
     describe('automated specification tests', function() {
         this.timeout(20000);
 
@@ -307,21 +306,27 @@ describe('Simple API tests', function () {
         });
 
     });
+    after(function(){
+        test_with_restart();
+    })
 });
 
-describe('Phase 2 - running tests with a restart', function() {
-    this.timeout(20000);
-    setTimeout(function() {}, 5000);
-    before(function() {
-        closeRestbase();
-        return restbase({
-            logging: {
-                name: 'restbase-tests',
-                level: 'warn'
-            }
+function test_with_restart() {
+    describe('Phase 2 - running tests with a restart', function() {
+        this.timeout(20000);
+        setTimeout(function() {}, 5000);
+        before(function() {
+            closeRestbase();
+            return restbase({
+                logging: {
+                    name: 'restbase-tests',
+                    level: 'warn'
+                },
+                offline: true
+            });
+        });
+        describe('It should pass some tests from phase 1', function() {
+            commonTests();
         });
     });
-    describe('It should pass some tests from phase 1', function() {
-        commonTests();
-    });
-});
+}
