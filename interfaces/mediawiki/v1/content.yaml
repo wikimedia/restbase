@@ -1,0 +1,245 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: mediawiki content api
+  description: basic mediawiki content api.
+  termsofservice: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: services
+    email: services@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/services
+  license:
+    name: gnu affero
+    url: http://opensource.org/licenses/agpl-3.0
+
+paths:
+
+  /page/{title}/html:
+    get:
+      tags:
+        - page content
+      description: redirects to the latest html
+      operationid: getlatestformat
+      parameters:
+        - name: domain
+          in: path
+          description: the domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: the title of page content
+          type: string
+          required: true
+      responses:
+        '302':
+          description: redirection to the latest html
+        '404':
+          description: unknown table, bucket, or domain
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
+      x-restbase:
+        service:
+          # Directly return the latest HTML. Alternatively, we could also try
+          # relative redirects. A relative location header of 'foo/bar' seems to
+          # work in current Chrome and Firefox.
+          # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
+          uri: /{domain}/sys/parsoid/html/{title}/latest
+
+  /page/{title}/html/:
+    get:
+      tags:
+        - Page content
+      description: Returns the list of revisions
+      operationId: listKeyRevValueRevisions
+      produces:
+        - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of revisions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/revisions'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-restbase:
+        service:
+          uri: /{domain}/sys/parsoid/html/{title}/
+
+  /page/{title}/data-parsoid/{revision}:
+    get:
+      tags:
+        - Page content
+      description: Returns the Parsoid data for the given revision
+      operationId: getFormatRevision
+      produces:
+        - text/html
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides'
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The latest Parsoid data for the given page
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/invalidRevision'
+        '404':
+          description: Unknown table, bucket, page, or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-restbase:
+        service:
+          uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}
+          headers:
+            cache-control: $req.headers.cache-control
+              
+
+  /page/{title}/html/{revision}:
+    get:
+      tags:
+        - Page content
+      description: Returns the html for the given revision
+      operationId: getFormatRevision
+      produces:
+        - text/html
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides'
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The latest html for the given page
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/invalidRevision'
+        '404':
+          description: Unknown table, bucket, page, or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-restbase:
+        service:
+          uri: /{domain}/sys/parsoid/html/{title}/{revision}
+          headers:
+            cache-control: $req.headers.cache-control
+
+
+definitions:
+  defaultError:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+  invalidRevision:
+    required:
+      - code
+      - method
+      - title
+      - type
+      - uri
+    properties:
+      code:
+        type: integer
+        format: int32
+      method:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      uri:
+        type: string
+  notFound:
+    required:
+      - code
+      - method
+      - title
+      - type
+      - uri
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      localURI:
+        type: string
+      table:
+        type: string
+      uri:
+        type: string
+      method:
+        type: string
+  revisions:
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        items:
+          type: string
