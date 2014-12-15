@@ -1,9 +1,10 @@
 # RESTBase Implementation
 
 ## Code structure
-- storage backends in separate npm packages
+- modules in separate npm packages
     - `restbase-tables-cassandra`
     - `restbase-queues-kafka`
+    - `restbase-mod-parsoid`
 
 Tree:
 ```
@@ -11,60 +12,23 @@ restbase.js
 lib/
     storage.js
     util.js
-    proxy_handlers/
-        global/
-            network.js
-            parsoid.js
-        buckets/
-            kv_rev/
-            wikipages/
 # XXX: not quite final yet
 config.yaml
-conf.d
-    mediawiki
-        api/
-        bucket/
-    projects/
-        # projects enable grouping of restbase configs per project
-        someproject/
-            global/
-            buckets/
-                # kv:.pages.html.yaml -- kv bucket named 'html'
-                # pagecontent:.pages.yaml -- pagecontent buckets named 'pages'
+interfaces/
+    restbase/
+        sys/
+            key_rev_value.yaml
+            key_rev_service.yaml
+            table.yaml # defining operationIds, which map to module exports
+    mediawiki/
+        v1/
+            content.yaml
+        sys/
+            parsoid.yaml
+            page_revision.yaml
 doc/
 test/
 ```
-
-### Bucket & proxy handler config
-- global & per domain
-- FS: conf/global and conf/{domain}/
-    - doesn't scale too well, but integrates with code review, deploy testing
-      & typical development style
-- later, maybe: distributed through storage
-
-### Routing
-- global (or per-domain, later) proxy handler routeswitch
-- if no or same match: forward to storage backend
-    - checks domain & bucket
-    - calls per-bucket-type routeswitch with global env object
-    - on request from handler:
-        - if uri same (based on _origURI attribute): forward to table storage
-            - need to select the right backend
-        - else: route through proxy
-
-#### Bucket / table -> storage backend mapping
-- table registry
-    - bucket type ('kv')
-    - storage backend for table *with same name*
-    - possibly no table storage associated - storage entry null
-- flow through bucket to storage:
-    1) call bucket routeswitch & handler
-    2) on request with identical url, call underlying storage handler
-        - need to know storage backend
-        - hook that up on the proxy ahead of time (if not null), before
-          calling bucket handler
-    3) on requests to other tables, follow same procedure as above
-        - lets us move each table to separate storage
 
 ## Internal request & response objects
 ### Request
@@ -83,7 +47,7 @@ test/
 }
 ```
 #### `uri`
-The URI of the resource. Required.
+The URI of the resource. Required. Can be a string, or a `swagger-router.URI` object.
 
 #### `method` [optional]
 HTTP request method. Default `GET`. Examples: `GET`, `POST`, `PUT`, `DELETE`
