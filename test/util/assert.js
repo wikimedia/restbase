@@ -17,11 +17,21 @@ function isSuperset(parent, child) {
     }
 }
 
-function deepEqual (result, expected) {
+function deepEqual(result, expected) {
     try {
         assert.deepEqual(result, expected);
     } catch (e) {
         console.log('Expected:\n' + JSON.stringify(expected,null,2));
+        console.log('Result:\n' + JSON.stringify(result,null,2));
+        throw e;
+    }
+}
+
+function notDeepEqual(result, expected) {
+    try {
+        assert.notDeepEqual(result, expected);
+    } catch (e) {
+        console.log('Not expected:\n' + JSON.stringify(expected,null,2));
         console.log('Result:\n' + JSON.stringify(result,null,2));
         throw e;
     }
@@ -41,6 +51,7 @@ function fails(promise, onRejected) {
     return promise.catch(trackFailure).then(check);
 }
 
-module.exports.fails = fails;
-module.exports.deepEqual = deepEqual;
-module.exports.isSuperset = isSuperset;
+module.exports.fails        = fails;
+module.exports.deepEqual    = deepEqual;
+module.exports.notDeepEqual = notDeepEqual;
+module.exports.isSuperset   = isSuperset;
