@@ -317,7 +317,7 @@ describe('Simple API tests', function () {
         var r1tid2 = r1tid1;
         var r2tid1 = '9b224800-0311-11e4-9234-0123456789ab';
 
-        it('should retrieve Main_Page revision ' + r1, function () {
+        it('should retrieve Main_Page revision r1 - ' + r1, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r1
             })
@@ -326,7 +326,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should re-render and retrieve Main_Page revision ' + r1, function () {
+        it('should re-render and retrieve Main_Page revision r1 - ' + r1, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r1,
                 headers: { 'cache-control': 'no-cache' }
@@ -338,7 +338,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should retrieve Main_Page revision ' + r1tid1, function () {
+        it('should retrieve Main_Page revision r1tid1 - ' + r1tid1, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r1tid1
             })
@@ -347,7 +347,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should retrieve re-rendered Main_Page revision ' + r1, function () {
+        it('should retrieve re-rendered Main_Page revision r1 - ' + r1, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r1
             })
@@ -356,7 +356,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should retrieve re-rendered Main_Page revision ' + r1tid2, function () {
+        it('should retrieve re-rendered Main_Page revision r1tid2 - ' + r1tid2, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r1tid2
             })
@@ -365,7 +365,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should retrieve Main_Page revision ' + r2, function () {
+        it('should retrieve Main_Page revision r2 - ' + r2, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r2
             })
@@ -374,7 +374,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should retrieve Main_Page revision ' + r2tid1, function () {
+        it('should retrieve Main_Page revision r2tid1 - ' + r2tid1, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r2tid1
             })
@@ -383,7 +383,7 @@ describe('Simple API tests', function () {
             });
         });
 
-        it('should retrieve re-rendered Main_Page revision ' + r1, function () {
+        it('should retrieve re-rendered Main_Page revision r1 - ' + r1, function () {
             return preq.get({
                 uri: bucketURL + '/Main_Page/html/' + r1
             })
