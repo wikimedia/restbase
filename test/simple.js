@@ -310,58 +310,85 @@ describe('Simple API tests', function () {
     describe('page re-rendering', function () {
         this.timeout(20000);
 
-        var tid1 = '76f22880-362c-11e4-9234-0123456789ab';
-        var tid2 = tid1;
+        var r1 = '615503804';
+        var r2 = '615503846';
 
-        it('should retrieve Main_Page revision 624484477', function () {
+        var r1tid1 = '8b0a6880-0311-11e4-9234-0123456789ab';
+        var r1tid2 = r1tid1;
+        var r2tid1 = '9b224800-0311-11e4-9234-0123456789ab';
+
+        it('should retrieve Main_Page revision ' + r1, function () {
             return preq.get({
-                uri: bucketURL + '/Main_Page/html/624484477'
+                uri: bucketURL + '/Main_Page/html/' + r1
             })
             .then(function (res) {
-                assert.deepEqual(res.headers.etag, tid1);
-                assert.deepEqual(res.body.length, 56771);
+                assert.deepEqual(res.headers.etag, r1tid1);
             });
         });
 
-        it('should re-render and retrieve Main_Page revision 624484477', function () {
+        it('should re-render and retrieve Main_Page revision ' + r1, function () {
             return preq.get({
-                uri: bucketURL + '/Main_Page/html/624484477',
+                uri: bucketURL + '/Main_Page/html/' + r1,
                 headers: { 'cache-control': 'no-cache' }
             })
             .then(function (res) {
-                tid2 = res.headers.etag;
-                assert.notDeepEqual(tid1, tid2);
-                assert.deepEqual(res.body.length, 56771);
+                r1tid2 = res.headers.etag;
+                assert.notDeepEqual(r1tid2, r1tid1);
+                assert.notDeepEqual(r1tid2, r2tid1);
             });
         });
 
-        it('should retrieve Main_Page revision ' + tid1, function () {
+        it('should retrieve Main_Page revision ' + r1tid1, function () {
             return preq.get({
-                uri: bucketURL + '/Main_Page/html/' + tid1
+                uri: bucketURL + '/Main_Page/html/' + r1tid1
             })
             .then(function (res) {
-                assert.deepEqual(res.headers.etag, tid1);
-                assert.deepEqual(res.body.length, 56771);
+                assert.deepEqual(res.headers.etag, r1tid1);
             });
         });
 
-        it('should retrieve re-rendered Main_Page revision 624484477', function () {
+        it('should retrieve re-rendered Main_Page revision ' + r1, function () {
             return preq.get({
-                uri: bucketURL + '/Main_Page/html/624484477'
+                uri: bucketURL + '/Main_Page/html/' + r1
             })
             .then(function (res) {
-                assert.deepEqual(res.headers.etag, tid2);
-                assert.deepEqual(res.body.length, 56771);
+                assert.deepEqual(res.headers.etag, r1tid2);
             });
         });
 
-        it('should retrieve re-rendered Main_Page revision ' + tid2, function () {
+        it('should retrieve re-rendered Main_Page revision ' + r1tid2, function () {
             return preq.get({
-                uri: bucketURL + '/Main_Page/html/' + tid2
+                uri: bucketURL + '/Main_Page/html/' + r1tid2
             })
             .then(function (res) {
-                assert.deepEqual(res.headers.etag, tid2);
-                assert.deepEqual(res.body.length, 56771);
+                assert.deepEqual(res.headers.etag, r1tid2);
+            });
+        });
+
+        it('should retrieve Main_Page revision ' + r2, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r2
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r2tid1);
+            });
+        });
+
+        it('should retrieve Main_Page revision ' + r2tid1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r2tid1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r2tid1);
+            });
+        });
+
+        it('should retrieve re-rendered Main_Page revision ' + r1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r1tid2);
             });
         });
 
