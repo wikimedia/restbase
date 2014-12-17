@@ -149,74 +149,6 @@ paths:
             status: 200
             headers:
                 content-type: text/html; charset=UTF-8
-  /{domain}/pages/{title}/data-parsoid/{revision}:
-    get:
-      tags:
-        - Page content
-      description: Returns the Parsoid data for the given revision
-      operationId: getFormatRevision
-      produces:
-        - text/html
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.org
-        - name: title
-          in: path
-          description: The title of page content
-          type: string
-          required: true
-        - name: revision
-          in: path
-          description: The revision
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The latest Parsoid data for the given page
-        '400':
-          description: Invalid revision
-          schema:
-            $ref: '#/definitions/invalidRevision'
-        '404':
-          description: Unknown table, bucket, page, or domain
-          schema:
-            $ref: '#/definitions/notFound'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/defaultError'
-      x-amples:
-        - prerequisites:
-            - method: put
-              uri: /v1/en.wikipedia.test.local
-              headers:
-                content-type: application/json
-              body: {}
-            - method: put
-              uri: /v1/en.wikipedia.test.local/page
-              headers:
-                content-type: 'application/json'
-              body:
-                type: 'pagecontent'
-            - method: put
-              uri: /v1/en.wikipedia.test.local/pages/Foobar/html/76f22880-362c-11e4-9234-0123456789ab
-              headers:
-                content-type: 'text/html; charset=UTF-8'
-              body: 'Hello there'
-          request:
-            params:
-                domain: en.wikipedia.test.local
-                title: Foobar
-                revision: 76f22880-362c-11e4-9234-0123456789ab
-          response:
-            status: 200
-            headers:
-                etag: 76f22880-362c-11e4-9234-0123456789ab
-                content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
   /{domain}/pages/{title}/html/{revision}:
     get:
       tags:
@@ -287,6 +219,74 @@ paths:
                 content-type: text/html; charset=UTF-8
                 content-length: "11"
             body: Hello there
+  /{domain}/pages/{title}/data-parsoid/{revision}:
+    get:
+      tags:
+        - Page content
+      description: Returns the Parsoid data for the given revision
+      operationId: getFormatRevision
+      produces:
+        - text/html
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides'
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The latest Parsoid data for the given page
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/invalidRevision'
+        '404':
+          description: Unknown table, bucket, page, or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-amples:
+        - prerequisites:
+            - method: put
+              uri: /v1/en.wikipedia.test.local
+              headers:
+                content-type: application/json
+              body: {}
+            - method: put
+              uri: /v1/en.wikipedia.test.local/page
+              headers:
+                content-type: 'application/json'
+              body:
+                type: 'pagecontent'
+            - method: put
+              uri: /v1/en.wikipedia.test.local/pages/Foobar/html/76f22880-362c-11e4-9234-0123456789ab
+              headers:
+                content-type: 'text/html; charset=UTF-8'
+              body: 'Hello there'
+          request:
+            params:
+                domain: en.wikipedia.test.local
+                title: Foobar
+                revision: 76f22880-362c-11e4-9234-0123456789ab
+          response:
+            status: 200
+            headers:
+                etag: 76f22880-362c-11e4-9234-0123456789ab
+                content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
 definitions:
   defaultError:
     required:
