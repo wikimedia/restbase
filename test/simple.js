@@ -27,6 +27,7 @@ function commonTests() {
         return preq.get({
             uri: bucketURL + '/Foobar/html/624484477'
         })
+        .catch(function(err) { console.log(err); })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
         });
@@ -168,20 +169,28 @@ describe('Simple API tests', function () {
                 assert.deepEqual(res.status, 200);
             });
         });
-        // This is meant to test ../lib/filters/conf/testHandler.yml
-        // Re-enable when that is fixed
-        //it('should transparently create a new wikitext revision using proxy handler with id 624484477', function() {
-        //    this.timeout(20000);
-        //    return preq.get({
-        //        uri: bucketURL + '/Foobar/wikitext/624484477',
-        //        headers: { 'content-type': 'text/wikitext' },
-        //        body: 'Hello there'
-        //    })
-        //    .then(function(res) {
-        //        deepEqual(res.status, 200);
-        //    });
-        //});
+        it('should create a new html revision using proxy handler with id 624484444', function() {
+            this.timeout(20000);
+            return preq.put({
+                uri: baseURL + '/test/Foo/wikitext/624484444',
+                headers: { 'content-type': 'text/html' },
+                body: 'Hello there'
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
         commonTests();
+        it('should return a new wikitext revision using proxy handler with id 624165266', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: baseURL + '/test/Foobar/wikitext/624165266',
+                headers: { 'content-type': 'text/wikitext' },
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
         it('should accept a new html save with a revision', function() {
             return preq.put({
                 uri: bucketURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
@@ -264,7 +273,6 @@ describe('Simple API tests', function () {
             });
         });
     });
-
     describe('automated specification tests', function() {
         this.timeout(20000);
 
@@ -307,21 +315,116 @@ describe('Simple API tests', function () {
         });
 
     });
+
+    describe('page re-rendering', function () {
+        this.timeout(20000);
+
+        var r1 = '615503804';
+        var r2 = '615503846';
+
+        var r1tid1 = '8b0a6880-0311-11e4-9234-0123456789ab';
+        var r1tid2 = r1tid1;
+        var r2tid1 = '9b224800-0311-11e4-9234-0123456789ab';
+
+        it('should retrieve Main_Page revision r1 - ' + r1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r1tid1);
+            });
+        });
+
+        it('should re-render and retrieve Main_Page revision r1 - ' + r1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1,
+                headers: { 'cache-control': 'no-cache' }
+            })
+            .then(function (res) {
+                r1tid2 = res.headers.etag;
+                assert.notDeepEqual(r1tid2, r1tid1);
+                assert.notDeepEqual(r1tid2, r2tid1);
+            });
+        });
+
+        it('should retrieve Main_Page revision r1tid1 - ' + r1tid1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1tid1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r1tid1);
+            });
+        });
+
+        it('should retrieve re-rendered Main_Page revision r1 - ' + r1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r1tid2);
+            });
+        });
+
+        it('should retrieve re-rendered Main_Page revision r1tid2 - ' + r1tid2, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1tid2
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r1tid2);
+            });
+        });
+
+        it('should retrieve Main_Page revision r2 - ' + r2, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r2
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r2tid1);
+            });
+        });
+
+        it('should retrieve Main_Page revision r2tid1 - ' + r2tid1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r2tid1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r2tid1);
+            });
+        });
+
+        it('should retrieve re-rendered Main_Page revision r1 - ' + r1, function () {
+            return preq.get({
+                uri: bucketURL + '/Main_Page/html/' + r1
+            })
+            .then(function (res) {
+                assert.deepEqual(res.headers.etag, r1tid2);
+            });
+        });
+
+    });
+
+    after(function(){
+        test_with_restart();
+    });
+
 });
 
-describe('Phase 2 - running tests with a restart', function() {
-    this.timeout(20000);
-    setTimeout(function() {}, 5000);
-    before(function() {
-        closeRestbase();
-        return restbase({
-            logging: {
-                name: 'restbase-tests',
-                level: 'warn'
-            }
+function test_with_restart() {
+    describe('Phase 2 - running tests with a restart', function() {
+        this.timeout(20000);
+        setTimeout(function() {}, 5000);
+        before(function() {
+            closeRestbase();
+            return restbase({
+                logging: {
+                    name: 'restbase-tests',
+                    level: 'warn'
+                },
+                offline: true
+            });
+        });
+        describe('It should pass some tests from phase 1', function() {
+            commonTests();
         });
     });
-    describe('It should pass some tests from phase 1', function() {
-        commonTests();
-    });
-});
+}
