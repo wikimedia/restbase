@@ -1,0 +1,314 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>API Reference</title>
+    <link rel="stylesheet" type="text/css" href="site.css" media="screen" />
+  </head>
+  <body>
+  <h1>RESTBase</h1>
+    <div class="app-desc">Distributed storage with REST API & dispatcher for backend service for our Partner</div>
+    <div class="app-desc">More information: <a href="https://www.mediawiki.org/wiki/Services">https://www.mediawiki.org/wiki/Services</a></div>
+    <div class="app-desc">Contact Info: <a href="services@lists.wikimedia.org">services@lists.wikimedia.org</a></div>
+    <div class="license-info">GNU Affero</div>
+    <div class="license-url">http://opensource.org/licenses/AGPL-3.0</div>
+  <h2>Access</h2>
+  <div class="method-summary">Access to the API requires an api key to be provided by our Partner for all requests.  The api key is passed as a header with the name `api_key` and the value provided by Reverb Technologies, Inc.  Unless otherwise agreed upon, access to the Reverb API is intended solely for usage by our Partner and not third parties.</div>
+  <h2>Methods</h2>
+  
+  
+  
+  <div class="method">
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/data-parsoid/{revision}</code></pre></div>
+    <div class="method-summary"><span class="nickname">getFormatRevision</span> </div>
+    <div class="method-notes">Returns the Parsoid data for the given revision</div>
+
+    <h3 class="field-label">Parameters</h3>
+    <div class="field-items">
+      <div class="param">domain (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The domain under which the data resides&#39; </div>
+      <div class="param">title (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The title of page content </div>
+      <div class="param">revision (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The revision </div>
+      
+    </div>  <!-- field-items -->
+    <h3 class="field-label">Return type</h3>
+
+    <div class="return-type"><a href="#"></a></div>
+
+    
+  </div> <!-- method -->
+  <hr>
+  
+  <div class="method">
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/html</code></pre></div>
+    <div class="method-summary"><span class="nickname">getLatestFormat</span> </div>
+    <div class="method-notes">Redirects to the latest html</div>
+
+    <h3 class="field-label">Parameters</h3>
+    <div class="field-items">
+      <div class="param">domain (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The domain under which the data resides </div>
+      <div class="param">title (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The title of page content </div>
+      
+    </div>  <!-- field-items -->
+    <h3 class="field-label">Return type</h3>
+
+    <div class="return-type"><a href="#">defaultError</a></div>
+
+    
+  </div> <!-- method -->
+  <hr>
+  
+  <div class="method">
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/html/</code></pre></div>
+    <div class="method-summary"><span class="nickname">listRevisions</span> </div>
+    <div class="method-notes">Returns the list of revisions</div>
+
+    <h3 class="field-label">Parameters</h3>
+    <div class="field-items">
+      <div class="param">domain (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The domain under which the data resides </div>
+      <div class="param">title (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The title of page content </div>
+      
+    </div>  <!-- field-items -->
+    <h3 class="field-label">Return type</h3>
+
+    <div class="return-type"><a href="#revisions">array[revisions]</a></div>
+
+    
+  </div> <!-- method -->
+  <hr>
+  
+  <div class="method">
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/html/{revision}</code></pre></div>
+    <div class="method-summary"><span class="nickname">getFormatRevision</span> </div>
+    <div class="method-notes">Returns the html for the given revision</div>
+
+    <h3 class="field-label">Parameters</h3>
+    <div class="field-items">
+      <div class="param">domain (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The domain under which the data resides&#39; </div>
+      <div class="param">title (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The title of page content </div>
+      <div class="param">revision (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The revision </div>
+      
+    </div>  <!-- field-items -->
+    <h3 class="field-label">Return type</h3>
+
+    <div class="return-type"><a href="#"></a></div>
+
+    
+  </div> <!-- method -->
+  <hr>
+  
+  
+
+  <h2>Models</h2>
+  
+  
+  <div class="model">
+    <h3 class="field-label"><a name="DefaultError">DefaultError</a></h3>
+    <div class="field-items">
+      <div class="param">code </div><div class="param-desc"><span class="param-type">Integer</span> </div>
+      <div class="param">message </div><div class="param-desc"><span class="param-type">String</span> </div>
+      
+    </div>  <!-- field-items -->
+  </div>
+  
+  
+  
+  <div class="model">
+    <h3 class="field-label"><a name="InvalidRevision">InvalidRevision</a></h3>
+    <div class="field-items">
+      <div class="param">code </div><div class="param-desc"><span class="param-type">Integer</span> </div>
+      <div class="param">method </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">title </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">type </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">uri </div><div class="param-desc"><span class="param-type">String</span> </div>
+      
+    </div>  <!-- field-items -->
+  </div>
+  
+  
+  
+  <div class="model">
+    <h3 class="field-label"><a name="NotFound">NotFound</a></h3>
+    <div class="field-items">
+      <div class="param">code </div><div class="param-desc"><span class="param-type">Integer</span> </div>
+      <div class="param">type </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">title </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">description </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">localURI </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">table </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">uri </div><div class="param-desc"><span class="param-type">String</span> </div>
+      <div class="param">method </div><div class="param-desc"><span class="param-type">String</span> </div>
+      
+    </div>  <!-- field-items -->
+  </div>
+  
+  
+  
+  <div class="model">
+    <h3 class="field-label"><a name="Revisions">Revisions</a></h3>
+    <div class="field-items">
+      <div class="param">items </div><div class="param-desc"><span class="param-type">array[String]</span> </div>
+      
+    </div>  <!-- field-items -->
+  </div>
+  
+  
+  <style>
+body { 
+	font-family: Trebuchet MS, sans-serif;
+	font-size: 15px;
+	color: #444;
+	margin-right: 24px;
+}
+
+h1	{
+	font-size: 25px;
+}
+h2	{
+	font-size: 20px;
+}
+h3	{
+	font-size: 16px;
+	font-weight: bold;
+}
+hr	{
+	height: 1px;
+	border: 0;
+	color: #ddd;
+	background-color: #ddd;
+	display: none;
+}
+
+.app-desc {
+  clear: both;
+  margin-left: 20px;
+}
+.param-name {
+  width: 100%;
+}
+.license-info {
+  margin-left: 20px;
+}
+
+.license-url {
+  margin-left: 20px;
+}
+
+.model {
+  margin: 0 0 0px 20px;
+}
+
+.method {
+  margin-left: 20px;
+}
+
+.method-notes	{
+	margin: 10px 0 20px 0;
+	font-size: 90%;
+	color: #555;
+}
+
+pre {
+  padding: 10px;
+}
+
+pre.get {
+  background-color: #0f6ab4;
+}
+
+pre.post {
+  background-color: #10a54a;
+}
+
+pre.put {
+  background-color: #c5862b;
+}
+
+pre.delete {
+  background-color: #a41e22;
+}
+
+.huge	{
+	color: #fff;
+}
+
+pre.example {
+  background-color: #f3f3f3;
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+code {
+  white-space: pre;
+}
+
+.nickname {
+  font-weight: bold;
+}
+
+.method-path {
+  font-size: 1.5em;
+  background-color: #0f6ab4;
+}
+
+.parameter {
+  width: 500px;
+}
+
+.param {
+  width: 500px;
+  padding: 10px 0 0 20px;
+  font-weight: bold;
+}
+
+.param-desc {
+  width: 700px;
+  padding: 0 0 0 20px;
+  color: #777;
+}
+
+.param-type {
+  font-style: italic;
+}
+
+.field-label {
+  padding: 0;
+  margin: 0;
+  clear: both;
+}
+
+.field-items	{
+	padding: 0 0 15px 0;
+	margin-bottom: 15px;
+}
+
+.return-type {
+  clear: both;
+  padding-bottom: 10px;
+}
+
+.param-header {
+  font-weight: bold;
+}
+
+  </style>
+  </body>
+</html>
