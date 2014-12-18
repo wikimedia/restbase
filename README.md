@@ -26,8 +26,13 @@ A queue implementation using Kafka is planned. See [these design notes](https://
 ## Status
 [![Build Status](https://travis-ci.org/gwicke/restbase.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
 
-Prototype, preparing for basic production. You can try the
+Preparing for basic production. You can try the
 **[demo](http://api.wmflabs.org/v1/en.wikipedia.org/pages/Paris/html/626969947)**.
+
+## Issue tracking
+
+We use [Phabricator to track
+issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-PROJ-mszihytuo3ij3fcxcxgm). See the [list of current issues in RESTBase](https://phabricator.wikimedia.org/tag/restbase/).
 
 ## Request flow
 ![RESTBase request
