@@ -1,3 +1,6 @@
+[![build status](https://travis-ci.org/wikimedia/restbase.svg)](https://travis-ci.org/wikimedia/restbas://travis-ci.org/wikimedia/restbase)
+[![coverage status](https://coveralls.io/repos/wikimedia/restbase/badge.png)](https://coveralls.io/r/wikimedia/restbase)
+
 # RESTBase 
 
 [REST content
