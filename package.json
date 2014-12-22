@@ -4,8 +4,8 @@
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
-    "test": "sh test/util/cleandb.sh && mocha",
-    "coverage": "sh test/util/cleandb.sh && istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
+    "test": "sh test/utils/cleandb.sh && mocha",
+    "coverage": "sh test/utils/cleandb.sh && istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
   },
   "repository": {
     "type": "git",
