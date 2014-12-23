@@ -40,7 +40,7 @@ module.exports = function (config) {
             });
         });
         it('should create a new html revision using proxy handler with id 624484444', function() {
-            this.timeout(20000);
+            this.timeout(40000);
             return preq.put({
                 uri: config.baseURL + '/test/Foo/wikitext/624484444',
                 headers: { 'content-type': 'text/html' },
