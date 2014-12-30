@@ -31,7 +31,7 @@ module.exports = function (config) {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
                 assert.deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-                assert.deepEqual(res.body, 'Hello there');
+                assert.deepEqual(res.body.toString(), 'Hello there');
             });
         });
 
