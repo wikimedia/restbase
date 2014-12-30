@@ -12,6 +12,9 @@ module.exports = function (config) {
     // Wrap an HTTP request in a continuation
     function requestK(req) {
         return function () {
+            // Decode the buffer to a string, as the JSON we are comparing
+            // with expects strings.
+            req.encoding = 'utf8';
             return preq[req.method](req);
         };
     }
