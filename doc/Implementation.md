@@ -35,12 +35,15 @@ Converts a spec tree into a route object tree, ready to be passed to
 `swagger-router`.
 
 - parameters:
-    - prefix path
-    - modules
-    - config
+    - spec
+
+- check global nodeMap.get(spec)
+    - if found, just use the existing sub-tree and return
 - look for
     - x-restbase-paths at top level
         - treat just like normal paths, but restrict access unconditionally
+            - path-based ACL: `restbase:sys` with capability added for
+                internal requests, but not external ones
         - bail out if prefix is not `/{domain}/sys/`
     - for each x-restbase directly inside of path entries (*not* inside of methods)
         - if `modules` is defined, load them and check for duplicate symbols
@@ -69,8 +72,8 @@ Result: tree with spec nodes like this:
 { 
     path: new URI(pathFragment),
     value: valueObject,
-    children: [childObj, childObj] // child *specs*, induced by interfaces:
-                                   // declaration
+    children: [childObj, childObj], // child specs, one for each interfaces:
+                                    // declaration
 }
 ```
 
