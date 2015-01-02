@@ -21,6 +21,28 @@ module.exports = function (config) {
         });
     });
     describe('Bucket creation', function() {
+        it('should require a valid request body for a kv bucket', function() {
+            this.timeout(20000);
+            return assert.fails(
+                preq.put({
+                    uri: config.bucketURL,
+                    headers: {
+                        'type': 'kv',
+                        'content-type': 'application/json'
+                    },
+                    body: {}
+                }),
+                function (e) {
+                    assert.deepEqual(e.status, 400);
+                    assert.deepEqual(e.body.example, {
+                        type: 'kv',
+                        revisioned: true,
+                        keyType: 'string',
+                        valueType: 'blob',
+                    });
+                }
+            );
+        });
         it('should require a bucket type', function() {
             this.timeout(20000);
             return assert.fails(
