@@ -82,42 +82,6 @@ module.exports = function (config) {
                 assert.deepEqual(res.status, 201);
             });
         });
-        it('should retrieve the pages bucket info', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: config.bucketURL,
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
-        it('should retrieve the pages bucket listing', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: config.bucketURL + '/',
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
-        it('should retrieve the pages.html bucket info', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: config.bucketURL + '.html',
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
-        it('should retrieve the pages.html bucket listing', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: config.bucketURL + '.html/',
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
     });
 
 };
