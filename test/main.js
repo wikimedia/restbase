@@ -36,8 +36,8 @@ function startRestbase(offline) {
         logging: {
             name: 'restbase-tests',
             level: 'warn',
-            offline: offline
-        }
+        },
+        offline: offline
     }).then(function(server){
         stopRestbase =
             function () {
@@ -63,7 +63,66 @@ describe('Offline mode feature tests after a server restart', function() {
     this.timeout(20000);
     before(function () { return startRestbase(true); });
 
-    require('./features/pagecontent/idempotent')(config);
+    var assert = require('./utils/assert.js');
+    var preq = require('preq');
+
+    var offlineMessage = 'We are offline, but your request needs to be serviced online.';
+
+    describe('offline mode', function() {
+        it('should allow content revision retrieval from storage', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: config.bucketURL + '/Idempotent/html/76f22880-362c-11e4-9234-0123456789ab'
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
+        it('should not allow latest content retrieval from storage', function() {
+            this.timeout(20000);
+            return assert.fails(
+                preq.get({
+                    uri: config.bucketURL + '/Idempotent/html'
+                }),
+                function(e) {
+                    assert.deepEqual(e.status, 500);
+                    assert.deepEqual(e.body.error, offlineMessage);
+                }
+            );
+        });
+        it('should prevent content retrieval from the Web', function() {
+            this.timeout(20000);
+            return assert.fails(
+                preq.get({
+                    uri: config.baseURL + '/_svc/parsoid/Monads/1'
+                }),
+                function (e) {
+                    assert.deepEqual(e.status, 500);
+                    assert.deepEqual(e.body.error, offlineMessage);
+                }
+            );
+        });
+        it('should prevent query submission over the Web', function() {
+            this.timeout(20000);
+            return assert.fails(
+                preq.post({
+                    uri: config.hostPort + '/v1/en.wikipedia.org/_svc/action/query',
+                    headers: { host: 'en.wikipedia.org' },
+                    body: {
+                        format: 'json',
+                        action: 'query',
+                        titles: 'Main Page',
+                        prop: 'revisions',
+                        rvprop: 'content'
+                    }
+                }),
+                function (e) {
+                    assert.deepEqual(e.status, 500);
+                    assert.deepEqual(e.body.error, offlineMessage);
+                }
+            );
+        });
+    });
 
     after(function () { return stopRestbase(); });
 });
