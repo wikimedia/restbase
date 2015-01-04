@@ -40,7 +40,7 @@ module.exports = function (config) {
             });
         });
         it('should create a new html revision using proxy handler with id 624484444', function() {
-            this.timeout(40000);
+            this.timeout(20000);
             return preq.put({
                 uri: config.baseURL + '/test/Foo/wikitext/624484444',
                 headers: { 'content-type': 'text/html' },
@@ -125,5 +125,47 @@ module.exports = function (config) {
             });
         });
 
+    });
+
+    describe('pagecontent bucket', function() {
+        it('should provide bucket info', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: config.bucketURL,
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
+        it('should list its contents', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: config.bucketURL + '/',
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
+    });
+
+    describe('pagecontent/html bucket', function() {
+        it('should provide bucket info', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: config.bucketURL + '.html',
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
+        it('should list its contents', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: config.bucketURL + '.html/',
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
     });
 };

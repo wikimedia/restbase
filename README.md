@@ -1,4 +1,4 @@
-[![build status](https://travis-ci.org/wikimedia/restbase.svg)](https://travis-ci.org/wikimedia/restbas://travis-ci.org/wikimedia/restbase)
+[![build status](https://travis-ci.org/wikimedia/restbase.svg)](https://travis-ci.org/wikimedia/restbase)
 [![coverage status](https://coveralls.io/repos/wikimedia/restbase/badge.png)](https://coveralls.io/r/wikimedia/restbase)
 
 # RESTBase 
@@ -27,7 +27,6 @@ an even higher-level MediaWiki page content bucket.
 A queue implementation using Kafka is planned. See [these design notes](https://github.com/gwicke/restbase-cassandra/blob/master/doc/QueueBucket.md) for details.
 
 ## Status
-[![Build Status](https://travis-ci.org/gwicke/restbase.svg?branch=master)](https://travis-ci.org/gwicke/restbase)
 
 Preparing for basic production. You can try the
 **[demo](http://api.wmflabs.org/v1/en.wikipedia.org/pages/Paris/html/626969947)**.
