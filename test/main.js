@@ -53,7 +53,9 @@ describe('API feature tests', function () {
     before(function () { return startRestbase(); });
 
     dir.walk(__dirname + '/features/').forEach(function (file) {
-        require(file)(config);
+        if (/\.js$/.test(file)) {
+            require(file)(config);
+        }
     });
 
     after(function () { return stopRestbase(); });
