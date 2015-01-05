@@ -35,7 +35,7 @@ function startRestbase(offline) {
     return restbase({
         logging: {
             name: 'restbase-tests',
-            level: 'warn',
+            level: offline ? 'fatal' : 'warn', // hide warnings during offline tests
         },
         offline: offline
     }).then(function(server){
