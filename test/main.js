@@ -31,11 +31,10 @@ var stopRestbase = function () {};
 function startRestbase(offline) {
     stopRestbase();
     offline = offline || false;
-    console.log('starting restbase in ' + (offline ? 'OFFLINE' : 'ONLINE') + ' mode');
     return restbase({
         logging: {
             name: 'restbase-tests',
-            level: offline ? 'fatal' : 'warn', // hide warnings during offline tests
+            level: 'fatal'
         },
         offline: offline
     }).then(function(server){
