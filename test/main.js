@@ -88,7 +88,7 @@ describe('Offline mode feature tests after a server restart', function() {
                 }),
                 function(e) {
                     assert.deepEqual(e.status, 500);
-                    assert.deepEqual(e.body.error, offlineMessage);
+                    assert.deepEqual(e.body.description, offlineMessage);
                 }
             );
         });
@@ -100,7 +100,7 @@ describe('Offline mode feature tests after a server restart', function() {
                 }),
                 function (e) {
                     assert.deepEqual(e.status, 500);
-                    assert.deepEqual(e.body.error, offlineMessage);
+                    assert.deepEqual(e.body.description, offlineMessage);
                 }
             );
         });
@@ -120,7 +120,7 @@ describe('Offline mode feature tests after a server restart', function() {
                 }),
                 function (e) {
                     assert.deepEqual(e.status, 500);
-                    assert.deepEqual(e.body.error, offlineMessage);
+                    assert.deepEqual(e.body.description, offlineMessage);
                 }
             );
         });
