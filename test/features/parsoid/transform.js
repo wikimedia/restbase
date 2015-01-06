@@ -96,4 +96,30 @@ module.exports = function (config) {
         x2y(spec);
     });
 
+    describe('transform api', function() {
+        it('should load a specific title/revision from storage to send as the "original"', function () {
+            return preq.post({
+                uri: config.baseURL + '/transform/html/to/wikitext/Main_Page/1',
+                headers: { 'content-type': 'application/json' },
+                body: {
+                    headers: {
+                      'content-type': 'text/html;profile=mediawiki.org/specs/html/1.0.0'
+                    },
+                    body: '<html>The modified HTML</html>'
+                }
+            })
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body, {
+                    wikitext: {
+                        headers: {
+                            'content-type': 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0'
+                        },
+                        body: 'The modified HTML'
+                    }
+                });
+            });
+        });
+    });
+
 };
