@@ -28,13 +28,32 @@ var config = {
 
 var stopRestbase = function () {};
 
+var log = {};
+function logger() {
+    function collect(context) {
+        return function() {
+            var ctx = JSON.stringify(context);
+            if (/^warn/.test(arguments[0]) ||
+                /^error/.test(arguments[0]) ||
+                /^fatal/.test(arguments[0])
+            ) {
+                log[ctx] = log[ctx] || [];
+                log[ctx].push(arguments);
+            }
+            return collect(context);
+        };
+    }
+    var collector = collect('root');
+    collector.child = collect;
+    return collector;
+}
+
 function startRestbase(offline) {
     stopRestbase();
     offline = offline || false;
     return restbase({
         logging: {
-            name: 'restbase-tests',
-            level: 'fatal'
+            logger: logger()
         },
         offline: offline
     }).then(function(server){
@@ -126,4 +145,28 @@ describe('Offline mode feature tests after a server restart', function() {
     });
 
     after(function () { return stopRestbase(); });
+});
+
+describe('Log', function () {
+
+    var assert = require('./utils/assert.js');
+
+    this.timeout(20000);
+
+
+    it('should only have PUT, GET, and POST request entries', function() {
+        assert.deepEqual(Object.keys(log), [
+            '{"req":{"method":"GET"}}',
+            '{"req":{"method":"POST"}}'
+        ]);
+    });
+
+    it('should have some GET request entries', function() {
+        assert.deepEqual(log['{"req":{"method":"GET"}}'].length, 4);
+    });
+
+    it('should have some POST request entries', function() {
+        assert.deepEqual(log['{"req":{"method":"POST"}}'].length, 1);
+    });
+
 });
