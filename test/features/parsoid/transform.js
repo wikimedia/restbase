@@ -87,7 +87,7 @@ module.exports = function (config) {
                 assert.deepEqual(res.body, readFile(spec.to.src));
             });
         }
-        describe(spec.name, function() {
+        describe('transform api: ' + spec.name, function() {
             it('should directly convert ' + spec.from.format + ' to ' + spec.to.format, test);
         });
     }
@@ -96,7 +96,7 @@ module.exports = function (config) {
         x2y(spec);
     });
 
-    describe('transform api', function() {
+    describe('storage-backed transform api', function() {
         it('should load a specific title/revision from storage to send as the "original"', function () {
             return preq.post({
                 uri: config.baseURL + '/transform/html/to/wikitext/Main_Page/1',
