@@ -10,14 +10,6 @@ var assert = require('../../utils/assert.js');
 var preq = require('preq');
 var fs = require('fs');
 
-function dump(slice) {
-  slice.get().forEach(function (line) {
-    var entry = JSON.parse(line);
-    console.log('req:', entry.req.method, entry.req.uri,
-                'res:', (entry.res ? entry.res.status : undefined));
-  });
-}
-
 function exists(xs, f) {
     for (var i = 0; i < xs.length; i++) {
         if (f(xs[i])) {
