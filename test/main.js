@@ -13,8 +13,9 @@
 
 require('mocha-jshint')(); // run JSHint as part of testing
 
-var restbase = require('../lib/server.js');
-var dir      = require('./utils/dir');
+var restbase  = require('../lib/server.js');
+var dir       = require('./utils/dir');
+var logStream = require('./utils/logStream');
 
 var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/v1/en.wikipedia.test.local';
@@ -23,7 +24,8 @@ var bucketURL = baseURL + '/pages';
 var config = {
     hostPort: hostPort,
     baseURL: baseURL,
-    bucketURL: bucketURL
+    bucketURL: bucketURL,
+    logStream: logStream(),
 };
 
 var stopRestbase = function () {};
@@ -35,7 +37,8 @@ function startRestbase(offline) {
     return restbase({
         logging: {
             name: 'restbase-tests',
-            level: offline ? 'fatal' : 'warn', // hide warnings during offline tests
+            level: 'trace',
+            stream: config.logStream
         },
         offline: offline
     }).then(function(server){
