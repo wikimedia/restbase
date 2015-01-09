@@ -95,8 +95,8 @@ storage:
 # ...
 ```
 
-Usage
------
+## Usage
+
 ```sh
 # add a new domain (TODO: accept config)
 curl -X PUT http://localhost:7231/v1/en.wikipedia.org
@@ -126,8 +126,27 @@ ab -c10 -n10000 'http://localhost:7231/v1/en.wikipedia.org/pages/Test/html'
 On my laptop this currently yields around 2900 req/s on node 0.10 for small
 blobs, and around 5GBit for large (3mb) blobs.
 
-Design docs
-===========
+## Development
+
+### Testing
+
+Make sure Cassandra is running locally, then fire up the test with npm:
+
+```
+npm test
+```
+
+### Coverage
+
+To check the test coverage, use npm, then browse the report:
+
+```
+npm run-script coverage
+```
+
+The coverage report can now be found in *<project>/coverage/lcov-report/index.html*.
+
+## Design docs
 
 - [RESTBase](https://github.com/gwicke/restbase/blob/master/doc/)
 - [RESTBase-cassandra (storage backend)](https://github.com/gwicke/restbase-cassandra/blob/master/doc/)
