@@ -34,7 +34,6 @@ function wentToParsoid(slice) {
     return exists(slice.get(), function(line) {
       var entry = JSON.parse(line);
       return /^http:\/\/parsoid-lb\.eqiad\.wikimedia\.org\/v2\//.test(entry.req.uri);
-
     });
 }
 
@@ -55,6 +54,7 @@ module.exports = function (config) {
                 slice.halt();
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(localRequestsOnly(slice), false);
+                assert.deepEqual(wentToParsoid(slice), true);
             });
         });
 
@@ -67,6 +67,7 @@ module.exports = function (config) {
                 slice.halt();
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(localRequestsOnly(slice), false);
+                assert.deepEqual(wentToParsoid(slice), true);
             });
         });
 
@@ -79,6 +80,7 @@ module.exports = function (config) {
                 slice.halt();
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(localRequestsOnly(slice), true);
+                assert.deepEqual(wentToParsoid(slice), false);
             });
         });
 
