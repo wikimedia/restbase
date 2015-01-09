@@ -48,11 +48,15 @@ That should do it.  Let's make sure it passes:
 npm test
 ```
 
+![test](https://raw.githubusercontent.com/wikimedia/restbase/a1970a2eb256c35a4e925d6dcb572c0716140016/doc/coverage/test.png)
+
 The test passes, so let's generate a new coverage report:
 
 ```
 npm run-script coverage
 ```
+
+![coverage](https://raw.githubusercontent.com/wikimedia/restbase/a1970a2eb256c35a4e925d6dcb572c0716140016/doc/coverage/coverage.png)
 
 Now we can verify that `putLatestFormat()` is now covered:
 
