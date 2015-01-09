@@ -144,7 +144,7 @@ To check the test coverage, use npm, then browse the report:
 npm run-script coverage
 ```
 
-The coverage report can now be found in *<project>/coverage/lcov-report/index.html*.
+The coverage report can now be found in *&lt;project&gt;coverage/lcov-report/index.html*.
 
 ## Design docs
 
