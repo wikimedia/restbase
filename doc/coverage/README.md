@@ -12,7 +12,7 @@ npm run-script coverage
 
 Browsing the coverage report at *&lt;project&gt;/coverage/lcov-report/index.html*, we find some uncovered code:
 
-![red](https://raw.githubusercontent.com/wikimedia/restbase/master/doc/coverage/red.png)
+![red](https://raw.githubusercontent.com/wikimedia/restbase/0d54160dc5d4ee8aa07adb9f58262ac97d7c07a4/doc/coverage/red.png)
 
 It looks like we forgot to test `putLatestFormat()` in the pagecontent bucket handler.  Let's write a test for it:
 
@@ -56,7 +56,7 @@ npm run-script coverage
 
 Now we can verify that `putLatestFormat()` is now covered:
 
-![green](https://raw.githubusercontent.com/wikimedia/restbase/master/doc/coverage/green.png)
+![green](https://raw.githubusercontent.com/wikimedia/restbase/0d54160dc5d4ee8aa07adb9f58262ac97d7c07a4/doc/coverage/green.png)
 
 Not only have we increased our code coverage, but we have reverse-engineered a specification for how a user can submit (and later retrieve) the latest format for some page content.
 
