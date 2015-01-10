@@ -84,6 +84,29 @@ module.exports = function (config) {
             });
         });
 
+        it('should pass (stored) revision B to Parsoid for cache-control:no-cache',
+        function () {
+            var slice = config.logStream.slice();
+            return preq.get({
+                uri: contentUrl + '/html/' + revB,
+                headers: {
+                    'cache-control': 'no-cache'
+                },
+            })
+            .then(function (res) {
+                slice.halt();
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(localRequestsOnly(slice), false);
+                assert.deepEqual(wentToParsoid(slice), true);
+                var resBody = JSON.parse(res.body);
+                assert.deepEqual(resBody.headers, {
+                    "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
+                });
+                assert.deepEqual(/^<!DOCTYPE html>/.test(resBody.body), true);
+                assert.deepEqual(/<\/html>$/.test(resBody.body), true);
+            });
+        });
+
     });
 
 };
