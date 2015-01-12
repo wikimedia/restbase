@@ -136,3 +136,5 @@ function fswatch() {
 ```
 
 Now instead of `npm test`, we can run `fswatch npm test` from our project directory, and it will trigger `npm test` every time we save a file.
+
+To see what this looks like in practice, watch [this demo](http://vimeo.com/75100243) and pretend it shows `fswatch npm test` with Node instead of `sbt ~test` with Scala.
