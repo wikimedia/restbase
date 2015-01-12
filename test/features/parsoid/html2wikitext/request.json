@@ -1,0 +1,31 @@
+{
+    "html": {
+        "headers": {
+            "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
+        },
+        "body": "<html>The modified HTML</html>"
+    },
+    "original": {
+        "revid": 12345,
+        "wikitext": {
+            "headers": {
+                "content-type": "text/plain;profile=mediawiki.org/specs/wikitext/1.0.0"
+            },
+            "body": "the original wikitext"
+        },
+        "html": {
+            "headers": {
+                "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
+            },
+            "body": "the original HTML"
+        },
+        "data-parsoid": {
+            "headers": {
+                "content-type": "application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1"
+            },
+            "body": {
+                "ids": {}
+            }
+        }
+    }
+}

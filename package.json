@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "sh test/utils/cleandb.sh && mocha",
-    "coverage": "sh test/utils/cleandb.sh && istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
+    "coverage": "sh test/utils/cleandb.sh && istanbul cover _mocha -- -R spec",
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",

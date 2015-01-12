@@ -17,4 +17,4 @@ notifications:
   email:
     - services@wikimedia.org
 
-script: npm run-script coverage
+script: npm run-script coverage && npm run-script coveralls
