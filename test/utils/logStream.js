@@ -21,7 +21,7 @@ function logStream() {
             }
         }
     } catch (e) {
-        console.error('something went wrong trying to parrot a log entry', e);
+        console.error('something went wrong trying to parrot a log entry', e, chunk);
     }
 
     log.push(chunk);
