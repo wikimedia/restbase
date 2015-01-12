@@ -1,10 +1,14 @@
 # Test-driven development process
 
-*Note: this document is not a guideline; it is a collection of notes about a development process that works well for me (James) and might be handy for others too.*
+*Note: this document is in no way meant to be a mandate, or even a guideline; it is a collection of notes about a development process that works well for me (James) and might be handy for others too.*
 
-## Goals
+## Goal
 
-The primary motivation for TDD is to be intentional about development: to have a clear understanding of what has been built, and what is being built.
+The primary motivation for this process is to be intentional about development: to have a clear understanding of what has been built and what is being built.
+
+For our purposes, a test corresponds to some discrete value for an identifiable stakeholder.  It can be a use case, user story, requirement, constraint, etc.
+
+In this context, TDD does not mean "ensure that `getFoo()` and `setFoo(foo)` are green"; it means "ensure that user story X is (1) clearly defined in a testable way and (2) satisfied by our code".
 
 ## Process overview
 
@@ -115,7 +119,7 @@ Running `npm test` again, we see that the failing test now passes:
 
 ## Triggered test execution
 
-During the TDD process, there tend to be quite a few invocations of `npm test`, which can get tedious to do manually.  To make it easier on ourselves, let's make `npm test` run automatically whenever we make a change to our source code.  Toss the following into a bash environment:
+During the development process, there tend to be quite a few invocations of `npm test`, which can get tedious to do manually.  To make it easier on ourselves, let's make `npm test` run automatically whenever we make a change to our source code.  Toss the following into a bash environment:
 
 *~/.bash_aliases:*
 
