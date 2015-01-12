@@ -102,10 +102,10 @@ module.exports = function (config) {
                 assert.deepEqual(res.status, 200);
                 
                 // Inspect the request/response log to make sure Restbase only made local requests
-                assert.deepEqual(localRequestsOnly(), false);
+                assert.deepEqual(localRequestsOnly(slice), false);
                 
                 // Inspect the request/response log to make sure Restbase made a request to Parsoid
-                assert.deepEqual(wentToParsoid(), true);
+                assert.deepEqual(wentToParsoid(slice), true);
                 
                 // Ensure the response body is an object with the correct spec. content type
                 var resBody = JSON.parse(res.body);
