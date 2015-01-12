@@ -86,6 +86,7 @@ module.exports = function (config) {
 
         it('should pass (stored) revision B to Parsoid for cache-control:no-cache',
         function () {
+            // Start watching for new log entries
             var slice = config.logStream.slice();
             return preq.get({
                 uri: contentUrl + '/html/' + revB,
@@ -94,15 +95,28 @@ module.exports = function (config) {
                 },
             })
             .then(function (res) {
+                // Stop watching for new log entries
                 slice.halt();
+
+                // Ensure the response status is 200
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(localRequestsOnly(slice), false);
-                assert.deepEqual(wentToParsoid(slice), true);
+                
+                // Inspect the request/response log to make sure Restbase only made local requests
+                assert.deepEqual(localRequestsOnly(), false);
+                
+                // Inspect the request/response log to make sure Restbase made a request to Parsoid
+                assert.deepEqual(wentToParsoid(), true);
+                
+                // Ensure the response body is an object with the correct spec. content type
                 var resBody = JSON.parse(res.body);
                 assert.deepEqual(resBody.headers, {
                     "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
                 });
+                
+                // Sanity check that the response body is an object with the right body content
                 assert.deepEqual(/^<!DOCTYPE html>/.test(resBody.body), true);
+                
+                // Sanity check that the response body is an object with the right body content
                 assert.deepEqual(/<\/html>$/.test(resBody.body), true);
             });
         });
