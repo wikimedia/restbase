@@ -6,7 +6,7 @@ port: 7231
 sysdomain: restbase.local
 
 templates:
-  wmf-content-1.0.0: &wp/content/1.0.0:
+  wmf-content-1.0.0: &wp/content/1.0.0
     swagger: '2.0'
     # swagger options, overriding the shared ones from the merged specs (?)
     info:
