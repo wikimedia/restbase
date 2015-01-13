@@ -32,14 +32,15 @@ test/
 
 ## Spec loading
 Converts a spec tree into a route object tree, ready to be passed to
-`swagger-router`.
+`swagger-router`. Can be passed into Router.addSpec as a handler.
 
 - parameters:
     - spec
 
 - check global nodeMap.get(spec)
-    - if found, just use the existing sub-tree and return
-- look for
+    - if found, just use the existing sub-tree (`parentNode.set()`) and return
+- specToTree: spec -> { children: []
+  - look for
     - x-restbase-paths at top level
         - treat just like normal paths, but restrict access unconditionally
             - path-based ACL: `restbase:sys` with capability added for
@@ -71,7 +72,9 @@ Result: tree with spec nodes like this:
 ```javascript
 { 
     path: new URI(pathFragment),
+    spec: specObj, // reference to the original spec object, for documentation
     value: valueObject,
+    // optionally:
     children: [childObj, childObj], // child specs, one for each interfaces:
                                     // declaration
 }
@@ -82,7 +85,6 @@ Result: tree with spec nodes like this:
 {
     acl: {}, // TODO: figure out
     handler: handlerFn, // signature: f(restbase, req), as currently
-    spec: specObj // reference to the original spec fragment, for doc purposes
     // more properties extracted from the spec as needed (ex: content-types
     // for sanitization)
 }
