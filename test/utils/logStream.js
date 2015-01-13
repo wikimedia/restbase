@@ -1,10 +1,29 @@
 'use strict';
 
+var bunyan = require('bunyan');
+
 function logStream() {
 
   var log = [];
+  var parrot = bunyan.createLogger({
+    name: 'test-logger',
+    level: 'warn'
+  });
   
   function write(chunk, encoding, callback) {
+    try {
+        var entry = JSON.parse(chunk);
+        var levelMatch = /^(\w+)/.exec(entry.levelPath);
+        if (levelMatch) {
+            var level = levelMatch[1];
+            if (parrot[level]) {
+                parrot[level](entry);
+            }
+        }
+    } catch (e) {
+        console.error('something went wrong trying to parrot a log entry', e, chunk);
+    }
+
     log.push(chunk);
   }
 
