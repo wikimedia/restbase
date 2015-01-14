@@ -77,7 +77,7 @@ describe('Offline mode feature tests after a server restart', function() {
         it('should allow content revision retrieval from storage', function() {
             this.timeout(20000);
             return preq.get({
-                uri: config.bucketURL + '/Idempotent/html/76f22880-362c-11e4-9234-0123456789ab'
+                uri: config.bucketURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab'
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
@@ -87,7 +87,7 @@ describe('Offline mode feature tests after a server restart', function() {
             this.timeout(20000);
             return assert.fails(
                 preq.get({
-                    uri: config.bucketURL + '/Idempotent/html'
+                    uri: config.bucketURL + '/Foobar/html'
                 }),
                 function(e) {
                     assert.deepEqual(e.status, 500);

@@ -62,11 +62,53 @@ paths:
                 - 76f22880-362c-11e4-9234-0123456789ab
                 - 9843f080-3443-11e4-9234-0123456789ab
   /{domain}/pages/{title}/html:
+    put:
+      tags:
+        - Page content
+      description: Sets the latest html
+      operationId: putLatestHtml
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+      responses:
+        '201':
+          description: The latest html for the given page was stored
+        '404':
+          description: Unknown table, bucket, or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-amples:
+        - request:
+            params:
+                domain: en.wikipedia.test.local
+                title: Foobar
+            headers:
+                content-type: text/html
+            body: Hello there, this is the latest revision!
+          response:
+            status: 201
+            headers:
+                content-type: application/json
+            body:
+              message: Created.
     get:
       tags:
         - Page content
       description: Redirects to the latest html
-      operationId: getLatestFormat
+      operationId: getLatestHtml
       parameters:
         - name: domain
           in: path
@@ -99,12 +141,68 @@ paths:
             status: 200
             headers:
                 content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
+            body: <!DOCTYPE html>.*
   /{domain}/pages/{title}/html/{revision}:
+    put:
+      tags:
+        - Page content
+      description: Sets the html for the given revision
+      operationId: putHtmlRevision
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides'
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: string
+          required: true
+      responses:
+        '201':
+          description: The latest html for the given page was stored
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/invalidRevision'
+        '404':
+          description: Unknown table, bucket, page, or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-amples:
+        - request:
+            params:
+                domain: en.wikipedia.test.local
+                title: Foobar
+                revision: 76f22880-362c-11e4-9234-0123456789ab
+            headers:
+                etag: 76f22880-362c-11e4-9234-0123456789ab
+                content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
+            body: Hello there, this is revision 76f22880-362c-11e4-9234-0123456789ab!
+          response:
+            status: 201
+            headers:
+                etag: 76f22880-362c-11e4-9234-0123456789ab
+                content-type: application/json
+            body:
+              message: Created.
+              tid: 76f22880-362c-11e4-9234-0123456789ab
     get:
       tags:
         - Page content
       description: Returns the html for the given revision
-      operationId: getFormatRevision
+      operationId: getHtmlRevision
       produces:
         - text/html
       parameters:
@@ -156,7 +254,7 @@ paths:
       tags:
         - Page content
       description: Returns the Parsoid data for the given revision
-      operationId: getFormatRevision
+      operationId: getDataParsoidRevision
       produces:
         - text/html
       parameters:
