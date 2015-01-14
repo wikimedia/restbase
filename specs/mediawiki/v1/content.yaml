@@ -179,6 +179,56 @@ paths:
           headers:
             cache-control: $req.headers.cache-control
 
+  /dummy/get:
+    get:
+      tags:
+        - dummy get
+      description: module load test URI
+      operationid: dummyget
+      parameters:
+        - name: domain
+          in: path
+          description: the domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+      responses:
+        '200':
+          description: module resolved successfully
+        '404':
+          description: no module loaded
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
+
+  /dummy/set:
+    get:
+      tags:
+        - dummy set
+      description: module load test URI
+      operationid: dummyset
+      parameters:
+        - name: domain
+          in: path
+          description: the domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+      responses:
+        '201':
+          description: module resolved successfully
+        '404':
+          description: no module loaded
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
+
 
 definitions:
   defaultError:
