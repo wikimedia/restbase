@@ -14,8 +14,25 @@ var rootSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
             'x-restbase': {
-                interfaces: [
+                specs: [
                     'mediawiki/v1/content'
+                ]
+            }
+        }
+    }
+};
+
+var faultySpec = {
+    paths: {
+        '/{domain:en.wikipedia.org}': {
+            'x-restbase': {
+                specs: [
+                    {
+                        paths: {},
+                        'x-restbase-paths': {
+                            '/notsys/foo': {}
+                        }
+                    }
                 ]
             }
         }
@@ -33,6 +50,12 @@ describe('tree building', function() {
         assert.equal(!!handler.value.methods.get, true);
         assert.equal(handler.params.domain, 'en.wikipedia.org');
         assert.equal(handler.params.title, 'Foo');
+    });
+
+    it('should fail loading a faulty spec', function() {
+        assert.throws(function() {
+            router.loadSpec(faultySpec);
+        }, Error);
     });
 
     it('should build the example config spec tree', function() {
