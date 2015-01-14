@@ -98,7 +98,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: text/html; charset=UTF-8
+                content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
   /{domain}/pages/{title}/html/{revision}:
     get:
       tags:
@@ -149,7 +149,7 @@ paths:
             status: 200
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
-                content-type: text/html; charset=UTF-8
+                content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
             body: Hello there, this is revision 76f22880-362c-11e4-9234-0123456789ab!
   /{domain}/pages/{title}/data-parsoid/{revision}:
     get:
@@ -201,7 +201,7 @@ paths:
             status: 200
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
-                content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
+                content-type: application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1
 definitions:
   defaultError:
     required:
