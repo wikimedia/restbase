@@ -14,7 +14,7 @@ var rootSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
             'x-restbase': {
-                interfaces: [
+                specs: [
                     'mediawiki/v1/content'
                 ]
             }
@@ -26,7 +26,7 @@ var faultySpec = {
     paths: {
         '/{domain:en.wikipedia.org}': {
             'x-restbase': {
-                interfaces: [
+                specs: [
                     {
                         paths: {},
                         'x-restbase-paths': {

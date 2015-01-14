@@ -14,7 +14,7 @@ lib/
     util.js
 # XXX: not quite final yet
 config.yaml
-interfaces/
+specs/
     restbase/
         sys/
             key_rev_value.yaml
@@ -48,7 +48,7 @@ Converts a spec tree into a route object tree, ready to be passed to
         - bail out if prefix is not `/{domain}/sys/`
     - for each x-restbase directly inside of path entries (*not* inside of methods)
         - if `modules` is defined, load them and check for duplicate symbols
-        - if `interfaces` is defined, load them and apply spec loader
+        - if `specs` is defined, load them and apply spec loader
             recursively, passing in modules and prefix path
         - if `resources` is defined, add them to a global list, with ref back
             to the original spec
@@ -75,7 +75,7 @@ Result: tree with spec nodes like this:
     spec: specObj, // reference to the original spec object, for documentation
     value: valueObject,
     // optionally:
-    children: [childObj, childObj], // child specs, one for each interfaces:
+    children: [childObj, childObj], // child specs, one for each specs:
                                     // declaration
 }
 ```
@@ -121,7 +121,7 @@ paths:
           # ACLs that apply to all *children* accessed through this point in
           # the tree
           - readContent
-      interfaces:
+      specs:
         - mediawiki/v1/content
     get:
       # optional: spec for a GET to /en.wikipedia.org itself
