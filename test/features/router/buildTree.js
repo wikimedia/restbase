@@ -22,6 +22,23 @@ var rootSpec = {
     }
 };
 
+var faultySpec = {
+    paths: {
+        '/{domain:en.wikipedia.org}': {
+            'x-restbase': {
+                interfaces: [
+                    {
+                        paths: {},
+                        'x-restbase-paths': {
+                            '/notsys/foo': {}
+                        }
+                    }
+                ]
+            }
+        }
+    }
+};
+
 var fullSpec = yaml.safeLoad(fs.readFileSync('config.example.yaml'));
 
 describe('tree building', function() {
@@ -33,6 +50,12 @@ describe('tree building', function() {
         assert.equal(!!handler.value.methods.get, true);
         assert.equal(handler.params.domain, 'en.wikipedia.org');
         assert.equal(handler.params.title, 'Foo');
+    });
+
+    it('should fail loading a faulty spec', function() {
+        assert.throws(function() {
+            router.loadSpec(faultySpec);
+        }, Error);
     });
 
     it('should build the example config spec tree', function() {
