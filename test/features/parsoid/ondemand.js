@@ -97,27 +97,12 @@ module.exports = function (config) {
             .then(function (res) {
                 // Stop watching for new log entries
                 slice.halt();
-
-                // Ensure the response status is 200
                 assert.deepEqual(res.status, 200);
-                
-                // Inspect the request/response log to make sure Restbase only made local requests
                 assert.deepEqual(localRequestsOnly(slice), false);
-                
-                // Inspect the request/response log to make sure Restbase made a request to Parsoid
                 assert.deepEqual(wentToParsoid(slice), true);
-                
-                // Ensure the response body is an object with the correct spec. content type
-                var resBody = JSON.parse(res.body);
-                assert.deepEqual(resBody.headers, {
-                    "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
-                });
-                
-                // Sanity check that the response body is an object with the right body content
-                assert.deepEqual(/^<!DOCTYPE html>/.test(resBody.body), true);
-                
-                // Sanity check that the response body is an object with the right body content
-                assert.deepEqual(/<\/html>$/.test(resBody.body), true);
+                assert.deepEqual(res.headers['content-type'], 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+                assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
+                assert.deepEqual(/<\/html>$/.test(res.body), true);
             });
         });
 

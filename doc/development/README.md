@@ -61,26 +61,12 @@ return preq.get({
 The user should then expect a response as described above.  Let's [verify the response body](https://github.com/earldouglas/restbase/blob/56127d0f93034aa5e267bdce2d490c079052dfe3/test/features/parsoid/ondemand.js#L87):
 
 ```javascript
-// Ensure the response status is 200
 assert.deepEqual(res.status, 200);
-
-// Inspect the request/response log to make sure Restbase only made local requests
-assert.deepEqual(localRequestsOnly(), false);
-
-// Inspect the request/response log to make sure Restbase made a request to Parsoid
-assert.deepEqual(wentToParsoid(), true);
-
-// Ensure the response body is an object with the correct spec. content type
-var resBody = JSON.parse(res.body);
-assert.deepEqual(resBody.headers, {
-    "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
-});
-
-// Sanity check that the response body is an object with the right body content
-assert.deepEqual(/^<!DOCTYPE html>/.test(resBody.body), true);
-
-// Sanity check that the response body is an object with the right body content
-assert.deepEqual(/<\/html>$/.test(resBody.body), true);
+assert.deepEqual(localRequestsOnly(slice), false);
+assert.deepEqual(wentToParsoid(slice), true);
+assert.deepEqual(res.headers['content-type'], 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
+assert.deepEqual(/<\/html>$/.test(res.body), true);
 ```
 
 As this is a Node project, we will run the test with npm:

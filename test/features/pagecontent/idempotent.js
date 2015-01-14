@@ -12,7 +12,7 @@ module.exports = function (config) {
         it('should accept a new html save with a revision', function() {
             return preq.put({
                 uri: config.bucketURL + '/Idempotent/html/76f22880-362c-11e4-9234-0123456789ab',
-                headers: { 'content-type': 'text/html; charset=UTF-8' },
+                headers: { 'content-type': 'text/html;profile=mediawiki.org/specs/html/1.0.0' },
                 body: 'Hello there'
             })
             .then(function(res) {
@@ -29,7 +29,7 @@ module.exports = function (config) {
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
+                assert.deepEqual(res.headers['content-type'], 'text/html;profile=mediawiki.org/specs/html/1.0.0');
                 assert.deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
                 assert.deepEqual(res.body, 'Hello there');
             });
