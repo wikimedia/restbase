@@ -6,7 +6,8 @@ port: 7231
 sysdomain: restbase.local
 
 templates:
-  wmf-content-1.0.0: &wp/content/1.0.0:
+
+  wmf-content-1.0.0: &wp/content/1.0.0
     swagger: '2.0'
     # swagger options, overriding the shared ones from the merged specs (?)
     info:
@@ -98,26 +99,31 @@ templates:
             - uri: /{domain}/sys/key_rev_value/parsoid.data-mw
             - uri: /{domain}/sys/key_rev_value/parsoid.wikitext
 
-      /sys/revscore:
-        title: Simple revscore service wrapper
-        x-restbase:
-          # Generic revision service interface; Expects requests of the form
-          # /{title}/{revision}.
-          # Specific interface documentation (content types etc) at public
-          # entry point, although we might also want to enforce them
-          # internally.
-          interfaces: 
-            - restbase/sys/key_rev_service
-          modules:
-            - name: restbase-mod-service
-              version: 1.0.0 # simple service module, to be shared
-              options:
-                storage:
-                  uri: /{domain}/sys/key_rev_value/revscore.scores/{title}/{revision}
-                service: 
-                  uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
-          resources:
-            - uri: /{domain}/sys/key_rev_value/revscore.scores
+#      /sys/revscore:
+#        title: Simple revscore service wrapper
+#        x-restbase:
+#          # Generic revision service interface; Expects requests of the form
+#          # /{title}/{revision}.
+#          # Specific interface documentation (content types etc) at public
+#          # entry point, although we might also want to enforce them
+#          # internally.
+#          interfaces: 
+#            - restbase/sys/key_rev_service
+#          modules:
+#            - name: restbase-mod-service
+#              version: 1.0.0 # simple service module, to be shared
+#              options:
+#                storage:
+#                  uri: /{domain}/sys/key_rev_value/revscore.scores/{title}/{revision}
+#                service: 
+#                  uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
+#          resources:
+#            - uri: /{domain}/sys/key_rev_value/revscore.scores
+
+  wp-default-1.0.0: &wp/default/1.0.0
+    x-restbase: 
+      interfaces: 
+        - *wp/content/1.0.0
                   
 
 
@@ -125,22 +131,10 @@ spec:
   title: "The RESTBase root"
   # Some more general RESTBase info
   paths:
-    /{domain:en.wikipedia.org}:
-      x-restbase:
-        interfaces: 
-          - *wp/content/1.0.0
-    /{domain:de.wikipedia.org}:
-      x-restbase:
-        interfaces:
-          - *wp/content/1.0.0
-    /{domain:es.wikipedia.org}:
-      x-restbase:
-        interfaces:
-          - *wp/content/1.0.0
-    /{domain:nl.wikipedia.org}:
-      x-restbase:
-        interfaces:
-          - *wp/content/1.0.0
+    /{domain:en.wikipedia.org}: *wp/default/1.0.0
+    /{domain:de.wikipedia.org}: *wp/default/1.0.0
+    /{domain:es.wikipedia.org}: *wp/default/1.0.0
+    /{domain:nl.wikipedia.org}: *wp/default/1.0.0
 
 
 logging:
