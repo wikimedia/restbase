@@ -15,7 +15,19 @@ var rootSpec = {
         '/{domain:en.wikipedia.org}/v1': {
             'x-restbase': {
                 specs: [
-                    'mediawiki/v1/content'
+                    {
+                        paths: {
+                            '/page/{title}/html': {
+                                get: {
+                                    'x-restbase': {
+                                        service: {
+                                            uri: '/{domain}/sys/parsoid/html/{title}/latest'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 ]
             }
         }

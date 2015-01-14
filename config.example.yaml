@@ -32,6 +32,13 @@ templates:
             - mediawiki/v1/content
           # - mediawiki/v1/mobile
           # - mediawiki/v1/revision-scoring
+          modules:
+            - name: dummy-mod
+              version: 0.0.1
+              type: file
+              path: mods/dummy
+              options:
+                dummyarg: foobar
 
     x-restbase-paths: # Internal paths. These use the same config structure as
                       # regular paths, but are restricted to internal use and
@@ -44,51 +51,51 @@ templates:
         x-restbase:
           specs:
             - restbase/sys/table
-          modules: 
-            # There can be multiple modules too per stanza, as long as the
-            # exported symbols don't conflict. The operationIds from the spec
-            # will be resolved against all of the modules.
-            - name: restbase-cassandra
-              version: 1.0.0
-              type: npm
-              options: # Passed to the module constructor
-                hosts: [localhost]
-                keyspace: system
-                username: cassandra
-                password: cassandra
-                defaultConsistency: localQuorum # or 'one' for single-node testing
+#          modules:
+#            # There can be multiple modules too per stanza, as long as the
+#            # exported symbols don't conflict. The operationIds from the spec
+#            # will be resolved against all of the modules.
+#            - name: restbase-cassandra
+#              version: 1.0.0
+#              type: npm
+#              options: # Passed to the module constructor
+#                hosts: [localhost]
+#                keyspace: system
+#                username: cassandra
+#                password: cassandra
+#                defaultConsistency: localQuorum # or 'one' for single-node testing
 
       /sys/page_revisions: &wp-page-revisions
         x-restbase:
           specs:
             - mediawiki/sys/page_revisions
-          modules: 
-            - name: restbase-mod-page_revisions
-              version: 1.0.0
-              type: npm
-              options:
-                apiURL: http://{domain}/w/api.php
+#          modules:
+#            - name: restbase-mod-page_revisions
+#              version: 1.0.0
+#              type: npm
+#              options:
+#                apiURL: http://{domain}/w/api.php
 
       /sys/key_rev_value: &wp/sys/key_rev_value
         x-restbase:
           specs:
             - restbase/sys/key_rev_value
-          modules:
-            - name: restbase-mod-key_rev_value
-              version: 1.0.0
-              type: npm
+#          modules:
+#            - name: restbase-mod-key_rev_value
+#              version: 1.0.0
+#              type: npm
 
       /sys/parsoid:
         x-restbase:
           specs:
             - mediawiki/sys/parsoid
-          modules:
-            - name: restbase-mod-parsoid
-              version: 1.0.0
-              type: npm
-              options:
-                parsoidHost: http://parsoid-lb.wikimedia.org
-                apiURL: http://{domain}/w/api.php
+#          modules:
+#            - name: restbase-mod-parsoid
+#              version: 1.0.0
+#              type: npm
+#              options:
+#                parsoidHost: http://parsoid-lb.wikimedia.org
+#                apiURL: http://{domain}/w/api.php
           resources:
             # Storage owned by this module. Created / checked after setting up
             # all modules (separate traversal).
