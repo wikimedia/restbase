@@ -3,8 +3,16 @@
 var yaml = require('js-yaml');
 var http = require('http');
 var template = require('url-template');
+var fs = require('fs');
 
-function getSpec(url, k) {
+var specUrl = 'http://wikimedia.github.io/restbase/v1/swagger.yaml';
+
+function getLocalSpec() {
+    var buffer = fs.readFileSync(__dirname + '/../features/specification/swagger.yaml');
+    return yaml.safeLoad(buffer);
+}
+
+function getRemoteSpec(url, k) {
     var buffer = [];
     http.get(url, function (response) {
         response.setEncoding('utf8');
@@ -37,7 +45,7 @@ function parseXamples(spec, host) {
                         xample.request.method = method;
                         xample.request.uri = host + spec.basePath + expandedUri;
                         xamples.push({
-                            desc: method + ' ' + uri,
+                            description: method + ' ' + uri,
                             prereqs: prereqs,
                             request: xample.request,
                             response: xample.response
@@ -50,5 +58,7 @@ function parseXamples(spec, host) {
     return xamples;
 }
 
-module.exports.getSpec = getSpec;
 module.exports.parseXamples = parseXamples;
+
+// TODO: switch this to getRemoteSpec() prior to v1 release
+module.exports.get = getLocalSpec;

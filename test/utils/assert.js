@@ -2,6 +2,16 @@
 
 var assert = require('assert');
 
+function deepEqual(result, expected) {
+    try {
+        assert.deepEqual(result, expected);
+    } catch (e) {
+        console.log('Expected:\n' + JSON.stringify(expected,null,2));
+        console.log('Result:\n' + JSON.stringify(result,null,2));
+        throw e;
+    }
+}
+
 function isSuperset(parent, child) {
     var result = true;
     if (child instanceof Object) {
@@ -14,16 +24,6 @@ function isSuperset(parent, child) {
         }
     } else {
         deepEqual(parent, child); 
-    }
-}
-
-function deepEqual(result, expected) {
-    try {
-        assert.deepEqual(result, expected);
-    } catch (e) {
-        console.log('Expected:\n' + JSON.stringify(expected,null,2));
-        console.log('Result:\n' + JSON.stringify(result,null,2));
-        throw e;
     }
 }
 
@@ -51,6 +51,7 @@ function fails(promise, onRejected) {
     return promise.catch(trackFailure).then(check);
 }
 
+module.exports.ok           = assert.ok;
 module.exports.fails        = fails;
 module.exports.deepEqual    = deepEqual;
 module.exports.notDeepEqual = notDeepEqual;
