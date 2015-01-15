@@ -1,7 +1,5 @@
-[![build status](https://travis-ci.org/wikimedia/restbase.svg)](https://travis-ci.org/wikimedia/restbase)
-[![coverage status](https://coveralls.io/repos/wikimedia/restbase/badge.png)](https://coveralls.io/r/wikimedia/restbase)
+# RESTBase [![Build Status](https://travis-ci.org/wikimedia/restbase.svg?branch=master)](https://travis-ci.org/wikimedia/restbase) [![Coverage Status](https://coveralls.io/repos/wikimedia/restbase/badge.svg?branch=master)](https://coveralls.io/r/wikimedia/restbase?branch=master)
 
-# RESTBase 
 
 [REST content
 API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) and [storage service](https://www.mediawiki.org/wiki/Requests_for_comment/Storage_service) prototype.
