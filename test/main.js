@@ -16,6 +16,8 @@ require('mocha-jshint')(); // run JSHint as part of testing
 var restbase  = require('../lib/server.js');
 var dir       = require('./utils/dir');
 var logStream = require('./utils/logStream');
+var fs        = require('fs');
+var yaml      = require('js-yaml');
 
 var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/v1/en.wikipedia.test.local';
@@ -26,6 +28,7 @@ var config = {
     baseURL: baseURL,
     bucketURL: bucketURL,
     logStream: logStream(),
+    spec: yaml.safeLoad(fs.readFileSync(__dirname + '/../config.example.yaml')).spec,
 };
 
 var stopRestbase = function () {};
@@ -40,6 +43,7 @@ function startRestbase(offline) {
             level: 'trace',
             stream: config.logStream
         },
+        spec: config.spec,
         offline: offline
     }).then(function(server){
         stopRestbase =
