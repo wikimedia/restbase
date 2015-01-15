@@ -4,9 +4,9 @@
  * Key-value bucket handler
  */
 
-var RouteSwitch = require('routeswitch');
 var uuid = require('node-uuid');
-var rbUtil = require('../../rbUtil.js');
+var rbUtil = require('../lib/rbUtil');
+var URI = require('../lib/router').URI;
 
 var backend;
 var config;
@@ -81,8 +81,9 @@ KVBucket.prototype.createBucket = function(restbase, req) {
     if (!opts.revisioned) { opts.revisioned = true; } // No choice..
     var schema = this.makeSchema(opts);
     schema.table = req.params.bucket;
+    var rp = req.params;
     var storeRequest = {
-        uri: '/v1/' + req.params.domain + '/' + req.params.bucket,
+        uri: new URI([rp.domain,'sys','table',rp.bucket]),
         body: schema
     };
     return restbase.put(storeRequest);
@@ -107,11 +108,11 @@ KVBucket.prototype.getListQuery = function (options, bucket) {
 KVBucket.prototype.listBucket = function(restbase, req, options) {
     var self = this;
     // XXX: check params!
-    var params = req.params;
+    var rp = req.params;
 
-    var listQuery = this.getListQuery(options, params.bucket);
+    var listQuery = this.getListQuery(options, rp.bucket);
     return restbase.get({
-        uri: req.uri,
+        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: listQuery
     })
     .then(function(result) {
@@ -175,11 +176,11 @@ function getRevision(restbase, req, revPred) {
         });
     }
     var storeReq = {
-        uri: req.uri,
+        uri: new URI([rp.domain,'sys','table',rp.bucket]),
         body: {
             table: rp.bucket,
             attributes: {
-                key: rp.key,
+                key: rp.title,
                 tid: revPred
             }
         }
@@ -193,11 +194,12 @@ KVBucket.prototype.getLatest = function(restbase, req) {
         return getRevision(restbase, req, req.body);
     }
     var rp = req.params;
-    return restbase.get('/v1/' + rp.domain + '/' + rp.bucket + '/' + rp.format +'/' + 'latest');
+    return restbase.get(new URI([rp.domain,'sys','table',rp.bucket,'latest']));
 };
 
 KVBucket.prototype.putLatest = function(restbase, req) {
     var self = this;
+    var rp = req.params;
 
     var tid = uuid.v1();
     if (req.headers['last-modified']) {
@@ -217,7 +219,7 @@ KVBucket.prototype.putLatest = function(restbase, req) {
         }
     };
     var request = {
-        uri: req.uri,
+        uri: new URI([rp.domain,'sys','table',rp.bucket]),
         body: query
     };
 
@@ -246,8 +248,9 @@ KVBucket.prototype.putLatest = function(restbase, req) {
 };
 
 KVBucket.prototype.listRevisions = function(restbase, req) {
+    var rp = req.params;
     var storeRequest = {
-        uri: req.uri,
+        uri: new URI([rp.domain,'sys','table',rp.bucket]),
         body: {
             table: req.params.bucket,
             attributes: {
@@ -327,7 +330,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
     }
 
     var storeReq = {
-        uri: req.uri,
+        uri: new URI([rp.domain,'sys','table',rp.bucket]),
         body: {
             table: rp.bucket,
             attributes: {
@@ -362,30 +365,16 @@ KVBucket.prototype.putRevision = function(restbase, req) {
     });
 };
 
-
 module.exports = function(options) {
     var revBucket = new KVBucket(options);
-    // XXX: add docs
     return {
-        paths: {
-            '/v1/{domain}/{bucket}': {
-                get: { request_handler: revBucket.getBucketInfo.bind(revBucket) },
-                put: { request_handler: revBucket.createBucket.bind(revBucket) }
-            },
-            '/v1/{domain}/{bucket}/': {
-                get: { request_handler: revBucket.listBucket.bind(revBucket) }
-            },
-            '/v1/{domain}/{bucket}/{key}': {
-                get: { request_handler: revBucket.getLatest.bind(revBucket) },
-                put: { request_handler: revBucket.putLatest.bind(revBucket) }
-            },
-            '/v1/{domain}/{bucket}/{key}/': {
-                get: { request_handler: revBucket.listRevisions.bind(revBucket) },
-            },
-            '/v1/{domain}/{bucket}/{key}/{revision}': {
-                get: { request_handler: revBucket.getRevision.bind(revBucket) },
-                put: { request_handler: revBucket.putRevision.bind(revBucket) }
-            }
-        }
+        getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
+        createBucket: revBucket.createBucket.bind(revBucket),
+        listBucket: revBucket.listBucket.bind(revBucket),
+        getLatest: revBucket.getLatest.bind(revBucket),
+        putLatest: revBucket.putLatest.bind(revBucket),
+        listRevisions: revBucket.listRevisions.bind(revBucket),
+        getRevision: revBucket.getRevision.bind(revBucket),
+        putRevision: revBucket.putRevision.bind(revBucket)
     };
 };
