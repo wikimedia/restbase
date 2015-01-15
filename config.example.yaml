@@ -51,19 +51,20 @@ templates:
         x-restbase:
           specs:
             - restbase/sys/table
-#          modules:
-#            # There can be multiple modules too per stanza, as long as the
-#            # exported symbols don't conflict. The operationIds from the spec
-#            # will be resolved against all of the modules.
-#            - name: restbase-cassandra
-#              version: 1.0.0
-#              type: npm
-#              options: # Passed to the module constructor
-#                hosts: [localhost]
-#                keyspace: system
-#                username: cassandra
-#                password: cassandra
-#                defaultConsistency: localQuorum # or 'one' for single-node testing
+          modules:
+            # There can be multiple modules too per stanza, as long as the
+            # exported symbols don't conflict. The operationIds from the spec
+            # will be resolved against all of the modules.
+            - name: restbase-mod-table-cassandra
+              version: 1.0.0
+              type: npm
+              options: # Passed to the module constructor
+                conf:
+                  hosts: [localhost]
+                  keyspace: system
+                  username: cassandra
+                  password: cassandra
+                  defaultConsistency: localQuorum # or 'one' for single-node testing
 
       /sys/page_revisions: &wp-page-revisions
         x-restbase:

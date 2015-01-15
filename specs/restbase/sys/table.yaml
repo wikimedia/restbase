@@ -4,21 +4,21 @@ info:
   title: RESTBase table storage interface
   description: Generic table storage interface optimized for distributed backends 
 paths:
-#  /{table}:
-#    put:
-#      operationId: createTable
-#    delete:
-#      operationId: dropTable
-#
-#  /{table}/:
-#    get: &get
-#      operationId: get
-#    post: *get
-#    put:
-#      operationId: put
-#
-#  /{table}/{+rest}:
-#    get:
-#      operationId: get
-#    put:
-#      operationId: put
+  /{table}:
+    put:
+      operationId: createTable
+    delete:
+      operationId: dropTable
+
+  /{table}/:
+    get: &get
+      operationId: get
+    post: *get
+    put:
+      operationId: put
+
+  /{table}/{+rest}:
+    get:
+      operationId: get
+    put:
+      operationId: put
