@@ -1,8 +1,10 @@
-# Improving code coverage
+# Code coverage
 
 It's a rare project that maintains 100% code coverage, but in general we want to keep coverage as high as we can.  This helps maintain a semi-formal specification of our software by enumerating the various use cases, and tracks which areas of the code are used to service the use cases.
 
 This also reveals areas of the code that are not used to service the specified use cases, which we want to know about so that we can either purge the dead code, or formalize and validate the use cases implied by the uncovered code.
+
+## Improving code coverage
 
 Let's find some uncovered code and add a test for it.
 
@@ -65,3 +67,48 @@ Now we can verify that `putLatestFormat()` is now covered:
 Not only have we increased our code coverage, but we have reverse-engineered a specification for how a user can submit (and later retrieve) the latest format for some page content.
 
 We have also drawn attention to an interesting implementation detail: that in this case a PUT request results in a 201 status, which might hint that this ought to instead use a POST request.  In any case, we have a point of reference for future design discussions and refactoring efforts.
+
+## Publishing code coverage
+
+In RESTBase, we build on [Travis CI](https://travis-ci.org/wikimedia/restbase/) and report coverage to [Coveralls](https://coveralls.io/r/wikimedia/restbase).
+
+Not only does this keep us informed of the build status of each [pull request](https://github.com/wikimedia/restbase/pull/115), it lets us know via pull request comments how our changes affect the code coverage.
+
+![pr coverage status](https://raw.githubusercontent.com/wikimedia/restbase/ca8e4107d30945a10303f29b5ba2af26bf9ec8d4/doc/coverage/pr_coverage_status.png)
+
+To enable code coverage reporting, make the [following changes](https://github.com/wikimedia/restbase/pull/91/files):
+
+**package.json**
+
+*Add a couple new npm scripts:*
+
+```javascript
+"scripts": {
+  "coverage": "istanbul cover _mocha --report lcovonly -- -R spec",
+  "coveralls": "cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
+}
+```
+
+*Add istanbul, mocha-lcov-reporter, and coveralls as dev dependencies:*
+
+```javascript
+"devDependencies": {
+  "istanbul": "0.3.5",
+  "mocha-lcov-reporter": "0.0.1",
+  "coveralls": "2.11.2"
+}
+```
+
+**.travis.yml**
+
+*Tell Travis how to generate coverage info and send it off to Coveralls:*
+
+```yaml
+script: npm run-script coverage && npm run-script coveralls
+```
+
+Now when you submit a pull request, Travis builds your code and reports coverage info to Coveralls.  Coveralls comments on your pull request, and creates some nice reports on its site:
+
+![coveralls job](https://raw.githubusercontent.com/wikimedia/restbase/ca8e4107d30945a10303f29b5ba2af26bf9ec8d4/doc/coverage/coveralls_job.png)
+
+![coveralls files](https://raw.githubusercontent.com/wikimedia/restbase/ca8e4107d30945a10303f29b5ba2af26bf9ec8d4/doc/coverage/coveralls_files.png)

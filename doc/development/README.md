@@ -1,6 +1,12 @@
-# Test-driven development process
+# Software development process
 
-*Note: this document is in no way meant to be a mandate, or even a guideline; it is a collection of notes about a development process that works well for me (James) and might be handy for others too.*
+*Disclaimer: this document is in no way meant to be a mandate, or even a guideline; it's just a collection of notes about a development process that works well for me (James) and might be handy for others too.*
+
+## Summary
+
+Specification-driven development is super cool.  It focuses development efforts on clearly defining and confidently delivering the most important features to the users.
+
+This process is really just a disciplined form of test-driven development, where the tests correspond directly to user experiences.
 
 ## Goal
 
