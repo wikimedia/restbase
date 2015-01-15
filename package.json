@@ -43,6 +43,7 @@
     "preq": "~0.3.0",
     "request": "^2.44.0",
     "restbase-cassandra": "~0.3.7",
+    "restbase-mod-table-cassandra": "git+https://github.com/wikimedia/restbase-cassandra#restbase-mod-table-cassandra",
     "routeswitch": "~0.6.1",
     "swagger-router": "git+https://github.com/wikimedia/swagger-router#restbase-loader",
     "url-template": "2.0.4",
