@@ -36,7 +36,7 @@ templates:
             - name: dummy-mod
               version: 0.0.1
               type: file
-              path: mods/dummy
+              path: dummy
               options:
                 dummyarg: foobar
 
