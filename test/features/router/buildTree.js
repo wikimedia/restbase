@@ -38,14 +38,7 @@ var faultySpec = {
     paths: {
         '/{domain:en.wikipedia.org}': {
             'x-restbase': {
-                specs: [
-                    {
-                        paths: {},
-                        'x-restbase-paths': {
-                            '/notsys/foo': {}
-                        }
-                    }
-                ]
+                specs: ['some/non/existing/spec']
             }
         }
     }
@@ -53,32 +46,42 @@ var faultySpec = {
 
 var fullSpec = yaml.safeLoad(fs.readFileSync('config.example.yaml'));
 
-describe('tree building', function() {
-    it('should build a simple spec tree', function() {
-        router.loadSpec(rootSpec);
-        //console.log(JSON.stringify(router.tree, null, 2));
-        var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
-        //console.log(handler);
-        assert.equal(!!handler.value.methods.get, true);
-        assert.equal(handler.params.domain, 'en.wikipedia.org');
-        assert.equal(handler.params.title, 'Foo');
-    });
 
-    it('should fail loading a faulty spec', function() {
-        assert.throws(function() {
-            router.loadSpec(faultySpec);
-        }, Error);
-    });
+module.exports = function () {
+    describe('tree building', function() {
+        it('should build a simple spec tree', function() {
+            return router.loadSpec(rootSpec)
+            .then(function() {
+                //console.log(JSON.stringify(router.tree, null, 2));
+                var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
+                //console.log(handler);
+                assert.equal(!!handler.value.methods.get, true);
+                assert.equal(handler.params.domain, 'en.wikipedia.org');
+                assert.equal(handler.params.title, 'Foo');
+            });
+        });
 
-    it('should build the example config spec tree', function() {
-        router.loadSpec(fullSpec.spec);
-        //console.log(JSON.stringify(router.tree, null, 2));
-        var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
-        //console.log(handler);
-        assert.equal(!!handler.value.methods.get, true);
-        assert.equal(handler.params.domain, 'en.wikipedia.org');
-        assert.equal(handler.params.title, 'Foo');
-    });
-});
+        it('should fail loading a faulty spec', function() {
+            return router.loadSpec(faultySpec)
+            .then(function() {
+                throw new Error("Should throw an exception!");
+            },
+            function(e) {
+                // exception thrown as expected
+                return;
+            });
+        });
 
-module.exports = function () {};
+        it('should build the example config spec tree', function() {
+            return router.loadSpec(fullSpec.spec)
+            .then(function() {
+                //console.log(JSON.stringify(router.tree, null, 2));
+                var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
+                //console.log(handler);
+                assert.equal(!!handler.value.methods.get, true);
+                assert.equal(handler.params.domain, 'en.wikipedia.org');
+                assert.equal(handler.params.title, 'Foo');
+            });
+        });
+    });
+};
