@@ -19,7 +19,7 @@ paths:
       tags:
         - page content
       description: redirects to the latest html
-      operationid: getlatestformat
+      operationId: getlatestformat
       parameters:
         - name: domain
           in: path
@@ -184,7 +184,7 @@ paths:
       tags:
         - dummy get
       description: module load test URI
-      operationid: dummyget
+      operationId: dummyget
       parameters:
         - name: domain
           in: path
@@ -209,7 +209,7 @@ paths:
       tags:
         - dummy set
       description: module load test URI
-      operationid: dummyset
+      operationId: dummyset
       parameters:
         - name: domain
           in: path
