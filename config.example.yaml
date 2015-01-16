@@ -40,12 +40,6 @@ templates:
               options:
                 dummyarg: foobar
 
-    x-restbase-paths: # Internal paths. These use the same config structure as
-                      # regular paths, but are restricted to internal use and
-                      # don't show up in swagger.
-                      #
-                      # This stanza defines the /{domain}/sys/ hierarchy.
-
       /sys/table: &wp/sys/table # Can use this anchor to share the table
                                 # backend even if other parts differ
         x-restbase:

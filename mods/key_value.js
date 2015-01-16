@@ -377,7 +377,11 @@ module.exports = function(options) {
                     version: '1.0.0'
                 }
             },
-            resources: [] // Dynamic resource dependencies, specific to implementation
+            resources: [
+            {
+                uri: '/{domain}/sys/table'
+            }
+            ] // Dynamic resource dependencies, specific to implementation
         },
         getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
         createBucket: revBucket.createBucket.bind(revBucket),
