@@ -77,14 +77,15 @@ templates:
 #              options:
 #                apiURL: http://{domain}/w/api.php
 
-      /sys/key_rev_value: &wp/sys/key_rev_value
+      /sys/key_value: &wp/sys/key_value
         x-restbase:
           specs:
-            - restbase/sys/key_rev_value
-#          modules:
-#            - name: restbase-mod-key_rev_value
-#              version: 1.0.0
-#              type: npm
+            - restbase/sys/key_value
+          modules:
+            - name: key_value
+              version: 1.0.0
+              type: file
+
 
       /sys/parsoid:
         x-restbase:
@@ -97,15 +98,6 @@ templates:
 #              options:
 #                parsoidHost: http://parsoid-lb.wikimedia.org
 #                apiURL: http://{domain}/w/api.php
-          resources:
-            # Storage owned by this module. Created / checked after setting up
-            # all modules (separate traversal).
-            # Convention: Prefix each entry with the owning sys path to avoid
-            # conflicts.
-            - uri: /{domain}/sys/key_rev_value/parsoid.html
-            - uri: /{domain}/sys/key_rev_value/parsoid.data-parsoid
-            - uri: /{domain}/sys/key_rev_value/parsoid.data-mw
-            - uri: /{domain}/sys/key_rev_value/parsoid.wikitext
 
 #      /sys/revscore:
 #        title: Simple revscore service wrapper
@@ -147,6 +139,7 @@ spec:
 
 logging:
   name: restbase
+  level: info
   #streams:
   ## XXX: Use gelf-stream -> logstash
   #- type: gelf

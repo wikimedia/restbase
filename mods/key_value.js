@@ -368,6 +368,17 @@ KVBucket.prototype.putRevision = function(restbase, req) {
 module.exports = function(options) {
     var revBucket = new KVBucket(options);
     return {
+        module_info: {
+            spec: null, // Re-export from spec module
+            test: null, // Spec test function from spec module
+            dependencies: {
+                'table': {
+                    name: 'restbase-mod-table-cassandra',
+                    version: '1.0.0'
+                }
+            },
+            resources: [] // Dynamic resource dependencies, specific to implementation
+        },
         getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
         createBucket: revBucket.createBucket.bind(revBucket),
         listBucket: revBucket.listBucket.bind(revBucket),
