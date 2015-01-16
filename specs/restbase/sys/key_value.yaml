@@ -4,21 +4,21 @@ info:
   title: RESTBase key-value module
   description: Revisioned blob storage with HTTP interface, backed by table storage
 paths:
-#  /{bucket}:
-#    get:
-#      operationId: getBucketInfo
-#    put:
-#      operationId: createBucket
-#  /{bucket}:
-#    get:
-#      operationId: listBucket
-#  /{bucket}/{key}:
-#    get:
-#      operationId: getLatest
-#    put:
-#      operationId: putLatest
-#  /{bucket}/{key}/{revision}:
-#    get:
-#      operationId: getRevision
-#    put:
-#      operationId: putRevision
+  /{bucket}:
+    get:
+      operationId: getBucketInfo
+    put:
+      operationId: createBucket
+  /{bucket}:
+    get:
+      operationId: listBucket
+  /{bucket}/{key}:
+    get:
+      operationId: getLatest
+    put:
+      operationId: putLatest
+  /{bucket}/{key}/{revision}:
+    get:
+      operationId: getRevision
+    put:
+      operationId: putRevision
