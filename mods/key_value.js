@@ -378,9 +378,9 @@ module.exports = function(options) {
                 }
             },
             resources: [
-            {
-                uri: '/{domain}/sys/table'
-            }
+            //{
+            //    uri: '/{domain}/sys/table'
+            //}
             ] // Dynamic resource dependencies, specific to implementation
         },
         getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
