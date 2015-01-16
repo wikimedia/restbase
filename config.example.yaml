@@ -26,7 +26,7 @@ templates:
       - mediaWikiAuth:
         - user:read
     paths:
-      /v1:
+      /{api:v1}:
         x-restbase:
           specs:
             - mediawiki/v1/content
@@ -40,7 +40,13 @@ templates:
               options:
                 dummyarg: foobar
 
-      /sys/table: &wp/sys/table # Can use this anchor to share the table
+    x-restbase-paths: # Internal paths. These use the same config structure as
+                      # regular paths, but are restricted to internal use and
+                      # don't show up in swagger.
+                      #
+                      # This stanza defines the /{domain}/sys/ hierarchy.
+
+      /{api:sys}/{module:table}: &wp/sys/table # Can use this anchor to share the table
                                 # backend even if other parts differ
         x-restbase:
           specs:
@@ -60,7 +66,7 @@ templates:
                   password: cassandra
                   defaultConsistency: localQuorum # or 'one' for single-node testing
 
-      /sys/page_revisions: &wp-page-revisions
+      /{api:sys}/{module:page_revisions}: &wp-page-revisions
         x-restbase:
           specs:
             - mediawiki/sys/page_revisions
@@ -71,7 +77,7 @@ templates:
 #              options:
 #                apiURL: http://{domain}/w/api.php
 
-      /sys/key_value: &wp/sys/key_value
+      /{api:sys}/{module:key_value}: &wp/sys/key_value
         x-restbase:
           specs:
             - restbase/sys/key_value
@@ -81,7 +87,7 @@ templates:
               type: file
 
 
-      /sys/parsoid:
+      /{api:sys}/{module:parsoid}:
         x-restbase:
           specs:
             - mediawiki/sys/parsoid
@@ -93,7 +99,7 @@ templates:
 #                parsoidHost: http://parsoid-lb.wikimedia.org
 #                apiURL: http://{domain}/w/api.php
 
-#      /sys/revscore:
+#      /{api:sys}/{module:revscore}:
 #        title: Simple revscore service wrapper
 #        x-restbase:
 #          # Generic revision service interface; Expects requests of the form

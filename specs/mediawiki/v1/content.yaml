@@ -14,7 +14,7 @@ info:
 
 paths:
 
-  /page/{title}/html:
+  /{module:page}/{title}/html:
     get:
       tags:
         - page content
@@ -51,7 +51,7 @@ paths:
           # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
           uri: /{domain}/sys/parsoid/html/{title}/latest
 
-  /page/{title}/html/:
+  /{module:page}/{title}/html/:
     get:
       tags:
         - Page content
@@ -86,7 +86,7 @@ paths:
         service:
           uri: /{domain}/sys/parsoid/html/{title}/
 
-  /page/{title}/data-parsoid/{revision}:
+  /{module:page}/{title}/data-parsoid/{revision}:
     get:
       tags:
         - Page content
@@ -133,7 +133,7 @@ paths:
             cache-control: $req.headers.cache-control
               
 
-  /page/{title}/html/{revision}:
+  /{module:page}/{title}/html/{revision}:
     get:
       tags:
         - Page content
@@ -179,7 +179,7 @@ paths:
           headers:
             cache-control: $req.headers.cache-control
 
-  /dummy/get:
+  /{module:dummy}/get:
     get:
       tags:
         - dummy get
@@ -204,7 +204,7 @@ paths:
           schema:
             $ref: '#/definitions/defaulterror'
 
-  /dummy/set:
+  /{module:dummy}/set:
     get:
       tags:
         - dummy set
