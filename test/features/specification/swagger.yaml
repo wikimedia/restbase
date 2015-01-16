@@ -16,6 +16,84 @@ basePath: /v1
 schemes:
   - http
 paths:
+  /{domain}/{bucket}:
+    get:
+      tags:
+        - Page content
+      description: Returns information about the given bucket
+      operationId: getBucketInfo
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The bucket info
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-amples:
+        - request:
+            params:
+              bucket: pages
+              domain: en.wikipedia.test.local
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              domain: en.wikipedia.test.local
+              table: pages
+              type: pagecontent
+        - request:
+            params:
+              bucket: pages.html
+              domain: en.wikipedia.test.local
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              domain: en.wikipedia.test.local
+              table: pages
+              type: kv
+  /{domain}/{bucket}/:
+    get:
+      tags:
+        - Page content
+      description: Returns a list of bucket items
+      operationId: listBucket
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The bucket items
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-amples:
+        - request:
+            params:
+              bucket: pages
+              domain: en.wikipedia.test.local
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              items:
+                - .+
+        - request:
+            params:
+              bucket: pages.html
+              domain: en.wikipedia.test.local
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              items:
+                - .+
   /{domain}/pages/{title}/html/:
     get:
       tags:
