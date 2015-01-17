@@ -20,8 +20,8 @@ var fs        = require('fs');
 var yaml      = require('js-yaml');
 
 var hostPort  = 'http://localhost:7231';
-var baseURL   = hostPort + '/v1/en.wikipedia.test.local';
-var bucketURL = baseURL + '/pages';
+var baseURL   = hostPort + '/en.wikipedia.test.local/v1';
+var bucketURL = baseURL + '/page';
 
 var config = {
     hostPort: hostPort,
