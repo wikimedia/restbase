@@ -57,7 +57,7 @@ templates:
                   keyspace: system
                   username: cassandra
                   password: cassandra
-                  defaultConsistency: localQuorum # or 'one' for single-node testing
+                  defaultConsistency: one # or 'one' for single-node testing
 
       /{api:sys}/{module:page_revisions}: &wp-page-revisions
         x-restbase:

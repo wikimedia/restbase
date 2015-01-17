@@ -367,6 +367,28 @@ KVBucket.prototype.putRevision = function(restbase, req) {
 
 module.exports = function(options) {
     var revBucket = new KVBucket(options);
+    var tableSchema = {
+        // Associate this bucket with the table
+        attributes: {
+            key: 'string',
+            tid: 'timeuuid',
+            latestTid: 'timeuuid',
+            value: 'blob',
+                'content-type': 'string',
+                'content-length': 'varint',
+                    'content-sha256': 'string',
+                    // redirect
+                    'content-location': 'string',
+                        // 'deleted', 'nomove' etc?
+            tags: 'set<string>',
+        },
+        index: [
+        { attribute: 'key', type: 'hash' },
+        { attribute: 'latestTid', type: 'static' },
+        { attribute: 'tid', type: 'range', order: 'desc' }
+        ]
+    };
+
     return {
         module_info: {
             spec: null, // Re-export from spec module
@@ -377,11 +399,21 @@ module.exports = function(options) {
                     version: '1.0.0'
                 }
             },
+            // Dynamic resource dependencies, specific to implementation
             resources: [
-            //{
-            //    uri: '/{domain}/sys/table'
-            //}
-            ] // Dynamic resource dependencies, specific to implementation
+                {
+                    uri: '/{domain}/sys/table/parsoid.html',
+                    body: tableSchema
+                },
+                {
+                    uri: '/{domain}/sys/table/parsoid.data-parsoid',
+                    body: tableSchema
+                },
+                {
+                    uri: '/{domain}/sys/table/parsoid.data-mw',
+                    body: tableSchema
+                }
+            ]
         },
         getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
         createBucket: revBucket.createBucket.bind(revBucket),
