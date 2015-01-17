@@ -135,6 +135,7 @@ spec:
     /{domain:de.wikipedia.org}: *wp/default/1.0.0
     /{domain:es.wikipedia.org}: *wp/default/1.0.0
     /{domain:nl.wikipedia.org}: *wp/default/1.0.0
+    /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 
 
 logging:

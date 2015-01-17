@@ -5,13 +5,14 @@
 
 var assert = require('../utils/assert.js');
 var preq = require('preq');
+var URI = require('swagger-router').URI;
 
 module.exports = function (config) {
 
     describe('PHP action API service', function() {
         it('should accept form-based POST requests', function() {
             return preq.post({
-                uri: config.hostPort + '/v1/en.wikipedia.org/_svc/action/query',
+                uri: new URI([config.hostPort,'sys','action','query']),
                 headers: {
                     host: 'en.wikipedia.org',
                     'content-type': 'application/x-www-form-urlencoded'
