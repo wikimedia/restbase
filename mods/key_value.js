@@ -390,38 +390,38 @@ module.exports = function(options) {
     };
 
     return {
-        module_info: {
-            spec: null, // Re-export from spec module
-            test: null, // Spec test function from spec module
-            dependencies: {
-                'table': {
-                    name: 'restbase-mod-table-cassandra',
-                    version: '1.0.0'
-                }
-            },
-            // Dynamic resource dependencies, specific to implementation
-            resources: [
-                {
-                    uri: '/{domain}/sys/table/parsoid.html',
-                    body: tableSchema
-                },
-                {
-                    uri: '/{domain}/sys/table/parsoid.data-parsoid',
-                    body: tableSchema
-                },
-                {
-                    uri: '/{domain}/sys/table/parsoid.data-mw',
-                    body: tableSchema
-                }
-            ]
+        spec: null, // Re-export from spec module
+        test: null, // Spec test function from spec module
+        dependencies: {
+            'table': {
+                name: 'restbase-mod-table-cassandra',
+                version: '1.0.0'
+            }
         },
-        getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
-        createBucket: revBucket.createBucket.bind(revBucket),
-        listBucket: revBucket.listBucket.bind(revBucket),
-        getLatest: revBucket.getLatest.bind(revBucket),
-        putLatest: revBucket.putLatest.bind(revBucket),
-        listRevisions: revBucket.listRevisions.bind(revBucket),
-        getRevision: revBucket.getRevision.bind(revBucket),
-        putRevision: revBucket.putRevision.bind(revBucket)
+        // Dynamic resource dependencies, specific to implementation
+        resources: [
+            {
+                uri: '/{domain}/sys/table/parsoid.html',
+                body: tableSchema
+            },
+            {
+                uri: '/{domain}/sys/table/parsoid.data-parsoid',
+                body: tableSchema
+            },
+            {
+                uri: '/{domain}/sys/table/parsoid.data-mw',
+                body: tableSchema
+            }
+        ],
+        operations: {
+            getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
+            createBucket: revBucket.createBucket.bind(revBucket),
+            listBucket: revBucket.listBucket.bind(revBucket),
+            getLatest: revBucket.getLatest.bind(revBucket),
+            putLatest: revBucket.putLatest.bind(revBucket),
+            listRevisions: revBucket.listRevisions.bind(revBucket),
+            getRevision: revBucket.getRevision.bind(revBucket),
+            putRevision: revBucket.putRevision.bind(revBucket)
+        }
     };
 };
