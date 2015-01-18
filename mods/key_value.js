@@ -6,7 +6,7 @@
 
 var uuid = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
-var URI = require('../lib/router').URI;
+var URI = require('swagger-router').URI;
 
 var backend;
 var config;
@@ -176,11 +176,11 @@ function getRevision(restbase, req, revPred) {
         });
     }
     var storeReq = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket]),
+        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: {
             table: rp.bucket,
             attributes: {
-                key: rp.title,
+                key: rp.key,
                 tid: revPred
             }
         }
