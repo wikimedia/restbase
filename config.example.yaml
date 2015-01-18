@@ -87,14 +87,12 @@ templates:
               type: file
 
 
-      /{api:sys}/{module:parsoid}:
-        x-restbase:
-          specs:
-            - mediawiki/sys/parsoid
+#      /{api:sys}/{module:parsoid}:
+#        x-restbase:
 #          modules:
-#            - name: restbase-mod-parsoid
+#            - name: parsoid
 #              version: 1.0.0
-#              type: npm
+#              type: file
 #              options:
 #                parsoidHost: http://parsoid-lb.wikimedia.org
 #                apiURL: http://{domain}/w/api.php
