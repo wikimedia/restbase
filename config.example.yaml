@@ -80,15 +80,15 @@ templates:
               type: file
 
 
-#      /{api:sys}/{module:parsoid}:
-#        x-restbase:
-#          modules:
-#            - name: parsoid
-#              version: 1.0.0
-#              type: file
-#              options:
-#                parsoidHost: http://parsoid-lb.wikimedia.org
-#                apiURL: http://{domain}/w/api.php
+      /{api:sys}/{module:parsoid}:
+        x-restbase:
+          modules:
+            - name: parsoid
+              version: 1.0.0
+              type: file
+              options:
+                parsoidHost: http://parsoid-lb.wikimedia.org
+                apiURL: http://{domain}/w/api.php
 
 #      /{api:sys}/{module:revscore}:
 #        title: Simple revscore service wrapper

@@ -20,8 +20,10 @@ module.exports = function (options) {
     // init the module with the provided
     // options, and then:
     return {
-        dummyget: mod_get,
-        dummyset: mod_set
+        operations: {
+            dummyget: mod_get,
+            dummyset: mod_set
+        }
     };
 };
 
