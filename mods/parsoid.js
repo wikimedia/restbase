@@ -4,6 +4,7 @@
  * Simple wrapper for Parsoid
  */
 
+var URI = require('swagger-router').URI;
 var uuid   = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
 
@@ -55,7 +56,7 @@ function generateAndSave(restbase, domain, bucket, title, format, revision, tid)
     }).then(saveParsoidResult(restbase, domain, bucket, title, format, tid));
 }
 
-function getFormatRevision(format) {
+function getFormat(format) {
 
     return function (restbase, req) {
         var domain = req.params.domain;
@@ -67,7 +68,10 @@ function getFormatRevision(format) {
             var tid = uuid.v1();
             return generateAndSave(restbase, domain, bucket, title, format, revision, tid);
         } else {
-            return restbase.get(req).then(function(res) {
+            var rp = req.params;
+            req.uri = new URI([rp.domain,'sys','key_value','parsoid.' + format,title,revision]);
+            return restbase.get(req)
+            .then(function(res) {
                 var tid = (res.headers || {}).etag;
                 if (res.status === 404 && /^[0-9]+$/.test(revision)) {
                   return generateAndSave(restbase, domain, bucket, title, format, revision, tid);
@@ -79,9 +83,9 @@ function getFormatRevision(format) {
     };
 }
 
-var getWikitextRevision = getFormatRevision('wikitext');
-var getHtmlRevision = getFormatRevision('html');
-var getDataParsoidRevision = getFormatRevision('data-parsoid');
+var getWikitext = getFormat('wikitext');
+var getHtml = getFormat('html');
+var getDataParsoid = getFormat('data-parsoid');
 
 function transformRevision (restbase, req, from, to) {
 
@@ -182,9 +186,9 @@ module.exports = function (conf) {
                 var rev = req.params.rev;
                 return pagebundle(conf.parsoidHost, restbase, domain, title, rev);
             },
-            getWikitextRevision: getWikitextRevision,
-            getHtmlRevision: getHtmlRevision,
-            getDataParsoidRevision: getDataParsoidRevision,
+            getWikitext: getWikitext,
+            getHtml: getHtml,
+            getDataParsoid: getDataParsoid,
             transformHtmlToHtml: transform(conf.parsoidHost, 'html', 'html'),
             transformHtmlToWikitext: transform(conf.parsoidHost, 'html', 'wikitext'),
             transformWikitextToHtml: transform(conf.parsoidHost, 'wikitext', 'html')
