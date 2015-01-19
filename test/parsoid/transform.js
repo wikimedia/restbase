@@ -3,7 +3,8 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
-var assert = require('../../utils/assert.js');
+var server = require('../utils/server.js');
+var assert = require('../utils/assert.js');
 var preq = require('preq');
 var fs = require('fs');
 
@@ -74,52 +75,56 @@ function findSpecs() {
     return specs;
 }
 
-module.exports = function (config) {
-    function x2y(spec) {
-        function test() {
-            return preq.post({
-                uri: config.baseURL + '/transform/' + spec.from.format + '/to/' + spec.to.format,
-                headers: { 'content-type': 'application/json' },
-                body: readFile(spec.from.src)
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body, readFile(spec.to.src));
-            });
-        }
-        describe('transform api: ' + spec.name, function() {
-            it('should directly convert ' + spec.from.format + ' to ' + spec.to.format, test);
+function x2y(spec) {
+    function test() {
+        return preq.post({
+            uri: server.config.baseURL + '/transform/' + spec.from.format + '/to/' + spec.to.format,
+            headers: { 'content-type': 'application/json' },
+            body: readFile(spec.from.src)
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, readFile(spec.to.src));
         });
     }
-   
-    findSpecs().forEach(function (spec) {
-        x2y(spec);
+    describe('transform api: ' + spec.name, function() {
+        this.timeout(20000);
+        before(function () { return server.start(); });
+        it('should directly convert ' + spec.from.format + ' to ' + spec.to.format, test);
     });
+}
+   
+findSpecs().forEach(function (spec) {
+    x2y(spec);
+});
 
-    describe('storage-backed transform api', function() {
-        it('should load a specific title/revision from storage to send as the "original"', function () {
-            return preq.post({
-                uri: config.baseURL + '/transform/html/to/wikitext/Main_Page/1',
-                headers: { 'content-type': 'application/json' },
-                body: {
+describe('storage-backed transform api', function() {
+    this.timeout(20000);
+
+    before(function () { return server.start(); });
+
+    it('should load a specific title/revision from storage to send as the "original"', function () {
+        return preq.post({
+            uri: server.config.baseURL + '/transform/html/to/wikitext/Main_Page/1',
+            headers: { 'content-type': 'application/json' },
+            body: {
+                headers: {
+                  'content-type': 'text/html;profile=mediawiki.org/specs/html/1.0.0'
+                },
+                body: '<html>The modified HTML</html>'
+            }
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, {
+                wikitext: {
                     headers: {
-                      'content-type': 'text/html;profile=mediawiki.org/specs/html/1.0.0'
+                        'content-type': 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0'
                     },
-                    body: '<html>The modified HTML</html>'
+                    body: 'The modified HTML'
                 }
-            })
-            .then(function (res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body, {
-                    wikitext: {
-                        headers: {
-                            'content-type': 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0'
-                        },
-                        body: 'The modified HTML'
-                    }
-                });
             });
         });
     });
 
-};
+});
