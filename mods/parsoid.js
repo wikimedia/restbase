@@ -13,92 +13,127 @@ var contentTypes = {
     'data-parsoid': 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
 };
 
-function pagebundle(parsoidHost, restbase, domain, title, revision) {
-    var uri = parsoidHost + '/v2/' + domain + '/pagebundle/' + title + '/' + revision;
+
+function ParsoidService(options) {
+    options = options || {};
+    this.parsoidHost = options.parsoidHost
+        || 'http://parsoid-lb.eqiad.wikimedia.org';
+}
+
+// Short alias
+var PSP = ParsoidService.prototype;
+
+PSP.getBucketURI = function(rp, format) {
+    return new URI([rp.domain,'sys','key_value','parsoid.' + format,rp.title,rp.revision]);
+};
+
+PSP.pagebundle = function(restbase, req) {
+    var rp = req.params;
+    var uri = this.parsoidHost + '/v2/' + rp.domain + '/pagebundle/'
+        + encodeURIComponent(rp.title) + '/' + rp.revision;
+    console.log(uri);
     return restbase.get({ uri: uri });
-}
+};
 
-function saveParsoidResult(restbase, domain, bucket, title, format, tid) {
-    return function (parsoidResp) {
-        // handle the response from Parsoid
-        if (parsoidResp.status === 200) {
-            parsoidResp.headers.etag = tid;
-            Promise.all([
-                restbase.put({
-                    uri: '/v1/' + domain + '/' + bucket + '.html/' + title + '/' + tid,
-                    headers: rbUtil.extend({}, parsoidResp.headers, {'content-type': contentTypes.html}),
-                    body: parsoidResp.body.html
+PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
+    var rp = req.params;
+    // handle the response from Parsoid
+    if (parsoidResp.status === 200) {
+        parsoidResp.headers.etag = tid;
+        Promise.all([
+            restbase.put({
+                uri: new URI([rp.domain,'sys','key_value','parsoid.html',rp.title,tid]),
+                headers: rbUtil.extend({}, parsoidResp.headers, {
+                    'content-type': contentTypes.html
                 }),
-                restbase.put({
-                    uri: '/v1/' + domain + '/' + bucket + '.data-parsoid/' + title + '/' + tid,
-                    headers: rbUtil.extend({}, parsoidResp.headers, {'content-type': contentTypes['data-parsoid'] }),
-                    body: parsoidResp.body['data-parsoid']
-                })
-            ]);
-        }
-        // And return the response to the client
-        var resp = {
-            'status': parsoidResp.status,
-            headers: rbUtil.extend({}, parsoidResp.headers),
-            body: parsoidResp.body[format]
-        };
-        // XXX: Fix Parsoid's content-type, so that we don't need to
-        // override this here!
-        resp.headers['content-type'] = contentTypes[format];
-        return resp;
+                body: parsoidResp.body.html
+            }),
+            restbase.put({
+                uri: new URI([rp.domain,'sys','key_value','parsoid.data-parsoid',rp.title,tid]),
+                headers: rbUtil.extend({}, parsoidResp.headers, {
+                    'content-type': contentTypes['data-parsoid']
+                }),
+                body: parsoidResp.body['data-parsoid']
+            })
+        ]);
+    }
+    // And return the response to the client
+    var resp = {
+        'status': parsoidResp.status,
+        headers: rbUtil.extend({}, parsoidResp.headers),
+        body: parsoidResp.body[format]
     };
-}
+    // XXX: Fix Parsoid's content-type, so that we don't need to
+    // override this here!
+    resp.headers['content-type'] = contentTypes[format];
+    return resp;
+};
 
-function generateAndSave(restbase, domain, bucket, title, format, revision, tid) {
+PSP.generateAndSave = function(restbase, req, format, tid) {
+    var self = this;
     // Try to generate HTML on the fly by calling Parsoid
+    var rp = req.params;
     return restbase.get({
-        uri: '/v1/' + domain + '/_svc/parsoid/' + title + '/' + revision
-    }).then(saveParsoidResult(restbase, domain, bucket, title, format, tid));
-}
+        uri: new URI([rp.domain,'sys','parsoid','pagebundle',rp.title,rp.revision])
+    }).then(function(parsoidResp) {
+        return self.saveParsoidResult(restbase, req, format, tid, parsoidResp);
+    });
+};
 
-function getFormat(format) {
+PSP.getRevision = function(restbase, req) {
+    var rp = req.params;
+    if (/^(?:[0-9]+|latest)$/.test(rp.revision)) {
+        // Resolve to a tid
+        return restbase.get({
+            uri: new URI([rp.domain,'sys','page_revisions','page',rp.title,rp.revision])
+        })
+        .then(function(res) {
+            // FIXME: use tid range!
+            return res.body.items[0].tid;
+        });
+    } else {
+        throw new Error("Invalid revision: " + rp.revision);
+    }
+};
+
+PSP.getFormat = function (format) {
+    var self = this;
 
     return function (restbase, req) {
-        var domain = req.params.domain;
-        var bucket = 'pages';
-        var title = req.params.title;
-        var revision = req.params.revision;
-
-        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
-            var tid = uuid.v1();
-            return generateAndSave(restbase, domain, bucket, title, format, revision, tid);
-        } else {
-            var rp = req.params;
-            req.uri = new URI([rp.domain,'sys','key_value','parsoid.' + format,title,revision]);
-            return restbase.get(req)
-            .then(function(res) {
-                var tid = (res.headers || {}).etag;
-                if (res.status === 404 && /^[0-9]+$/.test(revision)) {
-                  return generateAndSave(restbase, domain, bucket, title, format, revision, tid);
-                } else {
-                  return res;
-                }
-            });
-        }
+        var rp = req.params;
+        return self.getRevision(restbase, req)
+        .then(function(revision) {
+            rp.revision = revision + '';
+            if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+                var tid = uuid.v1();
+                return self.generateAndSave(restbase, req, format, tid);
+            } else {
+                req.uri = self.getBucketURI(rp, format);
+                return restbase.get(req)
+                .catch(function(res) {
+                    if (res.status === 404 && /^[0-9]+$/.test(rp.revision)) {
+                        var tid = (res.headers || {}).etag;
+                        return self.generateAndSave(restbase, req, format, tid);
+                    } else {
+                        // re-throw
+                        throw(res);
+                    }
+                });
+            }
+        });
     };
-}
+};
 
-var getWikitext = getFormat('wikitext');
-var getHtml = getFormat('html');
-var getDataParsoid = getFormat('data-parsoid');
-
-function transformRevision (restbase, req, from, to) {
-
-    var domain = req.params.domain;
-    var title    = req.params.title;
-    var rev    = req.params.revision;
+PSP.transformRevision = function (restbase, req, from, to) {
+    var self = this;
+    var rp = req.params;
 
     var fromStorage = {
-        revid: rev
+        revid: rp.revision
     };
 
     function get(format) {
-        return restbase.get({ uri: '/v1/' + domain + '/pages/' + title + '/' + format + '/' + rev })
+        return restbase.get({ uri: self.getBucketURI(rp, format) })
         .then(function (res) {
             if (res.body &&
                 res.body.headers && res.body.headers['content-type'] &&
@@ -120,18 +155,21 @@ function transformRevision (restbase, req, from, to) {
         };
         body2[from] = req.body;
         return restbase.post({
-            uri: '/v1/' + domain + '/transform/' + from + '/to/' + to,
+            uri: new URI([rp.domain,'sys','parsoid','transform',from,'to',to]),
             headers: { 'content-type': 'application/json' },
             body: body2
         });
     });
 
-}
+};
 
-function transform(parsoidHost, from, to) {
-    return function (restbase, req, revision) {
-        if (req.params.revision) {
-            return transformRevision(restbase, req, from, to);
+PSP.makeTransform = function (from, to) {
+    var self = this;
+
+    return function (restbase, req) {
+        var rp = req.params;
+        if (rp.revision) {
+            return self.transformRevision(restbase, req, from, to);
         } else {
             // Parsoid currently spells 'wikitext' as 'wt'
             var parsoidTo = (to === 'wikitext') ? 'wt' : to;
@@ -140,23 +178,22 @@ function transform(parsoidHost, from, to) {
             var parsoidExtra = (from === 'html') ? '/_' : '';
 
             return restbase.post({
-                uri: parsoidHost + '/v2/' + req.params.domain + '/' + parsoidTo + parsoidExtra,
+                uri: self.parsoidHost + '/v2/' + rp.domain + '/' + parsoidTo + parsoidExtra,
                 headers: { 'content-type': 'application/json' },
                 body: req.body
             });
         }
     };
-}
+};
 
 
-module.exports = function (conf) {
-    if (!conf.parsoidHost) {
-        conf.parsoidHost = 'http://parsoid-lb.eqiad.wikimedia.org';
-    }
+module.exports = function (options) {
+    var ps = new ParsoidService(options);
+
     return {
         spec: {
             paths: {
-                '/pagebundle/{title}/{/revision}': {
+                '/pagebundle/{title}{/revision}': {
                     get: { operationId: 'getPageBundle' }
                 },
                 '/wikitext/{title}{/revision}': {
@@ -181,17 +218,15 @@ module.exports = function (conf) {
         },
         operations: {
             getPageBundle: function(restbase, req) {
-                var domain = req.params.domain;
-                var title = req.params.title;
-                var rev = req.params.rev;
-                return pagebundle(conf.parsoidHost, restbase, domain, title, rev);
+                var rp = req.params;
+                return ps.pagebundle(restbase, req);
             },
-            getWikitext: getWikitext,
-            getHtml: getHtml,
-            getDataParsoid: getDataParsoid,
-            transformHtmlToHtml: transform(conf.parsoidHost, 'html', 'html'),
-            transformHtmlToWikitext: transform(conf.parsoidHost, 'html', 'wikitext'),
-            transformWikitextToHtml: transform(conf.parsoidHost, 'wikitext', 'html')
+            getWikitext: ps.getFormat('wikitext'),
+            getHtml: ps.getFormat('html'),
+            getDataParsoid: ps.getFormat('data-parsoid'),
+            transformHtmlToHtml: ps.makeTransform('html', 'html'),
+            transformHtmlToWikitext: ps.makeTransform('html', 'wikitext'),
+            transformWikitextToHtml: ps.makeTransform('wikitext', 'html')
         }
     };
 };

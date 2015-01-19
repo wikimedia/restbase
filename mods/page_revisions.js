@@ -98,17 +98,15 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             format: 'json',
             action: 'query',
             prop: 'revisions',
-            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment',
-            //titles: rp.key, // for 'latest' revision
-            revids: rp.revision
+            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment'
         }
     };
-    if (/^0-9+$/.test(rp.revision)) {
-        apiReq.revids = rp.revision;
+    if (/^[0-9]+$/.test(rp.revision)) {
+        apiReq.body.revids = rp.revision;
     } else {
-        apiReq.titles = rp.title;
+        apiReq.body.titles = rp.title;
     }
-    return restbase.post(apiReq)
+    return restbase.put(apiReq)
     .then(function(apiRes) {
         var apiRev = apiRes.body.items[0].revisions[0];
         var tid = rbUtil.tidFromDate(apiRev.timestamp);
@@ -118,19 +116,18 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                 table: self.tableName,
                 attributes: {
                     title: rp.title,
-                    rev: parseInt(rp.revision),
+                    rev: parseInt(apiRev.revid),
                     tid: tid,
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
                     comment: apiRev.comment
                 }
             }
+        })
+        .then(function() {
+            rp.revision = apiRev.revid + '';
+            return self.getTitleRevision(restbase, req);
         });
-    })
-    .then(function(res) {
-        // XXX: Could directly return the response here & avoid one DB
-        // query
-        return self.getTitleRevision(restbase, req);
     });
 };
 
@@ -142,27 +139,33 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     var revisionRequest;
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
-        var revTable = rp.bucket + '.rev';
         revisionRequest = restbase.get({
             uri: this.tableURI(rp.domain),
             body: {
                 table: this.tableName,
-                index: 'rev',
                 attributes: {
-                    title: rp.key,
+                    title: rp.title,
                     rev: parseInt(rp.revision)
                 },
                 limit: 1
             }
         })
-        .catch(function() {
+        .catch(function(e) {
+            if (e.status !== 404) {
+                throw e;
+            }
             return self.fetchAndStoreMWRevision(restbase, req);
         });
     } else if (rp.revision === 'latest') {
-        revisionRequest = this.fetchAndStoreMWRevision(restbase, req);
+        revisionRequest = self.fetchAndStoreMWRevision(restbase, req);
+    } else {
+        throw new Error("Invalid revision: " + rp.revision);
     }
     return revisionRequest
     .then(function(res) {
+        if (!res.headers) {
+            res.headers = {};
+        }
         res.headers.etag = res.body.items[0].tid;
         return res;
     });
