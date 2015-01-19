@@ -67,8 +67,14 @@ templates:
             version: 1.0.0
             type: file
             options:
-              parsoidHost: http://parsoid-lb.wikimedia.org
-              apiURL: http://{domain}/w/api.php
+              parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+
+      /{api:sys}/{module:action}:
+        x-modules:
+          - name: action
+            type: file
+            options:
+              apiURI: http://{domain}/w/api.php
 
 #      /{api:sys}/{module:revscore}:
 #        title: Simple revscore service wrapper
