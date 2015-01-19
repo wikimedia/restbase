@@ -18,12 +18,12 @@ paths:
     get:
       tags:
         - page content
-      description: redirects to the latest html
-      operationId: getlatestformat
+      description: Redirects to the latest html
+      operationId: getLatestFormat
       parameters:
         - name: domain
           in: path
-          description: the domain under which the data resides
+          description: The domain under which the data resides
           type: string
           required: true
           default: en.wikipedia.org
@@ -43,13 +43,12 @@ paths:
           description: unexpected error
           schema:
             $ref: '#/definitions/defaulterror'
-      x-restbase:
-        service:
-          # Directly return the latest HTML. Alternatively, we could also try
-          # relative redirects. A relative location header of 'foo/bar' seems to
-          # work in current Chrome and Firefox.
-          # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
-          uri: /{domain}/sys/parsoid/html/{title}/latest
+      x-backend-request:
+        # Directly return the latest HTML. Alternatively, we could also try
+        # relative redirects. A relative location header of 'foo/bar' seems to
+        # work in current Chrome and Firefox.
+        # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
+        uri: /{domain}/sys/parsoid/html/{title}/latest
 
   /{module:page}/{title}/html/:
     get:
@@ -82,9 +81,8 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/defaultError'
-      x-restbase:
-        service:
-          uri: /{domain}/sys/parsoid/html/{title}/
+      x-backend-request:
+        uri: /{domain}/sys/parsoid/html/{title}/
 
   /{module:page}/{title}/data-parsoid/{revision}:
     get:
@@ -126,11 +124,10 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/defaultError'
-      x-restbase:
-        service:
-          uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}
-          headers:
-            cache-control: $req.headers.cache-control
+      x-backend-request:
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}
+        headers:
+          cache-control: $req.headers.cache-control
               
 
   /{module:page}/{title}/html/{revision}:
@@ -173,62 +170,10 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/defaultError'
-      x-restbase:
-        service:
-          uri: /{domain}/sys/parsoid/html/{title}/{revision}
-          headers:
-            cache-control: $req.headers.cache-control
-
-  /{module:dummy}/get:
-    get:
-      tags:
-        - dummy get
-      description: module load test URI
-      operationId: dummyget
-      parameters:
-        - name: domain
-          in: path
-          description: the domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
-      responses:
-        '200':
-          description: module resolved successfully
-        '404':
-          description: no module loaded
-          schema:
-            $ref: '#/definitions/notfound'
-        default:
-          description: unexpected error
-          schema:
-            $ref: '#/definitions/defaulterror'
-
-  /{module:dummy}/set:
-    get:
-      tags:
-        - dummy set
-      description: module load test URI
-      operationId: dummyset
-      parameters:
-        - name: domain
-          in: path
-          description: the domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
-      responses:
-        '201':
-          description: module resolved successfully
-        '404':
-          description: no module loaded
-          schema:
-            $ref: '#/definitions/notfound'
-        default:
-          description: unexpected error
-          schema:
-            $ref: '#/definitions/defaulterror'
-
+      x-backend-request:
+        uri: /{domain}/sys/parsoid/html/{title}/{revision}
+        headers:
+          cache-control: $req.headers.cache-control
 
 definitions:
   defaultError:

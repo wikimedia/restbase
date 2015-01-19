@@ -8,6 +8,11 @@ var uuid = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
 var URI = require('swagger-router').URI;
 
+// TODO: move to separate spec package
+var yaml = require('js-yaml');
+var fs = require('fs');
+var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_value.yaml'));
+
 var backend;
 var config;
 
@@ -390,7 +395,7 @@ module.exports = function(options) {
     };
 
     return {
-        spec: null, // Re-export from spec module
+        spec: spec, // Re-export from spec module
         test: null, // Spec test function from spec module
         dependencies: {
             'table': {
