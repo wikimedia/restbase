@@ -48,13 +48,11 @@ templates:
                 password: cassandra
                 defaultConsistency: one # or 'one' for single-node testing
 
-#      /{api:sys}/{module:page_revisions}: &wp-page-revisions
-#        x-modules:
-#            - name: restbase-mod-page_revisions
-#              version: 1.0.0
-#              type: npm
-#              options:
-#                apiURL: http://{domain}/w/api.php
+      /{api:sys}/{module:page_revisions}: &wp-page-revisions
+        x-modules:
+            - name: page_revisions
+              version: 1.0.0
+              type: file
 
       /{api:sys}/{module:key_value}: &wp/sys/key_value
         x-modules:
