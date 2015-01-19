@@ -128,10 +128,24 @@ blobs, and around 5GBit for large (3mb) blobs.
 
 ### Testing
 
-Make sure Cassandra is running locally, then fire up the test with npm:
+To run all the tests from a clean slate, first make sure Cassandra is running locally, then fire up the tests with npm:
 
 ```
 npm test
+```
+
+To run tests from a single file, e.g. *test/parsoid/ondemand.js*, run mocha with the file as an argument:
+
+```
+mocha test/parsoid/ondemand.js
+```
+
+Note that this might require some setup (e.g. creating the necessary domain and buckets), which is currently done by *test/buckets.js*.
+
+This also works for a directory, e.g. *test/parsoid/*:
+
+```
+mocha test/parsoid
 ```
 
 ### Coverage

@@ -8,7 +8,7 @@ var fs = require('fs');
 var specUrl = 'http://wikimedia.github.io/restbase/v1/swagger.yaml';
 
 function getLocalSpec() {
-    var buffer = fs.readFileSync(__dirname + '/../features/specification/swagger.yaml');
+    var buffer = fs.readFileSync(__dirname + '/../specification/swagger.yaml');
     return yaml.safeLoad(buffer);
 }
 
