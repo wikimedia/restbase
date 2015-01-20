@@ -178,20 +178,17 @@ paths:
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:
       x-backend-request:
-        #uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
-        uri: /{domain}/sys/parsoid/transform/html/to/wikitext
+        uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
     post:
       x-backend-request:
-        #uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
-        uri: /{domain}/sys/parsoid/transform/wikitext/to/html
+        uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
 
   /{module:transform}/html/to/html{/title}{/revision}:
     post:
       x-backend-request:
-        # uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
-        uri: /{domain}/sys/parsoid/transform/html/to/html
+        uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 
 definitions:
   defaultError:
