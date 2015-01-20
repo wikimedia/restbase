@@ -9,7 +9,7 @@ paths:
       operationId: getBucketInfo
     put:
       operationId: createBucket
-  /{bucket}:
+  /{bucket}/:
     get:
       operationId: listBucket
   /{bucket}/{key}:
