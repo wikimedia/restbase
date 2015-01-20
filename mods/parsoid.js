@@ -235,6 +235,12 @@ module.exports = function (options) {
                 }
             },
             {
+                uri: '/{domain}/sys/key_value/parsoid.wikitext',
+                body: {
+                    valueType: 'blob',
+                }
+            },
+            {
                 uri: '/{domain}/sys/key_value/parsoid.data-parsoid',
                 body: {
                     valueType: 'json',
