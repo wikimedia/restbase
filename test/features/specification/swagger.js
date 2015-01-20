@@ -70,7 +70,14 @@ module.exports = function (config) {
         var xamplesRun = 0;
         xamples.forEach(function (xample) {
             it(xample.description, function() {
-                return preq[xample.request.method](xample.request)
+                return preq.options({ uri: xample.request.uri })
+                .then(function (res) {
+                  assert.deepEqual(res.status, 200);
+                  assert.deepEqual(res.headers['access-control-allow-origin'], '*');
+                  assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
+                  assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type');
+                  return preq[xample.request.method](xample.request);
+                })
                 .then(function (res) {
                     assert.isSuperset(res, xample.response);
                     xamplesRun = xamplesRun + 1;

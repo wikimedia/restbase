@@ -9,16 +9,6 @@ var preq = require('preq');
 module.exports = function (config) {
 
     describe('item requests', function() {
-        it('should respond to OPTIONS request with CORS headers', function() {
-            this.timeout(20000);
-            return preq.options({ uri: config.bucketURL + '/Foobar/html/624484477' })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['access-control-allow-origin'], '*');
-                assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
-                assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type');
-            });
-        });
         it('should transparently create a new HTML revision with id 624484477', function() {
             this.timeout(20000);
             return preq.get({
