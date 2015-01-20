@@ -124,6 +124,8 @@ PSP.getFormat = function (format) {
             if (req.headers && /no-cache/.test(req.headers['cache-control'])
                     && rp.revision)
             {
+                // FIXME: Only allow this for the latest revision!
+                tid = uuid.v1();
                 return self.generateAndSave(restbase, req, format, tid);
             } else {
                 req.uri = self.getBucketURI(rp, format, tid);
