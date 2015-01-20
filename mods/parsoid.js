@@ -89,6 +89,7 @@ PSP.generateAndSave = function(restbase, req, format, tid) {
     });
 };
 
+// Get an object with rev and tid properties for the revision
 PSP.getRevisionInfo = function(restbase, req) {
     var rp = req.params;
     if (/^(?:[0-9]+|latest)$/.test(rp.revision)) {
@@ -100,6 +101,11 @@ PSP.getRevisionInfo = function(restbase, req) {
             // FIXME: use tid range!
             var revInfo = res.body.items[0];
             return revInfo;
+        });
+    } else if (rbUtil.isTimeUUID(rp.revision)) {
+        return Promise.resolve({
+            tid: rp.revision,
+            rev: null
         });
     } else {
         throw new Error("Invalid revision: " + rp.revision);
@@ -115,7 +121,9 @@ PSP.getFormat = function (format) {
         .then(function(revInfo) {
             rp.revision = revInfo.rev + '';
             var tid = revInfo.tid;
-            if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+            if (req.headers && /no-cache/.test(req.headers['cache-control'])
+                    && rp.revision)
+            {
                 return self.generateAndSave(restbase, req, format, tid);
             } else {
                 req.uri = self.getBucketURI(rp, format, tid);
