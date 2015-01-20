@@ -57,15 +57,15 @@ module.exports = function (config) {
             });
         });
 
-        it('should return a new wikitext revision using proxy handler with id 624165266', function() {
-            this.timeout(20000);
-            return preq.get({
-                uri: config.baseURL + '/test/Foobar/wikitext/624165266'
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
+        //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
+        //    this.timeout(20000);
+        //    return preq.get({
+        //        uri: config.baseURL + '/test/Foobar/wikitext/624165266'
+        //    })
+        //    .then(function(res) {
+        //        assert.deepEqual(res.status, 200);
+        //    });
+        //});
 
     });
 
