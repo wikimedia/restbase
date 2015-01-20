@@ -106,8 +106,19 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
     } else {
         apiReq.body.titles = rp.title;
     }
-    return restbase.put(apiReq)
+    return restbase.post(apiReq)
     .then(function(apiRes) {
+        var items = apiRes.body.items;
+        if (!items.length || !items[0].revisions) {
+            throw new rbUtil.HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page or revision not found.',
+                    apiResponse: apiRes
+                }
+            });
+        }
         var apiRev = apiRes.body.items[0].revisions[0];
         var tid = rbUtil.tidFromDate(apiRev.timestamp);
         return restbase.put({ // Save / update the revision entry
