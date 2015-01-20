@@ -175,6 +175,24 @@ paths:
         headers:
           cache-control: $req.headers.cache-control
 
+  /{module:transform}/html/to/wikitext{/title}{/revision}:
+    post:
+      x-backend-request:
+        #uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+        uri: /{domain}/sys/parsoid/transform/html/to/wikitext
+
+  /{module:transform}/wikitext/to/html{/title}{/revision}:
+    post:
+      x-backend-request:
+        #uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+        uri: /{domain}/sys/parsoid/transform/wikitext/to/html
+
+  /{module:transform}/html/to/html{/title}{/revision}:
+    post:
+      x-backend-request:
+        # uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+        uri: /{domain}/sys/parsoid/transform/html/to/html
+
 definitions:
   defaultError:
     required:
