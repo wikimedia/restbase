@@ -2,9 +2,6 @@
 
 port: 7231
 
-# System domain (used to store restbase metadata)
-sysdomain: restbase.local
-
 templates:
 
   wmf-content-1.0.0: &wp/content/1.0.0
