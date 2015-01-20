@@ -69,7 +69,7 @@ function findSpecs() {
                 to: { format: specDir.toFormat, src: response }
             });
         }
-       
+
     });
     return specs;
 }
@@ -91,7 +91,7 @@ module.exports = function (config) {
             it('should directly convert ' + spec.from.format + ' to ' + spec.to.format, test);
         });
     }
-   
+
     findSpecs().forEach(function (spec) {
         x2y(spec);
     });
