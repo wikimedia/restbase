@@ -8,6 +8,11 @@ var URI = require('swagger-router').URI;
 var uuid   = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
 
+// TODO: move tests & spec to separate npm module!
+var yaml = require('js-yaml');
+var fs = require('fs');
+var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/parsoid.yaml'));
+
 var contentTypes = {
     html: 'text/html; charset=UTF-8',
     'data-parsoid': 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
@@ -198,31 +203,7 @@ module.exports = function (options) {
     var ps = new ParsoidService(options);
 
     return {
-        spec: {
-            paths: {
-                '/pagebundle/{title}{/revision}': {
-                    get: { operationId: 'getPageBundle' }
-                },
-                '/wikitext/{title}{/revision}': {
-                    get: { operationId: 'getWikitext' }
-                },
-                '/html/{title}{/revision}': {
-                    get: { operationId: 'getHtml' }
-                },
-                '/data-parsoid/{title}{/revision}': {
-                    get: { operationId: 'getDataParsoid' }
-                },
-                '/transform/html/to/html{/title}{/revision}': {
-                    post: { operationId: 'transformHtmlToHtml' }
-                },
-                '/transform/html/to/wikitext{/title}{/revision}': {
-                    post: { operationId: 'transformHtmlToWikitext' }
-                },
-                '/transform/wikitext/to/html{/title}{/revision}': {
-                    post: { operationId: 'transformWikitextToHtml' }
-                }
-            }
-        },
+        spec: spec,
         operations: {
             getPageBundle: function(restbase, req) {
                 var rp = req.params;
