@@ -27,103 +27,74 @@ templates:
         - user:read
     paths:
       /{api:v1}:
-        x-restbase:
-          specs:
-            - mediawiki/v1/content
-          # - mediawiki/v1/mobile
-          # - mediawiki/v1/revision-scoring
-          modules:
-            - name: dummy-mod
-              version: 0.0.1
-              type: file
-              path: dummy
-              options:
-                dummyarg: foobar
-
-    x-restbase-paths: # Internal paths. These use the same config structure as
-                      # regular paths, but are restricted to internal use and
-                      # don't show up in swagger.
-                      #
-                      # This stanza defines the /{domain}/sys/ hierarchy.
+        x-subspecs:
+          - mediawiki/v1/content
+        # - mediawiki/v1/mobile
+        # - mediawiki/v1/revision-scoring
 
       /{api:sys}/{module:table}: &wp/sys/table # Can use this anchor to share the table
-                                # backend even if other parts differ
-        x-restbase:
-          specs:
-            - restbase/sys/table
-          modules:
-            # There can be multiple modules too per stanza, as long as the
-            # exported symbols don't conflict. The operationIds from the spec
-            # will be resolved against all of the modules.
-            - name: restbase-mod-table-cassandra
-              version: 1.0.0
-              type: npm
-              options: # Passed to the module constructor
-                conf:
-                  hosts: [localhost]
-                  keyspace: system
-                  username: cassandra
-                  password: cassandra
-                  defaultConsistency: localQuorum # or 'one' for single-node testing
+        x-modules:
+          # There can be multiple modules too per stanza, as long as the
+          # exported symbols don't conflict. The operationIds from the spec
+          # will be resolved against all of the modules.
+          - name: restbase-mod-table-cassandra
+            version: 1.0.0
+            type: npm
+            options: # Passed to the module constructor
+              conf:
+                hosts: [localhost]
+                keyspace: system
+                username: cassandra
+                password: cassandra
+                defaultConsistency: one # or 'one' for single-node testing
 
       /{api:sys}/{module:page_revisions}: &wp-page-revisions
-        x-restbase:
-          specs:
-            - mediawiki/sys/page_revisions
-#          modules:
-#            - name: restbase-mod-page_revisions
-#              version: 1.0.0
-#              type: npm
-#              options:
-#                apiURL: http://{domain}/w/api.php
-
-      /{api:sys}/{module:key_value}: &wp/sys/key_value
-        x-restbase:
-          specs:
-            - restbase/sys/key_value
-          modules:
-            - name: key_value
+        x-modules:
+            - name: page_revisions
               version: 1.0.0
               type: file
+
+      /{api:sys}/{module:key_value}: &wp/sys/key_value
+        x-modules:
+          - name: key_value
+            version: 1.0.0
+            type: file
 
 
       /{api:sys}/{module:parsoid}:
-        x-restbase:
-          specs:
-            - mediawiki/sys/parsoid
-#          modules:
-#            - name: restbase-mod-parsoid
-#              version: 1.0.0
-#              type: npm
-#              options:
-#                parsoidHost: http://parsoid-lb.wikimedia.org
-#                apiURL: http://{domain}/w/api.php
+        x-modules:
+          - name: parsoid
+            version: 1.0.0
+            type: file
+            options:
+              parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+
+      /{api:sys}/{module:action}:
+        x-modules:
+          - name: action
+            type: file
+            options:
+              apiURI: http://{domain}/w/api.php
 
 #      /{api:sys}/{module:revscore}:
 #        title: Simple revscore service wrapper
-#        x-restbase:
+#        x-modules:
 #          # Generic revision service interface; Expects requests of the form
 #          # /{title}/{revision}.
 #          # Specific interface documentation (content types etc) at public
 #          # entry point, although we might also want to enforce them
 #          # internally.
-#          specs:
-#            - restbase/sys/key_rev_service
-#          modules:
-#            - name: restbase-mod-service
-#              version: 1.0.0 # simple service module, to be shared
-#              options:
-#                storage:
-#                  uri: /{domain}/sys/key_rev_value/revscore.scores/{title}/{revision}
-#                service: 
-#                  uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
-#          resources:
-#            - uri: /{domain}/sys/key_rev_value/revscore.scores
+#          - name: restbase-mod-service
+#            version: 1.0.0 # simple service module, to be shared
+#            options:
+#              storage:
+#                uri: /{domain}/sys/key_rev_value/revscore.scores/{title}/{revision}
+#              service: 
+#                uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
 
   wp-default-1.0.0: &wp/default/1.0.0
-    x-restbase: 
-      specs:
-        - *wp/content/1.0.0
+    x-subspecs:
+      - *wp/content/1.0.0
                   
 
 
@@ -132,9 +103,10 @@ spec:
   # Some more general RESTBase info
   paths:
     /{domain:en.wikipedia.org}: *wp/default/1.0.0
-    /{domain:de.wikipedia.org}: *wp/default/1.0.0
-    /{domain:es.wikipedia.org}: *wp/default/1.0.0
-    /{domain:nl.wikipedia.org}: *wp/default/1.0.0
+#    /{domain:de.wikipedia.org}: *wp/default/1.0.0
+#    /{domain:es.wikipedia.org}: *wp/default/1.0.0
+#    /{domain:nl.wikipedia.org}: *wp/default/1.0.0
+    /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 
 
 logging:

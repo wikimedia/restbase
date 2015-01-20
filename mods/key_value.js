@@ -6,7 +6,12 @@
 
 var uuid = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
-var URI = require('../lib/router').URI;
+var URI = require('swagger-router').URI;
+
+// TODO: move to separate spec package
+var yaml = require('js-yaml');
+var fs = require('fs');
+var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_value.yaml'));
 
 var backend;
 var config;
@@ -54,10 +59,7 @@ KVBucket.prototype.makeSchema = function (opts) {
 };
 
 KVBucket.prototype.createBucket = function(restbase, req) {
-    if (!req.body
-            || req.body.constructor !== Object
-            || req.body.type !== 'kv' )
-    {
+    if (!req.body || req.body.constructor !== Object ) {
         // XXX: validate with JSON schema
         var exampleBody = {
             type: 'kv',
@@ -76,6 +78,7 @@ KVBucket.prototype.createBucket = function(restbase, req) {
         });
     }
     var opts = req.body;
+    if (!opts.type) { opts.type = 'kv'; }
     if (!opts.keyType) { opts.keyType = 'string'; }
     if (!opts.valueType) { opts.valueType = 'blob'; }
     if (!opts.revisioned) { opts.revisioned = true; } // No choice..
@@ -176,11 +179,11 @@ function getRevision(restbase, req, revPred) {
         });
     }
     var storeReq = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket]),
+        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: {
             table: rp.bucket,
             attributes: {
-                key: rp.title,
+                key: rp.key,
                 tid: revPred
             }
         }
@@ -194,7 +197,7 @@ KVBucket.prototype.getLatest = function(restbase, req) {
         return getRevision(restbase, req, req.body);
     }
     var rp = req.params;
-    return restbase.get(new URI([rp.domain,'sys','table',rp.bucket,'latest']));
+    return restbase.get(new URI([rp.domain,'sys','table',rp.bucket,'']));
 };
 
 KVBucket.prototype.putLatest = function(restbase, req) {
@@ -219,7 +222,7 @@ KVBucket.prototype.putLatest = function(restbase, req) {
         }
     };
     var request = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket]),
+        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: query
     };
 
@@ -250,7 +253,7 @@ KVBucket.prototype.putLatest = function(restbase, req) {
 KVBucket.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
     var storeRequest = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket]),
+        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: {
             table: req.params.bucket,
             attributes: {
@@ -330,7 +333,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
     }
 
     var storeReq = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket]),
+        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: {
             table: rp.bucket,
             attributes: {
@@ -366,26 +369,26 @@ KVBucket.prototype.putRevision = function(restbase, req) {
 };
 
 module.exports = function(options) {
-    var revBucket = new KVBucket(options);
+    var kvBucket = new KVBucket(options);
+
     return {
-        module_info: {
-            spec: null, // Re-export from spec module
-            test: null, // Spec test function from spec module
-            dependencies: {
-                'table': {
-                    name: 'restbase-mod-table-cassandra',
-                    version: '1.0.0'
-                }
-            },
-            resources: [] // Dynamic resource dependencies, specific to implementation
+        spec: spec, // Re-export from spec module
+        test: null, // Spec test function from spec module
+        dependencies: {
+            'table': {
+                name: 'restbase-mod-table-cassandra',
+                version: '1.0.0'
+            }
         },
-        getBucketInfo: revBucket.getBucketInfo.bind(revBucket),
-        createBucket: revBucket.createBucket.bind(revBucket),
-        listBucket: revBucket.listBucket.bind(revBucket),
-        getLatest: revBucket.getLatest.bind(revBucket),
-        putLatest: revBucket.putLatest.bind(revBucket),
-        listRevisions: revBucket.listRevisions.bind(revBucket),
-        getRevision: revBucket.getRevision.bind(revBucket),
-        putRevision: revBucket.putRevision.bind(revBucket)
+        operations: {
+            getBucketInfo: kvBucket.getBucketInfo.bind(kvBucket),
+            createBucket: kvBucket.createBucket.bind(kvBucket),
+            listBucket: kvBucket.listBucket.bind(kvBucket),
+            getLatest: kvBucket.getLatest.bind(kvBucket),
+            putLatest: kvBucket.putLatest.bind(kvBucket),
+            listRevisions: kvBucket.listRevisions.bind(kvBucket),
+            getRevision: kvBucket.getRevision.bind(kvBucket),
+            putRevision: kvBucket.putRevision.bind(kvBucket)
+        }
     };
 };

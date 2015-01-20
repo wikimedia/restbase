@@ -13,23 +13,19 @@ var router = new Router();
 var rootSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
-            'x-restbase': {
-                specs: [
-                    {
-                        paths: {
-                            '/page/{title}/html': {
-                                get: {
-                                    'x-restbase': {
-                                        service: {
-                                            uri: '/{domain}/sys/parsoid/html/{title}/latest'
-                                        }
-                                    }
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/page/{title}/html': {
+                            get: {
+                                'x-backend-request': {
+                                    uri: '/{domain}/sys/parsoid/html/{title}/latest'
                                 }
                             }
                         }
                     }
-                ]
-            }
+                }
+            ]
         }
     }
 };
@@ -37,9 +33,7 @@ var rootSpec = {
 var faultySpec = {
     paths: {
         '/{domain:en.wikipedia.org}': {
-            'x-restbase': {
-                specs: ['some/non/existing/spec']
-            }
+            'x-subspecs': ['some/non/existing/spec']
         }
     }
 };
@@ -73,11 +67,17 @@ module.exports = function () {
         });
 
         it('should build the example config spec tree', function() {
-            return router.loadSpec(fullSpec.spec)
+            var resourceRequests = [];
+            return router.loadSpec(fullSpec.spec, {
+                request: function(req) {
+                    resourceRequests.push(req);
+                }
+            })
             .then(function() {
                 //console.log(JSON.stringify(router.tree, null, 2));
                 var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
                 //console.log(handler);
+                assert.equal(resourceRequests.length > 0, true);
                 assert.equal(!!handler.value.methods.get, true);
                 assert.equal(handler.params.domain, 'en.wikipedia.org');
                 assert.equal(handler.params.title, 'Foo');

@@ -1,0 +1,44 @@
+swagger: 2.0
+info:
+  version: 0.1.0
+  title: Internal Parsoid content API
+  description: Access Parsoid-generated wikitext, html and metadata.
+    Transparently generates missing content and interfaces with the MediaWiki
+    API through the `action` module.
+paths:
+
+  /pagebundle/{title}{/revision}:
+
+    get:
+      summary: Retrieve a JSON bundle containing html and data-parsoid
+      operationId: getPageBundle
+  
+  /wikitext/{title}{/revision}:
+    get:
+      summary: Retrieve the wikitext for a title and revision.
+      operationId: getWikitext
+  
+  /html/{title}{/revision}:
+    get:
+      summary: Retrieve the HTML for title and revision.
+      operationId: getHtml
+  
+  /data-parsoid/{title}{/revision}:
+    get:
+      summary: Retrieve the data-parsoid JSON for title & revision.
+      operationId: getDataParsoid
+  
+  /transform/html/to/html{/title}{/revision}:
+    post:
+      summary: Update HTML, while optionally passing in title & revision.
+      operationId: transformHtmlToHtml
+
+  /transform/html/to/wikitext{/title}{/revision}:
+    post:
+      summary: Transform wikitext to HTML.
+      operationId: transformHtmlToWikitext
+
+  /transform/wikitext/to/html{/title}{/revision}:
+    post:
+      summary: Transform wikitext to HTML.
+      operationId: transformWikitextToHtml

@@ -38,27 +38,6 @@ module.exports = function (config) {
                 assert.deepEqual(res.status, 200);
             });
         });
-        it('should create a new html revision using proxy handler with id 624484444', function() {
-            this.timeout(20000);
-            return preq.put({
-                uri: config.baseURL + '/test/Foo/wikitext/624484444',
-                headers: { 'content-type': 'text/html' },
-                body: 'Hello there'
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
-
-        it('should return HTML just created with revision 624484477', function() {
-            return preq.get({
-                uri: config.bucketURL + '/Foobar/html/624484477'
-            })
-            .catch(function(err) { console.log(err); })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-            });
-        });
         it('should return HTML just created by revision 624165266', function() {
             return preq.get({
                 uri: config.bucketURL + '/Foobar/html/624165266'
@@ -95,31 +74,6 @@ module.exports = function (config) {
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
-            });
-        });
-        it('should accept a new html save with a revision', function() {
-            return preq.put({
-                uri: config.bucketURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
-                headers: { 'content-type': 'text/html; charset=UTF-8' },
-                body: 'Hello there'
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 201);
-            })
-            .catch(function(e) {
-                console.dir(e);
-                throw e;
-            });
-        });
-        it('should return the HTML revision just created', function() {
-            return preq.get({
-                uri: config.bucketURL + '/Foobar/html/624484477'
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
-                assert.deepEqual(res.headers.etag, '76f22880-362c-11e4-9234-0123456789ab');
-                assert.deepEqual(res.body, 'Hello there');
             });
         });
 
