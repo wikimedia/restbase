@@ -69,4 +69,25 @@ module.exports = function (config) {
 
     });
 
+    describe('pagecontent bucket', function() {
+        // TODO: figure out what we'd like to return for /page
+        //it('should provide bucket info', function() {
+        //    this.timeout(20000);
+        //    return preq.get({
+        //        uri: config.bucketURL,
+        //    })
+        //    .then(function(res) {
+        //        assert.deepEqual(res.status, 200);
+        //    });
+        //});
+        it('should list its contents', function() {
+            this.timeout(20000);
+            return preq.get({
+                uri: config.bucketURL + '/',
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+            });
+        });
+    });
 };

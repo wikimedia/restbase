@@ -14,6 +14,11 @@ info:
 
 paths:
 
+  /{module:page}/:
+    get:
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/
+
   /{module:page}/{title}/html:
     get:
       tags:
@@ -84,51 +89,6 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/
 
-  /{module:page}/{title}/data-parsoid/{revision}:
-    get:
-      tags:
-        - Page content
-      description: Returns the Parsoid data for the given revision
-      operationId: getFormatRevision
-      produces:
-        - text/html
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.org
-        - name: title
-          in: path
-          description: The title of page content
-          type: string
-          required: true
-        - name: revision
-          in: path
-          description: The revision
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The latest Parsoid data for the given page
-        '400':
-          description: Invalid revision
-          schema:
-            $ref: '#/definitions/invalidRevision'
-        '404':
-          description: Unknown table, bucket, page, or domain
-          schema:
-            $ref: '#/definitions/notFound'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/defaultError'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}
-        headers:
-          cache-control: $req.headers.cache-control
-              
 
   /{module:page}/{title}/html/{revision}:
     get:
@@ -174,6 +134,57 @@ paths:
         uri: /{domain}/sys/parsoid/html/{title}/{revision}
         headers:
           cache-control: $req.headers.cache-control
+
+  /{module:page}/{title}/data-parsoid/:
+    get:
+      x-backend-request:
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}
+
+  /{module:page}/{title}/data-parsoid/{revision}:
+    get:
+      tags:
+        - Page content
+      description: Returns the Parsoid data for the given revision
+      operationId: getFormatRevision
+      produces:
+        - text/html
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides'
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The latest Parsoid data for the given page
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/invalidRevision'
+        '404':
+          description: Unknown table, bucket, page, or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      x-backend-request:
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}
+        headers:
+          cache-control: $req.headers.cache-control
+              
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:

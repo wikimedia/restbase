@@ -134,6 +134,16 @@ PSP.getFormat = function (format) {
     };
 };
 
+PSP.listRevisions = function (format) {
+    var self = this;
+    return function (restbase, req) {
+        var rp = req.params;
+        return restbase.get({
+            uri: new URI([rp.domain, 'sys', 'key_value', 'parsoid.' + format, ''])
+        });
+    };
+};
+
 PSP.transformRevision = function (restbase, req, from, to) {
     var self = this;
     var rp = req.params;
@@ -210,8 +220,11 @@ module.exports = function (options) {
                 var rp = req.params;
                 return ps.pagebundle(restbase, req);
             },
+            listWikitextRevisions: ps.listRevisions('wikitext'),
             getWikitext: ps.getFormat('wikitext'),
+            listHtmlRevisions: ps.listRevisions('html'),
             getHtml: ps.getFormat('html'),
+            listDataParsoidRevisions: ps.listRevisions('data-parsoid'),
             getDataParsoid: ps.getFormat('data-parsoid'),
             transformHtmlToHtml: ps.makeTransform('html', 'html'),
             transformHtmlToWikitext: ps.makeTransform('html', 'wikitext'),

@@ -69,15 +69,17 @@ PRS.prototype.getTableSchema = function () {
 
 // /page/
 PRS.prototype.listTitles = function(restbase, req, options) {
-    // Forward to the revision bucket
-    // XXX: instead forward to a page bucket?
-    req.uri = req.uri.replace(/\/$/, '.rev/');
-    req.body = {
-        table: req.params.bucket + '.rev',
-        proj: ['title'],
-        distinct: true
+    var rp = req.params;
+    var listReq = {
+        uri: this.tableURI(rp.domain),
+        body: {
+            table: this.tableName,
+            proj: ['title'],
+            distinct: true
+        }
     };
-    return restbase.get(req)
+
+    return restbase.get(listReq)
     .then(function(res) {
         if (res.status === 200) {
             res.body.items = res.body.items.map(function(row) {
@@ -206,12 +208,12 @@ PRS.prototype.listItem = function(restbase, req) {
     });
 };
 
-PRS.prototype.listRevisions = function(restbase, req) {
+PRS.prototype.listTitleRevisions = function(restbase, req) {
     var rp = req.params;
     return restbase.get({
-        uri: '/v1/' + rp.domain + '/' + rp.bucket + '.rev/' + rp.key + '/',
+        uri: this.tableURI(rp.domain),
         body: {
-            table: rp.bucket + '.rev',
+            table: this.tableName,
             attributes: {
                 title: rp.key
             },
@@ -234,9 +236,10 @@ module.exports = function(options) {
     return {
         spec: spec,
         operations: {
-            //listTitleRevisions: PRS.listTitleRevisions.bind(prs),
+            listTitles: prs.listTitles.bind(prs),
+            listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
-            //getTitleRevisionId: PRS.getTitleRevisionId.bind(prs)
+            //getTitleRevisionId: prs.getTitleRevisionId.bind(prs)
         },
         resources: [
             {
