@@ -139,7 +139,7 @@ PSP.listRevisions = function (format) {
     return function (restbase, req) {
         var rp = req.params;
         return restbase.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'parsoid.' + format, ''])
+            uri: new URI([rp.domain, 'sys', 'key_value', 'parsoid.' + format, rp.title, ''])
         });
     };
 };

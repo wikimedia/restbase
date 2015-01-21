@@ -13,7 +13,7 @@ paths:
       summary: Retrieve a JSON bundle containing html and data-parsoid
       operationId: getPageBundle
   
-  /wikitext/:
+  /wikitext/{title}/:
     get:
       summary: List Wikitext revisions.
       operationId: listWikitextRevisions
@@ -23,7 +23,7 @@ paths:
       summary: Retrieve the wikitext for a title and revision.
       operationId: getWikitext
   
-  /html/:
+  /html/{title}/:
     get:
       summary: List HTML revisions.
       operationId: listHtmlRevisions
@@ -33,7 +33,7 @@ paths:
       summary: Retrieve the HTML for title and revision.
       operationId: getHtml
   
-  /data-parsoid/:
+  /data-parsoid/{title}/:
     get:
       summary: List data-parsoid revisions.
       operationId: listDataParsoidRevisions
