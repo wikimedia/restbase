@@ -1,13 +1,13 @@
 paths:
-#  /page/:
-#    get:
-#      summary: List titles
-#      operationId: listTitles
+  /page/:
+    get:
+      summary: List titles
+      operationId: listTitles
 
-#  /page/{title}/:
-#    get:
-#      summary: List revisions for a title (page history)
-#      operationId: listTitleRevisions
+  /page/{title}/:
+    get:
+      summary: List revisions for a title (page history)
+      operationId: listTitleRevisions
 
   /page/{title}/{revision}:
     get:
