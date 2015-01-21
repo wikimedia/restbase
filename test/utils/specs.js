@@ -23,7 +23,7 @@ function getRemoteSpec(url, k) {
         });
     });
 }
- 
+
 function parseXamples(spec, host) {
     var xamples = [];
     if (spec.paths) {

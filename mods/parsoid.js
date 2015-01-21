@@ -13,12 +13,6 @@ var yaml = require('js-yaml');
 var fs = require('fs');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/parsoid.yaml'));
 
-var contentTypes = {
-    html: 'text/html; charset=UTF-8',
-    'data-parsoid': 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0'
-};
-
-
 function ParsoidService(options) {
     options = options || {};
     this.parsoidHost = options.parsoidHost
@@ -47,16 +41,12 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
         Promise.all([
             restbase.put({
                 uri: new URI([rp.domain,'sys','key_value','parsoid.html',rp.title,tid]),
-                headers: rbUtil.extend({}, parsoidResp.headers, {
-                    'content-type': contentTypes.html
-                }),
+                headers: parsoidResp.body.html.headers,
                 body: parsoidResp.body.html.body
             }),
             restbase.put({
                 uri: new URI([rp.domain,'sys','key_value','parsoid.data-parsoid',rp.title,tid]),
-                headers: rbUtil.extend({}, parsoidResp.headers, {
-                    'content-type': contentTypes['data-parsoid']
-                }),
+                headers: parsoidResp.body['data-parsoid'].headers,
                 body: parsoidResp.body['data-parsoid'].body
             })
         ]);
@@ -64,13 +54,9 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
     // And return the response to the client
     var resp = {
         'status': parsoidResp.status,
-        headers: rbUtil.extend({}, parsoidResp.headers),
+        headers: parsoidResp.body[format].headers,
         body: parsoidResp.body[format].body
     };
-    // XXX: Fix Parsoid's content-type, so that we don't need to
-    // override this here!
-    resp.headers['content-type'] = parsoidResp.body[format].headers['content-type']
-        || contentTypes[format];
     return resp;
 };
 
@@ -117,10 +103,11 @@ PSP.getFormat = function (format) {
 
     return function (restbase, req) {
         var rp = req.params;
+        var tid;
         return self.getRevisionInfo(restbase, req)
         .then(function(revInfo) {
             rp.revision = revInfo.rev + '';
-            var tid = revInfo.tid;
+            tid = revInfo.tid;
             if (req.headers && /no-cache/.test(req.headers['cache-control'])
                     && rp.revision)
             {
@@ -139,6 +126,10 @@ PSP.getFormat = function (format) {
                     }
                 });
             }
+        })
+        .then(function(res) {
+            res.headers.etag = tid;
+            return res;
         });
     };
 };

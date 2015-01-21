@@ -10,38 +10,11 @@ var specs  = require('../../utils/specs.js');
 module.exports = function (config) {
 
     var prereqs = [
-        { // create the domain
-            method: 'put',
-            uri: config.hostPort + '/v1/en.wikipedia.test.local',
-            headers: { 'content-type': 'application/json' },
-            body: {},
-        },
-        { // create the bucket
-            method: 'put',
-            uri: config.bucketURL,
-            headers: { 'content-type': 'application/json' },
-            body: { type: 'pagecontent' },
-        },
         { // transparently create HTML revision id 624484477
             method: 'get',
             uri: config.bucketURL + '/Foobar/html/624484477',
             body: 'Hello there, this is revision 624484477!'
-        },
-        { // create an html revision of Foobar
-            method: 'put',
-            uri: config.bucketURL + '/Foobar/html/76f22880-362c-11e4-9234-0123456789ab',
-            body: 'Hello there, this is revision 76f22880-362c-11e4-9234-0123456789ab!',
-        },
-        { // create an html revision of Foobar
-            method: 'put',
-            uri: config.bucketURL + '/Foobar/html/9843f080-3443-11e4-9234-0123456789ab',
-            body: 'Hello there, this is revision 9843f080-3443-11e4-9234-0123456789ab!',
-        },
-        { // create an html revision of Foobar
-            method: 'put',
-            uri: config.bucketURL + '/Foobar/html/b9f3f880-8153-11e4-9234-0123456789ab',
-            body: 'Hello there, this is revision b9f3f880-8153-11e4-9234-0123456789ab!',
-        },
+        }
     ];
 
     describe('swagger spec', function () {
@@ -50,7 +23,7 @@ module.exports = function (config) {
         it('should run ' + prereqs.length + ' idempotent prerequisites', function() {
             var count = 0;
             var reqChain = prereqs.map(function (req) {
-                return function () { 
+                return function () {
                     return preq[req.method](req)
                     .then(function (res) {
                         count = count + 1;
@@ -67,7 +40,6 @@ module.exports = function (config) {
             });
         });
 
-        var xamplesRun = 0;
         xamples.forEach(function (xample) {
             it(xample.description, function() {
                 return preq.options({ uri: xample.request.uri })
@@ -80,14 +52,9 @@ module.exports = function (config) {
                 })
                 .then(function (res) {
                     assert.isSuperset(res, xample.response);
-                    xamplesRun = xamplesRun + 1;
                     return res;
                 });
             });
-        });
-
-        it('should have run ' + xamples.length + ' xamples', function() {
-            assert.deepEqual(xamplesRun, xamples.length);
         });
 
     });
