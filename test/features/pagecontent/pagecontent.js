@@ -44,7 +44,7 @@ module.exports = function (config) {
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-type'], 'text/html; charset=UTF-8');
+                assert.deepEqual(res.headers['content-type'], 'text/html;profile=mediawiki.org/specs/html/1.0.0');
             });
         });
         it('should return data-parsoid just created by revision 624165266, rev 2', function() {
@@ -53,7 +53,7 @@ module.exports = function (config) {
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+                assert.deepEqual(res.headers['content-type'], 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
             });
         });
 
@@ -63,7 +63,7 @@ module.exports = function (config) {
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-type'], 'application/json; profile=mediawiki.org/specs/data-parsoid/1.0');
+                assert.deepEqual(res.headers['content-type'], 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
             });
         });
 

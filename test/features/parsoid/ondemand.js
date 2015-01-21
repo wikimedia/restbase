@@ -24,11 +24,11 @@ function exists(xs, f) {
 function localRequestsOnly(slice) {
     return !exists(slice.get(), function(line) {
       var entry = JSON.parse(line);
-      return !/^\/v1\/en\.wikipedia\.test\.local\//.test(entry.req.uri);
+      return !/^\/en\.wikipedia\.test\.local\//.test(entry.req.uri);
     });
 }
 
-// return true if some requests in this slice went to 
+// return true if some requests in this slice went to
 // http://parsoid-lb.eqiad.wikimedia.org/v2/**
 function wentToParsoid(slice) {
     return exists(slice.get(), function(line) {
@@ -100,24 +100,22 @@ module.exports = function (config) {
 
                 // Ensure the response status is 200
                 assert.deepEqual(res.status, 200);
-                
+
                 // Inspect the request/response log to make sure Restbase only made local requests
                 assert.deepEqual(localRequestsOnly(slice), false);
-                
+
                 // Inspect the request/response log to make sure Restbase made a request to Parsoid
                 assert.deepEqual(wentToParsoid(slice), true);
-                
+
                 // Ensure the response body is an object with the correct spec. content type
-                var resBody = JSON.parse(res.body);
-                assert.deepEqual(resBody.headers, {
-                    "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
-                });
-                
+                assert.deepEqual(res.headers['content-type'],
+						"text/html;profile=mediawiki.org/specs/html/1.0.0");
+
                 // Sanity check that the response body is an object with the right body content
-                assert.deepEqual(/^<!DOCTYPE html>/.test(resBody.body), true);
-                
+                assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
+
                 // Sanity check that the response body is an object with the right body content
-                assert.deepEqual(/<\/html>$/.test(resBody.body), true);
+                assert.deepEqual(/<\/html>$/.test(res.body), true);
             });
         });
 

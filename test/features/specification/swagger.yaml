@@ -12,11 +12,11 @@ info:
     name: GNU Affero
     url: http://opensource.org/licenses/AGPL-3.0
 host: localhost:7231
-basePath: /v1
+basePath: ''
 schemes:
   - http
 paths:
-  /{domain}/pages/{title}/html/:
+  /{domain}/v1/page/{title}/html/:
     get:
       tags:
         - Page content
@@ -61,7 +61,7 @@ paths:
                 - b9f3f880-8153-11e4-9234-0123456789ab
                 - 76f22880-362c-11e4-9234-0123456789ab
                 - 9843f080-3443-11e4-9234-0123456789ab
-  /{domain}/pages/{title}/html:
+  /{domain}/v1/page/{title}/html:
     get:
       tags:
         - Page content
@@ -98,8 +98,9 @@ paths:
           response:
             status: 200
             headers:
-                content-type: text/html; charset=UTF-8
-  /{domain}/pages/{title}/html/{revision}:
+                content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
+
+  /{domain}/v1/page/{title}/html/{revision}:
     get:
       tags:
         - Page content
@@ -149,9 +150,9 @@ paths:
             status: 200
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
-                content-type: text/html; charset=UTF-8
-            body: Hello there, this is revision 76f22880-362c-11e4-9234-0123456789ab!
-  /{domain}/pages/{title}/data-parsoid/{revision}:
+                content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
+
+  /{domain}/v1/page/{title}/data-parsoid/{revision}:
     get:
       tags:
         - Page content
@@ -201,7 +202,7 @@ paths:
             status: 200
             headers:
                 etag: 76f22880-362c-11e4-9234-0123456789ab
-                content-type: application/json; profile=mediawiki.org/specs/data-parsoid/1.0
+                content-type: application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1
 definitions:
   defaultError:
     required:
