@@ -7,8 +7,9 @@
 // section 'On-demand generation of HTML and data-parsoid'
 
 var assert = require('../../utils/assert.js');
-var preq = require('preq');
-var fs = require('fs');
+var preq   = require('preq');
+var fs     = require('fs');
+var server = require('../../utils/server.js');
 
 function exists(xs, f) {
     for (var i = 0; i < xs.length; i++) {
@@ -37,88 +38,87 @@ function wentToParsoid(slice) {
     });
 }
 
-module.exports = function (config) {
+var contentUrl = server.config.bucketURL + '/Main_Page';
+var revA = '139992';
+var revB = '139993';
 
-    var contentUrl = config.bucketURL + '/Main_Page';
-    var revA = '139992';
-    var revB = '139993';
+describe('on-demand generation of html and data-parsoid', function() {
+    this.timeout(20000);
 
-    describe('on-demand generation of html and data-parsoid', function() {
+    before(function () { return server.start(); });
 
-        it('should transparently create revision A via Parsoid', function () {
-            var slice = config.logStream.slice();
-            return preq.get({
-                uri: contentUrl + '/html/' + revA,
-            })
-            .then(function (res) {
-                slice.halt();
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(localRequestsOnly(slice), false);
-                assert.deepEqual(wentToParsoid(slice), true);
-            });
+    it('should transparently create revision A via Parsoid', function () {
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: contentUrl + '/html/' + revA,
+        })
+        .then(function (res) {
+            slice.halt();
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(localRequestsOnly(slice), false);
+            assert.deepEqual(wentToParsoid(slice), true);
         });
-
-        it('should transparently create revision B via Parsoid', function () {
-            var slice = config.logStream.slice();
-            return preq.get({
-                uri: contentUrl + '/html/' + revB,
-            })
-            .then(function (res) {
-                slice.halt();
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(localRequestsOnly(slice), false);
-                assert.deepEqual(wentToParsoid(slice), true);
-            });
-        });
-
-        it('should retrieve revision B from storage', function () {
-            var slice = config.logStream.slice();
-            return preq.get({
-                uri: contentUrl + '/html/' + revB,
-            })
-            .then(function (res) {
-                slice.halt();
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(localRequestsOnly(slice), true);
-                assert.deepEqual(wentToParsoid(slice), false);
-            });
-        });
-
-        it('should pass (stored) revision B to Parsoid for cache-control:no-cache',
-        function () {
-            // Start watching for new log entries
-            var slice = config.logStream.slice();
-            return preq.get({
-                uri: contentUrl + '/html/' + revB,
-                headers: {
-                    'cache-control': 'no-cache'
-                },
-            })
-            .then(function (res) {
-                // Stop watching for new log entries
-                slice.halt();
-
-                // Ensure the response status is 200
-                assert.deepEqual(res.status, 200);
-
-                // Inspect the request/response log to make sure Restbase only made local requests
-                assert.deepEqual(localRequestsOnly(slice), false);
-
-                // Inspect the request/response log to make sure Restbase made a request to Parsoid
-                assert.deepEqual(wentToParsoid(slice), true);
-
-                // Ensure the response body is an object with the correct spec. content type
-                assert.deepEqual(res.headers['content-type'],
-						"text/html;profile=mediawiki.org/specs/html/1.0.0");
-
-                // Sanity check that the response body is an object with the right body content
-                assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
-
-                // Sanity check that the response body is an object with the right body content
-                assert.deepEqual(/<\/html>$/.test(res.body), true);
-            });
-        });
-
     });
 
-};
+    it('should transparently create revision B via Parsoid', function () {
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: contentUrl + '/html/' + revB,
+        })
+        .then(function (res) {
+            slice.halt();
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(localRequestsOnly(slice), false);
+            assert.deepEqual(wentToParsoid(slice), true);
+        });
+    });
+
+    it('should retrieve revision B from storage', function () {
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: contentUrl + '/html/' + revB,
+        })
+        .then(function (res) {
+            slice.halt();
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(localRequestsOnly(slice), true);
+            assert.deepEqual(wentToParsoid(slice), false);
+        });
+    });
+
+    it('should pass (stored) revision B to Parsoid for cache-control:no-cache',
+    function () {
+        // Start watching for new log entries
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: contentUrl + '/html/' + revB,
+            headers: {
+                'cache-control': 'no-cache'
+            },
+        })
+        .then(function (res) {
+            // Stop watching for new log entries
+            slice.halt();
+
+            // Ensure the response status is 200
+            assert.deepEqual(res.status, 200);
+
+            // Inspect the request/response log to make sure Restbase only made local requests
+            assert.deepEqual(localRequestsOnly(slice), false);
+
+            // Inspect the request/response log to make sure Restbase made a request to Parsoid
+            assert.deepEqual(wentToParsoid(slice), true);
+
+            // Ensure the response body is an object with the correct spec. content type
+            assert.deepEqual(res.headers['content-type'],
+						"text/html;profile=mediawiki.org/specs/html/1.0.0");
+
+            // Sanity check that the response body is an object with the right body content
+            assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
+
+            // Sanity check that the response body is an object with the right body content
+            assert.deepEqual(/<\/html>$/.test(res.body), true);
+        });
+    });
+
+});
