@@ -23,7 +23,12 @@ function ParsoidService(options) {
 var PSP = ParsoidService.prototype;
 
 PSP.getBucketURI = function(rp, format, tid) {
-    return new URI([rp.domain,'sys','key_value','parsoid.' + format,rp.title,tid]);
+    var path = [rp.domain,'sys','key_rev_value','parsoid.' + format,
+            rp.title,rp.revision];
+    if (tid) {
+        path.push(tid);
+    }
+    return new URI(path);
 };
 
 PSP.pagebundle = function(restbase, req) {
@@ -40,12 +45,12 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
         parsoidResp.headers.etag = tid;
         Promise.all([
             restbase.put({
-                uri: new URI([rp.domain,'sys','key_value','parsoid.html',rp.title,tid]),
+                uri: this.getBucketURI(rp, 'html', tid),
                 headers: parsoidResp.body.html.headers,
                 body: parsoidResp.body.html.body
             }),
             restbase.put({
-                uri: new URI([rp.domain,'sys','key_value','parsoid.data-parsoid',rp.title,tid]),
+                uri: this.getBucketURI(rp, 'data-parsoid', tid),
                 headers: parsoidResp.body['data-parsoid'].headers,
                 body: parsoidResp.body['data-parsoid'].body
             })
@@ -104,30 +109,28 @@ PSP.getFormat = function (format) {
     return function (restbase, req) {
         var rp = req.params;
         var tid;
-        return self.getRevisionInfo(restbase, req)
-        .then(function(revInfo) {
-            rp.revision = revInfo.rev + '';
-            tid = revInfo.tid;
-            if (req.headers && /no-cache/.test(req.headers['cache-control'])
-                    && rp.revision)
-            {
-                // FIXME: Only allow this for the latest revision!
-                tid = uuid.v1();
-                return self.generateAndSave(restbase, req, format, tid);
-            } else {
-                req.uri = self.getBucketURI(rp, format, tid);
-                return restbase.get(req)
-                .catch(function(res) {
-                    if (res.status === 404 && /^[0-9]+$/.test(rp.revision)) {
-                        return self.generateAndSave(restbase, req, format, tid);
-                    } else {
-                        // re-throw
-                        throw(res);
-                    }
+        var bePromise;
+        if (req.headers && /no-cache/.test(req.headers['cache-control'])
+                && rp.revision)
+        {
+            tid = uuid.v1();
+            bePromise = self.generateAndSave(restbase, req, format, tid);
+        } else {
+            var beReq = {
+                uri: self.getBucketURI(rp, format, tid)
+            };
+            bePromise = restbase.get(beReq)
+            .catch(function(e) {
+                return self.getRevisionInfo(restbase, req)
+                .then(function(revInfo) {
+                    rp.revision = revInfo.rev + '';
+                    tid = uuid.v1();
+                    return self.generateAndSave(restbase, req, format, tid);
                 });
-            }
-        })
-        .then(function(res) {
+            });
+        }
+
+        return bePromise.then(function(res) {
             res.headers.etag = tid;
             return res;
         });
@@ -139,7 +142,7 @@ PSP.listRevisions = function (format) {
     return function (restbase, req) {
         var rp = req.params;
         return restbase.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'parsoid.' + format, rp.title, ''])
+            uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, rp.title, ''])
         });
     };
 };
@@ -233,25 +236,25 @@ module.exports = function (options) {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: '/{domain}/sys/key_value/parsoid.html',
+                uri: '/{domain}/sys/key_rev_value/parsoid.html',
                 body: {
                     valueType: 'blob',
                 }
             },
             {
-                uri: '/{domain}/sys/key_value/parsoid.wikitext',
+                uri: '/{domain}/sys/key_rev_value/parsoid.wikitext',
                 body: {
                     valueType: 'blob',
                 }
             },
             {
-                uri: '/{domain}/sys/key_value/parsoid.data-parsoid',
+                uri: '/{domain}/sys/key_rev_value/parsoid.data-parsoid',
                 body: {
                     valueType: 'json',
                 }
             },
             {
-                uri: '/{domain}/sys/key_value/parsoid.data-mw',
+                uri: '/{domain}/sys/key_rev_value/parsoid.data-mw',
                 body: {
                     valueType: 'json',
                 }

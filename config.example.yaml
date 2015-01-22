@@ -60,6 +60,11 @@ templates:
             version: 1.0.0
             type: file
 
+      /{api:sys}/{module:key_rev_value}: &wp/sys/key_value
+        x-modules:
+          - name: key_rev_value
+            version: 1.0.0
+            type: file
 
       /{api:sys}/{module:parsoid}:
         x-modules:
