@@ -39,7 +39,7 @@ module.exports = function (config) {
                 return preq.get({
                     uri: config.bucketURL + '/Main_Page/html/' + r1,
                     headers: { 'cache-control': 'no-cache' }
-                });
+                }).delay(500);
             })
             .then(function (res) {
                 r1tid2 = res.headers.etag;
@@ -73,7 +73,7 @@ module.exports = function (config) {
 
                 return preq.get({
                     uri: config.bucketURL + '/Main_Page/html/' + r2
-                });
+                }).delay(500);
             })
             .then(function (res) {
                 r2tid1 = res.headers.etag;
