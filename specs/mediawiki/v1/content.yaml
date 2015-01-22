@@ -90,7 +90,7 @@ paths:
         uri: /{domain}/sys/parsoid/html/{title}/
 
 
-  /{module:page}/{title}/html/{revision}:
+  /{module:page}/{title}/html/{revision}{/tid}:
     get:
       tags:
         - Page content
@@ -131,7 +131,7 @@ paths:
           schema:
             $ref: '#/definitions/defaultError'
       x-backend-request:
-        uri: /{domain}/sys/parsoid/html/{title}/{revision}
+        uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
         headers:
           cache-control: $req.headers.cache-control
 
@@ -140,7 +140,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
-  /{module:page}/{title}/data-parsoid/{revision}:
+  /{module:page}/{title}/data-parsoid/{revision}{/tid}:
     get:
       tags:
         - Page content
@@ -181,7 +181,7 @@ paths:
           schema:
             $ref: '#/definitions/defaultError'
       x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
         headers:
           cache-control: $req.headers.cache-control
               

@@ -107,7 +107,7 @@ KRVBucket.prototype.listBucket = function(restbase, req, options) {
     })
     .catch(function(error) {
         self.log('error/kv/listBucket', error);
-        return { status: 404 };
+        throw new rbUtil.HTTPError({ status: 404 });
     });
 };
 
@@ -127,14 +127,14 @@ function returnRevision(req) {
                 body: row.value
             };
         } else {
-            return {
+            throw new rbUtil.HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found',
                     uri: req.uri,
                     method: req.method
                 }
-            };
+            });
         }
     };
 }
@@ -152,7 +152,7 @@ function coerceTid (tidString) {
     }
 
     // Out of luck
-    throw new HTTPError({
+    throw new rbUtil.HTTPError({
         status: 400,
         body: {
             type: 'key_rev_value/invalid_tid',
@@ -164,7 +164,7 @@ function coerceTid (tidString) {
 
 function parseRevision (rev) {
     if (!/^[0-9]+/.test(rev)) {
-        throw new HTTPError({
+        throw new rbUtil.HTTPError({
             status: 400,
             body: {
                 type: 'key_rev_value/invalid_revision',

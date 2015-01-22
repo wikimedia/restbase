@@ -57,8 +57,7 @@ paths:
             headers:
                 content-type: application/json
             body:
-              items:
-                - 76f22880-362c-11e4-9234-0123456789ab
+              items: []
 
   /{domain}/v1/page/{title}/html:
     get:
@@ -144,11 +143,10 @@ paths:
             params:
                 domain: en.wikipedia.test.local
                 title: Foobar
-                revision: 76f22880-362c-11e4-9234-0123456789ab
+                revision: 624484477
           response:
             status: 200
             headers:
-                etag: 76f22880-362c-11e4-9234-0123456789ab
                 content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
 
   /{domain}/v1/page/{title}/data-parsoid/{revision}:
@@ -196,11 +194,10 @@ paths:
             params:
                 domain: en.wikipedia.test.local
                 title: Foobar
-                revision: 76f22880-362c-11e4-9234-0123456789ab
+                revision: 624484477
           response:
             status: 200
             headers:
-                etag: 76f22880-362c-11e4-9234-0123456789ab
                 content-type: application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1
 definitions:
   defaultError:

@@ -42,7 +42,6 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
     var rp = req.params;
     // handle the response from Parsoid
     if (parsoidResp.status === 200) {
-        parsoidResp.headers.etag = tid;
         Promise.all([
             restbase.put({
                 uri: this.getBucketURI(rp, 'html', tid),
@@ -55,14 +54,17 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
                 body: parsoidResp.body['data-parsoid'].body
             })
         ]);
+        // And return the response to the client
+        var resp = {
+            'status': parsoidResp.status,
+            headers: parsoidResp.body[format].headers,
+            body: parsoidResp.body[format].body
+        };
+        resp.headers.etag = tid;
+        return resp;
+    } else {
+        return parsoidResp;
     }
-    // And return the response to the client
-    var resp = {
-        'status': parsoidResp.status,
-        headers: parsoidResp.body[format].headers,
-        body: parsoidResp.body[format].body
-    };
-    return resp;
 };
 
 PSP.generateAndSave = function(restbase, req, format, tid) {
@@ -108,32 +110,23 @@ PSP.getFormat = function (format) {
 
     return function (restbase, req) {
         var rp = req.params;
-        var tid;
-        var bePromise;
         if (req.headers && /no-cache/.test(req.headers['cache-control'])
                 && rp.revision)
         {
-            tid = uuid.v1();
-            bePromise = self.generateAndSave(restbase, req, format, tid);
+            return self.generateAndSave(restbase, req, format, uuid.v1());
         } else {
             var beReq = {
-                uri: self.getBucketURI(rp, format, tid)
+                uri: self.getBucketURI(rp, format, rp.tid)
             };
-            bePromise = restbase.get(beReq)
+            return restbase.get(beReq)
             .catch(function(e) {
                 return self.getRevisionInfo(restbase, req)
                 .then(function(revInfo) {
                     rp.revision = revInfo.rev + '';
-                    tid = uuid.v1();
-                    return self.generateAndSave(restbase, req, format, tid);
+                    return self.generateAndSave(restbase, req, format, uuid.v1());
                 });
             });
         }
-
-        return bePromise.then(function(res) {
-            res.headers.etag = tid;
-            return res;
-        });
     };
 };
 
