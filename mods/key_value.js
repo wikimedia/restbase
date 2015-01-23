@@ -373,13 +373,6 @@ module.exports = function(options) {
 
     return {
         spec: spec, // Re-export from spec module
-        test: null, // Spec test function from spec module
-        dependencies: {
-            'table': {
-                name: 'restbase-mod-table-cassandra',
-                version: '1.0.0'
-            }
-        },
         operations: {
             getBucketInfo: kvBucket.getBucketInfo.bind(kvBucket),
             createBucket: kvBucket.createBucket.bind(kvBucket),
