@@ -2,6 +2,19 @@
 
 var assert = require('assert');
 
+function isDeepEqual(result, expected) {
+    try {
+        if (typeof expected === 'string') {
+            assert.ok(result === expected || (new RegExp(expected).test(result)));
+        } else {
+            assert.deepEqual(result, expected);
+        }
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 function deepEqual(result, expected) {
     try {
         assert.deepEqual(result, expected);
@@ -54,5 +67,6 @@ function fails(promise, onRejected) {
 module.exports.ok           = assert.ok;
 module.exports.fails        = fails;
 module.exports.deepEqual    = deepEqual;
+module.exports.isDeepEqual  = isDeepEqual;
 module.exports.notDeepEqual = notDeepEqual;
 module.exports.isSuperset   = isSuperset;
