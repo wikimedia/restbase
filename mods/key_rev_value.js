@@ -282,7 +282,6 @@ module.exports = function(options) {
 
     return {
         spec: spec, // Re-export from spec module
-        test: null, // Spec test function from spec module
         operations: {
             getBucketInfo: krvBucket.getBucketInfo.bind(krvBucket),
             createBucket: krvBucket.createBucket.bind(krvBucket),
