@@ -7,38 +7,38 @@ info:
     API through the `action` module.
 paths:
 
-  /pagebundle/{title}{/revision}:
+  /pagebundle/{title}{/revision}{/tid}:
 
     get:
       summary: Retrieve a JSON bundle containing html and data-parsoid
       operationId: getPageBundle
   
-  /wikitext/:
+  /wikitext/{title}/:
     get:
       summary: List Wikitext revisions.
       operationId: listWikitextRevisions
 
-  /wikitext/{title}{/revision}:
+  /wikitext/{title}{/revision}{/tid}:
     get:
       summary: Retrieve the wikitext for a title and revision.
       operationId: getWikitext
   
-  /html/:
+  /html/{title}/:
     get:
       summary: List HTML revisions.
       operationId: listHtmlRevisions
 
-  /html/{title}{/revision}:
+  /html/{title}{/revision}{/tid}:
     get:
       summary: Retrieve the HTML for title and revision.
       operationId: getHtml
   
-  /data-parsoid/:
+  /data-parsoid/{title}/:
     get:
       summary: List data-parsoid revisions.
       operationId: listDataParsoidRevisions
 
-  /data-parsoid/{title}{/revision}:
+  /data-parsoid/{title}{/revision}{/tid}:
     get:
       summary: Retrieve the data-parsoid JSON for title & revision.
       operationId: getDataParsoid

@@ -9,7 +9,7 @@ function logStream() {
     name: 'test-logger',
     level: 'warn'
   });
-  
+
   function write(chunk, encoding, callback) {
     try {
         var entry = JSON.parse(chunk);
@@ -29,7 +29,7 @@ function logStream() {
 
   // to implement the stream writer interface
   function end(chunk, encoding, callback) {
-  } 
+  }
 
   function get() {
     return log;
