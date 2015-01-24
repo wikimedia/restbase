@@ -1,0 +1,4 @@
+paths:
+  /:
+    get:
+      description: List Parsoid root
