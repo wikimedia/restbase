@@ -52,7 +52,7 @@
   "devDependencies": {
     "mocha": "~1.x.x",
     "mocha-jshint": "0.0.9",
-    "heapdump": "~0.3.3",
+    "heapdump": "0.3.3",
     "istanbul": "0.3.5",
     "mocha-lcov-reporter": "0.0.1",
     "coveralls": "2.11.2"
