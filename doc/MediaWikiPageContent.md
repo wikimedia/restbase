@@ -6,92 +6,66 @@
   front-end handler
 
 ## API
-### `GET /v1/en.wikipedia.org/pages/`
+### `GET /en.wikipedia.org/v1/page/`
 List pages.
 
-### `GET /v1/en.wikipedia.org/pages/?ts=20140101T20:23:22.100Z`
+- `/en.wikipedia.org/sys/page_revision/`
+
+### `GET /v1/en.wikipedia.org/page/?ts=20140101T20:23:22.100Z`
 List pages, consistent snapshot at a specific time. No need to return oldids
 or tids, same timestamp can be used to retrieve each individual page. It
 should however be more efficient to directly return the matching tids.
 
-### `GET /v1/en.wikipedia.org/pages/{name}`
-Redirects to `/v1/en.wikipedia.org/pages/{name}/html`, which returns the
+- `/en.wikipedia.org/sys/page_revisions/?ts=20140101T20:23:22.100Z`
+
+### `GET /en.wikipedia.org/v1/page/{title}`
+Redirects to `/en.wikipedia.org/v1/page/{name}/html`, which returns the
 latest HTML.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/`
+- in handler
+
+### `GET /v1/en.wikipedia.org/page/{title}/`
 Lists available properties. 
 
-XXX: need a way to extend this for additional handlers
+- Static listing through swagger-router. Have `_ls` parameter, need to convert
+    this into a full response.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/{html|wikitext|data-mw|data-parsoid}`
+### `GET /en.wikipedia.org/v1/page/{title}/{format:/html|wikitext|data-mw|data-parsoid/}`
 Returns the *latest* HTML / wikitext etc. Cached & purged.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/html/`
+### `GET /en.wikipedia.org/v1/page/{title}/html/`
 Lists timeuuid-based revisions for the HTML property.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/rev/`
+### `GET /en.wikipedia.org/v1/page/{title}/rev/`
 Returns a list of MediaWiki revisions for the given page. Contains the
 information needed to display the page history.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/rev/12345`
+- `/en.wikipedia.org/sys/page_revisions/{title}/`
+
+### `GET /en.wikipedia.org/v1/page/{title}/rev/12345`
 Get metadata for the given revision (e.g. user, timestamp, edit message).
 
-### `GET /v1/en.wikipedia.org/pages/{name}/html/12345`
-Retrieve a property by MediaWiki oldid. Main entry point for Parsoid HTML currently.
+- `/en.wikipedia.org/sys/page_revisions/{title}/{revision}`
 
-Redirects to the corresponding timeuuid-based URL, or directly returns the
-HTML (would need purging on re-render / refreshlinks)
+### `GET /en.wikipedia.org/v1/page/{name}/html/12345`
+Retrieve a property by MediaWiki oldid. Main entry point for Parsoid HTML.
 
-### `GET /v1/en.wikipedia.org/pages/{name}/html/<timeuuid>`
-Returns content for the given timeuuid. Cached & does not need to be purged.
+- `/en.wikipedia.org/sys/parsoid/html/{title}/{revision}`
+
+### `GET /en.wikipedia.org/v1/page/{name}/html/<timeuuid>`
+Returns content for the given timeuuid. Only stored (no on-demand creation),
+404 if not in storage.
+
+- `/en.wikipedia.org/sys/parsoid/html/{title}/{revision}`
 
 ### `GET /v1/en.wikipedia.org/pages/{name}/html?ts=20140101T12:11:09.567Z`
 Returns content as it looked at the given time.
 
+- `uri: /en.wikipedia.org/sys/parsoid/html/{title} + query`
+
 # Support for MW revision ids
-Revision table:
-```javascript
-{
-    table: 'pages.rev',
-    attributes: {
-        // listing: /pages.rev/Barack_Obama/master/
-        // @specific time: /pages.rev/Barack_Obama?ts=20140312T20:22:33.3Z
-        page: 'string',
-        tid: 'timeuuid',
-        // Page (or revision) was deleted
-        // Set on an otherwise null entry on page deletion
-        // XXX: move deleted revisions to a separate table?
-        deleted: 'boolean',
-        // Page renames. null, to:destination or from:source
-        // Followed for linear history, possibly useful for branches / drafts
-        renames: 'set<string>', 
-        rev: 'varint',          // MediaWiki oldid
-        latest_tid: 'timeuuid', // static, CAS synchronization point
-        // revision metadata in individual attributes for ease of indexing
-        user_id: 'varint',      // stable for contributions etc
-        user_text: 'string',
-        comment: 'string',
-        is_minor: 'boolean'
-    },
-    index: {
-        hash: ['page'],
-        range: ['tid'],
-        order: ['desc'], 
-        static: ['latest_tid']
-    },
-    secondaryIndexes: {
-        // /pages.rev//page/Foo/12345
-        // @specific time: /pages.history//rev/12345?ts=20140312T20:22:33.3Z
-        rev: {
-            hash: ['page'],
-            range: ['rev', 'tid'],  // tid would be included anyway
-            // make it easy to get the next revision as well to determine tid upper bound
-            order: ['asc','desc'],
-            proj: ['deleted']
-        }
-    }
-}
-```
+See [the revision table](https://github.com/wikimedia/restbase/blob/0ce4e64d455ab642a17483d594a49717f6418d21/lib/filters/bucket/pagecontent.js#L31).
+
 Implementation note: Don't need support for range queries on secondary indexes
 for this index.
 

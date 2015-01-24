@@ -1,9 +1,10 @@
 # RESTBase Implementation
 
 ## Code structure
-- storage backends in separate npm packages
+- modules in separate npm packages
     - `restbase-tables-cassandra`
     - `restbase-queues-kafka`
+    - `restbase-mod-parsoid`
 
 Tree:
 ```
@@ -11,60 +12,129 @@ restbase.js
 lib/
     storage.js
     util.js
-    proxy_handlers/
-        global/
-            network.js
-            parsoid.js
-        buckets/
-            kv_rev/
-            wikipages/
 # XXX: not quite final yet
 config.yaml
-conf.d
-    mediawiki
-        api/
-        bucket/
-    projects/
-        # projects enable grouping of restbase configs per project
-        someproject/
-            global/
-            buckets/
-                # kv:.pages.html.yaml -- kv bucket named 'html'
-                # pagecontent:.pages.yaml -- pagecontent buckets named 'pages'
+specs/
+    restbase/
+        sys/
+            key_rev_value.yaml
+            key_rev_service.yaml
+            table.yaml # defining operationIds, which map to module exports
+    mediawiki/
+        v1/
+            content.yaml
+        sys/
+            parsoid.yaml
+            page_revision.yaml
 doc/
 test/
 ```
 
-### Bucket & proxy handler config
-- global & per domain
-- FS: conf/global and conf/{domain}/
-    - doesn't scale too well, but integrates with code review, deploy testing
-      & typical development style
-- later, maybe: distributed through storage
+## Spec loading
+Converts a spec tree into a route object tree, ready to be passed to
+`swagger-router`. Can be passed into Router.addSpec as a handler.
 
-### Routing
-- global (or per-domain, later) proxy handler routeswitch
-- if no or same match: forward to storage backend
-    - checks domain & bucket
-    - calls per-bucket-type routeswitch with global env object
-    - on request from handler:
-        - if uri same (based on _origURI attribute): forward to table storage
-            - need to select the right backend
-        - else: route through proxy
+- parameters:
+    - spec
 
-#### Bucket / table -> storage backend mapping
-- table registry
-    - bucket type ('kv')
-    - storage backend for table *with same name*
-    - possibly no table storage associated - storage entry null
-- flow through bucket to storage:
-    1) call bucket routeswitch & handler
-    2) on request with identical url, call underlying storage handler
-        - need to know storage backend
-        - hook that up on the proxy ahead of time (if not null), before
-          calling bucket handler
-    3) on requests to other tables, follow same procedure as above
-        - lets us move each table to separate storage
+- check global nodeMap.get(spec)
+    - if found, just use the existing sub-tree (`parentNode.set()`) and return
+- specToTree: spec -> { children: []
+  - look for
+    - for each x-restbase directly inside of path entries (*not* inside of methods)
+        - if `modules` is defined, load them and check for duplicate symbols
+        - if `specs` is defined, load them and apply spec loader
+            recursively, passing in modules and prefix path
+        - if `resources` is defined, add them to a global list, with ref back
+            to the original spec
+            - call them later on complete tree (should we *only* do PUT?)
+                - on error, complain really loudly and either bail out
+                    completely or keep going (config)
+                    - could also consider blacklisting modules / paths based
+                        on this; perhaps re-build the tree unless we can
+                        `.delSpec()` by then
+    - for each x-restbase inside of methods inside of path entries
+        - if `service` is defined, construct a method that resolves the
+            backend path
+            - else, check if `operationId` is defined in passed-in modules
+        - in cases where we can be sure that the matching end point will
+            be static, we can cache the result (with a method to map
+            parameters, possibly inferred from a wildcard mapping or by
+            passing in unique strings & looking for them in the final
+            parameters)
+
+Result: tree with spec nodes like this:
+```javascript
+{ 
+    path: new URI(pathFragment),
+    spec: specObj, // reference to the original spec object, for documentation
+    value: valueObject,
+    // optionally:
+    children: [childObj, childObj], // child specs, one for each specs:
+                                    // declaration
+}
+```
+
+`valueObject` might look like this:
+```javascript
+{
+    acl: {}, // TODO: figure out
+    handler: handlerFn, // signature: f(restbase, req), as currently
+    // more properties extracted from the spec as needed (ex: content-types
+    // for sanitization)
+}
+```
+
+For router setup, each path down the spec tree is passed to the router as an
+array: `addSpecs([specRootNode, specNode2, specNode3])`. We *could* also pass
+the entire tree, but that'd be less flexible for dynamic updates later.
+
+In any case, passing in an array of spec nodes lets us check each spec node
+for presence in the `_nodes` map before creating a subtree for it. This will
+naturally establish sharing at the highest possible spec boundary. Dynamic
+updates later without a full rebuild won't be trivial with sharing. A good
+compromise could be to always rebuild an entire domain on any change. (So back
+do passing trees, except that they are not the root tree?)
+
+For ACLs it *might* be useful to leverage the DAG structure by checking ACLs all
+the way down the path. This would allow us to restrict access at the domain
+level, for the entire domain, while still sharing sub-trees. To avoid tight
+coupling of the router to the actual ACL implementation we can have
+`lookup(path)` (optionally) return an array of all value objects encountered
+in a successful lookup in addition to the actual lookup result / leaf
+valueObject. We can then check each of those valueObjects for the presence of
+an acl object (or whatever other info we stash in there), and run the
+associated authorization or [insert here] logic. In the spec, an ACL for a
+sub-path could look like this:
+
+```yaml
+paths:
+  /{domain:en.wikipedia.org}:
+    x-restbase:
+      security: # basically as in https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#securityRequirementObject
+        mediaWikiSecurity:
+          # ACLs that apply to all *children* accessed through this point in
+          # the tree
+          - readContent
+      specs:
+        - mediawiki/v1/content
+    get:
+      # optional: spec for a GET to /en.wikipedia.org itself
+      # can have its own security settings
+```
+
+The effective required capabilities (aka roles|scopes|..) for a given route
+are the union of the path-induced ones with those defined on the route handler
+itself. This means that path-based ACLs can only add to the required
+capabilities for subtree access, effectively locking them down further. The
+result should be fairly predictable behavior.
+
+Most of the ACL customizations between different wikis would happen at the
+authorization level anyway (mapping of identity to capabilities), which means
+that tree ACLs don't absolutely need to differ between public and private
+wikis.
+
+TODO: Actually think this through more thoroughly.
 
 ## Internal request & response objects
 ### Request
@@ -83,7 +153,7 @@ test/
 }
 ```
 #### `uri`
-The URI of the resource. Required.
+The URI of the resource. Required. Can be a string, or a `swagger-router.URI` object.
 
 #### `method` [optional]
 HTTP request method. Default `GET`. Examples: `GET`, `POST`, `PUT`, `DELETE`
