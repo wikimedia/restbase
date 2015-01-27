@@ -16,12 +16,12 @@
     }
   },
   "host": "localhost:7231",
-  "basePath": "/v1",
+  "basePath": "",
   "schemes": [
     "http"
   ],
   "paths": {
-    "/{domain}/pages/{title}/html/": {
+    "/{domain}/v1/page/{title}/html/": {
       "get": {
         "tags": [
           "Page content"
@@ -67,51 +67,6 @@
         },
         "x-amples": [
           {
-            "prerequisites": [
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/page",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                  "type": "pagecontent"
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/76f22880-362c-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/9843f080-3443-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/b9f3f880-8153-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              }
-            ],
             "request": {
               "params": {
                 "domain": "en.wikipedia.test.local",
@@ -121,14 +76,11 @@
             "response": {
               "status": 200,
               "headers": {
-                "content-type": "application/json",
-                "content-length": "128"
+                "content-type": "application/json"
               },
               "body": {
                 "items": [
-                  "b9f3f880-8153-11e4-9234-0123456789ab",
-                  "76f22880-362c-11e4-9234-0123456789ab",
-                  "9843f080-3443-11e4-9234-0123456789ab"
+
                 ]
               }
             }
@@ -136,13 +88,13 @@
         ]
       }
     },
-    "/{domain}/pages/{title}/html": {
+    "/{domain}/v1/page/{title}/html": {
       "get": {
         "tags": [
           "Page content"
         ],
         "description": "Redirects to the latest html",
-        "operationId": "getLatestFormat",
+        "operationId": "getLatestHtml",
         "parameters": [
           {
             "name": "domain",
@@ -179,43 +131,6 @@
         },
         "x-amples": [
           {
-            "prerequisites": [
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/page",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                  "type": "pagecontent"
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/76f22880-362c-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/9843f080-3443-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              }
-            ],
             "request": {
               "params": {
                 "domain": "en.wikipedia.test.local",
@@ -225,20 +140,20 @@
             "response": {
               "status": 200,
               "headers": {
-                "content-type": "text/html; charset=UTF-8"
+                "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
               }
             }
           }
         ]
       }
     },
-    "/{domain}/pages/{title}/html/{revision}": {
+    "/{domain}/v1/page/{title}/html/{revision}": {
       "get": {
         "tags": [
           "Page content"
         ],
         "description": "Returns the html for the given revision",
-        "operationId": "getFormatRevision",
+        "operationId": "getHtmlRevision",
         "produces": [
           "text/html"
         ],
@@ -291,62 +206,30 @@
         },
         "x-amples": [
           {
-            "prerequisites": [
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/page",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                  "type": "pagecontent"
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/76f22880-362c-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              }
-            ],
             "request": {
               "params": {
                 "domain": "en.wikipedia.test.local",
                 "title": "Foobar",
-                "revision": "76f22880-362c-11e4-9234-0123456789ab"
+                "revision": 624484477
               }
             },
             "response": {
               "status": 200,
               "headers": {
-                "etag": "76f22880-362c-11e4-9234-0123456789ab",
-                "content-type": "text/html; charset=UTF-8",
-                "content-length": "11"
-              },
-              "body": "Hello there"
+                "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
+              }
             }
           }
         ]
       }
     },
-    "/{domain}/pages/{title}/data-parsoid/{revision}": {
+    "/{domain}/v1/page/{title}/data-parsoid/{revision}": {
       "get": {
         "tags": [
           "Page content"
         ],
         "description": "Returns the Parsoid data for the given revision",
-        "operationId": "getFormatRevision",
+        "operationId": "getDataParsoidRevision",
         "produces": [
           "text/html"
         ],
@@ -399,47 +282,17 @@
         },
         "x-amples": [
           {
-            "prerequisites": [
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/page",
-                "headers": {
-                  "content-type": "application/json"
-                },
-                "body": {
-                  "type": "pagecontent"
-                }
-              },
-              {
-                "method": "put",
-                "uri": "/v1/en.wikipedia.test.local/pages/Foobar/html/76f22880-362c-11e4-9234-0123456789ab",
-                "headers": {
-                  "content-type": "text/html; charset=UTF-8"
-                },
-                "body": "Hello there"
-              }
-            ],
             "request": {
               "params": {
                 "domain": "en.wikipedia.test.local",
                 "title": "Foobar",
-                "revision": "76f22880-362c-11e4-9234-0123456789ab"
+                "revision": 624484477
               }
             },
             "response": {
               "status": 200,
               "headers": {
-                "etag": "76f22880-362c-11e4-9234-0123456789ab",
-                "content-type": "application/json; profile=mediawiki.org/specs/data-parsoid/1.0"
+                "content-type": "application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1"
               }
             }
           }

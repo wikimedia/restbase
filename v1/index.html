@@ -18,8 +18,8 @@
   
   
   <div class="method">
-    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/data-parsoid/{revision}</code></pre></div>
-    <div class="method-summary"><span class="nickname">getFormatRevision</span> </div>
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/v1/page/{title}/data-parsoid/{revision}</code></pre></div>
+    <div class="method-summary"><span class="nickname">getDataParsoidRevision</span> </div>
     <div class="method-notes">Returns the Parsoid data for the given revision</div>
 
     <h3 class="field-label">Parameters</h3>
@@ -44,8 +44,8 @@
   <hr>
   
   <div class="method">
-    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/html</code></pre></div>
-    <div class="method-summary"><span class="nickname">getLatestFormat</span> </div>
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/v1/page/{title}/html</code></pre></div>
+    <div class="method-summary"><span class="nickname">getLatestHtml</span> </div>
     <div class="method-notes">Redirects to the latest html</div>
 
     <h3 class="field-label">Parameters</h3>
@@ -67,7 +67,7 @@
   <hr>
   
   <div class="method">
-    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/html/</code></pre></div>
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/v1/page/{title}/html/</code></pre></div>
     <div class="method-summary"><span class="nickname">listRevisions</span> </div>
     <div class="method-notes">Returns the list of revisions</div>
 
@@ -90,8 +90,8 @@
   <hr>
   
   <div class="method">
-    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/pages/{title}/html/{revision}</code></pre></div>
-    <div class="method-summary"><span class="nickname">getFormatRevision</span> </div>
+    <div class="method-path"><pre class="get"><code class="huge"><span>get</span>: /{domain}/v1/page/{title}/html/{revision}</code></pre></div>
+    <div class="method-summary"><span class="nickname">getHtmlRevision</span> </div>
     <div class="method-notes">Returns the html for the given revision</div>
 
     <h3 class="field-label">Parameters</h3>
