@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="James Earl Douglas" />
+  <title>SOA proliferation through specification</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">SOA proliferation through specification</h1>
+  <p class="author">
+James Earl Douglas
+  </p>
+  <p class="date"><a href="https://www.mediawiki.org/wiki/MediaWiki_Developer_Summit_2015">MediaWiki Developer Summit 2015</a></p>
+</div>
+<div id="thesis" class="slide section level2">
+<h1>Thesis</h1>
+<p>Service development and consumption flourishes in a well-specified ecosystem.</p>
+</div>
+<div id="agenda" class="slide section level2">
+<h1>Agenda</h1>
+<ul>
+<li>Background</li>
+<li>Examples</li>
+<li>Roadmap</li>
+</ul>
+</div>
+<div id="background" class="slide section level2">
+<h1>Background</h1>
+<ul>
+<li>Service-oriented architecture</li>
+<li>Specification</li>
+<li>Specification formats</li>
+<li>Swagger</li>
+</ul>
+</div>
+<div id="service-oriented-architecture" class="slide section level2">
+<h1>Service-oriented architecture</h1>
+<p><strong>Feature stew</strong></p>
+<p>See also: the <a href="https://en.wikipedia.org/wiki/Join-calculus">join calculus</a></p>
+<p><strong>Composable units of functionality</strong></p>
+<ul>
+<li><code>foo</code></li>
+<li><code>bar</code></li>
+<li><code>baz = foo ∘ bar</code></li>
+</ul>
+</div>
+<div id="specification" class="slide section level2">
+<h1>Specification</h1>
+<p><strong>Establish boundaries</strong></p>
+<ul>
+<li>Limit the set of features</li>
+<li>Limit the scope of each feature</li>
+</ul>
+<p><strong>Describe the interface</strong></p>
+<p><em>&quot;To foo a bar, you must provide a baz, and you will receive a qux.&quot;</em></p>
+</div>
+<div id="specification-formats" class="slide section level2">
+<h1>Specification formats</h1>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Request_for_Comments">IETF RFC</a></li>
+<li><a href="https://www.mediawiki.org/wiki/Requests_for_comment">MW RFC</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Web_Services_Description_Language">WSDL</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Web_Application_Description_Language">WADL</a></li>
+<li><a href="https://en.wikipedia.org/wiki/RAML_%28software%29">RAML</a></li>
+<li><a href="http://apiblueprint.org/">API Blueprint</a></li>
+<li><a href="http://swagger.io/">Swagger</a></li>
+</ul>
+</div>
+<div id="swagger" class="slide section level2">
+<h1>Swagger</h1>
+<p style="margin-left: auto; margin-right: auto; width: 95%; height: 70%">
+  <iframe width="100%" height="100%" src="http://wikimedia.github.io/restbase/v1/swagger.json"></iframe>
+</p>
+
+<p><a href="http://wikimedia.github.io/restbase/v1/swagger.json"><em>http://wikimedia.github.io/restbase/v1/swagger.json</em></a></p>
+</div>
+<div id="examples" class="slide section level2">
+<h1>Examples</h1>
+<ul>
+<li>Swagger UI</li>
+<li>Swagger static documentation</li>
+<li>Swagger client generation</li>
+</ul>
+</div>
+<div id="swagger-ui" class="slide section level2">
+<h1>Swagger UI</h1>
+<p style="margin-left: auto; margin-right: auto; width: 95%; height: 70%">
+  <iframe width="100%" height="100%" src="http://wikimedia.github.io/restbase/"></iframe>
+</p>
+
+<p><a href="http://wikimedia.github.io/restbase/"><em>http://wikimedia.github.io/restbase/</em></a></p>
+</div>
+<div id="swagger-static-documentation" class="slide section level2">
+<h1>Swagger static documentation</h1>
+<p style="margin-left: auto; margin-right: auto; width: 95%; height: 70%">
+  <iframe width="100%" height="100%" src="http://wikimedia.github.io/restbase/v1/"></iframe>
+</p>
+
+<p><a href="http://wikimedia.github.io/restbase/v1/"><em>http://wikimedia.github.io/restbase/v1/</em></a></p>
+</div>
+<div id="swagger-client-generation" class="slide section level2">
+<h1>Swagger client generation</h1>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">var</span> httpsync = <span class="fu">require</span>(<span class="st">&#39;httpsync&#39;</span>);
+<span class="kw">var</span> codegen  = <span class="fu">require</span>(<span class="st">&#39;swagger-js-codegen&#39;</span>).<span class="fu">CodeGen</span>;
+<span class="kw">var</span> fs       = <span class="fu">require</span>(<span class="st">&#39;fs&#39;</span>);
+
+<span class="kw">var</span> specUrl  = <span class="st">&#39;http://wikimedia.github.io/restbase/v1/swagger.json&#39;</span>;
+<span class="kw">var</span> response = <span class="ot">httpsync</span>.<span class="fu">get</span>(specUrl).<span class="fu">end</span>();
+<span class="kw">var</span> swagger  = <span class="ot">JSON</span>.<span class="fu">parse</span>(<span class="ot">response</span>.<span class="ot">data</span>.<span class="fu">toString</span>());
+
+<span class="kw">var</span> clientJs = <span class="ot">codegen</span>.<span class="fu">getNodeCode</span>({ <span class="dt">className</span>: <span class="st">&#39;RESTBase&#39;</span>, <span class="dt">swagger</span>: swagger });
+<span class="ot">fs</span>.<span class="fu">writeFileSync</span>(<span class="st">&#39;client.js&#39;</span>, clientJs);</code></pre>
+</div>
+<div id="swagger-generated-client" class="slide section level2">
+<h1>Swagger-generated client</h1>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">var</span> RESTBase = (<span class="kw">function</span>() {
+    <span class="ot">RESTBase</span>.<span class="ot">prototype</span>.<span class="fu">listRevisions</span>     = <span class="kw">function</span>(parameters) { <span class="co">// ...</span>
+    <span class="ot">RESTBase</span>.<span class="ot">prototype</span>.<span class="fu">getLatestFormat</span>   = <span class="kw">function</span>(parameters) { <span class="co">// ...</span>
+    <span class="ot">RESTBase</span>.<span class="ot">prototype</span>.<span class="fu">getFormatRevision</span> = <span class="kw">function</span>(parameters) { <span class="co">// ...</span>
+    <span class="ot">RESTBase</span>.<span class="ot">prototype</span>.<span class="fu">getFormatRevision</span> = <span class="kw">function</span>(parameters) { <span class="co">// ...</span>
+    <span class="co">// ...</span>
+})();
+
+<span class="ot">exports</span>.<span class="fu">RESTBase</span> = RESTBase;</code></pre>
+</div>
+<div id="roadmap" class="slide section level2">
+<h1>Roadmap</h1>
+<ul>
+<li>Where we're going</li>
+<li>How we'll get there</li>
+</ul>
+</div>
+<div id="where-were-going" class="slide section level2">
+<h1>Where we're going</h1>
+<p><strong>Happy users</strong></p>
+<p>Features delivered as desired.</p>
+<p><strong>Excited developers</strong></p>
+<p>Empowered to build and deliver awesomeness.</p>
+<p><strong>Rainbows and ponies for all</strong></p>
+<p>OMG!! Ponies!!</p>
+</div>
+<div id="how-well-get-there" class="slide section level2">
+<h1>How we'll get there</h1>
+<p><strong>Q) How do we stay on track?</strong></p>
+<p><em>A) Specify it.</em></p>
+<p><strong>Spec has to be reliable</strong></p>
+<ul>
+<li>v1 can change within in the philosophy of SemVer</li>
+<li>v2 can change anything it wants</li>
+</ul>
+<p><strong>Spec-first vs. spec-last</strong></p>
+<ul>
+<li>Hitting the ground running vs. blocking by backend</li>
+<li>Deliberate vs. accidental</li>
+</ul>
+</div>
+<div id="references" class="slide section level2">
+<h1>References</h1>
+<ul>
+<li><a href="http://semver.org/">Semantic Versioning</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Design_by_contract">Design by contract</a></li>
+<li><a href="http://swagger.io/">Swagger</a></li>
+<li><a href="https://github.com/wcandillon/swagger-js-codegen">swagger-js-codegen</a></li>
+<li><a href="http://brikis98.blogspot.com/2014/05/you-are-what-you-document.html">You are what you document</a></li>
+</ul>
+</div>
+<div id="discussion" class="slide section level2">
+<h1>Discussion</h1>
+<ul>
+<li>How do you document your APIs?</li>
+<li>How do you enforce your specifications?</li>
+<li>Does your documentation catch up to your code?</li>
+<li>Does your code catch up to your documentation?</li>
+<li>What are your favorite Web services?</li>
+<li>What are your favorite APIs?</li>
+</ul>
+</div>
+</body>
+</html>
