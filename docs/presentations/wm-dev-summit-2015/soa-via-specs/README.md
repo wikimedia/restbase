@@ -14,6 +14,8 @@ Service development and consumption flourishes in a well-specified ecosystem.
 
 ## Background
 
+. . .
+
 * Service-oriented architecture
 * Specification
 * Specification formats
@@ -61,6 +63,9 @@ See also: the [join calculus](https://en.wikipedia.org/wiki/Join-calculus)
 [*http://wikimedia.github.io/restbase/v1/swagger.json*](http://wikimedia.github.io/restbase/v1/swagger.json)
 
 ## Examples
+
+. . .
+
 
 * Swagger UI
 * Swagger static documentation
@@ -112,6 +117,9 @@ exports.RESTBase = RESTBase;
 ```
 
 ## Roadmap
+
+. . .
+
 
 * Where we're going
 * How we'll get there
