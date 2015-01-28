@@ -70,6 +70,7 @@ See also: the [join calculus](https://en.wikipedia.org/wiki/Join-calculus)
 * Swagger UI
 * Swagger static documentation
 * Swagger client generation
+* Test automation
 
 ## Swagger UI
 
@@ -114,6 +115,33 @@ var RESTBase = (function() {
 })();
 
 exports.RESTBase = RESTBase;
+```
+
+## Test automation
+
+**Swagger is exensible**
+
+* Augment spec with request/response pairs
+* Use them generated documentation
+* Use them in automated tests
+
+```javascript
+"x-amples": [
+  {
+    "request": {
+      "params": {
+        "domain": "en.wikipedia.test.local",
+        "title": "Foobar"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "content-type": "text/html;profile=mediawiki.org/specs/html/1.0.0"
+      }
+    }
+  }
+]
 ```
 
 ## Roadmap

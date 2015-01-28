@@ -112,6 +112,7 @@ James Earl Douglas
 <li>Swagger UI</li>
 <li>Swagger static documentation</li>
 <li>Swagger client generation</li>
+<li>Test automation</li>
 </ul>
 </div>
 </div>
@@ -155,6 +156,31 @@ James Earl Douglas
 })();
 
 <span class="ot">exports</span>.<span class="fu">RESTBase</span> = RESTBase;</code></pre>
+</div>
+<div id="test-automation" class="slide section level2">
+<h1>Test automation</h1>
+<p><strong>Swagger is exensible</strong></p>
+<ul>
+<li>Augment spec with request/response pairs</li>
+<li>Use them generated documentation</li>
+<li>Use them in automated tests</li>
+</ul>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="st">&quot;x-amples&quot;</span>: [
+  {
+    <span class="st">&quot;request&quot;</span>: {
+      <span class="st">&quot;params&quot;</span>: {
+        <span class="st">&quot;domain&quot;</span>: <span class="st">&quot;en.wikipedia.test.local&quot;</span>,
+        <span class="st">&quot;title&quot;</span>: <span class="st">&quot;Foobar&quot;</span>
+      }
+    },
+    <span class="st">&quot;response&quot;</span>: {
+      <span class="st">&quot;status&quot;</span>: <span class="dv">200</span>,
+      <span class="st">&quot;headers&quot;</span>: {
+        <span class="st">&quot;content-type&quot;</span>: <span class="st">&quot;text/html;profile=mediawiki.org/specs/html/1.0.0&quot;</span>
+      }
+    }
+  }
+]</code></pre>
 </div>
 <div id="roadmap" class="slide section level2">
 <h1>Roadmap</h1>
