@@ -119,7 +119,7 @@ exports.RESTBase = RESTBase;
 
 ## Test automation
 
-**Swagger is exensible**
+**Swagger is extensible**
 
 * Augment spec with request/response pairs
 * Use them generated documentation
