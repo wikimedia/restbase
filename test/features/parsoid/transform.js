@@ -25,7 +25,7 @@ function readFile(filename) {
 // find dirs matching the pattern "{foo}2{bar}"
 function findSpecDirs() {
     var specDirs = [];
-    var specDirPattern = /^(.+)2(.+)$/;
+    var specDirPattern = /^(.+)2([^_]+)(_\w+)?$/;
     function isDir(x) {
         return fs.statSync(x).isDirectory();
     }
@@ -76,12 +76,38 @@ function findSpecs() {
 }
 
 function x2y(spec) {
+
+    function makeReq(filename) {
+        var req = {
+          uri: server.config.baseURL + '/transform/' + spec.from.format +
+               '/to/' + spec.to.format,
+        };
+        if (/\.json$/.test(filename)) {
+            req.headers = { 'content-type': 'application/json' };
+            req.body = readFile(spec.from.src);
+        } else if (/\.html$/.test(filename)) {
+            req.headers = {
+              'content-type': 'multipart/form-data; ' +
+                              'boundary=------------------------90ff8390568074be'
+            };
+            req.body = '--------------------------90ff8390568074be\n' +
+                       '\n' +
+                       'Content-Disposition: form-data; name="html"\n' +
+                       '\n' +
+                       'Content-Type: text/html\n' +
+                       '\n' +
+                       '\n' +
+                       '\n' +
+                       readFile(spec.from.src) +
+                       '\n' +
+                       '\n' +
+                       '--------------------------90ff8390568074be--\n';
+        }
+        return req;
+    }
+
     function test() {
-        return preq.post({
-            uri: server.config.baseURL + '/transform/' + spec.from.format + '/to/' + spec.to.format,
-            headers: { 'content-type': 'application/json' },
-            body: readFile(spec.from.src)
-        })
+        return preq.post(makeReq(spec.from.src))
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, readFile(spec.to.src));
