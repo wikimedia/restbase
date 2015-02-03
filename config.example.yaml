@@ -89,9 +89,14 @@ templates:
 #                uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
 
   wp-default-1.0.0: &wp/default/1.0.0
+    x-spec-root:
+      swagger: 2.0
+      info:
+        title: Wikipedia Content API
+        version: 0.0.1
+        description:
     x-subspecs:
       - *wp/content/1.0.0
-                  
 
 
 spec:
