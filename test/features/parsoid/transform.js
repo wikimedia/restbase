@@ -98,8 +98,7 @@ function x2y(spec) {
                        '\n' +
                        '\n' +
                        '\n' +
-                       readFile(spec.from.src) +
-                       '\n' +
+                       readFile(spec.from.src) + '\n' +
                        '\n' +
                        '--------------------------90ff8390568074be--\n';
         }
