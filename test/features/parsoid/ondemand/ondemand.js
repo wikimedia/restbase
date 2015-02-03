@@ -6,10 +6,10 @@
 // These tests are derived from https://phabricator.wikimedia.org/T75955,
 // section 'On-demand generation of HTML and data-parsoid'
 
-var assert = require('../../utils/assert.js');
+var assert = require('../../../utils/assert.js');
+var server = require('../../../utils/server.js');
 var preq   = require('preq');
 var fs     = require('fs');
-var server = require('../../utils/server.js');
 
 function exists(xs, f) {
     for (var i = 0; i < xs.length; i++) {
@@ -38,9 +38,20 @@ function wentToParsoid(slice) {
     });
 }
 
-var contentUrl = server.config.bucketURL + '/Main_Page';
-var revA = '139992';
-var revB = '139993';
+function validate(revision, res) {
+    assert.deepEqual(res.status, 200);
+    assert.deepEqual(
+        res.headers['content-type'],
+        "text/html;profile=mediawiki.org/specs/html/1.0.0"
+    );
+    var filename = 'test/features/parsoid/ondemand/LCX-' + revision + '.html';
+    var expected = fs.readFileSync(filename).toString();
+    assert.deepEqual(res.body, expected);
+}
+
+var revA = '45451075';
+var revB = '623616192';
+var contentUrl = server.config.bucketURL + '/LCX';
 
 describe('on-demand generation of html and data-parsoid', function() {
     this.timeout(20000);
@@ -54,7 +65,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.deepEqual(res.status, 200);
+            validate(revA, res);
             assert.deepEqual(localRequestsOnly(slice), false);
             assert.deepEqual(wentToParsoid(slice), true);
         });
@@ -67,7 +78,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.deepEqual(res.status, 200);
+            validate(revB, res);
             assert.deepEqual(localRequestsOnly(slice), false);
             assert.deepEqual(wentToParsoid(slice), true);
         });
@@ -80,7 +91,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.deepEqual(res.status, 200);
+            validate(revB, res);
             assert.deepEqual(localRequestsOnly(slice), true);
             assert.deepEqual(wentToParsoid(slice), false);
         });
@@ -99,25 +110,9 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-
-            // Ensure the response status is 200
-            assert.deepEqual(res.status, 200);
-
-            // Inspect the request/response log to make sure Restbase only made local requests
+            validate(revB, res);
             assert.deepEqual(localRequestsOnly(slice), false);
-
-            // Inspect the request/response log to make sure Restbase made a request to Parsoid
             assert.deepEqual(wentToParsoid(slice), true);
-
-            // Ensure the response body is an object with the correct spec. content type
-            assert.deepEqual(res.headers['content-type'],
-						"text/html;profile=mediawiki.org/specs/html/1.0.0");
-
-            // Sanity check that the response body is an object with the right body content
-            assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
-
-            // Sanity check that the response body is an object with the right body content
-            assert.deepEqual(/<\/html>$/.test(res.body), true);
         });
     });
 
