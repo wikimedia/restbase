@@ -38,15 +38,26 @@ function wentToParsoid(slice) {
     });
 }
 
-function validate(revision, res) {
+function validate(revision, res, format) {
     assert.deepEqual(res.status, 200);
-    assert.deepEqual(
-        res.headers['content-type'],
-        "text/html;profile=mediawiki.org/specs/html/1.0.0"
-    );
-    var filename = 'test/features/parsoid/ondemand/LCX-' + revision + '.html';
-    var expected = fs.readFileSync(filename).toString();
-    assert.deepEqual(res.body, expected);
+    var expectedContentType = '';
+    var body = '';
+    if (format === 'html') {
+      expectedContentType = 'text/html;profile=mediawiki.org/specs/html/1.0.0';
+      body = res.body;
+    } else if (format === 'json') {
+      expectedContentType =
+        'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1';
+      body = JSON.stringify(res.body, null, 2);
+    }
+    assert.deepEqual(res.headers['content-type'], expectedContentType);
+    var filename = 'test/features/parsoid/ondemand/LCX-' + revision + '.' + format;
+    var expectedBody = fs.readFileSync(filename).toString();
+
+    // readFileSync seems to append a line feed
+    expectedBody = expectedBody.replace(/\n$/, '');
+
+    assert.deepEqual(body, expectedBody);
 }
 
 var revA = '45451075';
@@ -61,11 +72,11 @@ describe('on-demand generation of html and data-parsoid', function() {
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/html/' + revA,
+            uri: contentUrl + '/data-parsoid/' + revA,
         })
         .then(function (res) {
             slice.halt();
-            validate(revA, res);
+            validate(revA, res, 'json');
             assert.deepEqual(localRequestsOnly(slice), false);
             assert.deepEqual(wentToParsoid(slice), true);
         });
@@ -78,7 +89,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            validate(revB, res);
+            validate(revB, res, 'html');
             assert.deepEqual(localRequestsOnly(slice), false);
             assert.deepEqual(wentToParsoid(slice), true);
         });
@@ -91,7 +102,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            validate(revB, res);
+            validate(revB, res, 'html');
             assert.deepEqual(localRequestsOnly(slice), true);
             assert.deepEqual(wentToParsoid(slice), false);
         });
@@ -110,7 +121,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            validate(revB, res);
+            validate(revB, res, 'html');
             assert.deepEqual(localRequestsOnly(slice), false);
             assert.deepEqual(wentToParsoid(slice), true);
         });

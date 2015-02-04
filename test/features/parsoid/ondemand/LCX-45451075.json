@@ -1,0 +1,28 @@
+{
+  "counter": 1,
+  "ids": {
+    "mwAA": {
+      "dsr": [
+        0,
+        34,
+        0,
+        0
+      ]
+    },
+    "mwAQ": {
+      "src": "#REDIRECT ",
+      "a": {
+        "href": "./Left_coronary_artery"
+      },
+      "sa": {
+        "href": "Left coronary artery"
+      },
+      "dsr": [
+        0,
+        34,
+        null,
+        null
+      ]
+    }
+  }
+}
