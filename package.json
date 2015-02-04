@@ -45,6 +45,7 @@
     "restbase-cassandra": "~0.3.7",
     "restbase-mod-table-cassandra": "git+https://github.com/wikimedia/restbase-cassandra#restbase-mod-table-cassandra",
     "swagger-router": "git+https://github.com/wikimedia/swagger-router#master",
+    "swagger-ui": "^2.1.1-M1",
     "url-template": "2.0.4",
     "yargs": "~1.3.0"
   },
