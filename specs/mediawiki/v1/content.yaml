@@ -18,6 +18,7 @@ paths:
     get:
       tags:
         - Page content
+      description: List pages
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
@@ -25,7 +26,7 @@ paths:
     get:
       tags:
         - Page content
-      description: Redirects to the latest html
+      description: Retrieve the latest html
       operationId: getLatestFormat
       parameters:
         - name: domain
@@ -61,7 +62,7 @@ paths:
     get:
       tags:
         - Page content
-      description: Returns the list of revisions
+      description: List all HTML revisions for a page
       operationId: listKeyRevValueRevisions
       produces:
         - application/json
@@ -96,7 +97,7 @@ paths:
     get:
       tags:
         - Page content
-      description: Returns the html for the given revision
+      description: Retrieve the html for a given revision (and optional timeuuid)
       operationId: getFormatRevision
       produces:
         - text/html
@@ -141,6 +142,7 @@ paths:
     get:
       tags:
         - Page content
+      description: List data-parsoid revisions for a page
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
@@ -148,7 +150,7 @@ paths:
     get:
       tags:
         - Page content
-      description: Returns the Parsoid data for the given revision
+      description: Retrieve data-parsoid (internal Parsoid metadata) for a given page & revision
       operationId: getFormatRevision
       produces:
         - text/html
@@ -194,6 +196,33 @@ paths:
     post:
       tags:
         - Transforms
+      description: Transform HTML to wikitext
+      consumes:
+        - multipart/form-data
+      produces:
+        - text/plain; profile=mediawiki.org/specs/wikitext/1.0.0
+      parameters:
+        - name: domain
+          in: path
+          description: The top-level API domain
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: false
+        - name: html
+          in: formData
+          description: The HTML to transform
+          type: string
+          required: true
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
 
@@ -201,6 +230,38 @@ paths:
     post:
       tags:
         - Transforms
+      description: Transform wikitext to HTML
+      consumes:
+        - multipart/form-data
+      produces:
+        - text/html; profile=mediawiki.org/specs/html/1.0.0
+      parameters:
+        - name: domain
+          in: path
+          description: The top-level API domain
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: false
+        - name: wikitext
+          in: formData
+          description: The Wikitext to transform to HTML
+          type: string
+          required: true
+        - name: bodyOnly
+          in: formData
+          description: Return only `body.innerHTML`
+          type: boolean
+          required: false
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
 
@@ -208,6 +269,38 @@ paths:
     post:
       tags:
         - Transforms
+      description: Update / refresh / sanitize HTML
+      consumes:
+        - multipart/form-data
+      produces:
+        - text/html; profile=mediawiki.org/specs/html/1.0.0
+      parameters:
+        - name: domain
+          in: path
+          description: The top-level API domain
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: false
+        - name: html
+          in: formData
+          description: The HTML to transform
+          type: string
+          required: true
+        - name: bodyOnly
+          in: formData
+          description: Return only `body.innerHTML`
+          type: boolean
+          required: false
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 
