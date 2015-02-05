@@ -16,13 +16,15 @@ paths:
 
   /{module:page}/:
     get:
+      tags:
+        - Page content
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
   /{module:page}/{title}/html:
     get:
       tags:
-        - page content
+        - Page content
       description: Redirects to the latest html
       operationId: getLatestFormat
       parameters:
@@ -137,6 +139,8 @@ paths:
 
   /{module:page}/{title}/data-parsoid/:
     get:
+      tags:
+        - Page content
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
@@ -188,16 +192,22 @@ paths:
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:
+      tags:
+        - Transforms
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
     post:
+      tags:
+        - Transforms
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
 
   /{module:transform}/html/to/html{/title}{/revision}:
     post:
+      tags:
+        - Transforms
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 
