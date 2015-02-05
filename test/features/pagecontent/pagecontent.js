@@ -67,6 +67,41 @@ describe('item requests', function() {
         });
     });
 
+    it('should list APIs using the generic listing handler', function() {
+        return preq.get({
+            uri: server.config.hostPort + '/en.wikipedia.test.local/'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'application/json');
+            assert.deepEqual(res.body, {
+                items: ['sys', 'v1' ]
+            });
+        });
+    });
+
+    it('should retrieve the spec', function() {
+        return preq.get({
+            uri: server.config.baseURL + '/?spec'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'application/json');
+            assert.deepEqual(res.body.swagger, '2.0');
+        });
+    });
+
+    it('should retrieve the swagger-ui main page', function() {
+        return preq.get({
+            uri: server.config.baseURL + '/?doc'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'text/html');
+            assert.deepEqual(/<html/.exec(res.body)[0], '<html');
+        });
+    });
+
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
     //    this.timeout(20000);
     //    return preq.get({
