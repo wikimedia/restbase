@@ -22,6 +22,23 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
+  /{module:page}/{title}:
+    get:
+      tags:
+        - Page content
+      description: Redirect to the latest HTML for this page
+      # TODO
+      # x-backend-request:
+      #   uri: /{domain}/sys/page_revisions/page/
+
+  /{module:page}/{title}/:
+    get:
+      tags:
+        - Page content
+      description: List available content types for a page
+      produces:
+        - application/json
+
   /{module:page}/{title}/html:
     get:
       tags:
@@ -138,11 +155,71 @@ paths:
         headers:
           cache-control: $req.headers.cache-control
 
+  /{module:page}/{title}/data-parsoid:
+    get:
+      tags:
+        - Page content
+      description: Retrieve the latest data-parsoid (private Parsoid metadata)
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: the title of page content
+          type: string
+          required: true
+      responses:
+        200:
+          description: data-parsoid JSON blob
+        '404':
+          description: unknown table, bucket, or domain
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
+      x-backend-request:
+        # Directly return the latest HTML. Alternatively, we could also try
+        # relative redirects. A relative location header of 'foo/bar' seems to
+        # work in current Chrome and Firefox.
+        # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}/latest
+
   /{module:page}/{title}/data-parsoid/:
     get:
       tags:
         - Page content
       description: List data-parsoid revisions for a page
+      produces:
+        - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: The title of page content
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of revisions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/revisions'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
