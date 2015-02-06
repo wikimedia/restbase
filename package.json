@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
@@ -42,7 +42,7 @@
     "node-uuid": "git+https://github.com/gwicke/node-uuid#master",
     "preq": "~0.3.6",
     "request": "^2.44.0",
-    "restbase-mod-table-cassandra": "~0.4.0",
+    "restbase-mod-table-cassandra": "~0.4.1",
     "swagger-router": "git+https://github.com/wikimedia/swagger-router#master",
     "swagger-ui": "^2.1.1-M1",
     "url-template": "2.0.4",
