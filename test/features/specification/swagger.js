@@ -6,6 +6,7 @@
 var preq   = require('preq');
 var assert = require('../../utils/assert.js');
 var specs  = require('../../utils/specs.js');
+var swaggerTest = require('swagger-test');
 var server = require('../../utils/server.js');
 
     var prereqs = [
@@ -21,7 +22,10 @@ describe('swagger spec', function () {
 
     before(function () { return server.start(); });
 
-    var xamples = specs.parseXamples(specs.get(), server.config.hostPort);
+    var swaggerSpec = specs.get();
+    swaggerSpec.host = server.config.hostPort;
+
+    var xamples = swaggerTest.parse(swaggerSpec);
 
     it('should run ' + prereqs.length + ' idempotent prerequisites', function() {
         var count = 0;
