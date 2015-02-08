@@ -43,7 +43,7 @@
     "preq": "~0.3.6",
     "request": "^2.44.0",
     "restbase-mod-table-cassandra": "~0.4.1",
-    "swagger-router": "git+https://github.com/wikimedia/swagger-router#master",
+    "swagger-router": "^0.0.3",
     "swagger-ui": "^2.1.1-M1",
     "url-template": "2.0.4",
     "yargs": "~1.3.0"
@@ -51,9 +51,9 @@
   "devDependencies": {
     "mocha": "~1.x.x",
     "mocha-jshint": "0.0.9",
-    "heapdump": "0.3.3",
     "istanbul": "0.3.5",
     "mocha-lcov-reporter": "0.0.1",
-    "coveralls": "2.11.2"
+    "coveralls": "2.11.2",
+    "heapdump": "^0.3.3"
   }
 }
