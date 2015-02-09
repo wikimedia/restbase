@@ -262,7 +262,51 @@ paths:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
         headers:
           cache-control: $req.headers.cache-control
-              
+
+  /{module:page}/revision/:
+    get:
+      tags:
+        - Page content
+        - Revision
+      description: List available revisions
+      produces:
+        - application/json
+
+  /{module:page}/revision/{revision}:
+    get:
+      tags:
+        - Page content
+        - Revision
+      description: Get meta-data about a specific revision
+      produces:
+        - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: revision
+          in: path
+          description: The revision id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The revision's properties
+        '404':
+          description: Unknown revision id or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      # x-backend-request:
+      #   uri: /{domain}/sys/key_rev_value/{revision}
+      #   headers:
+      #     cache-control: $req.headers.cache-control
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:
