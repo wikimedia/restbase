@@ -18,28 +18,23 @@ paths:
     get:
       tags:
         - Page content
-      description: List pages
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/page/
+      description: List page properties
 
-  /{module:page}/{title}:
+  /{module:page}/title/:
     get:
       tags:
         - Page content
-      description: Redirect to the latest HTML for this page
-      # TODO
-      # x-backend-request:
-      #   uri: /{domain}/sys/page_revisions/page/
+      description: List all known pages
 
-  /{module:page}/{title}/:
+  /{module:page}/title/{title}/:
     get:
       tags:
         - Page content
-      description: List available content types for a page
+      description: List page meta-data
       produces:
         - application/json
 
-  /{module:page}/{title}/html:
+  /{module:page}/html/{title}:
     get:
       tags:
         - Page content
@@ -75,7 +70,7 @@ paths:
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}/latest
 
-  /{module:page}/{title}/html/:
+  /{module:page}/html/{title}/:
     get:
       tags:
         - Page content
@@ -110,7 +105,7 @@ paths:
         uri: /{domain}/sys/parsoid/html/{title}/
 
 
-  /{module:page}/{title}/html/{revision}{/tid}:
+  /{module:page}/html/{title}/{revision}{/tid}:
     get:
       tags:
         - Page content
@@ -155,7 +150,7 @@ paths:
         headers:
           cache-control: $req.headers.cache-control
 
-  /{module:page}/{title}/data-parsoid:
+  /{module:page}/data-parsoid/{title}:
     get:
       tags:
         - Page content
@@ -190,7 +185,7 @@ paths:
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/latest
 
-  /{module:page}/{title}/data-parsoid/:
+  /{module:page}/data-parsoid/{title}/:
     get:
       tags:
         - Page content
@@ -223,7 +218,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
-  /{module:page}/{title}/data-parsoid/{revision}{/tid}:
+  /{module:page}/data-parsoid/{title}/{revision}{/tid}:
     get:
       tags:
         - Page content
