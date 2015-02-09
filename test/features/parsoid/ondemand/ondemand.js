@@ -59,7 +59,8 @@ function assertWentToParsoid(slice, expected) {
 
 var revA = '45451075';
 var revB = '623616192';
-var contentUrl = server.config.bucketURL + '/LCX';
+var title = 'LCX';
+var pageUrl = server.config.bucketURL;
 
 describe('on-demand generation of html and data-parsoid', function() {
     this.timeout(20000);
@@ -69,7 +70,7 @@ describe('on-demand generation of html and data-parsoid', function() {
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/data-parsoid/' + revA,
+            uri: pageUrl + '/data-parsoid/' + title + '/' + revA,
         })
         .then(function (res) {
             slice.halt();
@@ -84,7 +85,7 @@ describe('on-demand generation of html and data-parsoid', function() {
     it('should transparently create revision B via Parsoid', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/html/' + revB,
+            uri: pageUrl + '/html/' + title + '/' + revB,
         })
         .then(function (res) {
             slice.halt();
@@ -99,7 +100,7 @@ describe('on-demand generation of html and data-parsoid', function() {
     it('should retrieve html revision B from storage', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/html/' + revB,
+            uri: pageUrl + '/html/' + title + '/' + revB,
         })
         .then(function (res) {
             slice.halt();
@@ -114,7 +115,7 @@ describe('on-demand generation of html and data-parsoid', function() {
     it('should retrieve data-parsoid revision B from storage', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/data-parsoid/' + revB,
+            uri: pageUrl + '/data-parsoid/' + title + '/' + revB,
         })
         .then(function (res) {
             slice.halt();
@@ -131,7 +132,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         // Start watching for new log entries
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/html/' + revB,
+            uri: pageUrl + '/html/' + title + '/' + revB,
             headers: {
                 'cache-control': 'no-cache'
             },
@@ -152,7 +153,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         // Start watching for new log entries
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: contentUrl + '/data-parsoid/' + revB,
+            uri: pageUrl + '/data-parsoid/' + title + '/' + revB,
             headers: {
                 'cache-control': 'no-cache'
             },

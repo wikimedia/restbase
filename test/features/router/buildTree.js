@@ -74,7 +74,7 @@ describe('tree building', function() {
         })
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
-            var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
+            var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
             //console.log(handler);
             assert.equal(resourceRequests.length > 0, true);
             assert.equal(!!handler.value.methods.get, true);

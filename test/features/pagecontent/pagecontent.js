@@ -13,7 +13,7 @@ describe('item requests', function() {
     before(function () { return server.start(); });
 
     it('should respond to OPTIONS request with CORS headers', function() {
-        return preq.options({ uri: server.config.bucketURL + '/Foobar/html/624484477' })
+        return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['access-control-allow-origin'], '*');
@@ -23,7 +23,7 @@ describe('item requests', function() {
     });
     it('should transparently create a new HTML revision with id 624484477', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/Foobar/html/624484477',
+            uri: server.config.bucketURL + '/html/Foobar/624484477',
             body: 'Hello there'
         })
         .then(function(res) {
@@ -32,7 +32,7 @@ describe('item requests', function() {
     });
     it('should transparently create data-parsoid with id 624165266, rev 2', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/Foobar/html/624165266'
+            uri: server.config.bucketURL + '/html/Foobar/624165266'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -40,7 +40,7 @@ describe('item requests', function() {
     });
     it('should return HTML just created by revision 624165266', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/Foobar/html/624165266'
+            uri: server.config.bucketURL + '/html/Foobar/624165266'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -49,7 +49,7 @@ describe('item requests', function() {
     });
     it('should return data-parsoid just created by revision 624165266, rev 2', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/Foobar/data-parsoid/624165266'
+            uri: server.config.bucketURL + '/data-parsoid/Foobar/624165266'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -59,7 +59,7 @@ describe('item requests', function() {
 
     it('should return data-parsoid just created with revision 624484477, rev 2', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/Foobar/data-parsoid/624484477'
+            uri: server.config.bucketURL + '/data-parsoid/Foobar/624484477'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
