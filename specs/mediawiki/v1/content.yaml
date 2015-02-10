@@ -36,6 +36,14 @@ paths:
       produces:
         - application/json
 
+  /{module:page}/html/:
+    get:
+      tags:
+        - Page content
+      description: List titles for which the HTML property is available
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/
+
   /{module:page}/html/{title}:
     get:
       tags:
@@ -151,6 +159,16 @@ paths:
         uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
         headers:
           cache-control: $req.headers.cache-control
+
+  /{module:page}/data-parsoid/:
+    get:
+      tags:
+        - Page content
+      description: List titles for which the data-parsoid property is available
+      x-backend-request:
+        # Fixme: only list pages that have at least one revision with content
+        # model 'wikitext'
+        uri: /{domain}/sys/page_revisions/page/
 
   /{module:page}/data-parsoid/{title}:
     get:
