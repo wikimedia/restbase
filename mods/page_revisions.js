@@ -70,8 +70,7 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'rev', type: 'hash' },
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
-                { attribute: 'restrictions', type: 'proj' },
-                { attribute: 'tags', type: 'proj' }
+                { attribute: 'restrictions', type: 'proj' }
             ]
         }
     };
