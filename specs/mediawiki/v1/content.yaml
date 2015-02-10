@@ -18,13 +18,15 @@ paths:
     get:
       tags:
         - Page content
-      description: List page properties
+      description: List page properties / page content sub-apis
 
   /{module:page}/title/:
     get:
       tags:
         - Page content
       description: List all known pages
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/
 
   /{module:page}/title/{title}/:
     get:
