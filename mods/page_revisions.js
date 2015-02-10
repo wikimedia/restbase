@@ -45,7 +45,7 @@ PRS.prototype.getTableSchema = function () {
             tid: 'timeuuid',
             // revision deletion or suppression, can be:
             // - sha1hidden, commenthidden, texthidden
-            hidden: 'set<string>',
+            restrictions: 'set<string>',
             // Revision tags. Examples:
             // - minor revision
             tags: 'set<string>',
@@ -70,7 +70,7 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'rev', type: 'hash' },
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
-                { attribute: 'hidden', type: 'proj' },
+                { attribute: 'restrictions', type: 'proj' },
                 { attribute: 'tags', type: 'proj' }
             ]
         }
@@ -137,8 +137,8 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
         var dataResp = apiRes.body.items[0];
         // the revision info
         var apiRev = dataResp.revisions[0];
-        // are there any hidden fields set?
-        var hidden = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key) });
+        // are there any restrictions set?
+        var restrictions = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key) });
         // the tid to store this info under
         var tid = rbUtil.tidFromDate(apiRev.timestamp);
         return restbase.put({ // Save / update the revision entry
@@ -156,7 +156,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     user_text: apiRev.user,
                     comment: apiRev.comment,
                     tags: apiRev.tags,
-                    hidden: hidden
+                    restrictions: restrictions
                 }
             }
         })
