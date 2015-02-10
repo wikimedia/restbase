@@ -43,8 +43,10 @@ PRS.prototype.getTableSchema = function () {
             rev: 'int',             // MediaWiki oldid
             latest_rev: 'int',      // Latest MediaWiki revision
             tid: 'timeuuid',
+            // revision deletion or suppression, can be:
+            // - sha1hidden, commenthidden, texthidden
+            hidden: 'set<string>',
             // Revision tags. Examples:
-            // - revision deletion or suppression
             // - minor revision
             tags: 'set<string>',
             // Page renames. null, to:destination or from:source
@@ -68,6 +70,7 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'rev', type: 'hash' },
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
+                { attribute: 'hidden', type: 'proj' },
                 { attribute: 'tags', type: 'proj' }
             ]
         }
@@ -108,7 +111,8 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             format: 'json',
             action: 'query',
             prop: 'revisions',
-            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment'
+            continue: '',
+            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags'
         }
     };
     if (/^[0-9]+$/.test(rp.revision)) {
@@ -129,24 +133,36 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                 }
             });
         }
-        var apiRev = apiRes.body.items[0].revisions[0];
+        // the response item
+        var dataResp = apiRes.body.items[0];
+        // the revision info
+        var apiRev = dataResp.revisions[0];
+        // are there any hidden fields set?
+        var hidden = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key) });
+        // the tid to store this info under
         var tid = rbUtil.tidFromDate(apiRev.timestamp);
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: rp.title,
+                    // FIXME: if a title has been given, check it
+                    // matches the one returned by the MW API
+                    // cf. https://phabricator.wikimedia.org/T87393
+                    title: dataResp.title,
                     rev: parseInt(apiRev.revid),
                     tid: tid,
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
-                    comment: apiRev.comment
+                    comment: apiRev.comment,
+                    tags: apiRev.tags,
+                    hidden: hidden
                 }
             }
         })
         .then(function() {
             rp.revision = apiRev.revid + '';
+            rp.title = dataResp.title;
             return self.getTitleRevision(restbase, req);
         });
     });
@@ -155,8 +171,6 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
 PRS.prototype.getTitleRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
-
-
     var revisionRequest;
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
