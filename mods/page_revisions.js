@@ -230,6 +230,7 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
 
 PRS.prototype.getRevision = function(restbase, req) {
     var rp = req.params;
+    var self = this;
     // sanity check
     if (!/^[0-9]+$/.test(rp.revision)) {
         throw new rbUtil.HTTPError({
@@ -240,16 +241,6 @@ PRS.prototype.getRevision = function(restbase, req) {
             }
         });
     }
-    // TODO TODO TODO
-    // Currently, we cannot query Cassandra without specifying
-    // relevant fields in the primary key, which is what we nned
-    // to do in this case (as we do not have a title, but only a
-    // revision id). Therefore, until this issue is resolved, we
-    // have to ask the MW API directly about the revision info and
-    // store it before giving it to the user, even if we have that
-    // info stored already.
-    return this.fetchAndStoreMWRevision(restbase, req);
-    // END TODO END
     if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
         // ask the MW API directly and
         // store and return its result
@@ -261,6 +252,7 @@ PRS.prototype.getRevision = function(restbase, req) {
         uri: this.tableURI(rp.domain),
         body: {
             table: this.tableName,
+            index: 'by_rev',
             attributes: {
                 rev: parseInt(rp.revision)
             },
