@@ -335,6 +335,10 @@ paths:
       responses:
         '200':
           description: The revision's properties
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/invalidRevision'
         '404':
           description: Unknown revision id or domain
           schema:
@@ -343,10 +347,8 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/defaultError'
-      # x-backend-request:
-      #   uri: /{domain}/sys/key_rev_value/{revision}
-      #   headers:
-      #     cache-control: $req.headers.cache-control
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/rev/{revision}
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:

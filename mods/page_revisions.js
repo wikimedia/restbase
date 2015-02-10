@@ -228,6 +228,53 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
     });
 };
 
+PRS.prototype.getRevision = function(restbase, req) {
+    // TODO TODO TODO
+    // Currently, we cannot query Cassandra without specifying
+    // relevant fields in the primary key, which is what we nned
+    // to do in this case (as we do not have a title, but only a
+    // revision id). Therefore, until this issue is resolved, we
+    // have to ask the MW API directly about the revision info and
+    // store it before giving it to the user, even if we have that
+    // info stored already.
+    return this.fetchAndStoreMWRevision(restbase, req);
+    // END TODO END
+    var rp = req.params;
+    if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+        // ask the MW API directly and
+        // store and return its result
+        return this.fetchAndStoreMWRevision(restbase, req);
+    }
+    // sanity check
+    if (!/^[0-9]+$/.test(rp.revision)) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalidRevision',
+                description: 'Invalid revision specified.'
+            }
+        });
+    }
+    // check the storage, and, if no match is found
+    // ask the MW API about the revision
+    return restbase.get({
+        uri: this.tableURI(rp.domain),
+        body: {
+            table: this.tableName,
+            attributes: {
+                rev: parseInt(rp.revision)
+            },
+            limit: 1
+        }
+    })
+    .catch(function(e) {
+        if (e.status !== 404) {
+            throw e;
+        }
+        return self.fetchAndStoreMWRevision(restbase, req);
+    });
+};
+
 module.exports = function(options) {
     var prs = new PRS(options);
     // XXX: add docs
@@ -238,6 +285,7 @@ module.exports = function(options) {
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
             //getTitleRevisionId: prs.getTitleRevisionId.bind(prs)
+            getRevision: prs.getRevision.bind(prs),
         },
         resources: [
             {
