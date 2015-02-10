@@ -229,6 +229,17 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
 };
 
 PRS.prototype.getRevision = function(restbase, req) {
+    var rp = req.params;
+    // sanity check
+    if (!/^[0-9]+$/.test(rp.revision)) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalidRevision',
+                description: 'Invalid revision specified.'
+            }
+        });
+    }
     // TODO TODO TODO
     // Currently, we cannot query Cassandra without specifying
     // relevant fields in the primary key, which is what we nned
@@ -239,21 +250,10 @@ PRS.prototype.getRevision = function(restbase, req) {
     // info stored already.
     return this.fetchAndStoreMWRevision(restbase, req);
     // END TODO END
-    var rp = req.params;
     if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
         // ask the MW API directly and
         // store and return its result
         return this.fetchAndStoreMWRevision(restbase, req);
-    }
-    // sanity check
-    if (!/^[0-9]+$/.test(rp.revision)) {
-        throw new rbUtil.HTTPError({
-            status: 400,
-            body: {
-                type: 'invalidRevision',
-                description: 'Invalid revision specified.'
-            }
-        });
     }
     // check the storage, and, if no match is found
     // ask the MW API about the revision
