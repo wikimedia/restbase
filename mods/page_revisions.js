@@ -193,29 +193,6 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     // TODO: handle other revision formats (tid)
 };
 
-PRS.prototype.putFormatRevision = function(restbase, req) {
-    var rp = req.params;
-    // Check the local db
-    var revTable = rp.bucket + '.' + rp.format;
-    var beReq = {
-        uri: '/v1/' + rp.domain + '/' + revTable + '/'
-                    + rp.key + '/' + rp.revision,
-        headers: req.headers,
-        body: req.body
-    };
-    return restbase.put(beReq);
-};
-
-PRS.prototype.listItem = function(restbase, req) {
-    return Promise.resolve({
-        status: 200,
-        body: {
-            items: ['html','data-parsoid'],
-            comment: 'TODO: update this dynamically from bucket metadata!'
-        }
-    });
-};
-
 PRS.prototype.listTitleRevisions = function(restbase, req) {
     var rp = req.params;
     return restbase.get({
