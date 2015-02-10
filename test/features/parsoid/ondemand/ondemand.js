@@ -20,44 +20,41 @@ function exists(xs, f) {
     return false;
 }
 
-// returns true if all requests in this slice went to
+// assert whether content type was as expected
+function assertContentType(res, expected) {
+    var actual = res.headers['content-type'];
+    assert.deepEqual(actual, expected,
+        'Expected content-type to be ' + expected + ', but was ' + actual);
+}
+
+// assert whether all requests in this slice went to
 // /v1/en.wikipedia.test.local/***
-function localRequestsOnly(slice) {
-    return !exists(slice.get(), function(line) {
-      var entry = JSON.parse(line);
-      return !/^\/en\.wikipedia\.test\.local\//.test(entry.req.uri);
-    });
+function assertLocalRequestsOnly(slice, expected) {
+    assert.deepEqual(
+        !exists(slice.get(), function(line) {
+            var entry = JSON.parse(line);
+            return !/^\/en\.wikipedia\.test\.local\//.test(entry.req.uri);
+        }),
+        expected,
+        expected ?
+          'Should not have made remote request' :
+          'Should have made a remote request'
+    );
 }
 
-// return true if some requests in this slice went to
+// assert whether some requests in this slice went to
 // http://parsoid-lb.eqiad.wikimedia.org/v2/**
-function wentToParsoid(slice) {
-    return exists(slice.get(), function(line) {
-      var entry = JSON.parse(line);
-      return /^http:\/\/parsoid-lb\.eqiad\.wikimedia\.org\/v2\//.test(entry.req.uri);
-    });
-}
-
-function validate(revision, res, format) {
-    assert.deepEqual(res.status, 200);
-    var expectedContentType = '';
-    var body = '';
-    if (format === 'html') {
-      expectedContentType = 'text/html;profile=mediawiki.org/specs/html/1.0.0';
-      body = res.body;
-    } else if (format === 'json') {
-      expectedContentType =
-        'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1';
-      body = JSON.stringify(res.body, null, 2);
-    }
-    assert.deepEqual(res.headers['content-type'], expectedContentType);
-    var filename = 'test/features/parsoid/ondemand/LCX-' + revision + '.' + format;
-    var expectedBody = fs.readFileSync(filename).toString();
-
-    // readFileSync seems to append a line feed
-    expectedBody = expectedBody.replace(/\n$/, '');
-
-    assert.deepEqual(body, expectedBody);
+function assertWentToParsoid(slice, expected) {
+    assert.deepEqual(
+        exists(slice.get(), function(line) {
+            var entry = JSON.parse(line);
+            return /^http:\/\/parsoid-lb\.eqiad\.wikimedia\.org\/v2\//.test(entry.req.uri);
+        }),
+        expected,
+        expected ?
+          'Should have made a remote request to Parsoid' :
+          'Should not have made a remote request to Parsoid'
+    );
 }
 
 var revA = '45451075';
@@ -76,9 +73,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            validate(revA, res, 'json');
-            assert.deepEqual(localRequestsOnly(slice), false);
-            assert.deepEqual(wentToParsoid(slice), true);
+            assertContentType(res,
+              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.deepEqual(typeof res.body, 'object');
+            assertLocalRequestsOnly(slice, false);
+            assertWentToParsoid(slice, true);
         });
     });
 
@@ -89,26 +88,45 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            validate(revB, res, 'html');
-            assert.deepEqual(localRequestsOnly(slice), false);
-            assert.deepEqual(wentToParsoid(slice), true);
+            assertContentType(res,
+              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.deepEqual(typeof res.body, 'string');
+            assertLocalRequestsOnly(slice, false);
+            assertWentToParsoid(slice, true);
         });
     });
 
-    it('should retrieve revision B from storage', function () {
+    it('should retrieve html revision B from storage', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
             uri: contentUrl + '/html/' + revB,
         })
         .then(function (res) {
             slice.halt();
-            validate(revB, res, 'html');
-            assert.deepEqual(localRequestsOnly(slice), true);
-            assert.deepEqual(wentToParsoid(slice), false);
+            assertContentType(res,
+              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.deepEqual(typeof res.body, 'string');
+            assertLocalRequestsOnly(slice, true);
+            assertWentToParsoid(slice, false);
         });
     });
 
-    it('should pass (stored) revision B to Parsoid for cache-control:no-cache',
+    it('should retrieve data-parsoid revision B from storage', function () {
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: contentUrl + '/data-parsoid/' + revB,
+        })
+        .then(function (res) {
+            slice.halt();
+            assertContentType(res,
+              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.deepEqual(typeof res.body, 'object');
+            assertLocalRequestsOnly(slice, true);
+            assertWentToParsoid(slice, false);
+        });
+    });
+
+    it('should pass (stored) html revision B to Parsoid for cache-control:no-cache',
     function () {
         // Start watching for new log entries
         var slice = server.config.logStream.slice();
@@ -121,9 +139,32 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            validate(revB, res, 'html');
-            assert.deepEqual(localRequestsOnly(slice), false);
-            assert.deepEqual(wentToParsoid(slice), true);
+            assertContentType(res,
+              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.deepEqual(typeof res.body, 'string');
+            assertLocalRequestsOnly(slice, false);
+            assertWentToParsoid(slice, true);
+        });
+    });
+
+    it('should pass (stored) data-parsoid revision B to Parsoid for cache-control:no-cache',
+    function () {
+        // Start watching for new log entries
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: contentUrl + '/data-parsoid/' + revB,
+            headers: {
+                'cache-control': 'no-cache'
+            },
+        })
+        .then(function (res) {
+            // Stop watching for new log entries
+            slice.halt();
+            assertContentType(res,
+              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.deepEqual(typeof res.body, 'object');
+            assertLocalRequestsOnly(slice, false);
+            assertWentToParsoid(slice, true);
         });
     });
 
