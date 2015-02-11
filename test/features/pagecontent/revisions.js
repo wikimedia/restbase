@@ -50,5 +50,19 @@ describe('revision requests', function() {
         });
     });
 
+    it('should query the MW API for a non-existent revision and return a 404', function() {
+        var slice = server.config.logStream.slice();
+        return preq.get({ uri: server.config.bucketURL + '/revision/0' })
+        .then(function(res) {
+            slice.halt();
+            throw new Error('Expected status 404 for an invalid revision, got ' + res.status);
+        },
+        function(res) {
+            slice.halt();
+            assert.deepEqual(res.status, 404);
+            assert.remoteRequests(slice, true);
+        });
+    });
+
 });
 
