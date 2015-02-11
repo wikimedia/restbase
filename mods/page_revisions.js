@@ -164,6 +164,21 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             rp.title = dataResp.title;
             return self.getTitleRevision(restbase, req);
         });
+    }).catch(function(e) {
+        // if a bad revision is supplied, the action module
+        // returns a 500 with the 'Missing query pages' message
+        // so catch that and turn it into a 404 in our case
+        if(e.status === 500 && /^Missing query pages/.test(e.description)) {
+            throw new rbUtil.HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page or revision not found.',
+                    apiRequest: apiReq
+                }
+            });
+        }
+        throw e;
     });
 };
 
