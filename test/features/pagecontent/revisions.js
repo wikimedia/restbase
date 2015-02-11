@@ -15,18 +15,21 @@ describe('revision requests', function() {
     before(function () { return server.start(); });
 
     it('should return valid revision info', function() {
-        return preq.options({ uri: server.config.bucketURL + '/revision/642497713' })
+        return preq.get({ uri: server.config.bucketURL + '/revision/642497713' })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.count, 1);
+            assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].rev, 642497713);
             assert.deepEqual(res.body.items[0].title, 'Foobar');
         });
     });
 
     it('should fail for an invalid revision', function() {
-        return preq.options({ uri: server.config.bucketURL + '/revision/faultyrevid' })
+        return preq.get({ uri: server.config.bucketURL + '/revision/faultyrevid' })
         .then(function(res) {
+            throw new Error('Expected status 400 for an invalid revision, got ' + res.status);
+        },
+        function(res) {
             assert.deepEqual(res.status, 400);
         });
     });
