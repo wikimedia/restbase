@@ -276,7 +276,7 @@ module.exports = function(options) {
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
             //getTitleRevisionId: prs.getTitleRevisionId.bind(prs)
-            getRevision: prs.getRevision.bind(prs),
+            getRevision: prs.getRevision.bind(prs)
         },
         resources: [
             {
