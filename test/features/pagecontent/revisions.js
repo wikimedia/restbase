@@ -64,5 +64,28 @@ describe('revision requests', function() {
         });
     });
 
+    it('should fail for a restricted revision fetched from MW API', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/revision/645504917',
+            headers: { 'cache-control': 'no-cache' }
+        })
+        .then(function(res) {
+            throw new Error('Expected status 403 for a restricted revision, got ' + res.status);
+        },
+        function(res) {
+            assert.deepEqual(res.status, 403);
+        });
+    });
+
+    it('should fail for a restricted revision present in storage', function() {
+        return preq.get({ uri: server.config.bucketURL + '/revision/645504917' })
+        .then(function(res) {
+            throw new Error('Expected status 403 for a restricted revision, got ' + res.status);
+        },
+        function(res) {
+            assert.deepEqual(res.status, 403);
+        });
+    });
+
 });
 
