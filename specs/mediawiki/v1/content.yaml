@@ -18,28 +18,53 @@ paths:
     get:
       tags:
         - Page content
-      description: List pages
+      description: List page properties / page content sub-apis
+
+  /{module:page}/title/:
+    get:
+      tags:
+        - Page content
+      description: List all known pages
+      produces:
+        - application/json
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
-  /{module:page}/{title}:
+  /{module:page}/title/{title}/:
     get:
       tags:
         - Page content
-      description: Redirect to the latest HTML for this page
-      # TODO
-      # x-backend-request:
-      #   uri: /{domain}/sys/page_revisions/page/
-
-  /{module:page}/{title}/:
-    get:
-      tags:
-        - Page content
-      description: List available content types for a page
+      description: > 
+        List revisions for a title. Currently this lists all
+        revisions that ever used this title, but eventually it should probably
+        return the linear history (across renames) of the page currently using
+        this title. Stability: experimental.
       produces:
         - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: the title of page content
+          type: string
+          required: true
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/{title}/
 
-  /{module:page}/{title}/html:
+  /{module:page}/html/:
+    get:
+      tags:
+        - Page content
+      description: List titles for which the HTML property is available
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/
+
+  /{module:page}/html/{title}:
     get:
       tags:
         - Page content
@@ -75,7 +100,7 @@ paths:
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}/latest
 
-  /{module:page}/{title}/html/:
+  /{module:page}/html/{title}/:
     get:
       tags:
         - Page content
@@ -110,7 +135,7 @@ paths:
         uri: /{domain}/sys/parsoid/html/{title}/
 
 
-  /{module:page}/{title}/html/{revision}{/tid}:
+  /{module:page}/html/{title}/{revision}{/tid}:
     get:
       tags:
         - Page content
@@ -155,7 +180,17 @@ paths:
         headers:
           cache-control: $req.headers.cache-control
 
-  /{module:page}/{title}/data-parsoid:
+  /{module:page}/data-parsoid/:
+    get:
+      tags:
+        - Page content
+      description: List titles for which the data-parsoid property is available
+      x-backend-request:
+        # Fixme: only list pages that have at least one revision with content
+        # model 'wikitext'
+        uri: /{domain}/sys/page_revisions/page/
+
+  /{module:page}/data-parsoid/{title}:
     get:
       tags:
         - Page content
@@ -190,7 +225,7 @@ paths:
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/latest
 
-  /{module:page}/{title}/data-parsoid/:
+  /{module:page}/data-parsoid/{title}/:
     get:
       tags:
         - Page content
@@ -223,7 +258,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
-  /{module:page}/{title}/data-parsoid/{revision}{/tid}:
+  /{module:page}/data-parsoid/{title}/{revision}{/tid}:
     get:
       tags:
         - Page content
@@ -267,7 +302,51 @@ paths:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
         headers:
           cache-control: $req.headers.cache-control
-              
+
+  /{module:page}/revision/:
+    get:
+      tags:
+        - Page content
+        - Revision
+      description: List available revisions
+      produces:
+        - application/json
+
+  /{module:page}/revision/{revision}:
+    get:
+      tags:
+        - Page content
+        - Revision
+      description: Get meta-data about a specific revision
+      produces:
+        - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: revision
+          in: path
+          description: The revision id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The revision's properties
+        '404':
+          description: Unknown revision id or domain
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
+      # x-backend-request:
+      #   uri: /{domain}/sys/key_rev_value/{revision}
+      #   headers:
+      #     cache-control: $req.headers.cache-control
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:

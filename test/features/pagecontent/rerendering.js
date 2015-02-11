@@ -29,7 +29,7 @@ describe('page re-rendering', function () {
         var r1tid2;
         var r2tid1;
         return preq.get({
-            uri: server.config.bucketURL + '/Main_Page/html/' + r1
+            uri: server.config.bucketURL + '/html/Main_Page/' + r1
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
@@ -37,7 +37,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r1,
+                uri: server.config.bucketURL + '/html/Main_Page/' + r1,
                 headers: { 'cache-control': 'no-cache' }
             }).delay(500);
         })
@@ -48,7 +48,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r1 + '/' + r1tid1
+                uri: server.config.bucketURL + '/html/Main_Page/' + r1 + '/' + r1tid1
             });
         })
         .then(function (res) {
@@ -56,7 +56,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r1
+                uri: server.config.bucketURL + '/html/Main_Page/' + r1
             });
         })
         .then(function (res) {
@@ -64,7 +64,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r1 + '/' + r1tid2
+                uri: server.config.bucketURL + '/html/Main_Page/' + r1 + '/' + r1tid2
             });
         })
         .then(function (res) {
@@ -72,7 +72,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r2
+                uri: server.config.bucketURL + '/html/Main_Page/' + r2
             }).delay(500);
         })
         .then(function (res) {
@@ -82,7 +82,7 @@ describe('page re-rendering', function () {
 
             // Delay a bit to give the async save time to complete
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r2 + '/' + r2tid1
+                uri: server.config.bucketURL + '/html/Main_Page/' + r2 + '/' + r2tid1
             });
         })
         .then(function (res) {
@@ -90,7 +90,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + '/Main_Page/html/' + r1
+                uri: server.config.bucketURL + '/html/Main_Page/' + r1
             });
         })
         .then(function (res) {

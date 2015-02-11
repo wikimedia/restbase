@@ -16,7 +16,7 @@ basePath: ''
 schemes:
   - http
 paths:
-  /{domain}/v1/page/{title}/html/:
+  /{domain}/v1/page/html/{title}/:
     get:
       tags:
         - Page content
@@ -59,7 +59,7 @@ paths:
             body:
               items: []
 
-  /{domain}/v1/page/{title}/html:
+  /{domain}/v1/page/html/{title}:
     get:
       tags:
         - Page content
@@ -98,7 +98,7 @@ paths:
             headers:
                 content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
 
-  /{domain}/v1/page/{title}/html/{revision}:
+  /{domain}/v1/page/html/{title}/{revision}:
     get:
       tags:
         - Page content
@@ -149,7 +149,7 @@ paths:
             headers:
                 content-type: text/html;profile=mediawiki.org/specs/html/1.0.0
 
-  /{domain}/v1/page/{title}/data-parsoid/{revision}:
+  /{domain}/v1/page/data-parsoid/{title}/{revision}:
     get:
       tags:
         - Page content
