@@ -3,10 +3,10 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
-var assert = require('../../utils/assert.js');
+var assert = require('../../../utils/assert.js');
+var server = require('../../../utils/server.js');
 var preq   = require('preq');
 var fs     = require('fs');
-var server = require('../../utils/server.js');
 
 // read the contents of a spec file as JSON or raw HTML
 function readFile(filename) {

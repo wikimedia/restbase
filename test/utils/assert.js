@@ -2,12 +2,12 @@
 
 var assert = require('assert');
 
-function isDeepEqual(result, expected) {
+function isDeepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
-            assert.ok(result === expected || (new RegExp(expected).test(result)));
+            assert.ok(result === expected || (new RegExp(expected).test(result)), message);
         } else {
-            assert.deepEqual(result, expected);
+            assert.deepEqual(result, expected, message);
         }
         return true;
     } catch (e) {
@@ -15,12 +15,12 @@ function isDeepEqual(result, expected) {
     }
 }
 
-function deepEqual(result, expected) {
+function deepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
             assert.ok(result === expected || (new RegExp(expected).test(result)));
         } else {
-            assert.deepEqual(result, expected);
+            assert.deepEqual(result, expected, message);
         }
     } catch (e) {
         console.log('Expected:\n' + JSON.stringify(expected,null,2));
@@ -44,9 +44,9 @@ function isSuperset(parent, child) {
     }
 }
 
-function notDeepEqual(result, expected) {
+function notDeepEqual(result, expected, message) {
     try {
-        assert.notDeepEqual(result, expected);
+        assert.notDeepEqual(result, expected, message);
     } catch (e) {
         console.log('Not expected:\n' + JSON.stringify(expected,null,2));
         console.log('Result:\n' + JSON.stringify(result,null,2));
