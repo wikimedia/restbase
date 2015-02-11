@@ -140,24 +140,17 @@ describe('item requests', function() {
 
 });
 
-describe('pagecontent bucket', function() {
+describe('page content hierarchy', function() {
     this.timeout(20000);
-    // TODO: figure out what we'd like to return for /page
-    //it('should provide bucket info', function() {
-    //    this.timeout(20000);
-    //    return preq.get({
-    //        uri: server.config.bucketURL,
-    //    })
-    //    .then(function(res) {
-    //        assert.deepEqual(res.status, 200);
-    //    });
-    //});
-    it('should list its contents', function() {
+    it('should list available properties', function() {
         return preq.get({
             uri: server.config.bucketURL + '/',
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            if (!res.body.items || res.body.items.indexOf('html') === -1) {
+                throw new Error('Expected property listing that includes "html"');
+            }
         });
     });
 });
