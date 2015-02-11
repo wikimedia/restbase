@@ -242,6 +242,29 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
     });
 };
 
+// /rev/
+PRS.prototype.listRevisions = function(restbase, req) {
+    var rp = req.params;
+    var listReq = {
+        uri: this.tableURI(rp.domain),
+        body: {
+            table: this.tableName,
+            index: 'by_rev',
+            proj: ['rev'],
+            distinct: true
+        }
+    };
+    return restbase.get(listReq)
+    .then(function(res) {
+        if (res.status === 200) {
+            res.body.items = res.body.items.map(function(row) {
+                return row.rev;
+            });
+        }
+        return res;
+    });
+};
+
 PRS.prototype.getRevision = function(restbase, req) {
     var rp = req.params;
     var self = this;
@@ -291,6 +314,7 @@ module.exports = function(options) {
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
             //getTitleRevisionId: prs.getTitleRevisionId.bind(prs)
+            listRevisions: prs.listRevisions.bind(prs),
             getRevision: prs.getRevision.bind(prs)
         },
         resources: [

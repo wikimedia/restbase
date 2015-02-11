@@ -311,6 +311,15 @@ paths:
       description: List available revisions
       produces:
         - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/rev/
 
   /{module:page}/revision/{revision}:
     get:

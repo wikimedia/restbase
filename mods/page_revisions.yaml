@@ -30,6 +30,7 @@ paths:
   /rev/:
     get:
       summary: List all revisions, ever
+      operationId: listRevisions
 
   /rev/{revision}:
     get:
