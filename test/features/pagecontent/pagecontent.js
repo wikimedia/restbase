@@ -115,6 +115,19 @@ describe('item requests', function() {
         });
     });
 
+    it('should list revisions for a title', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/title/Foobar/'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            if (!/^application\/json/.test(res.headers['content-type'])) {
+                throw new Error('Expected JSON content type!');
+            }
+            assert.deepEqual(res.body.items, [624484477,624165266]);
+        });
+    });
+
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
     //    this.timeout(20000);
     //    return preq.get({

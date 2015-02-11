@@ -25,6 +25,8 @@ paths:
       tags:
         - Page content
       description: List all known pages
+      produces:
+        - application/json
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
@@ -32,9 +34,27 @@ paths:
     get:
       tags:
         - Page content
-      description: List page meta-data
+      description: > 
+        List revisions for a title. Currently this lists all
+        revisions that ever used this title, but eventually it should probably
+        return the linear history (across renames) of the page currently using
+        this title. Stability: experimental.
       produces:
         - application/json
+      parameters:
+        - name: domain
+          in: path
+          description: The domain under which the data resides
+          type: string
+          required: true
+          default: en.wikipedia.org
+        - name: title
+          in: path
+          description: the title of page content
+          type: string
+          required: true
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/{title}/
 
   /{module:page}/html/:
     get:

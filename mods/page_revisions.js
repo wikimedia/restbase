@@ -200,17 +200,16 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
         body: {
             table: this.tableName,
             attributes: {
-                title: rp.key
+                title: rp.title
             },
-            proj: ['tid']
+            proj: ['rev']
         }
     })
     .then(function(res) {
-        if (res.status === 200) {
-            res.body.items = res.body.items.map(function(row) {
-                return row.tid;
-            });
-        }
+        // Flatten to an array of revisions rather than an array of objects
+        res.body.items = res.body.items.map(function(row) {
+            return row.rev;
+        });
         return res;
     });
 };
