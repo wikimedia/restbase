@@ -24,6 +24,22 @@ describe('revision requests', function() {
         });
     });
 
+    it('should query the MW API for revision info', function() {
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: server.config.bucketURL + '/revision/642497713',
+            headers: { 'cache-control': 'no-cache' }
+        })
+        .then(function(res) {
+            slice.halt();
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].rev, 642497713);
+            assert.deepEqual(res.body.items[0].title, 'Foobar');
+            assert.remoteRequests(slice, true);
+        });
+    });
+
     it('should fail for an invalid revision', function() {
         return preq.get({ uri: server.config.bucketURL + '/revision/faultyrevid' })
         .then(function(res) {
