@@ -2,14 +2,6 @@
 
 var assert = require('assert');
 
-function exists(xs, f) {
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i])) {
-            return true;
-        }
-    }
-    return false;
-}
 
 /**
  * Asserts whether content type was as expected
@@ -26,7 +18,7 @@ function contentType(res, expected) {
  */
 function localRequests(slice, expected) {
     deepEqual(
-        !exists(slice.get(), function(line) {
+        !slice.get().some(function(line) {
             var entry = JSON.parse(line);
             // if the URI starts with a slash,
             // it's a local request
@@ -45,7 +37,7 @@ function localRequests(slice, expected) {
  */
 function remoteRequests(slice, expected) {
     deepEqual(
-        exists(slice.get(), function(line) {
+        slice.get().some(function(line) {
             var entry = JSON.parse(line);
             return /^http/.test(entry.req.uri);
         }),
