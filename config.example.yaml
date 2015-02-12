@@ -106,9 +106,11 @@ spec:
   # Some more general RESTBase info
   paths:
     /{domain:en.wikipedia.org}: *wp/default/1.0.0
-#    /{domain:de.wikipedia.org}: *wp/default/1.0.0
-#    /{domain:es.wikipedia.org}: *wp/default/1.0.0
-#    /{domain:nl.wikipedia.org}: *wp/default/1.0.0
+#   /{domain:de.wikipedia.org}: *wp/default/1.0.0
+#   /{domain:es.wikipedia.org}: *wp/default/1.0.0
+#   /{domain:nl.wikipedia.org}: *wp/default/1.0.0
+#
+    # test domain
     /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 
 

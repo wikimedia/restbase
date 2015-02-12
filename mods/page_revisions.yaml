@@ -27,12 +27,12 @@ paths:
 #      summary: Get the tid range for a given revision
 #      operationId: getTitleRevisionTidRange
 #  
-#  /rev/:
-#    get:
-#      summary: List all revisions, ever
-#      
-#  /rev/{revision}:
-#    get:
-#      summary: Get the revision metadata (incl. title) for a specific
-#        revision
-#      operationId: getRevision
+  /rev/:
+    get:
+      summary: List all revisions, ever
+      operationId: listRevisions
+
+  /rev/{revision}:
+    get:
+      summary: Get the revision metadata for a specific revision
+      operationId: getRevision

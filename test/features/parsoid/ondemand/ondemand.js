@@ -11,52 +11,6 @@ var server = require('../../../utils/server.js');
 var preq   = require('preq');
 var fs     = require('fs');
 
-function exists(xs, f) {
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i])) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// assert whether content type was as expected
-function assertContentType(res, expected) {
-    var actual = res.headers['content-type'];
-    assert.deepEqual(actual, expected,
-        'Expected content-type to be ' + expected + ', but was ' + actual);
-}
-
-// assert whether all requests in this slice went to
-// /v1/en.wikipedia.test.local/***
-function assertLocalRequestsOnly(slice, expected) {
-    assert.deepEqual(
-        !exists(slice.get(), function(line) {
-            var entry = JSON.parse(line);
-            return !/^\/en\.wikipedia\.test\.local\//.test(entry.req.uri);
-        }),
-        expected,
-        expected ?
-          'Should not have made remote request' :
-          'Should have made a remote request'
-    );
-}
-
-// assert whether some requests in this slice went to
-// http://parsoid-lb.eqiad.wikimedia.org/v2/**
-function assertWentToParsoid(slice, expected) {
-    assert.deepEqual(
-        exists(slice.get(), function(line) {
-            var entry = JSON.parse(line);
-            return /^http:\/\/parsoid-lb\.eqiad\.wikimedia\.org\/v2\//.test(entry.req.uri);
-        }),
-        expected,
-        expected ?
-          'Should have made a remote request to Parsoid' :
-          'Should not have made a remote request to Parsoid'
-    );
-}
-
 var revA = '45451075';
 var revB = '623616192';
 var title = 'LCX';
@@ -74,11 +28,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assertContentType(res,
+            assert.contentType(res,
               'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
             assert.deepEqual(typeof res.body, 'object');
-            assertLocalRequestsOnly(slice, false);
-            assertWentToParsoid(slice, true);
+            assert.localRequests(slice, false);
+            assert.remoteRequests(slice, true);
         });
     });
 
@@ -89,11 +43,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assertContentType(res,
+            assert.contentType(res,
               'text/html;profile=mediawiki.org/specs/html/1.0.0');
             assert.deepEqual(typeof res.body, 'string');
-            assertLocalRequestsOnly(slice, false);
-            assertWentToParsoid(slice, true);
+            assert.localRequests(slice, false);
+            assert.remoteRequests(slice, true);
         });
     });
 
@@ -104,11 +58,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assertContentType(res,
+            assert.contentType(res,
               'text/html;profile=mediawiki.org/specs/html/1.0.0');
             assert.deepEqual(typeof res.body, 'string');
-            assertLocalRequestsOnly(slice, true);
-            assertWentToParsoid(slice, false);
+            assert.localRequests(slice, true);
+            assert.remoteRequests(slice, false);
         });
     });
 
@@ -119,11 +73,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assertContentType(res,
+            assert.contentType(res,
               'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
             assert.deepEqual(typeof res.body, 'object');
-            assertLocalRequestsOnly(slice, true);
-            assertWentToParsoid(slice, false);
+            assert.localRequests(slice, true);
+            assert.remoteRequests(slice, false);
         });
     });
 
@@ -140,11 +94,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assertContentType(res,
+            assert.contentType(res,
               'text/html;profile=mediawiki.org/specs/html/1.0.0');
             assert.deepEqual(typeof res.body, 'string');
-            assertLocalRequestsOnly(slice, false);
-            assertWentToParsoid(slice, true);
+            assert.localRequests(slice, false);
+            assert.remoteRequests(slice, true);
         });
     });
 
@@ -161,11 +115,11 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assertContentType(res,
+            assert.contentType(res,
               'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
             assert.deepEqual(typeof res.body, 'object');
-            assertLocalRequestsOnly(slice, false);
-            assertWentToParsoid(slice, true);
+            assert.localRequests(slice, false);
+            assert.remoteRequests(slice, true);
         });
     });
 

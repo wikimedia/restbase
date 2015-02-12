@@ -43,8 +43,10 @@ PRS.prototype.getTableSchema = function () {
             rev: 'int',             // MediaWiki oldid
             latest_rev: 'int',      // Latest MediaWiki revision
             tid: 'timeuuid',
+            // revision deletion or suppression, can be:
+            // - sha1hidden, commenthidden, texthidden
+            restrictions: 'set<string>',
             // Revision tags. Examples:
-            // - revision deletion or suppression
             // - minor revision
             tags: 'set<string>',
             // Page renames. null, to:destination or from:source
@@ -68,7 +70,7 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'rev', type: 'hash' },
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
-                { attribute: 'tags', type: 'proj' }
+                { attribute: 'restrictions', type: 'proj' }
             ]
         }
     };
@@ -108,7 +110,8 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             format: 'json',
             action: 'query',
             prop: 'revisions',
-            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment'
+            continue: '',
+            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags'
         }
     };
     if (/^[0-9]+$/.test(rp.revision)) {
@@ -129,34 +132,59 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                 }
             });
         }
-        var apiRev = apiRes.body.items[0].revisions[0];
+        // the response item
+        var dataResp = apiRes.body.items[0];
+        // the revision info
+        var apiRev = dataResp.revisions[0];
+        // are there any restrictions set?
+        var restrictions = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key) });
+        // the tid to store this info under
         var tid = rbUtil.tidFromDate(apiRev.timestamp);
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: rp.title,
+                    // FIXME: if a title has been given, check it
+                    // matches the one returned by the MW API
+                    // cf. https://phabricator.wikimedia.org/T87393
+                    title: dataResp.title,
                     rev: parseInt(apiRev.revid),
                     tid: tid,
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
-                    comment: apiRev.comment
+                    comment: apiRev.comment,
+                    tags: apiRev.tags,
+                    restrictions: restrictions
                 }
             }
         })
         .then(function() {
             rp.revision = apiRev.revid + '';
+            rp.title = dataResp.title;
             return self.getTitleRevision(restbase, req);
         });
+    }).catch(function(e) {
+        // if a bad revision is supplied, the action module
+        // returns a 500 with the 'Missing query pages' message
+        // so catch that and turn it into a 404 in our case
+        if(e.status === 500 && /^Missing query pages/.test(e.description)) {
+            throw new rbUtil.HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page or revision not found.',
+                    apiRequest: apiReq
+                }
+            });
+        }
+        throw e;
     });
 };
 
 PRS.prototype.getTitleRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
-
-
     var revisionRequest;
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
@@ -214,6 +242,68 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
     });
 };
 
+// /rev/
+PRS.prototype.listRevisions = function(restbase, req) {
+    var rp = req.params;
+    var listReq = {
+        uri: this.tableURI(rp.domain),
+        body: {
+            table: this.tableName,
+            index: 'by_rev',
+            proj: ['rev'],
+            distinct: true
+        }
+    };
+    return restbase.get(listReq)
+    .then(function(res) {
+        if (res.status === 200) {
+            res.body.items = res.body.items.map(function(row) {
+                return row.rev;
+            });
+        }
+        return res;
+    });
+};
+
+PRS.prototype.getRevision = function(restbase, req) {
+    var rp = req.params;
+    var self = this;
+    // sanity check
+    if (!/^[0-9]+$/.test(rp.revision)) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalidRevision',
+                description: 'Invalid revision specified.'
+            }
+        });
+    }
+    if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+        // ask the MW API directly and
+        // store and return its result
+        return this.fetchAndStoreMWRevision(restbase, req);
+    }
+    // check the storage, and, if no match is found
+    // ask the MW API about the revision
+    return restbase.get({
+        uri: this.tableURI(rp.domain),
+        body: {
+            table: this.tableName,
+            index: 'by_rev',
+            attributes: {
+                rev: parseInt(rp.revision)
+            },
+            limit: 1
+        }
+    })
+    .catch(function(e) {
+        if (e.status !== 404) {
+            throw e;
+        }
+        return self.fetchAndStoreMWRevision(restbase, req);
+    });
+};
+
 module.exports = function(options) {
     var prs = new PRS(options);
     // XXX: add docs
@@ -224,6 +314,8 @@ module.exports = function(options) {
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
             //getTitleRevisionId: prs.getTitleRevisionId.bind(prs)
+            listRevisions: prs.listRevisions.bind(prs),
+            getRevision: prs.getRevision.bind(prs)
         },
         resources: [
             {

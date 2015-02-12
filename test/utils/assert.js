@@ -2,6 +2,60 @@
 
 var assert = require('assert');
 
+function exists(xs, f) {
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Asserts whether content type was as expected
+ */
+function contentType(res, expected) {
+    var actual = res.headers['content-type'];
+    deepEqual(actual, expected,
+        'Expected content-type to be ' + expected + ', but was ' + actual);
+}
+
+/**
+ * Asserts whether all requests in the given
+ * slice were routed to local recipients
+ */
+function localRequests(slice, expected) {
+    deepEqual(
+        !exists(slice.get(), function(line) {
+            var entry = JSON.parse(line);
+            // if the URI starts with a slash,
+            // it's a local request
+            return !/^\//.test(entry.req.uri);
+        }),
+        expected,
+        expected ?
+          'Should not have made remote request' :
+          'Should have made a remote request'
+    );
+}
+
+/**
+ * Asserts whether some requests in the given
+ * slice were made to remote entities
+ */
+function remoteRequests(slice, expected) {
+    deepEqual(
+        exists(slice.get(), function(line) {
+            var entry = JSON.parse(line);
+            return /^http/.test(entry.req.uri);
+        }),
+        expected,
+        expected ?
+          'Should have made a remote request' :
+          'Should not have made a remote request'
+    );
+}
+
 function isDeepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
@@ -68,9 +122,13 @@ function fails(promise, onRejected) {
     return promise.catch(trackFailure).then(check);
 }
 
-module.exports.ok           = assert.ok;
-module.exports.fails        = fails;
-module.exports.deepEqual    = deepEqual;
-module.exports.isDeepEqual  = isDeepEqual;
-module.exports.notDeepEqual = notDeepEqual;
-module.exports.isSuperset   = isSuperset;
+module.exports.ok             = assert.ok;
+module.exports.fails          = fails;
+module.exports.deepEqual      = deepEqual;
+module.exports.isDeepEqual    = isDeepEqual;
+module.exports.notDeepEqual   = notDeepEqual;
+module.exports.isSuperset     = isSuperset;
+module.exports.contentType    = contentType;
+module.exports.localRequests  = localRequests;
+module.exports.remoteRequests = remoteRequests;
+
