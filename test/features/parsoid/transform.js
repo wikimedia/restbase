@@ -40,6 +40,28 @@ describe('transform api', function() {
         });
     });
 
+    it('html2html with bodyOnly', function () {
+        return preq.post({
+			uri: server.config.baseURL
+				+ '/transform/html/to/html/' + testPage.title
+				+ '/' + testPage.revision,
+            body: {
+				html: testPage.html,
+				bodyOnly: true
+            }
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+			var pattern = /<div id="bar">Selser test<\/div>/;
+			if (!pattern.test(res.body)) {
+				throw new Error('Expected pattern in response: ' + pattern
+						+ '\nSaw: ' + JSON.stringify(res, null, 2));
+			}
+			assert.deepEqual(res.headers['content-type'],
+					'text/html;profile=mediawiki.org/specs/html/1.0.0');
+        });
+    });
+
     it('wt2html', function () {
         return preq.post({
 			uri: server.config.baseURL
