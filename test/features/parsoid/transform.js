@@ -35,8 +35,7 @@ describe('transform api', function() {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.deepEqual(res.headers['content-type'],
-                    'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
         });
     });
 
@@ -57,8 +56,7 @@ describe('transform api', function() {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.deepEqual(res.headers['content-type'],
-                    'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
         });
     });
 
@@ -72,8 +70,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'],
-                    'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
             var pattern = /<h2.*> Heading <\/h2>/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
@@ -93,8 +90,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'],
-                    'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
             var pattern = /^<h2.*> Heading <\/h2>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
@@ -115,8 +111,7 @@ describe('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, 'The modified HTML');
-            assert.deepEqual(res.headers['content-type'],
-                    'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
         });
     });
 
@@ -132,8 +127,7 @@ describe('transform api', function() {
 //        .then(function (res) {
 //            assert.deepEqual(res.status, 200);
 //            assert.deepEqual(res.body, testPage.wikitext);
-//            assert.deepEqual(res.headers['content-type'],
-//                    'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+//            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
 //        });
 //    });
 
