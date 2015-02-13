@@ -254,7 +254,6 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
         headers: { 'content-type': 'application/json' },
         body: req.body
     };
-    console.log(JSON.stringify(parsoidReq, null, 2));
     return restbase.post(parsoidReq);
 };
 
@@ -265,7 +264,7 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
  * serialized as XML.
  */
 function cheapBodyInnerHTML(html) {
-    var match = /<body[^>]*>(.*)<\/body>/.exec(html);
+    var match = /<body[^>]*>([\s\S]*)<\/body>/.exec(html);
     if (!match) {
         throw new Error('No HTML body found!');
     } else {
@@ -278,7 +277,7 @@ PSP.makeTransform = function (from, to) {
 
     return function (restbase, req) {
         var rp = req.params;
-        if (false && !req.body[from]) {
+        if (!req.body[from]) {
             throw new rbUtil.HTTPError({
                 status: 400,
                 body: {
