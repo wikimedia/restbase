@@ -98,8 +98,6 @@ describe('transform api', function() {
         });
     });
 
-// Temporarily disabled until https://phabricator.wikimedia.org/T89411 is
-// resolved
 //    it('html2wt, selser', function () {
 //        return preq.post({
 //			uri: server.config.baseURL

@@ -218,12 +218,16 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
+    var domain = rp.domain;
+    // Re-map test domain
+    if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     var parsoidReq = {
-        uri: this.parsoidHost + '/v2/' + rp.domain + '/'
+        uri: this.parsoidHost + '/v2/' + domain + '/'
             + parsoidTo + parsoidExtraPath,
         headers: { 'content-type': 'application/json' },
         body: req.body
     };
+    console.log(JSON.stringify(parsoidReq, null, 2));
     return restbase.post(parsoidReq);
 };
 
