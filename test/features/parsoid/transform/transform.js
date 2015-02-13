@@ -105,6 +105,25 @@ describe('transform api', function() {
 
     before(function () { return server.start(); });
 
+    it('wt2html', function () {
+        return preq.post({
+			uri: server.config.baseURL
+				+ '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
+            body: {
+				wikitext: '== Heading =='
+            }
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+			var pattern = /<h2.*> Heading <\/h2>/;
+			if (!pattern.test(res.body)) {
+				throw new Error('Expected pattern in response: ' + pattern);
+			}
+			assert.deepEqual(res.headers['content-type'],
+					'text/html;profile=mediawiki.org/specs/html/1.0.0');
+        });
+    });
+
     it('html2wt, no-selser', function () {
         return preq.post({
 			uri: server.config.baseURL

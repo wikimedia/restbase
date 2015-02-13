@@ -145,7 +145,7 @@ PSP.transformRevision = function (restbase, req, from, to) {
 
     function get(format) {
         return restbase.get({
-            uri: new URI([rp.domain,'v1','page',format,rp.title,rp.revision])
+            uri: new URI([rp.domain,'sys','parsoid',format,rp.title,rp.revision])
         })
         .then(function (res) {
             if (res.body && res.body.constructor === Buffer) {
@@ -196,7 +196,14 @@ PSP.transformRevision = function (restbase, req, from, to) {
 PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, to) {
     var rp = req.params;
     // Parsoid currently spells 'wikitext' as 'wt'
-    var parsoidTo = (to === 'wikitext') ? 'wt' : to;
+    var parsoidTo = to;
+    if (to === 'wikitext') {
+        parsoidTo = 'wt';
+    } else if (to === 'html') {
+        // Retrieve pagebundle whenever we want HTML
+        parsoidTo = 'pagebundle';
+    }
+
 
     var parsoidExtras = [];
     if (rp.title) {
