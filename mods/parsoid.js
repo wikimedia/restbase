@@ -227,6 +227,21 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
     return restbase.post(parsoidReq);
 };
 
+/**
+ * Cheap body.innerHTML extraction.
+ *
+ * This is safe as we know that the HTML we are receiving from Parsoid is
+ * serialized as XML.
+ */
+function cheapBodyInnerHTML(html) {
+    var match = /<body[^>]*>(.*)<\/body>/.exec(html);
+    if (!match) {
+        throw new Error('No HTML body found!');
+    } else {
+        return match[1];
+    }
+}
+
 PSP.makeTransform = function (from, to) {
     var self = this;
 
@@ -252,6 +267,10 @@ PSP.makeTransform = function (from, to) {
             // Unwrap to the flat response format
             var innerRes = res.body[to];
             innerRes.status = 200;
+            // Handle bodyOnly flag
+            if (to === 'html' && req.body.bodyOnly) {
+                innerRes.body = cheapBodyInnerHTML(innerRes.body);
+            }
             return innerRes;
         });
     };

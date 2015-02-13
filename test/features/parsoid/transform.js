@@ -50,14 +50,37 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-			var pattern = /<h2.*> Heading <\/h2>/;
-			if (!pattern.test(res.body)) {
-				throw new Error('Expected pattern in response: ' + pattern);
-			}
 			assert.deepEqual(res.headers['content-type'],
 					'text/html;profile=mediawiki.org/specs/html/1.0.0');
+			var pattern = /<h2.*> Heading <\/h2>/;
+			if (!pattern.test(res.body)) {
+				throw new Error('Expected pattern in response: ' + pattern
+						+ '\nSaw: ' + res.body);
+			}
         });
     });
+
+    it('wt2html with bodyOnly', function () {
+        return preq.post({
+			uri: server.config.baseURL
+				+ '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
+            body: {
+				wikitext: '== Heading ==',
+				bodyOnly: true
+            }
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+			assert.deepEqual(res.headers['content-type'],
+					'text/html;profile=mediawiki.org/specs/html/1.0.0');
+			var pattern = /^<h2.*> Heading <\/h2>$/;
+			if (!pattern.test(res.body)) {
+				throw new Error('Expected pattern in response: ' + pattern
+						+ '\nSaw: ' + res.body);
+			}
+        });
+    });
+
 
     it('html2wt, no-selser', function () {
         return preq.post({
