@@ -76,6 +76,33 @@ PRS.prototype.getTableSchema = function () {
     };
 };
 
+/**
+ * Checks the revision info returned from the storage
+ * for restrictions, and if there are any, raises an error
+ *
+ * @param res Object the result as returned from storage
+ * @return Object the same object
+ * @throws rbUtil.httpError if access to the revision should be denied
+ */
+PRS.prototype._checkRevReturn = function(res) {
+    var item = res && res.body && Array.isArray(res.body.items) && res.body.items[0];
+    // if there are any restrictions imposed on this
+    // revision, forbid its retrieval, cf.
+    // https://phabricator.wikimedia.org/T76165#1030962
+    if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
+        // there are some restrictions, deny access to the revision
+        return Promise.reject(new rbUtil.HTTPError({
+            status: 403,
+            body: {
+                type: 'access_denied#revision',
+                title: 'Access to resource denied',
+                description: 'Access is restricted for revision ' + item.rev,
+                restrictions: item.restrictions
+            }
+        }));
+    }
+    return Promise.resolve(res);
+}
 
 // /page/
 PRS.prototype.listTitles = function(restbase, req, options) {
@@ -160,6 +187,21 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             }
         })
         .then(function() {
+            // if there are any restrictions imposed on this
+            // revision, forbid its retrieval, cf.
+            // https://phabricator.wikimedia.org/T76165#1030962
+            if (restrictions && restrictions.length > 0) {
+                return Promise.reject(new rbUtil.HTTPError({
+                    status: 403,
+                    body: {
+                        type: 'access_denied#revision',
+                        title: 'Access to resource denied',
+                        description: 'Access is restricted for revision ' + apiRev.revid,
+                        restrictions: restrictions
+                    }
+                }));
+            }
+            // no restrictions, continue
             rp.revision = apiRev.revid + '';
             rp.title = dataResp.title;
             return self.getTitleRevision(restbase, req);
@@ -211,6 +253,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         throw new Error("Invalid revision: " + rp.revision);
     }
     return revisionRequest
+    .then(self._checkRevReturn)
     .then(function(res) {
         if (!res.headers) {
             res.headers = {};
@@ -296,6 +339,7 @@ PRS.prototype.getRevision = function(restbase, req) {
             limit: 1
         }
     })
+    .then(self._checkRevReturn)
     .catch(function(e) {
         if (e.status !== 404) {
             throw e;

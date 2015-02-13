@@ -140,6 +140,46 @@ describe('item requests', function() {
 
 });
 
+describe('page content access', function() {
+
+    var deniedTitle = 'User%20talk:DivineAlpha';
+    var deniedRev = '645504917';
+
+    this.timeout(30000);
+
+    function contentURI(format) {
+        return [server.config.bucketURL, format, deniedTitle, deniedRev].join('/');
+    }
+
+    it('should deny access to the HTML of a restricted revision', function() {
+        return preq.get({ uri: contentURI('html') }).then(function(res) {
+            throw new Error('Expected status 403, but gotten ' + res.status);
+        }, function(res) {
+            assert.deepEqual(res.status, 403);
+        });
+    });
+
+    it('should deny access to the same HTML even after re-fetching it', function() {
+        return preq.get({
+            uri: contentURI('html'),
+            headers: { 'cache-control': 'no-cache' }
+        }).then(function(res) {
+            throw new Error('Expected status 403, but gotten ' + res.status);
+        }, function(res) {
+            assert.deepEqual(res.status, 403);
+        });
+    });
+
+    it('should deny access to the data-parsoid of a restricted revision', function() {
+        return preq.get({ uri: contentURI('data-parsoid') }).then(function(res) {
+            throw new Error('Expected status 403, but gotten ' + res.status);
+        }, function(res) {
+            assert.deepEqual(res.status, 403);
+        });
+    });
+
+});
+
 describe('page content hierarchy', function() {
     this.timeout(20000);
     it('should list available properties', function() {
