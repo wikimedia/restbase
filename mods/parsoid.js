@@ -187,14 +187,10 @@ PSP.transformRevision = function (restbase, req, from, to) {
         });
     }
 
-    // Get the revision info just to make sure we have access
-    return self.getRevisionInfo(restbase, req)
-    .then(function(revInfo) {
-        return Promise.props({
-            html: get('html'),
-            // wikitext: get('wikitext'),
-            'data-parsoid': get('data-parsoid')
-        });
+    return Promise.props({
+        html: get('html'),
+        // wikitext: get('wikitext'),
+        'data-parsoid': get('data-parsoid')
     })
     .then(function (original) {
         original.revid = rp.revision;
