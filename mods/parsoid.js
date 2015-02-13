@@ -22,6 +22,32 @@ function ParsoidService(options) {
 // Short alias
 var PSP = ParsoidService.prototype;
 
+/**
+ * Wraps a request for getting content (the promise) into a
+ * Promise.all() call, bundling it with a request for revision
+ * info, so that a 403 error gets raised overall if access to
+ * the revision should be denied
+ *
+ * @param restbase RESTBase the Restbase router object
+ * @param req Object the user request
+ * @param promise Promise the promise object to wrap
+ */
+PSP.wrapContentReq = function(restbase, req, promise) {
+    var rp = req.params;
+    if(!rp.revision || rbUtil.isTimeUUID(rp.revision) || /^latest$/.test(rp.revision)) {
+        // we are dealing with the latest revision,
+        // so no need to check it, as the latest
+        // revision can never be supressed
+        return promise;
+    }
+    // bundle the promise together with a call to getRevisionInfo()
+    return Promise.all([promise, this.getRevisionInfo(restbase, req)]).then(function(resx) {
+        // if we have reached this point,
+        // it means access is not denied
+        return resx[0];
+    });
+};
+
 PSP.getBucketURI = function(rp, format, tid) {
     var path = [rp.domain,'sys','key_rev_value','parsoid.' + format,
             rp.title,rp.revision];
@@ -55,13 +81,14 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
             })
         ]);
         // And return the response to the client
+        // but only if the revision is accessible
         var resp = {
             'status': parsoidResp.status,
             headers: parsoidResp.body[format].headers,
             body: parsoidResp.body[format].body
         };
         resp.headers.etag = tid;
-        return resp;
+        return this.wrapContentReq(restbase, req, Promise.resolve(resp));
     } else {
         return parsoidResp;
     }
@@ -118,14 +145,14 @@ PSP.getFormat = function (format) {
             var beReq = {
                 uri: self.getBucketURI(rp, format, rp.tid)
             };
-            return restbase.get(beReq)
+            return self.wrapContentReq(restbase, req, restbase.get(beReq)
             .catch(function(e) {
                 return self.getRevisionInfo(restbase, req)
                 .then(function(revInfo) {
                     rp.revision = revInfo.rev + '';
                     return self.generateAndSave(restbase, req, format, uuid.v1());
                 });
-            });
+            }));
         }
     };
 };
@@ -213,8 +240,7 @@ module.exports = function (options) {
         spec: spec,
         operations: {
             getPageBundle: function(restbase, req) {
-                var rp = req.params;
-                return ps.pagebundle(restbase, req);
+                return ps.wrapContentReq(restbase, req, ps.pagebundle(restbase, req));
             },
             listWikitextRevisions: ps.listRevisions('wikitext'),
             getWikitext: ps.getFormat('wikitext'),
