@@ -85,13 +85,13 @@ PRS.prototype.getTableSchema = function () {
  * @throws rbUtil.httpError if access to the revision should be denied
  */
 PRS.prototype._checkRevReturn = function(res) {
-    var item = res && res.body && Array.isArray(res.body.items) && res.body.items[0];
+    var item = res.body.items.length && res.body.items[0];
     // if there are any restrictions imposed on this
     // revision, forbid its retrieval, cf.
     // https://phabricator.wikimedia.org/T76165#1030962
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
         // there are some restrictions, deny access to the revision
-        return Promise.reject(new rbUtil.HTTPError({
+        throw new rbUtil.HTTPError({
             status: 403,
             body: {
                 type: 'access_denied#revision',
@@ -99,7 +99,7 @@ PRS.prototype._checkRevReturn = function(res) {
                 description: 'Access is restricted for revision ' + item.rev,
                 restrictions: item.restrictions
             }
-        }));
+        });
     }
     return Promise.resolve(res);
 }
@@ -253,8 +253,9 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         throw new Error("Invalid revision: " + rp.revision);
     }
     return revisionRequest
-    .then(self._checkRevReturn)
     .then(function(res) {
+        // check if the revision has any restrictions
+        self._checkRevReturn(res);
         if (!res.headers) {
             res.headers = {};
         }
