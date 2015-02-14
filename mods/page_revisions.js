@@ -81,7 +81,7 @@ PRS.prototype.getTableSchema = function () {
  * for restrictions, and if there are any, raises an error
  *
  * @param res Object the result as returned from storage
- * @return Object the same object
+ * @return true
  * @throws rbUtil.httpError if access to the revision should be denied
  */
 PRS.prototype._checkRevReturn = function(res) {
@@ -101,7 +101,7 @@ PRS.prototype._checkRevReturn = function(res) {
             }
         });
     }
-    return Promise.resolve(res);
+    return true;
 }
 
 // /page/
