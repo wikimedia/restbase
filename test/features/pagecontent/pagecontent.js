@@ -75,6 +75,7 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-type'], 'application/json');
             assert.deepEqual(res.body, {
+                count: 2,
                 items: ['sys', 'v1' ]
             });
         });
