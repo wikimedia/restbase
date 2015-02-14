@@ -127,21 +127,21 @@ describe('transform api', function() {
         });
     });
 
-//    it('html2wt, selser', function () {
-//        return preq.post({
-//            uri: server.config.baseURL
-//                + '/transform/html/to/wikitext/' + testPage.title
-//                + '/' + testPage.revision,
-//            body: {
-//                html: testPage.html
-//            }
-//        })
-//        .then(function (res) {
-//            assert.deepEqual(res.status, 200);
-//            assert.deepEqual(res.body, testPage.wikitext);
-//            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
-//        });
-//    });
+    it('html2wt, selser', function () {
+        return preq.post({
+            uri: server.config.baseURL
+                + '/transform/html/to/wikitext/' + testPage.title
+                + '/' + testPage.revision,
+            body: {
+                html: testPage.html
+            }
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, testPage.wikitext);
+            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+        });
+    });
 
 });
 
