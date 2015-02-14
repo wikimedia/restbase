@@ -21,13 +21,6 @@ paths:
       description: List page properties / page content sub-apis
       produces:
         - application/json
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
       responses:
         '200':
           description: The queriable sub-items
@@ -49,13 +42,6 @@ paths:
       description: List all known pages
       produces:
         - application/json
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
       responses:
         '200':
           description: The queriable list of page titles
@@ -84,12 +70,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: the title of page content
@@ -118,13 +98,6 @@ paths:
       description: List titles for which the HTML property is available
       produces:
         - application/json
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
       responses:
         '200':
           description: The queriable list of page titles
@@ -147,12 +120,6 @@ paths:
         - Page content
       description: Retrieve the latest html
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -188,12 +155,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -222,12 +183,6 @@ paths:
         - text/html
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -269,13 +224,6 @@ paths:
       description: List titles for which the data-parsoid property is available
       produces:
         - application/json
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
       responses:
         '200':
           description: The queriable list of page titles
@@ -300,12 +248,6 @@ paths:
         - Page content
       description: Retrieve the latest data-parsoid (private Parsoid metadata)
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: the title of page content
@@ -337,12 +279,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -372,12 +308,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -421,13 +351,6 @@ paths:
       description: List available revisions
       produces:
         - application/json
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
       responses:
         '200':
           description: The queriable sub-items
@@ -453,12 +376,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: revision
           in: path
           description: The revision id
@@ -494,12 +411,6 @@ paths:
       produces:
         - text/plain; profile=mediawiki.org/specs/wikitext/1.0.0
       parameters:
-        - name: domain
-          in: path
-          description: The top-level API domain
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The page title
@@ -539,12 +450,6 @@ paths:
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.0.0
       parameters:
-        - name: domain
-          in: path
-          description: The top-level API domain
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The page title
@@ -589,12 +494,6 @@ paths:
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.0.0
       parameters:
-        - name: domain
-          in: path
-          description: The top-level API domain
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The page title
