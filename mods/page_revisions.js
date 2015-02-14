@@ -191,7 +191,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             // revision, forbid its retrieval, cf.
             // https://phabricator.wikimedia.org/T76165#1030962
             if (restrictions && restrictions.length > 0) {
-                return Promise.reject(new rbUtil.HTTPError({
+                throw new rbUtil.HTTPError({
                     status: 403,
                     body: {
                         type: 'access_denied#revision',
@@ -199,7 +199,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                         description: 'Access is restricted for revision ' + apiRev.revid,
                         restrictions: restrictions
                     }
-                }));
+                });
             }
             // no restrictions, continue
             rp.revision = apiRev.revid + '';
@@ -340,7 +340,14 @@ PRS.prototype.getRevision = function(restbase, req) {
             limit: 1
         }
     })
-    .then(self._checkRevReturn)
+    .then(function(res) {
+        // check the return
+        self._checkRevReturn(res);
+        // and get the revision info for the
+        // page now that we have the title
+        rp.title = res.body.items[0].title;
+        return self.getTitleRevision(restbase, req);
+    })
     .catch(function(e) {
         if (e.status !== 404) {
             throw e;
