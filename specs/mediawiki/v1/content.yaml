@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: '1.0.0'
-  title: mediawiki content api
+  title: MediaWiki Content API
   description: basic mediawiki content api.
   termsofservice: https://github.com/wikimedia/restbase#restbase
   contact:
@@ -9,8 +9,8 @@ info:
     email: services@lists.wikimedia.org
     url: https://www.mediawiki.org/wiki/services
   license:
-    name: gnu affero
-    url: http://opensource.org/licenses/agpl-3.0
+    name: apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
 
 paths:
 
@@ -19,6 +19,21 @@ paths:
       tags:
         - Page content
       description: List page properties / page content sub-apis
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The queriable sub-items
+          schema:
+            $ref: '#/definitions/listing'
+        '404':
+          description: unknown domain
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
 
   /{module:page}/title/:
     get:
@@ -27,6 +42,19 @@ paths:
       description: List all known pages
       produces:
         - application/json
+      responses:
+        '200':
+          description: The queriable list of page titles
+          schema:
+            $ref: '#/definitions/listing'
+        '404':
+          description: unknown domain or no pages to list
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
@@ -42,17 +70,24 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: the title of page content
           type: string
           required: true
+      responses:
+        '200':
+          description: The queriable list of page revisions
+          schema:
+            $ref: '#/definitions/listing'
+        '404':
+          description: unknown domain or page title
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}/
 
@@ -61,6 +96,21 @@ paths:
       tags:
         - Page content
       description: List titles for which the HTML property is available
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The queriable list of page titles
+          schema:
+            $ref: '#/definitions/listing'
+        '404':
+          description: unknown domain or no pages to list
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
@@ -69,24 +119,21 @@ paths:
       tags:
         - Page content
       description: Retrieve the latest html
-      operationId: getLatestFormat
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
-          description: the title of page content
+          description: The title of page content
           type: string
           required: true
+      produces:
+        - text/html
+        - application/json
       responses:
-        '302':
-          description: redirection to the latest html
+        '200':
+          description: the page's latest HTML
+          schema: 'text/html'
         '404':
-          description: unknown table, bucket, or domain
+          description: unknown domain or page title
           schema:
             $ref: '#/definitions/notfound'
         default:
@@ -105,16 +152,9 @@ paths:
       tags:
         - Page content
       description: List all HTML revisions for a page
-      operationId: listKeyRevValueRevisions
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -124,9 +164,7 @@ paths:
         '200':
           description: The list of revisions
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/revisions'
+            $ref: '#/definitions/revisions'
         default:
           description: Unexpected error
           schema:
@@ -143,13 +181,8 @@ paths:
       operationId: getFormatRevision
       produces:
         - text/html
+        - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -160,15 +193,21 @@ paths:
           description: The revision
           type: string
           required: true
+        - name: tid
+          in: path
+          description: The revision's time ID
+          type: string
+          required: false
       responses:
         '200':
-          description: The latest html for the given page
+          description: The html for the given page, revision and tid
+          schema: 'text/html'
         '400':
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
         '404':
-          description: Unknown table, bucket, page, or domain
+          description: unknown domain, page, revision or tid
           schema:
             $ref: '#/definitions/notFound'
         default:
@@ -177,14 +216,27 @@ paths:
             $ref: '#/definitions/defaultError'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
-        headers:
-          cache-control: $req.headers.cache-control
 
   /{module:page}/data-parsoid/:
     get:
       tags:
         - Page content
       description: List titles for which the data-parsoid property is available
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The queriable list of page titles
+          schema:
+            $ref: '#/definitions/listing'
+        '404':
+          description: unknown domain or no pages to list
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
       x-backend-request:
         # Fixme: only list pages that have at least one revision with content
         # model 'wikitext'
@@ -196,22 +248,20 @@ paths:
         - Page content
       description: Retrieve the latest data-parsoid (private Parsoid metadata)
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: the title of page content
           type: string
           required: true
+      produces:
+        - application/json
       responses:
-        200:
+        '200':
           description: data-parsoid JSON blob
+          schema:
+            $ref: '#/definitions/data-parsoid'
         '404':
-          description: unknown table, bucket, or domain
+          description: unknown domain or page title
           schema:
             $ref: '#/definitions/notfound'
         default:
@@ -219,10 +269,6 @@ paths:
           schema:
             $ref: '#/definitions/defaulterror'
       x-backend-request:
-        # Directly return the latest HTML. Alternatively, we could also try
-        # relative redirects. A relative location header of 'foo/bar' seems to
-        # work in current Chrome and Firefox.
-        # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/latest
 
   /{module:page}/data-parsoid/{title}/:
@@ -233,12 +279,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -248,9 +288,11 @@ paths:
         '200':
           description: The list of revisions
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/revisions'
+            $ref: '#/definitions/revisions'
+        '404':
+          description: unknown domain or page title
+          schema:
+            $ref: '#/definitions/notfound'
         default:
           description: Unexpected error
           schema:
@@ -263,16 +305,9 @@ paths:
       tags:
         - Page content
       description: Retrieve data-parsoid (internal Parsoid metadata) for a given page & revision
-      operationId: getFormatRevision
       produces:
-        - text/html
+        - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The title of page content
@@ -283,15 +318,22 @@ paths:
           description: The revision
           type: string
           required: true
+        - name: tid
+          in: path
+          description: The revision's time ID
+          type: string
+          required: false
       responses:
         '200':
           description: The latest Parsoid data for the given page
+          schema:
+            $ref: '#/definitions/data-parsoid'
         '400':
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
         '404':
-          description: Unknown table, bucket, page, or domain
+          description: unknown domain, page, revision or tid
           schema:
             $ref: '#/definitions/notFound'
         default:
@@ -300,8 +342,6 @@ paths:
             $ref: '#/definitions/defaultError'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
-        headers:
-          cache-control: $req.headers.cache-control
 
   /{module:page}/revision/:
     get:
@@ -311,13 +351,19 @@ paths:
       description: List available revisions
       produces:
         - application/json
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
+      responses:
+        '200':
+          description: The queriable sub-items
+          schema:
+            $ref: '#/definitions/listing'
+        '404':
+          description: unknown domain or no revisions to list
+          schema:
+            $ref: '#/definitions/notfound'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/defaulterror'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/
 
@@ -330,12 +376,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: revision
           in: path
           description: The revision id
@@ -344,6 +384,8 @@ paths:
       responses:
         '200':
           description: The revision's properties
+          schema:
+            $ref: '#/definitions/rev-schema'
         '400':
           description: Invalid revision
           schema:
@@ -369,12 +411,6 @@ paths:
       produces:
         - text/plain; profile=mediawiki.org/specs/wikitext/1.0.0
       parameters:
-        - name: domain
-          in: path
-          description: The top-level API domain
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The page title
@@ -390,6 +426,17 @@ paths:
           description: The HTML to transform
           type: string
           required: true
+      responses:
+        '200':
+          schema: 'text/plain'
+        '404':
+          description: unknown domain, page or revision
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
 
@@ -403,12 +450,6 @@ paths:
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.0.0
       parameters:
-        - name: domain
-          in: path
-          description: The top-level API domain
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The page title
@@ -429,6 +470,17 @@ paths:
           description: Return only `body.innerHTML`
           type: boolean
           required: false
+      responses:
+        '200':
+          schema: 'text/html'
+        '404':
+          description: unknown domain, page or revision
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
 
@@ -442,12 +494,6 @@ paths:
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.0.0
       parameters:
-        - name: domain
-          in: path
-          description: The top-level API domain
-          type: string
-          required: true
-          default: en.wikipedia.org
         - name: title
           in: path
           description: The page title
@@ -468,6 +514,17 @@ paths:
           description: Return only `body.innerHTML`
           type: boolean
           required: false
+      responses:
+        '200':
+          schema: 'text/html'
+        '404':
+          description: unknown domain, page or revision
+          schema:
+            $ref: '#/definitions/notFound'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/defaultError'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 
@@ -527,6 +584,19 @@ definitions:
       method:
         type: string
   revisions:
+    description: The result format for revision listing
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        properties:
+          revision:
+            type: int32
+          tid:
+            type: string
+  listing:
+    description: The result format for listings
     required:
       - items
     properties:
@@ -534,3 +604,55 @@ definitions:
         type: array
         items:
           type: string
+  data-parsoid:
+    description: Result format for Parsoid data queries
+    required:
+      - counter
+      - ids
+    properties:
+      counter:
+        type: int32
+      ids:
+        type: object
+  rev-schema:
+    description: Result format for revision items
+    required:
+      - count
+      - items
+    properties:
+      count:
+        type: int32
+      items:
+        type: array
+        items:
+          title:
+            type: string
+          rev:
+            type: int32
+          tid:
+            type: string
+          latest_rev:
+            type: int32
+          latest_tid:
+            type: string
+          nextrev_tid:
+            type: string
+          comment:
+            type: string
+          renames:
+            type: array
+            items:
+              type: string
+          restrictions:
+            type: array
+            items:
+              type: string
+          tags:
+            type: array
+            items:
+              type: string
+          user_id:
+            type: int32
+          user_text:
+            type: string
+
