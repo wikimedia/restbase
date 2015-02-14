@@ -206,6 +206,10 @@ paths:
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/accessDenied'
         '404':
           description: unknown domain, page, revision or tid
           schema:
@@ -332,6 +336,10 @@ paths:
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/accessDenied'
         '404':
           description: unknown domain, page, revision or tid
           schema:
@@ -390,6 +398,10 @@ paths:
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/accessDenied'
         '404':
           description: Unknown revision id or domain
           schema:
@@ -429,6 +441,10 @@ paths:
       responses:
         '200':
           schema: 'text/plain'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/accessDenied'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -473,6 +489,10 @@ paths:
       responses:
         '200':
           schema: 'text/html'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/accessDenied'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -517,6 +537,10 @@ paths:
       responses:
         '200':
           schema: 'text/html'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/accessDenied'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -555,6 +579,28 @@ definitions:
       title:
         type: string
       type:
+        type: string
+      uri:
+        type: string
+  accessDenied:
+    required:
+      - code
+      - method
+      - title
+      - type
+      - description
+      - uri
+    properties:
+      code:
+        type: integer
+        format: int32
+      method:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      description:
         type: string
       uri:
         type: string
