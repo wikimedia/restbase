@@ -67,6 +67,8 @@ templates:
             type: file
             options:
               parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+              # For local testing, use:
+              # parsoidHost: http://localhost:8000
 
       /{module:action}:
         x-modules:
