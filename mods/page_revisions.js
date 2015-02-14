@@ -43,6 +43,7 @@ PRS.prototype.getTableSchema = function () {
             rev: 'int',             // MediaWiki oldid
             latest_rev: 'int',      // Latest MediaWiki revision
             tid: 'timeuuid',
+            namespace: 'int',       // the namespace ID of the page
             // revision deletion or suppression, can be:
             // - sha1hidden, commenthidden, texthidden
             restrictions: 'set<string>',
@@ -178,6 +179,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     title: dataResp.title,
                     rev: parseInt(apiRev.revid),
                     tid: tid,
+                    namespace: parseInt(dataResp.ns),
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
                     comment: apiRev.comment,
