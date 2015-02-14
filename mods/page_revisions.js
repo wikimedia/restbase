@@ -72,6 +72,12 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
                 { attribute: 'restrictions', type: 'proj' }
+            ],
+            by_ns: [
+                { attribute: 'namespace', type: 'hash' },
+                { attribute: 'title', type: 'range', order: 'asc' },
+                { attribute: 'rev', type: 'range', order: 'desc' },
+                { attribute: 'tid', type: 'range', order: 'desc' }
             ]
         }
     };
