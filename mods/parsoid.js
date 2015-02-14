@@ -118,7 +118,6 @@ PSP.getRevisionInfo = function(restbase, req) {
             uri: new URI([rp.domain,'sys','page_revisions','page',rp.title,rp.revision])
         })
         .then(function(res) {
-            // FIXME: use tid range!
             var revInfo = res.body.items[0];
             return revInfo;
         });
@@ -171,64 +170,135 @@ PSP.transformRevision = function (restbase, req, from, to) {
     var self = this;
     var rp = req.params;
 
-    var fromStorage = {
-        revid: rp.revision
-    };
-
     function get(format) {
-        return self.getRevisionInfo(restbase, req)
-        .then(function(revInfo) {
-            return restbase.get({ uri: self.getBucketURI(rp, format, revInfo.tid) });
+        return restbase.get({
+            uri: new URI([rp.domain,'sys','parsoid',format,rp.title,rp.revision])
         })
         .then(function (res) {
-            if (res.body &&
-                res.body.headers && res.body.headers['content-type'] &&
-                res.body.body) {
-                fromStorage[format] = {
-                    headers: {
-                        'content-type': res.body.headers['content-type']
-                    },
-                    body: res.body.body
-                };
+            if (res.body && res.body.constructor === Buffer) {
+                res.body = res.body.toString();
             }
+            return {
+                headers: {
+                    'content-type': res.headers['content-type']
+                },
+                body: res.body
+            };
         });
     }
 
-    return Promise.all([ get('html'), get('wikitext'), get('data-parsoid') ])
-    .then(function () {
+    return Promise.props({
+        html: get('html'),
+        // wikitext: get('wikitext'),
+        'data-parsoid': get('data-parsoid')
+    })
+    .then(function (original) {
+        original.revid = rp.revision;
         var body2 = {
-            original: fromStorage
+            original: original
         };
-        body2[from] = req.body;
-        return restbase.post({
-            uri: new URI([rp.domain,'sys','parsoid','transform',from,'to',to]),
+        body2[from] = req.body[from];
+        var path = [rp.domain,'sys','parsoid','transform',from,'to',to];
+        if (rp.title) {
+            path.push(rp.title);
+            if (rp.revision) {
+                path.push(rp.revision);
+            }
+        }
+        var newReq = {
+            uri: new URI(path),
+            params: req.params,
             headers: { 'content-type': 'application/json' },
             body: body2
-        });
+        };
+        return self.callParsoidTransform(restbase, newReq, from, to);
     });
 
 };
+
+PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, to) {
+    var rp = req.params;
+    // Parsoid currently spells 'wikitext' as 'wt'
+    var parsoidTo = to;
+    if (to === 'wikitext') {
+        parsoidTo = 'wt';
+    } else if (to === 'html') {
+        // Retrieve pagebundle whenever we want HTML
+        parsoidTo = 'pagebundle';
+    }
+
+
+    var parsoidExtras = [];
+    if (rp.title) {
+        parsoidExtras.push(rp.title);
+    } else {
+        // fake title to avoid Parsoid error: <400/No title or wikitext was provided>
+        parsoidExtras.push('Main_Page');
+    }
+    if (rp.revision) {
+        parsoidExtras.push(rp.revision);
+    }
+    var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
+    if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
+
+    var domain = rp.domain;
+    // Re-map test domain
+    if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
+    var parsoidReq = {
+        uri: this.parsoidHost + '/v2/' + domain + '/'
+            + parsoidTo + parsoidExtraPath,
+        headers: { 'content-type': 'application/json' },
+        body: req.body
+    };
+    return restbase.post(parsoidReq);
+};
+
+/**
+ * Cheap body.innerHTML extraction.
+ *
+ * This is safe as we know that the HTML we are receiving from Parsoid is
+ * serialized as XML.
+ */
+function cheapBodyInnerHTML(html) {
+    var match = /<body[^>]*>([\s\S]*)<\/body>/.exec(html);
+    if (!match) {
+        throw new Error('No HTML body found!');
+    } else {
+        return match[1];
+    }
+}
 
 PSP.makeTransform = function (from, to) {
     var self = this;
 
     return function (restbase, req) {
         var rp = req.params;
-        if (rp.revision) {
-            return self.transformRevision(restbase, req, from, to);
-        } else {
-            // Parsoid currently spells 'wikitext' as 'wt'
-            var parsoidTo = (to === 'wikitext') ? 'wt' : to;
-
-            // fake title to avoid Parsoid error: <400/No title or wikitext was provided>
-            var parsoidExtra = (from === 'html') ? '/_' : '';
-
-            return restbase.post({
-                uri: self.parsoidHost + '/v2/' + rp.domain + '/' + parsoidTo + parsoidExtra,
-                headers: { 'content-type': 'application/json' },
-                body: req.body
+        if (!req.body[from]) {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    description: 'Missing request parameter: ' + from
+                }
             });
         }
+        var transform;
+        if (rp.revision) {
+            transform = self.transformRevision(restbase, req, from, to);
+        } else {
+            transform = self.callParsoidTransform(restbase, req, from, to);
+        }
+        return transform
+        .then(function(res) {
+            // Unwrap to the flat response format
+            var innerRes = res.body[to];
+            innerRes.status = 200;
+            // Handle bodyOnly flag
+            if (to === 'html' && req.body.bodyOnly) {
+                innerRes.body = cheapBodyInnerHTML(innerRes.body);
+            }
+            return innerRes;
+        });
     };
 };
 
