@@ -43,6 +43,7 @@ PRS.prototype.getTableSchema = function () {
             rev: 'int',             // MediaWiki oldid
             latest_rev: 'int',      // Latest MediaWiki revision
             tid: 'timeuuid',
+            namespace: 'int',       // the namespace ID of the page
             // revision deletion or suppression, can be:
             // - sha1hidden, commenthidden, texthidden
             restrictions: 'set<string>',
@@ -71,6 +72,12 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
                 { attribute: 'restrictions', type: 'proj' }
+            ],
+            by_ns: [
+                { attribute: 'namespace', type: 'hash' },
+                { attribute: 'title', type: 'range', order: 'asc' },
+                { attribute: 'rev', type: 'range', order: 'desc' },
+                { attribute: 'tid', type: 'range', order: 'desc' }
             ]
         }
     };
@@ -81,7 +88,7 @@ PRS.prototype.getTableSchema = function () {
  * for restrictions, and if there are any, raises an error
  *
  * @param res Object the result as returned from storage
- * @return Object the same object
+ * @return true
  * @throws rbUtil.httpError if access to the revision should be denied
  */
 PRS.prototype._checkRevReturn = function(res) {
@@ -101,7 +108,7 @@ PRS.prototype._checkRevReturn = function(res) {
             }
         });
     }
-    return Promise.resolve(res);
+    return true;
 }
 
 // /page/
@@ -178,6 +185,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     title: dataResp.title,
                     rev: parseInt(apiRev.revid),
                     tid: tid,
+                    namespace: parseInt(dataResp.ns),
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
                     comment: apiRev.comment,
@@ -191,7 +199,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             // revision, forbid its retrieval, cf.
             // https://phabricator.wikimedia.org/T76165#1030962
             if (restrictions && restrictions.length > 0) {
-                return Promise.reject(new rbUtil.HTTPError({
+                throw new rbUtil.HTTPError({
                     status: 403,
                     body: {
                         type: 'access_denied#revision',
@@ -199,7 +207,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                         description: 'Access is restricted for revision ' + apiRev.revid,
                         restrictions: restrictions
                     }
-                }));
+                });
             }
             // no restrictions, continue
             rp.revision = apiRev.revid + '';
@@ -340,7 +348,14 @@ PRS.prototype.getRevision = function(restbase, req) {
             limit: 1
         }
     })
-    .then(self._checkRevReturn)
+    .then(function(res) {
+        // check the return
+        self._checkRevReturn(res);
+        // and get the revision info for the
+        // page now that we have the title
+        rp.title = res.body.items[0].title;
+        return self.getTitleRevision(restbase, req);
+    })
     .catch(function(e) {
         if (e.status !== 404) {
             throw e;
