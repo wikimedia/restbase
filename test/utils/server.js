@@ -50,6 +50,8 @@ function start(_options) {
                 };
             return true;
         });
+    } else {
+        return Promise.resolve();
     }
 }
 
