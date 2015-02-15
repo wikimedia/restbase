@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/gwicke/restbase.git"
+    "url": "git://github.com/wikimedia/restbase.git"
   },
   "keywords": [
     "REST",
@@ -24,12 +24,12 @@
     "cassandra",
     "kafka"
   ],
-  "author": "Gabriel Wicke <gwicke@wikimedia.org>",
-  "license": "AGPLv3",
+  "author": "Wikimedia Service Team <services@wikimedia.org>",
+  "license": "Apache2",
   "bugs": {
-    "url": "https://github.com/gwicke/restbase/issues"
+    "url": "https://phabricator.wikimedia.org/tag/restbase/"
   },
-  "homepage": "https://github.com/gwicke/restbase",
+  "homepage": "https://github.com/wikimedia/restbase",
   "dependencies": {
     "bluebird": "~2.2.2",
     "bunyan": "~1.1.3",
