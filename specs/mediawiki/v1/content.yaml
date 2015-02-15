@@ -206,6 +206,10 @@ paths:
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page, revision or tid
           schema:
@@ -332,6 +336,10 @@ paths:
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page, revision or tid
           schema:
@@ -390,6 +398,10 @@ paths:
           description: Invalid revision
           schema:
             $ref: '#/definitions/invalidRevision'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/httpError'
         '404':
           description: Unknown revision id or domain
           schema:
@@ -429,6 +441,10 @@ paths:
       responses:
         '200':
           schema: 'text/plain'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -473,6 +489,10 @@ paths:
       responses:
         '200':
           schema: 'text/html'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -517,6 +537,10 @@ paths:
       responses:
         '200':
           schema: 'text/html'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -557,6 +581,21 @@ definitions:
       type:
         type: string
       uri:
+        type: string
+  httpError:
+    required:
+      - method
+      - title
+      - type
+      - detail
+    properties:
+      method:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+      detail:
         type: string
   notFound:
     required:
