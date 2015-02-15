@@ -209,7 +209,7 @@ paths:
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/accessDenied'
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page, revision or tid
           schema:
@@ -339,7 +339,7 @@ paths:
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/accessDenied'
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page, revision or tid
           schema:
@@ -401,7 +401,7 @@ paths:
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/accessDenied'
+            $ref: '#/definitions/httpError'
         '404':
           description: Unknown revision id or domain
           schema:
@@ -444,7 +444,7 @@ paths:
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/accessDenied'
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -492,7 +492,7 @@ paths:
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/accessDenied'
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -540,7 +540,7 @@ paths:
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/accessDenied'
+            $ref: '#/definitions/httpError'
         '404':
           description: unknown domain, page or revision
           schema:
@@ -582,27 +582,20 @@ definitions:
         type: string
       uri:
         type: string
-  accessDenied:
+  httpError:
     required:
-      - code
       - method
       - title
       - type
-      - description
-      - uri
+      - detail
     properties:
-      code:
-        type: integer
-        format: int32
       method:
         type: string
       title:
         type: string
       type:
         type: string
-      description:
-        type: string
-      uri:
+      detail:
         type: string
   notFound:
     required:
