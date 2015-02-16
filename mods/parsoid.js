@@ -59,7 +59,9 @@ PSP.getBucketURI = function(rp, format, tid) {
 
 PSP.pagebundle = function(restbase, req) {
     var rp = req.params;
-    var uri = this.parsoidHost + '/v2/' + rp.domain + '/pagebundle/'
+    var domain = rp.domain;
+    if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
+    var uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
         + encodeURIComponent(rp.title) + '/' + rp.revision;
     return restbase.get({ uri: uri });
 };
@@ -144,14 +146,15 @@ PSP.getFormat = function (format) {
             var beReq = {
                 uri: self.getBucketURI(rp, format, rp.tid)
             };
-            return self.wrapContentReq(restbase, req, restbase.get(beReq)
-            .catch(function(e) {
-                return self.getRevisionInfo(restbase, req)
-                .then(function(revInfo) {
-                    rp.revision = revInfo.rev + '';
-                    return self.generateAndSave(restbase, req, format, uuid.v1());
+            var contentReq = restbase.get(beReq)
+                .catch(function(e) {
+                    return self.getRevisionInfo(restbase, req)
+                    .then(function(revInfo) {
+                        rp.revision = revInfo.rev + '';
+                        return self.generateAndSave(restbase, req, format, uuid.v1());
+                    });
                 });
-            }));
+            return self.wrapContentReq(restbase, req, contentReq);
         }
     };
 };

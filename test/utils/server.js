@@ -3,7 +3,7 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
-var restbase  = require('../../lib/server.js');
+var ServiceRunner = require('servisor');
 var dir       = require('./dir');
 var logStream = require('./logStream');
 var fs        = require('fs');
@@ -19,11 +19,18 @@ var config = {
     baseURL: baseURL,
     bucketURL: bucketURL,
     logStream: logStream(),
-    spec: yaml.safeLoad(fs.readFileSync(__dirname + '/../../config.example.yaml')).spec,
+    conf: yaml.safeLoad(fs.readFileSync(__dirname + '/../../config.example.yaml')),
+};
+config.conf.numWorkers = 0;
+config.conf.logging = {
+    name: 'restbase-tests',
+    level: 'trace',
+    stream: config.logStream
 };
 
 var stop    = function () {};
 var options = null;
+var runner = new ServiceRunner();
 
 function start(_options) {
     _options = _options || {};
@@ -32,16 +39,13 @@ function start(_options) {
         console.log('server options changed; restarting');
         stop();
         options = _options;
-        var offline = (options.offline) || false;
-        console.log('starting restbase in ' + (offline ? 'OFFLINE' : 'ONLINE') + ' mode');
-        return restbase({
-            logging: {
-                name: 'restbase-tests',
-                level: 'trace',
-                stream: config.logStream
-            },
-            spec: config.spec
-        }).then(function(server){
+        console.log('starting restbase in '
+                + (options.offline ? 'OFFLINE' : 'ONLINE') + ' mode');
+        config.conf.offline = options.offline || false;
+
+        return runner.run(config.conf)
+        .then(function(servers){
+            var server = servers[0];
             stop =
                 function () {
                     console.log('stopping restbase');
