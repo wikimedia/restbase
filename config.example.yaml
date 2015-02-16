@@ -1,6 +1,8 @@
 # RESTBase config
 
-port: 7231
+info:
+  name: restbase
+
 
 templates:
 
@@ -103,7 +105,7 @@ templates:
             x-subspec: *wp/sys/1.0.0
 
 
-spec:
+spec: &spec
   title: "The RESTBase root"
   # Some more general RESTBase info
   paths:
@@ -115,6 +117,13 @@ spec:
     # test domain
     /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 
+
+services:
+  - name: restbase
+    module: ./lib/server
+    conf: 
+      port: 7231
+      spec: *spec
 
 logging:
   name: restbase

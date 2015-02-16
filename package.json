@@ -4,6 +4,7 @@
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
+    "start": "servisor",
     "test": "sh test/utils/cleandb.sh && mocha",
     "coverage": "sh test/utils/cleandb.sh && istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
@@ -46,7 +47,8 @@
     "swagger-router": "^0.0.3",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "url-template": "2.0.4",
-    "yargs": "~1.3.0"
+    "yargs": "~1.3.0",
+    "servisor": "git+https://github.com/gwicke/servisor#master"
   },
   "devDependencies": {
     "mocha": "~1.x.x",
