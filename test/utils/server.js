@@ -3,7 +3,7 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
-var ServiceRunner = require('servisor');
+var ServiceRunner = require('service-runner');
 var dir       = require('./dir');
 var logStream = require('./logStream');
 var fs        = require('fs');
@@ -21,7 +21,7 @@ var config = {
     logStream: logStream(),
     conf: yaml.safeLoad(fs.readFileSync(__dirname + '/../../config.example.yaml')),
 };
-config.conf.numWorkers = 0;
+config.conf.num_workers = 0;
 config.conf.logging = {
     name: 'restbase-tests',
     level: 'trace',

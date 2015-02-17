@@ -1,5 +1,5 @@
 "use strict";
 
-// B/C wrapper for our new runner
-var Servisor = require('servisor');
-new Servisor().run();
+// B/C wrapper to make the old init script work with service-runner.
+var ServiceRunner = require('service-runner');
+new ServiceRunner().run();
