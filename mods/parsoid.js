@@ -4,6 +4,7 @@
  * Simple wrapper for Parsoid
  */
 
+var P = require('bluebird');
 var URI = require('swagger-router').URI;
 var uuid   = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
@@ -24,7 +25,7 @@ var PSP = ParsoidService.prototype;
 
 /**
  * Wraps a request for getting content (the promise) into a
- * Promise.all() call, bundling it with a request for revision
+ * P.all() call, bundling it with a request for revision
  * info, so that a 403 error gets raised overall if access to
  * the revision should be denied
  *
@@ -41,7 +42,7 @@ PSP.wrapContentReq = function(restbase, req, promise) {
         return promise;
     }
     // bundle the promise together with a call to getRevisionInfo()
-    return Promise.all([promise, this.getRevisionInfo(restbase, req)]).then(function(resx) {
+    return P.all([promise, this.getRevisionInfo(restbase, req)]).then(function(resx) {
         // if we have reached this point,
         // it means access is not denied
         return resx[0];
@@ -70,7 +71,7 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
     var rp = req.params;
     // handle the response from Parsoid
     if (parsoidResp.status === 200) {
-        Promise.all([
+        P.all([
             restbase.put({
                 uri: this.getBucketURI(rp, 'html', tid),
                 headers: parsoidResp.body.html.headers,
@@ -90,7 +91,7 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
             body: parsoidResp.body[format].body
         };
         resp.headers.etag = tid;
-        return this.wrapContentReq(restbase, req, Promise.resolve(resp));
+        return this.wrapContentReq(restbase, req, P.resolve(resp));
     } else {
         return parsoidResp;
     }
@@ -124,7 +125,7 @@ PSP.getRevisionInfo = function(restbase, req) {
             return revInfo;
         });
     } else if (rbUtil.isTimeUUID(rp.revision)) {
-        return Promise.resolve({
+        return P.resolve({
             tid: rp.revision,
             rev: null
         });
@@ -190,7 +191,7 @@ PSP.transformRevision = function (restbase, req, from, to) {
         });
     }
 
-    return Promise.props({
+    return P.props({
         html: get('html'),
         // wikitext: get('wikitext'),
         'data-parsoid': get('data-parsoid')
