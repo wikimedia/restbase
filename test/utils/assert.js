@@ -26,8 +26,8 @@ function localRequests(slice, expected) {
         }),
         expected,
         expected ?
-          'Should not have made remote request' :
-          'Should have made a remote request'
+          'Should not have made local request' :
+          'Should have made a local request'
     );
 }
 
@@ -86,7 +86,7 @@ function isSuperset(parent, child) {
             isSuperset(parent[i], child[i]);
         }
     } else {
-        deepEqual(parent, child); 
+        deepEqual(parent, child);
     }
 }
 
