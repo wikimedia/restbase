@@ -134,5 +134,7 @@ logging:
   #  host: <%= @logstash_host %>
   #  port: <%= @logstash_port %>
 
-monitoring:
-    # statsdHost: localhost
+metrics:
+  #type: txstatsd
+  #host: localhost
+  #port: 8125

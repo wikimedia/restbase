@@ -4,6 +4,7 @@
  * Key-value bucket handler
  */
 
+var P = require('bluebird');
 var uuid = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
 var URI = require('swagger-router').URI;
@@ -22,7 +23,7 @@ function KVBucket (options) {
 
 KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
     var self = this;
-    return Promise.resolve({
+    return P.resolve({
         status: 200,
         body: options
     });
@@ -68,7 +69,7 @@ KVBucket.prototype.createBucket = function(restbase, req) {
             valueType: 'blob'
         };
 
-        return Promise.resolve({
+        return P.resolve({
             status: 400,
             body: {
                 type: 'invalid_bucket_schema_kv',
@@ -169,7 +170,7 @@ function returnRevision(req) {
 function getRevision(restbase, req, revPred) {
     var rp = req.params;
     if (revPred === null) {
-        return Promise.resolve({
+        return P.resolve({
             status: 400,
             body: {
                 type: 'invalid_revision_parameter',
@@ -290,7 +291,7 @@ function getRevisionPredicate (revString) {
         var revTime = Date.parse(revString);
         if (isNaN(revTime)) {
             // invalid date
-            return Promise.resolve({
+            return P.resolve({
                 status: 400,
                 body: 'Invalid date'
             });
@@ -316,7 +317,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
     var rp = req.params;
     var rev = getRevisionPredicate(rp.revision);
     if (rev === null) {
-        return Promise.resolve({
+        return P.resolve({
             status: 400,
             body: {
                 type: 'invalid_revision_parameter',

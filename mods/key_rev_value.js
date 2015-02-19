@@ -4,6 +4,7 @@
  * Key-rev-value bucket handler
  */
 
+var P = require('bluebird');
 var uuid = require('node-uuid');
 var rbUtil = require('../lib/rbUtil');
 var URI = require('swagger-router').URI;
@@ -22,7 +23,7 @@ function KRVBucket (options) {
 
 KRVBucket.prototype.getBucketInfo = function(restbase, req, options) {
     var self = this;
-    return Promise.resolve({
+    return P.resolve({
         status: 200,
         body: options
     });
