@@ -12,7 +12,7 @@ templates:
     info:
       version: 1.0.0-abcd
       title: Wikimedia REST API
-      description: A REST content API to MediaWiki, currently strongly focused on page content.
+      description: A REST content API, currently strongly focused on page content.
       termsOfService: http://wikimedia.org/terms/
       contact:
         name: the Wikimedia Services team
