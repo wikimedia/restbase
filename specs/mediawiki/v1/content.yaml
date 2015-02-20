@@ -631,7 +631,8 @@ definitions:
         type: array
         properties:
           revision:
-            type: int32
+            type: integer
+            format: int32
           tid:
             type: string
   listing:
@@ -650,7 +651,8 @@ definitions:
       - ids
     properties:
       counter:
-        type: int32
+        type: integer
+        format: int32
       ids:
         type: object
   rev-schema:
@@ -660,18 +662,21 @@ definitions:
       - items
     properties:
       count:
-        type: int32
+        type: integer
+        format: int32
       items:
         type: array
         items:
           title:
             type: string
           rev:
-            type: int32
+            type: integer
+            format: int32
           tid:
             type: string
           latest_rev:
-            type: int32
+            type: integer
+            format: int32
           latest_tid:
             type: string
           nextrev_tid:
@@ -691,7 +696,8 @@ definitions:
             items:
               type: string
           user_id:
-            type: int32
+            type: integer
+            format: int32
           user_text:
             type: string
 
