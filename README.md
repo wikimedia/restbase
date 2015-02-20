@@ -26,8 +26,7 @@ A queue implementation using Kafka is planned. See [these design notes](https://
 
 ## Status
 
-Preparing for basic production. You can try the
-**[demo](http://api.wmflabs.org/v1/en.wikipedia.org/pages/Paris/html/626969947)**.
+Alpha production at [https://rest.wikimedia.org/](https://rest.wikimedia.org/en.wikipedia.org/v1/?doc).
 
 ## Issue tracking
 
@@ -38,15 +37,12 @@ issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-P
 ![RESTBase request
 flow](https://upload.wikimedia.org/wikipedia/commons/a/ab/Restbase_request_flow.svg)
 
-RESTBase is optimized for a very direct and fast read path, with the
-expectation that most requests are served straight from storage. The front-end
-layer allows very flexible request routing and -orchestration with a
-[declarative
-configuration](https://github.com/gwicke/restbase/blob/master/doc/Architecture.md#declarative-configuration).
-This lets it dispatch requests to a variety of back-end services while
-providing a uniform API & a central point for logging & monitoring. The linked
-example shows the on-demand generation of HTML from wikitext with a call to
-the Parsoid service in case a revision was not found in storage.
+RESTBase is basically a thin storing proxy for REST APIs. It is optimized for
+a very direct and fast read path, with the expectation that most requests are
+served straight from storage. The front-end layer allows very flexible request
+routing and -orchestration driven by a swagger spec and system modules. This
+lets it dispatch requests to a variety of back-end services while providing a
+uniform API & a central point for logging & monitoring.
 
 ## Installation
 
@@ -55,10 +51,6 @@ From the *restbase* project directory, install the Node dependencies:
 ```sh
 npm install
 ```
-
-[RESTBase-cassandra](https://github.com/gwicke/restbase-cassandra) provides a
-table storage service backend for RESTBase. Download & install Cassandra:
-http://planetcassandra.org/Download/StartDownload
 
 Start RESTBase:
 
@@ -76,53 +68,14 @@ cp config.example.yaml config.yaml
 
 You can also pass in the path to another file with the `-c` commandline option
 to `server.js`. If you're running a single Cassandra instance (e.g. a local
-development environment), set `storage.default.defaultConsistency` to `one` in
-*config.yaml`:
-
-*config.yaml*:
-
-```yaml
-# ...
-
-storage:
-  default:
-    # module name
-    # ...
-    defaultConsistency: one
-
-# ...
-```
+development environment), set `defaultConsistency` to `one` in
+`config.yaml`.
 
 ## Usage
 
-```sh
-# add a new domain (TODO: accept config)
-curl -X PUT http://localhost:7231/v1/en.wikipedia.org
-
-# add a new 'pagecontent' bucket to a domain
-curl -X PUT -H 'Content-Type: application/json' -d '{ "type": "pagecontent" }' http://localhost:7231/v1/en.wikipedia.org/pages
-
-# add an entry
-curl -X PUT -d 'hello world' -H 'content-type: text/html' \
-    http://localhost:7231/v1/en.wikipedia.org/pages/Test/html
-
-# Retrieve HTML
-curl http://localhost:7231/v1/en.wikipedia.org/pages/{page}/html
-
-# Some listings:
-## All keys in bucket
-curl http://localhost:7231/v1/en.wikipedia.org/pages/
-## Properties for an item
-curl http://localhost:7231/v1/en.wikipedia.org/pages/{page}/
-## Revisions for a property
-curl http://localhost:7231/v1/en.wikipedia.org/pages/{page}/html/
-```
-The actual cassandra backend can be benchmarked with:
-```
-ab -c10 -n10000 'http://localhost:7231/v1/en.wikipedia.org/pages/Test/html'
-```
-On my laptop this currently yields around 2900 req/s on node 0.10 for small
-blobs, and around 5GBit for large (3mb) blobs.
+See the [Wikimedia REST content API
+sandbox](https://rest.wikimedia.org/en.wikipedia.org/v1/?doc) for a fine
+example of what RESTBase can do.
 
 ## Development
 
@@ -146,7 +99,7 @@ This also works for a directory, e.g. *test/features/pagecontent/*:
 
 ```
 mocha test/features/pagecontent
-+```
+```
 
 ### Coverage
 
