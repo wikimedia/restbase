@@ -34,6 +34,14 @@ KRVBucket.prototype.makeSchema = function (opts) {
     return {
         // Associate this bucket with the table
         bucket: opts,
+        options: {
+            compression: [
+                {
+                    algorithm: 'deflate',
+                    block_size: 256
+                }
+            ]
+        },
         attributes: {
             key: opts.keyType || 'string',
             rev: 'int',
