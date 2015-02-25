@@ -119,7 +119,8 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         body: {
             table: this.tableName,
             proj: ['title'],
-            distinct: true
+            distinct: true,
+            limit: 1000
         }
     };
 
@@ -282,7 +283,8 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
             attributes: {
                 title: rp.title
             },
-            proj: ['rev']
+            proj: ['rev'],
+            limit: 1000
         }
     })
     .then(function(res) {
@@ -303,7 +305,8 @@ PRS.prototype.listRevisions = function(restbase, req) {
             table: this.tableName,
             index: 'by_rev',
             proj: ['rev'],
-            distinct: true
+            distinct: true,
+            limit: 1000
         }
     };
     return restbase.get(listReq)

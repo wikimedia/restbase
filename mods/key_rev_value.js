@@ -84,7 +84,7 @@ KRVBucket.prototype.getListQuery = function (options, bucket) {
         table: bucket,
         distinct: true,
         proj: 'key',
-        limit: 10000
+        limit: 1000
     };
 };
 
@@ -217,7 +217,8 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
             attributes: {
                 key: req.params.key
             },
-            proj: ['rev', 'tid']
+            proj: ['rev', 'tid'],
+            limit: 1000
         }
     };
     if (rp.revision) {
