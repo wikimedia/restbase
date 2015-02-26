@@ -17,10 +17,7 @@ describe('page re-rendering', function () {
 
 
     function hasTextContentType(res) {
-        var ctype = res.headers['content-type'];
-        if (!/text\/html/.test(ctype)) {
-            throw new Error('Content-type does not match text/html: ' + ctype);
-        }
+        assert.contentType(res, 'text/html');
     }
 
 
