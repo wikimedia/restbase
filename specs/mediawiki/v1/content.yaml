@@ -355,7 +355,6 @@ paths:
     get:
       tags:
         - Page content
-        - Revision
       description: List available revisions
       produces:
         - application/json
@@ -379,7 +378,6 @@ paths:
     get:
       tags:
         - Page content
-        - Revision
       description: Get meta-data about a specific revision
       produces:
         - application/json
