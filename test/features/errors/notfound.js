@@ -18,7 +18,7 @@ describe('404 handling', function() {
         })
         .catch(function(e) {
             assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            assert.contentType(e, 'application/problem+json');
         });
     });
     it('should return a proper 404 when trying to list a non-existing domain', function() {
@@ -27,7 +27,7 @@ describe('404 handling', function() {
         })
         .catch(function(e) {
             assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            assert.contentType(e, 'application/problem+json');
         });
     });
     it('should return a proper 404 when accessing an unknown bucket', function() {
@@ -36,7 +36,7 @@ describe('404 handling', function() {
         })
         .catch(function(e) {
             assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            assert.contentType(e, 'application/problem+json');
         });
     });
     it('should return a proper 404 when trying to list an unknown bucket', function() {
@@ -45,7 +45,7 @@ describe('404 handling', function() {
         })
         .catch(function(e) {
             assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            assert.contentType(e, 'application/problem+json');
         });
     });
     it('should return a proper 404 when accessing an item in an unknown bucket', function() {
@@ -54,7 +54,7 @@ describe('404 handling', function() {
         })
         .catch(function(e) {
             assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            assert.contentType(e, 'application/problem+json');
         });
     });
     it('should return a proper 404 for the latest revision of a missing page', function() {
@@ -63,7 +63,7 @@ describe('404 handling', function() {
         })
         .catch(function(e) {
             assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.headers['content-type'], 'application/problem+json');
+            assert.contentType(e, 'application/problem+json');
         });
     });
 });

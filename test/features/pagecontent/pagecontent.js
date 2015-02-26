@@ -44,7 +44,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'], 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
         });
     });
     it('should return data-parsoid just created by revision 624165266, rev 2', function() {
@@ -53,7 +53,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'], 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
         });
     });
 
@@ -63,7 +63,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'], 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
         });
     });
 
@@ -73,7 +73,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'], 'application/json');
+            assert.contentType(res, 'application/json');
             assert.deepEqual(res.body, {
                 items: ['sys', 'v1' ]
             });
@@ -86,7 +86,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'], 'application/json');
+            assert.contentType(res, 'application/json');
             assert.deepEqual(res.body.swagger, '2.0');
         });
     });
@@ -97,7 +97,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-type'], 'text/html');
+            assert.contentType(res, 'text/html');
             assert.deepEqual(/<html/.exec(res.body)[0], '<html');
         });
     });
@@ -108,9 +108,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            if (!/^application\/json/.test(res.headers['content-type'])) {
-                throw new Error('Expected JSON content type!');
-            }
+            assert.contentType(res, 'application/json');
             assert.deepEqual(res.body.items, ['Foobar']);
         });
     });
@@ -121,9 +119,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            if (!/^application\/json/.test(res.headers['content-type'])) {
-                throw new Error('Expected JSON content type!');
-            }
+            assert.contentType(res, 'application/json');
             assert.deepEqual(res.body.items, [624484477,624165266]);
         });
     });
