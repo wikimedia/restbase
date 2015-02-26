@@ -302,7 +302,7 @@ paths:
           schema:
             $ref: '#/definitions/defaultError'
       x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}/
 
   /{module:page}/data-parsoid/{title}/{revision}{/tid}:
     get:
