@@ -115,7 +115,7 @@ PRS.prototype._checkRevReturn = function(res) {
         });
     }
     return true;
-}
+};
 
 // /page/
 PRS.prototype.listTitles = function(restbase, req, options) {
@@ -178,7 +178,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
         // the revision info
         var apiRev = dataResp.revisions[0];
         // are there any restrictions set?
-        var restrictions = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key) });
+        var restrictions = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key); });
         // the tid to store this info under
         var tid = rbUtil.tidFromDate(apiRev.timestamp);
         return restbase.put({ // Save / update the revision entry
