@@ -14,6 +14,12 @@ var yaml = require('js-yaml');
 var fs = require('fs');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/parsoid.yaml'));
 
+
+// Store titles as MediaWiki db keys
+function normalizeTitle (title) {
+    return title.replace(/ /g, '_');
+}
+
 function ParsoidService(options) {
     options = options || {};
     this.parsoidHost = options.parsoidHost
@@ -51,7 +57,7 @@ PSP.wrapContentReq = function(restbase, req, promise) {
 
 PSP.getBucketURI = function(rp, format, tid) {
     var path = [rp.domain,'sys','key_rev_value','parsoid.' + format,
-            rp.title,rp.revision];
+            normalizeTitle(rp.title),rp.revision];
     if (tid) {
         path.push(tid);
     }
@@ -63,7 +69,7 @@ PSP.pagebundle = function(restbase, req) {
     var domain = rp.domain;
     if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     var uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
-        + encodeURIComponent(rp.title) + '/' + rp.revision;
+        + encodeURIComponent(normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.get({ uri: uri });
 };
 
@@ -105,7 +111,8 @@ PSP.generateAndSave = function(restbase, req, format, tid) {
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
     return restbase.get({
-        uri: new URI([rp.domain,'sys','parsoid','pagebundle',rp.title,rp.revision])
+        uri: new URI([rp.domain,'sys','parsoid','pagebundle',
+                     normalizeTitle(rp.title),rp.revision])
     })
     .then(function(parsoidResp) {
         return self.saveParsoidResult(restbase, req, format, tid, parsoidResp);
@@ -118,7 +125,8 @@ PSP.getRevisionInfo = function(restbase, req) {
     if (/^(?:[0-9]+|latest)$/.test(rp.revision)) {
         // Resolve to a tid
         return restbase.get({
-            uri: new URI([rp.domain,'sys','page_revisions','page',rp.title,rp.revision])
+            uri: new URI([rp.domain,'sys','page_revisions','page',
+                         normalizeTitle(rp.title),rp.revision])
         })
         .then(function(res) {
             var revInfo = res.body.items[0];
@@ -165,7 +173,8 @@ PSP.listRevisions = function (format) {
     return function (restbase, req) {
         var rp = req.params;
         return restbase.get({
-            uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, rp.title, ''])
+            uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
+                         normalizeTitle(rp.title), ''])
         });
     };
 };
@@ -176,7 +185,8 @@ PSP.transformRevision = function (restbase, req, from, to) {
 
     function get(format) {
         return restbase.get({
-            uri: new URI([rp.domain,'sys','parsoid',format,rp.title,rp.revision])
+            uri: new URI([rp.domain,'sys','parsoid',format,
+                         normalizeTitle(rp.title),rp.revision])
         })
         .then(function (res) {
             if (res.body && res.body.constructor === Buffer) {
@@ -204,7 +214,7 @@ PSP.transformRevision = function (restbase, req, from, to) {
         body2[from] = req.body[from];
         var path = [rp.domain,'sys','parsoid','transform',from,'to',to];
         if (rp.title) {
-            path.push(rp.title);
+            path.push(normalizeTitle(rp.title));
             if (rp.revision) {
                 path.push(rp.revision);
             }
@@ -234,7 +244,7 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
 
     var parsoidExtras = [];
     if (rp.title) {
-        parsoidExtras.push(rp.title);
+        parsoidExtras.push(normalizeTitle(rp.title));
     } else {
         // fake title to avoid Parsoid error: <400/No title or wikitext was provided>
         parsoidExtras.push('Main_Page');
