@@ -43,7 +43,7 @@
     "preq": "~0.3.6",
     "request": "^2.44.0",
     "restbase-mod-table-cassandra": "^0.4.7",
-    "service-runner": "^0.1.0",
+    "service-runner": "^0.1.4",
     "swagger-router": "^0.0.4",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "url-template": "2.0.4",
