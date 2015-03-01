@@ -22,7 +22,7 @@ function localRequests(slice, expected) {
             var entry = JSON.parse(line);
             // if the URI starts with a slash,
             // it's a local request
-            return !/^\//.test(entry.req.uri);
+            return entry.req && !/^\//.test(entry.req.uri);
         }),
         expected,
         expected ?
@@ -39,7 +39,7 @@ function remoteRequests(slice, expected) {
     deepEqual(
         slice.get().some(function(line) {
             var entry = JSON.parse(line);
-            return /^http/.test(entry.req.uri);
+            return entry.req && /^http/.test(entry.req.uri);
         }),
         expected,
         expected ?
