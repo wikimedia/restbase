@@ -43,6 +43,7 @@ KRVBucket.prototype.makeSchema = function (opts) {
             ]
         },
         attributes: {
+            domain: 'string',
             key: opts.keyType || 'string',
             rev: 'int',
             tid: 'timeuuid',
@@ -56,6 +57,7 @@ KRVBucket.prototype.makeSchema = function (opts) {
             //headers: 'map<string,string>'
         },
         index: [
+            { attribute: 'domain', type: 'hash' },
             { attribute: 'key', type: 'hash' },
             { attribute: 'rev', type: 'range', order: 'desc' },
             { attribute: 'tid', type: 'range', order: 'desc' }
