@@ -49,6 +49,13 @@ templates:
                 username: cassandra
                 password: cassandra
                 defaultConsistency: one # or 'one' for single-node testing
+                storage_groups:
+                  - name: test.group.local
+                    domains:
+                      - /test\..*\.org$/
+                      - /test\.local$/
+                  - name: default.group.local
+                    domains: /./
 
       /{module:page_revisions}: &wp-page-revisions
         x-modules:

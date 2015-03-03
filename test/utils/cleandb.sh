@@ -13,5 +13,4 @@ dropKeyspaces ( ) {
   fi
 }
 
-dropKeyspaces "local_restbase"
-dropKeyspaces "local_test"
+dropKeyspaces "local_group_test"

@@ -32,8 +32,6 @@ KRVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 KRVBucket.prototype.makeSchema = function (opts) {
     opts.schemaVersion = 1;
     return {
-        // Associate this bucket with the table
-        bucket: opts,
         options: {
             compression: [
                 {
