@@ -90,21 +90,21 @@ describe('revision requests', function() {
         });
     });
 
-    it('should list stored revisions', function() {
-        return preq.get({ uri: server.config.bucketURL + '/revision/' })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-			assert.contentType(res, 'application/json');
-			// at least the revisions from this test file
-			// should be present in storage
-			assert.deepEqual(res.body.items.some(function(revId) {
-				return revId === revOk;
-			}), true);
-			assert.deepEqual(res.body.items.some(function(revId) {
-				return revId === revDeleted;
-			}), true);
-        });
-    });
+    //it('should list stored revisions', function() {
+    //    return preq.get({ uri: server.config.bucketURL + '/revision/' })
+    //    .then(function(res) {
+    //        assert.deepEqual(res.status, 200);
+	//		assert.contentType(res, 'application/json');
+	//		// at least the revisions from this test file
+	//		// should be present in storage
+	//		assert.deepEqual(res.body.items.some(function(revId) {
+	//			return revId === revOk;
+	//		}), true);
+	//		assert.deepEqual(res.body.items.some(function(revId) {
+	//			return revId === revDeleted;
+	//		}), true);
+    //    });
+    //});
 
 });
 

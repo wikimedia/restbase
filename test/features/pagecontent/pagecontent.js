@@ -102,16 +102,16 @@ describe('item requests', function() {
         });
     });
 
-    it('should list page titles', function() {
-        return preq.get({
-            uri: server.config.bucketURL + '/title/'
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, ['Foobar']);
-        });
-    });
+    //it('should list page titles', function() {
+    //    return preq.get({
+    //        uri: server.config.bucketURL + '/title/'
+    //    })
+    //    .then(function(res) {
+    //        assert.deepEqual(res.status, 200);
+    //        assert.contentType(res, 'application/json');
+    //        assert.deepEqual(res.body.items, ['Foobar']);
+    //    });
+    //});
 
     it('should list revisions for a title', function() {
         return preq.get({
