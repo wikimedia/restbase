@@ -9,7 +9,7 @@ paths:
       summary: List revisions for a title (page history)
       operationId: listTitleRevisions
 
-  /page/{title}/{revision}:
+  /page/{title}{/revision}:
     get:
       summary: Get the revision metadata for a specific revision (can be
         'latest')

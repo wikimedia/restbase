@@ -58,6 +58,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
+
   /{module:page}/title/{title}/:
     get:
       tags:
@@ -145,7 +146,7 @@ paths:
         # relative redirects. A relative location header of 'foo/bar' seems to
         # work in current Chrome and Firefox.
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
-        uri: /{domain}/sys/parsoid/html/{title}/latest
+        uri: /{domain}/sys/parsoid/html/{title}
 
   /{module:page}/html/{title}/:
     get:
@@ -273,7 +274,7 @@ paths:
           schema:
             $ref: '#/definitions/defaulterror'
       x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}/latest
+        uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
   /{module:page}/data-parsoid/{title}/:
     get:
