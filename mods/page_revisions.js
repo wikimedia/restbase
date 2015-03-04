@@ -124,19 +124,25 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         uri: this.tableURI(rp.domain),
         body: {
             table: this.tableName,
-            proj: ['title'],
-            distinct: true,
+            proj: ['title','rev'],
+            // Can't combine secondary index access with distinct
+            //distinct: true,
             limit: 1000
         }
     };
 
     return restbase.get(listReq)
     .then(function(res) {
-        if (res.status === 200) {
-            res.body.items = res.body.items.map(function(row) {
-                return row.title;
-            });
-        }
+        // Hacky distinct implementation as workaround
+        var items = [];
+        var lastTitle;
+        res.body.items.forEach(function(row) {
+            if (row.title !== lastTitle) {
+                items.push(row.title);
+                lastTitle = row.title;
+            }
+        });
+        res.body.items = items;
         return res;
     });
 };
@@ -310,18 +316,24 @@ PRS.prototype.listRevisions = function(restbase, req) {
         body: {
             table: this.tableName,
             index: 'by_rev',
-            proj: ['rev'],
-            distinct: true,
+            proj: ['rev','tid'],
+            // Can't use distinct with secondary index
+            // distinct: true,
             limit: 1000
         }
     };
     return restbase.get(listReq)
     .then(function(res) {
-        if (res.status === 200) {
-            res.body.items = res.body.items.map(function(row) {
-                return row.rev;
-            });
-        }
+        // Hacky distinct implementation as workaround
+        var items = [];
+        var lastRev;
+        res.body.items.forEach(function(row) {
+            if (row.rev !== lastRev) {
+                items.push(row.rev);
+                lastRev = row.rev;
+            }
+        });
+        res.body.items = items;
         return res;
     });
 };
