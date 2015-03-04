@@ -19,7 +19,7 @@ var rootSpec = {
                         '/page/{title}/html': {
                             get: {
                                 'x-backend-request': {
-                                    uri: '/{domain}/sys/parsoid/html/{title}/latest'
+                                    uri: '/{domain}/sys/parsoid/html/{title}'
                                 }
                             }
                         }
