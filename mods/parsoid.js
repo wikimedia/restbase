@@ -57,7 +57,10 @@ PSP.wrapContentReq = function(restbase, req, promise) {
 
 PSP.getBucketURI = function(rp, format, tid) {
     var path = [rp.domain,'sys','key_rev_value','parsoid.' + format,
-            normalizeTitle(rp.title),rp.revision];
+            normalizeTitle(rp.title)];
+    if (rp.revision) {
+        path.push(rp.revision);
+    }
     if (tid) {
         path.push(tid);
     }
@@ -122,7 +125,7 @@ PSP.generateAndSave = function(restbase, req, format, tid) {
 // Get an object with rev and tid properties for the revision
 PSP.getRevisionInfo = function(restbase, req) {
     var rp = req.params;
-    if (/^(?:[0-9]+|latest)$/.test(rp.revision)) {
+    if (/^(?:[0-9]+)$/.test(rp.revision)) {
         // Resolve to a tid
         return restbase.get({
             uri: new URI([rp.domain,'sys','page_revisions','page',
@@ -157,11 +160,16 @@ PSP.getFormat = function (format) {
             };
             var contentReq = restbase.get(beReq)
                 .catch(function(e) {
-                    return self.getRevisionInfo(restbase, req)
-                    .then(function(revInfo) {
-                        rp.revision = revInfo.rev + '';
-                        return self.generateAndSave(restbase, req, format, uuid.v1());
-                    });
+                    if (e.status === 404) {
+                        return self.getRevisionInfo(restbase, req)
+                        .then(function(revInfo) {
+                            rp.revision = revInfo.rev + '';
+                            return self.generateAndSave(restbase, req, format, uuid.v1());
+                        });
+                    } else {
+                        // Don't generate content if there's some other error.
+                        throw e;
+                    }
                 });
             return self.wrapContentReq(restbase, req, contentReq);
         }
