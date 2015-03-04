@@ -262,7 +262,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             }
             return self.fetchAndStoreMWRevision(restbase, req);
         });
-    } else if (rp.revision === 'latest') {
+    } else if (!rp.revision) {
         revisionRequest = self.fetchAndStoreMWRevision(restbase, req);
     } else {
         throw new Error("Invalid revision: " + rp.revision);

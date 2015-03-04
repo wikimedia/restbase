@@ -140,6 +140,16 @@ PSP.getRevisionInfo = function(restbase, req) {
             tid: rp.revision,
             rev: null
         });
+    } else if (!rp.revision) {
+        // Get the latest revision
+        return restbase.get({
+            uri: new URI([rp.domain,'sys','page_revisions','page',
+                         normalizeTitle(rp.title)])
+        })
+        .then(function(res) {
+            var revInfo = res.body.items[0];
+            return revInfo;
+        });
     } else {
         throw new Error("Invalid revision: " + rp.revision);
     }
