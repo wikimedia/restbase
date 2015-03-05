@@ -1,15 +1,15 @@
 swagger: '2.0'
 info:
-  version: '1.0.0'
+  version: '1.0.0-beta'
   title: MediaWiki Content API
-  description: basic mediawiki content api.
+  description: Basic MediaWiki content api.
   termsofservice: https://github.com/wikimedia/restbase#restbase
   contact:
-    name: services
+    name: Services
     email: services@lists.wikimedia.org
-    url: https://www.mediawiki.org/wiki/services
+    url: https://www.mediawiki.org/wiki/Services
   license:
-    name: apache licence, v2
+    name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 
 paths:
@@ -18,7 +18,10 @@ paths:
     get:
       tags:
         - Page content
-      description: List page properties / page content sub-apis
+      description: >
+        List page properties / page content sub-apis.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json
       responses:
@@ -26,20 +29,19 @@ paths:
           description: The queriable sub-items
           schema:
             $ref: '#/definitions/listing'
-        '404':
-          description: unknown domain
-          schema:
-            $ref: '#/definitions/notfound'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
 
   /{module:page}/title/:
     get:
       tags:
         - Page content
-      description: List all known pages
+      description: >
+        List all pages.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
       produces:
         - application/json
       responses:
@@ -47,14 +49,10 @@ paths:
           description: The queriable list of page titles
           schema:
             $ref: '#/definitions/listing'
-        '404':
-          description: unknown domain or no pages to list
-          schema:
-            $ref: '#/definitions/notfound'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
@@ -67,28 +65,26 @@ paths:
         List revisions for a title. Currently this lists all
         revisions that ever used this title, but eventually it should probably
         return the linear history (across renames) of the page currently using
-        this title. Stability: experimental.
+        this title.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: title
           in: path
-          description: the title of page content
+          description: The page title.
           type: string
           required: true
       responses:
         '200':
-          description: The queriable list of page revisions
+          description: The queriable list of page revisions.
           schema:
             $ref: '#/definitions/listing'
-        '404':
-          description: unknown domain or page title
-          schema:
-            $ref: '#/definitions/notfound'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}/
 
@@ -96,7 +92,10 @@ paths:
     get:
       tags:
         - Page content
-      description: List titles for which the HTML property is available
+      description: >
+        List titles for which the HTML property is available.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       responses:
@@ -104,14 +103,10 @@ paths:
           description: The queriable list of page titles
           schema:
             $ref: '#/definitions/listing'
-        '404':
-          description: unknown domain or no pages to list
-          schema:
-            $ref: '#/definitions/notfound'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
@@ -119,28 +114,38 @@ paths:
     get:
       tags:
         - Page content
-      description: Retrieve the latest html
+      description: >
+        Retrieve the latest html for a page title. 
+        
+        If you know the revision as well, then please use the
+        `{title}/{revision}` end point instead for better performance.
+
+        See [the MediaWiki DOM
+        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+        description of the MediaWiki-specific semantic markup in this HTML.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: title
           in: path
-          description: The title of page content
+          description: The page title.
           type: string
           required: true
       produces:
-        - text/html
-        - application/json
+        - text/html; profile=mediawiki.org/specs/html/1.0.0
       responses:
         '200':
-          description: the page's latest HTML
-          schema: 'text/html'
+          description: >
+            The html for the given page title. Conforms to
+            https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec.
         '404':
-          description: unknown domain or page title
+          description: Unknown page title
           schema:
-            $ref: '#/definitions/notfound'
+            $ref: '#/definitions/problem'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         # Directly return the latest HTML. Alternatively, we could also try
         # relative redirects. A relative location header of 'foo/bar' seems to
@@ -152,13 +157,16 @@ paths:
     get:
       tags:
         - Page content
-      description: List all HTML revisions for a page
+      description: >
+        List all HTML revisions for a title.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: title
           in: path
-          description: The title of page content
+          description: The page title
           type: string
           required: true
       responses:
@@ -167,9 +175,9 @@ paths:
           schema:
             $ref: '#/definitions/revisions'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/
 
@@ -178,15 +186,26 @@ paths:
     get:
       tags:
         - Page content
-      description: Retrieve the html for a given revision (and optional timeuuid)
+      description: >
+        Retrieve the html for a given revision (and optional timeuuid).
+
+        See [the MediaWiki DOM
+        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+        description of the MediaWiki-specific semantic markup in this HTML.
+
+        This HTML can be edited using arbitrary HTML tools. The modified HTML
+        can be converted back to wikitext using the
+        [/transform/html/to/wikitext{/title}{/revision}](#!/Transforms/transform_html_to_wikitext__title___revision__post)
+        entry point.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       operationId: getFormatRevision
       produces:
-        - text/html
-        - application/json
+        - text/html; profile=mediawiki.org/specs/html/1.0.0
       parameters:
         - name: title
           in: path
-          description: The title of page content
+          description: The page title
           type: string
           required: true
         - name: revision
@@ -198,27 +217,27 @@ paths:
           in: path
           description: The revision's time ID
           type: string
-          required: false
       responses:
         '200':
-          description: The html for the given page, revision and tid
-          schema: 'text/html'
+          description: >
+            The html for the given page, revision and tid. Conforms to
+            https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec.
         '400':
-          description: Invalid revision
+          description: Invalid revision or tid
           schema:
-            $ref: '#/definitions/invalidRevision'
+            $ref: '#/definitions/problem'
         '403':
-          description: access to the specific revision is restricted
+          description: Access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/httpError'
+            $ref: '#/definitions/problem'
         '404':
-          description: unknown domain, page, revision or tid
+          description: Unknown page, revision or tid
           schema:
-            $ref: '#/definitions/notFound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
 
@@ -226,7 +245,10 @@ paths:
     get:
       tags:
         - Page content
-      description: List titles for which the data-parsoid property is available
+      description: >
+        List titles for which the data-parsoid property is available
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       responses:
@@ -234,14 +256,10 @@ paths:
           description: The queriable list of page titles
           schema:
             $ref: '#/definitions/listing'
-        '404':
-          description: unknown domain or no pages to list
-          schema:
-            $ref: '#/definitions/notfound'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         # Fixme: only list pages that have at least one revision with content
         # model 'wikitext'
@@ -251,7 +269,10 @@ paths:
     get:
       tags:
         - Page content
-      description: Retrieve the latest data-parsoid (private Parsoid metadata)
+      description: >
+        Retrieve the latest data-parsoid (private Parsoid metadata)
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: title
           in: path
@@ -266,13 +287,13 @@ paths:
           schema:
             $ref: '#/definitions/data-parsoid'
         '404':
-          description: unknown domain or page title
+          description: Unknown page title
           schema:
-            $ref: '#/definitions/notfound'
+            $ref: '#/definitions/problem'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
 
@@ -280,13 +301,16 @@ paths:
     get:
       tags:
         - Page content
-      description: List data-parsoid revisions for a page
+      description: >
+        List data-parsoid revisions for a page
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
         - name: title
           in: path
-          description: The title of page content
+          description: The page title
           type: string
           required: true
       responses:
@@ -295,13 +319,13 @@ paths:
           schema:
             $ref: '#/definitions/revisions'
         '404':
-          description: unknown domain or page title
+          description: Unknown page title
           schema:
-            $ref: '#/definitions/notfound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/
 
@@ -309,13 +333,16 @@ paths:
     get:
       tags:
         - Page content
-      description: Retrieve data-parsoid (internal Parsoid metadata) for a given page & revision
+      description: >
+        Retrieve data-parsoid (internal Parsoid metadata) for a given page & revision
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
         - name: title
           in: path
-          description: The title of page content
+          description: The page title
           type: string
           required: true
         - name: revision
@@ -336,19 +363,19 @@ paths:
         '400':
           description: Invalid revision
           schema:
-            $ref: '#/definitions/invalidRevision'
+            $ref: '#/definitions/problem'
         '403':
-          description: access to the specific revision is restricted
+          description: Access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/httpError'
+            $ref: '#/definitions/problem'
         '404':
-          description: unknown domain, page, revision or tid
+          description: Unknown page, revision or tid
           schema:
-            $ref: '#/definitions/notFound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
 
@@ -356,7 +383,10 @@ paths:
     get:
       tags:
         - Page content
-      description: List available revisions
+      description: >
+        List available revisions
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
       produces:
         - application/json
       responses:
@@ -364,14 +394,10 @@ paths:
           description: The queriable sub-items
           schema:
             $ref: '#/definitions/listing'
-        '404':
-          description: unknown domain or no revisions to list
-          schema:
-            $ref: '#/definitions/notfound'
         default:
-          description: unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaulterror'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/
 
@@ -379,7 +405,10 @@ paths:
     get:
       tags:
         - Page content
-      description: Get meta-data about a specific revision
+      description: >
+        Get meta-data about a specific revision
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
@@ -392,23 +421,23 @@ paths:
         '200':
           description: The revision's properties
           schema:
-            $ref: '#/definitions/rev-schema'
+            $ref: '#/definitions/revision'
         '400':
           description: Invalid revision
           schema:
-            $ref: '#/definitions/invalidRevision'
+            $ref: '#/definitions/problem'
         '403':
-          description: access to the specific revision is restricted
+          description: Access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/httpError'
+            $ref: '#/definitions/problem'
         '404':
           description: Unknown revision id or domain
           schema:
-            $ref: '#/definitions/notFound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
 
@@ -416,7 +445,10 @@ paths:
     post:
       tags:
         - Transforms
-      description: Transform HTML to wikitext
+      description: >
+        Transform HTML to wikitext
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
         - multipart/form-data
       produces:
@@ -441,17 +473,17 @@ paths:
         '200':
           schema: 'text/plain'
         '403':
-          description: access to the specific revision is restricted
+          description: Access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/httpError'
+            $ref: '#/definitions/problem'
         '404':
-          description: unknown domain, page or revision
+          description: Unknown page title or revision
           schema:
-            $ref: '#/definitions/notFound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
 
@@ -459,7 +491,10 @@ paths:
     post:
       tags:
         - Transforms
-      description: Transform wikitext to HTML
+      description: >
+        Transform wikitext to HTML
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
         - multipart/form-data
       produces:
@@ -487,19 +522,19 @@ paths:
           required: false
       responses:
         '200':
-          schema: 'text/html'
+          schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/httpError'
+            $ref: '#/definitions/problem'
         '404':
-          description: unknown domain, page or revision
+          description: Unknown page title or revision
           schema:
-            $ref: '#/definitions/notFound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
 
@@ -507,7 +542,10 @@ paths:
     post:
       tags:
         - Transforms
-      description: Update / refresh / sanitize HTML
+      description: >
+        Update / refresh / sanitize HTML
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
         - multipart/form-data
       produces:
@@ -535,92 +573,37 @@ paths:
           required: false
       responses:
         '200':
-          schema: 'text/html'
+          schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
         '403':
           description: access to the specific revision is restricted
           schema:
-            $ref: '#/definitions/httpError'
+            $ref: '#/definitions/problem'
         '404':
-          description: unknown domain, page or revision
+          description: Unknown page title or revision
           schema:
-            $ref: '#/definitions/notFound'
+            $ref: '#/definitions/problem'
         default:
-          description: Unexpected error
+          description: Error
           schema:
-            $ref: '#/definitions/defaultError'
+            $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 
 definitions:
-  defaultError:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
     required:
-      - code
-      - message
-    properties:
-      code:
-        type: integer
-        format: int32
-      message:
-        type: string
-  invalidRevision:
-    required:
-      - code
-      - method
-      - title
       - type
-      - uri
     properties:
-      code:
-        type: integer
-        format: int32
-      method:
-        type: string
-      title:
-        type: string
       type:
         type: string
-      uri:
-        type: string
-  httpError:
-    required:
-      - method
-      - title
-      - type
-      - detail
-    properties:
-      method:
-        type: string
       title:
-        type: string
-      type:
         type: string
       detail:
         type: string
-  notFound:
-    required:
-      - code
-      - method
-      - title
-      - type
-      - uri
-    properties:
-      code:
-        type: integer
-        format: int32
-      type:
+      instance:
         type: string
-      title:
-        type: string
-      description:
-        type: string
-      localURI:
-        type: string
-      table:
-        type: string
-      uri:
-        type: string
-      method:
-        type: string
+
   revisions:
     description: The result format for revision listing
     required:
@@ -634,6 +617,7 @@ definitions:
             format: int32
           tid:
             type: string
+
   listing:
     description: The result format for listings
     required:
@@ -643,6 +627,7 @@ definitions:
         type: array
         items:
           type: string
+
   data-parsoid:
     description: Result format for Parsoid data queries
     required:
@@ -654,7 +639,8 @@ definitions:
         format: int32
       ids:
         type: object
-  rev-schema:
+
+  revision:
     description: Result format for revision items
     required:
       - count
