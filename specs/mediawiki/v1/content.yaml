@@ -62,10 +62,10 @@ paths:
       tags:
         - Page content
       description: > 
-        List revisions for a title. Currently this lists all
-        revisions that ever used this title, but eventually it should probably
-        return the linear history (across renames) of the page currently using
-        this title.
+        List revisions for a title. Currently this lists all revisions that
+        ever used this title and are stored in RESTBase, but eventually it
+        should probably return the linear history (across renames) of the page
+        currently using this title.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -93,7 +93,8 @@ paths:
       tags:
         - Page content
       description: >
-        List titles for which the HTML property is available.
+        List titles for which an HTML representation is available. Currently
+        this only lists pages that have revisions stored in RESTBase.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -158,7 +159,8 @@ paths:
       tags:
         - Page content
       description: >
-        List all HTML revisions for a title.
+        List HTML revisions for a title. This currently only lists revisions
+        that are already stored in RESTBase.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -246,7 +248,8 @@ paths:
       tags:
         - Page content
       description: >
-        List titles for which the data-parsoid property is available
+        List titles for which the data-parsoid property is available. This
+        currently only lists pages which have revisions stored in RESTBase.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
@@ -302,7 +305,8 @@ paths:
       tags:
         - Page content
       description: >
-        List data-parsoid revisions for a page
+        List data-parsoid revisions for a page. This currently only lists
+        revisions stored in RESTBase.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
@@ -384,7 +388,7 @@ paths:
       tags:
         - Page content
       description: >
-        List available revisions
+        List revisions. This currently only lists revisions stored in RESTBase.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
       produces:
@@ -406,7 +410,7 @@ paths:
       tags:
         - Page content
       description: >
-        Get meta-data about a specific revision
+        Get metadata about a specific revision.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
