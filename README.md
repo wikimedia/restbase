@@ -1,48 +1,38 @@
 # RESTBase [![Build Status](https://travis-ci.org/wikimedia/restbase.svg?branch=master)](https://travis-ci.org/wikimedia/restbase) [![Coverage Status](https://coveralls.io/repos/wikimedia/restbase/badge.svg?branch=master)](https://coveralls.io/r/wikimedia/restbase?branch=master)
 
 
-[REST content
-API](https://www.mediawiki.org/wiki/Requests_for_comment/Content_API) and [storage service](https://www.mediawiki.org/wiki/Requests_for_comment/Storage_service) prototype.
+RESTBase was built to provide a [low-latency & high-throughput API for
+Wikipedia / Wikimedia
+content](http://rest.wikimedia.org/en.wikipedia.org/v1/?doc). It is basically
+a storing proxy, which presents a coherent API powered by Swagger specs to the
+outside, and backs up many of these entry points with storage.  The default
+**table storage** backend is based on Cassandra, which helps it to perform
+well at Wikimedia's scale without placing undue burden on operations.
 
-Provides a consistent & performance-oriented REST content API. Internally it
-uses a very modular structure, with proxy handlers communicating with
-storage back-ends using HTTP-like requests against a virtual REST interface.
+As a proxy, RESTBase does not perform any significant content processing
+itself. Instead, it requests content transformations from backend services
+when needed, and typically (depending on configuration) stores it back for
+later retrieval. For high-volume static end points most requests will be
+satisfied directly from storage.
 
-The main backend types provide *table storage* and *queues*. The table storage
-backends implement a distributed table storage service similar to [Amazon
-DynamoDB](http://aws.amazon.com/documentation/dynamodb/) and [Google
-DataStore](https://developers.google.com/datastore/). The first implementation
-uses Apache Cassandra. Notable features include automatically maintained
-secondary indexes (in development) and transactions (only CAS + dependent
-updates for now). See [the
-tests](https://github.com/gwicke/restbase-cassandra/blob/8a55b377173b08a6c772a208e69d2edf9425ad3a/storage/cassandra/test.js#L86)
-for example schema definitions and queries.
+The *table storage* backends conform to a RESTful [table storage
+API](https://github.com/wikimedia/restbase/blob/master/doc/TableStorageAPI.md)
+similar to [Amazon DynamoDB](http://aws.amazon.com/documentation/dynamodb/)
+and [Google DataStore](https://developers.google.com/datastore/). The primary
+implementation uses Apache Cassandra. Notable features include automatically
+maintained secondary indexes and some lightweight transaction support. A
+[SQLite backend](https://github.com/wikimedia/restbase-mod-table-sqlite) is
+under development.
 
-Table storage is in turn used to build higher-level storage buckets for common
-tasks. The first supported bucket types are a revisioned key-value bucket, and
-an even higher-level MediaWiki page content bucket.
-
-A queue implementation using Kafka is planned. See [these design notes](https://github.com/gwicke/restbase-cassandra/blob/master/doc/QueueBucket.md) for details.
-
-## Status
-
-Alpha production at [https://rest.wikimedia.org/](https://rest.wikimedia.org/en.wikipedia.org/v1/?doc).
+RESTBase systematically emits statsd metrics about storage and backend
+requests. Especially the systematic metric production for backend services
+provides a good baseline level of performance and error instrumentation in a
+micro-service architecture.
 
 ## Issue tracking
 
 We use [Phabricator to track
 issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-PROJ-mszihytuo3ij3fcxcxgm). See the [list of current issues in RESTBase](https://phabricator.wikimedia.org/tag/restbase/).
-
-## Request flow
-![RESTBase request
-flow](https://upload.wikimedia.org/wikipedia/commons/a/ab/Restbase_request_flow.svg)
-
-RESTBase is basically a thin storing proxy for REST APIs. It is optimized for
-a very direct and fast read path, with the expectation that most requests are
-served straight from storage. The front-end layer allows very flexible request
-routing and -orchestration driven by a swagger spec and system modules. This
-lets it dispatch requests to a variety of back-end services while providing a
-uniform API & a central point for logging & monitoring.
 
 ## Installation
 
