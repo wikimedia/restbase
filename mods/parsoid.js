@@ -41,17 +41,26 @@ var PSP = ParsoidService.prototype;
  */
 PSP.wrapContentReq = function(restbase, req, promise) {
     var rp = req.params;
+    function ensureCharsetInContentType(res) {
+        var cType = res.headers['content-type'];
+        if (/^text\/html\b/.test(cType) && !/charset=/.test(cType)) {
+            // Make sure a charset is set
+            res.headers['content-type'] = cType + ';charset=utf-8';
+        }
+        return res;
+    }
+
     if(!rp.revision || rbUtil.isTimeUUID(rp.revision) || /^latest$/.test(rp.revision)) {
         // we are dealing with the latest revision,
         // so no need to check it, as the latest
         // revision can never be supressed
-        return promise;
+        return promise.then(ensureCharsetInContentType);
     }
     // bundle the promise together with a call to getRevisionInfo()
     return P.all([promise, this.getRevisionInfo(restbase, req)]).then(function(resx) {
         // if we have reached this point,
         // it means access is not denied
-        return resx[0];
+        return ensureCharsetInContentType(resx[0]);
     });
 };
 
