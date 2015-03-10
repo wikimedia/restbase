@@ -65,13 +65,12 @@ PSP.wrapContentReq = function(restbase, req, promise) {
 };
 
 PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain,'sys','key_rev_value','parsoid.' + format,
-            normalizeTitle(rp.title)];
+    var path = [rp.domain,'sys','key_rev_value','parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
-    }
-    if (tid) {
-        path.push(tid);
+        if (tid) {
+            path.push(tid);
+        }
     }
     return new URI(path);
 };
@@ -131,44 +130,31 @@ PSP.generateAndSave = function(restbase, req, format, tid) {
     });
 };
 
-// Get an object with rev and tid properties for the revision
+// Get / check the revision metadata for a request
 PSP.getRevisionInfo = function(restbase, req) {
     var rp = req.params;
+    var path = [rp.domain,'sys','page_revisions','page',
+                         normalizeTitle(rp.title)];
     if (/^(?:[0-9]+)$/.test(rp.revision)) {
-        // Resolve to a tid
-        return restbase.get({
-            uri: new URI([rp.domain,'sys','page_revisions','page',
-                         normalizeTitle(rp.title),rp.revision])
-        })
-        .then(function(res) {
-            var revInfo = res.body.items[0];
-            return revInfo;
-        });
-    } else if (rbUtil.isTimeUUID(rp.revision)) {
-        return P.resolve({
-            tid: rp.revision,
-            rev: null
-        });
-    } else if (!rp.revision) {
-        // Get the latest revision
-        return restbase.get({
-            uri: new URI([rp.domain,'sys','page_revisions','page',
-                         normalizeTitle(rp.title)])
-        })
-        .then(function(res) {
-            var revInfo = res.body.items[0];
-            return revInfo;
-        });
-    } else {
+        path.push(rp.revision);
+    } else if (rp.revision) {
         throw new Error("Invalid revision: " + rp.revision);
     }
+
+    return restbase.get({
+        uri: new URI(path)
+    })
+    .then(function(res) {
+        return res.body.items[0];
+    });
 };
 
 PSP.getFormat = function (format) {
     var self = this;
 
-    return function (restbase, req) {
+    return function _getFormat(restbase, req) {
         var rp = req.params;
+        rp.title = normalizeTitle(rp.title);
         if (req.headers && /no-cache/.test(req.headers['cache-control'])
                 && rp.revision)
         {
@@ -178,18 +164,25 @@ PSP.getFormat = function (format) {
                 uri: self.getBucketURI(rp, format, rp.tid)
             };
             var contentReq = restbase.get(beReq)
-                .catch(function(e) {
-                    if (e.status === 404) {
-                        return self.getRevisionInfo(restbase, req)
-                        .then(function(revInfo) {
-                            rp.revision = revInfo.rev + '';
+            .catch(function(e) {
+                if (e.status === 404) {
+                    return self.getRevisionInfo(restbase, req)
+                    .then(function(revInfo) {
+                        rp.revision = revInfo.rev + '';
+                        if (revInfo.title !== rp.title) {
+                            // Re-try to retrieve from storage with the
+                            // normalized title & revision
+                            rp.title = revInfo.title;
+                            return _getFormat(restbase, req);
+                        } else {
                             return self.generateAndSave(restbase, req, format, uuid.v1());
-                        });
-                    } else {
-                        // Don't generate content if there's some other error.
-                        throw e;
-                    }
-                });
+                        }
+                    });
+                } else {
+                    // Don't generate content if there's some other error.
+                    throw e;
+                }
+            });
             return self.wrapContentReq(restbase, req, contentReq);
         }
     };
