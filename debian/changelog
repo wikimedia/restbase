@@ -1,5 +1,21 @@
+restbase (0.1.6+nmu1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+
+  [debian/control]
+  * Dependencies are now on their own lines
+  * Build depends on git, nodejs-legacy
+  * Depends on nodejs-legacy (/usr/bin/node symlink)
+  * Bump Debian standard from 3.9.4 to 3.9.6
+  * Bump debhelper to >= 9 to match debian/compat
+
+  [debian/restbase.install]
+  * Remove shell brace expansion, not a supported feature
+
+ -- Antoine Musso <hashar@free.fr>  Thu, 12 Mar 2015 15:26:39 +0100
+
 restbase (0.1.6) UNRELEASED; urgency=medium
 
-  * Initial version 
+  * Initial version
 
  -- Gabriel Wicke <gwicke@wikimedia.org>  Mon, 06 Oct 2014 13:18:39 -0700
