@@ -13,6 +13,7 @@
 
 var rbUtil = require('../lib/rbUtil.js');
 var URI = require('swagger-router').URI;
+var uuid = require('node-uuid');
 
 // TODO: move to module
 var fs = require('fs');
@@ -183,9 +184,11 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
         // the revision info
         var apiRev = dataResp.revisions[0];
         // are there any restrictions set?
-        var restrictions = Object.keys(apiRev).filter(function(key) { return /hidden$/.test(key); });
-        // the tid to store this info under
-        var tid = rbUtil.tidFromDate(apiRev.timestamp);
+        // FIXME: test for the precise attributes instead, this can easily
+        // break if new keys are added.
+        var restrictions = Object.keys(apiRev).filter(function(key) {
+            return /hidden$/.test(key);
+        });
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
             body: {
@@ -196,7 +199,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     // cf. https://phabricator.wikimedia.org/T87393
                     title: normalizeTitle(dataResp.title),
                     rev: parseInt(apiRev.revid),
-                    tid: tid,
+                    tid: uuid.v1(),
                     namespace: parseInt(dataResp.ns),
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
@@ -299,10 +302,17 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
         }
     })
     .then(function(res) {
-        // Flatten to an array of revisions rather than an array of objects
-        res.body.items = res.body.items.map(function(row) {
-            return row.rev;
+        // Flatten to an array of revisions rather than an array of objects &
+        // perform some ghetto uniquification.
+        var items = [];
+        var lastRev;
+        res.body.items.forEach(function(row) {
+            if (lastRev !== row.rev) {
+                items.push(row.rev);
+                lastRev = row.rev;
+            }
         });
+        res.body.items = items;
         return res;
     });
 };
