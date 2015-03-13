@@ -2,9 +2,15 @@
 debian/settings.yaml /etc/restbase/
 
 # everything
-{lib/,node_modules/,test/,package.json,server.js} usr/lib/restbase/
+lib/          usr/lib/restbase/
+node_modules/ usr/lib/restbase/
+test/         usr/lib/restbase/
+package.json  usr/lib/restbase/
+server.js     usr/lib/restbase/
 
-{README.md,LICENSE,doc/} usr/share/doc/restbase
+README.md  usr/share/doc/restbase
+LICENSE    usr/share/doc/restbase
+doc/       usr/share/doc/restbase
 
 # include all git stuff
 # TODO: do this only in a restbase-dev package?
