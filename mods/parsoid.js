@@ -79,6 +79,7 @@ PSP.pagebundle = function(restbase, req) {
     var rp = req.params;
     var domain = rp.domain;
     if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
+    // TODO: Pass in current or predecessor version data if available
     var uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
         + encodeURIComponent(normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.get({ uri: uri });
@@ -155,7 +156,7 @@ PSP.getFormat = function (format) {
     return function _getFormat(restbase, req) {
         var rp = req.params;
         rp.title = normalizeTitle(rp.title);
-        if (req.headers && /no-cache/.test(req.headers['cache-control'])
+        if (req.headers && /no-cache/i.test(req.headers['cache-control'])
                 && rp.revision)
         {
             return self.generateAndSave(restbase, req, format, uuid.v1());
