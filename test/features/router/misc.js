@@ -61,4 +61,27 @@ describe('router - misc', function() {
         });
     });
 
+    it('should log the request ID for a 404', function() {
+        var reqId = '9c54ff673d634b31bb28d60aae1cb43c';
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: server.config.bucketURL + '/foo-bucket/Foobar',
+            headers: {
+                'X-Request-Id': reqId
+            }
+        }).then(function(res) {
+            slice.halt();
+            throw new Error('Expected a 404, got ' + res.status);
+        }, function(err) {
+            slice.halt();
+            assert.deepEqual(err.headers['x-request-id'], reqId, 'Returned request ID does not match the sent one');
+            slice.get().forEach(function(line) {
+                var a = JSON.parse(line);
+                if(a.req || a.request_id) {
+                    assert.deepEqual(a.request_id, reqId, 'Request ID mismatch');
+                }
+            });
+        });
+    });
+
 });
