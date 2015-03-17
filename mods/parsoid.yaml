@@ -50,7 +50,7 @@ paths:
 
   /transform/html/to/wikitext{/title}{/revision}:
     post:
-      summary: Transform wikitext to HTML.
+      summary: Transform HTML to wikitext.
       operationId: transformHtmlToWikitext
 
   /transform/wikitext/to/html{/title}{/revision}:
