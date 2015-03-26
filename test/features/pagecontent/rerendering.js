@@ -37,10 +37,10 @@ describe('page re-rendering', function () {
             // delay for 1s to make sure that the timestamp differs on re-render
             return P.delay(1500)
             .then(function() {
-                    return preq.get({
+                return preq.get({
                     uri: server.config.bucketURL + dynamic1,
                     headers: { 'cache-control': 'no-cache' }
-                })
+                });
             });
         })
         .then(function (res) {
@@ -84,7 +84,6 @@ describe('page re-rendering', function () {
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
 
-            // Delay a bit to give the async save time to complete
             return preq.get({
                 uri: server.config.bucketURL + dynamic2 + '/' + r2tid1
             });
@@ -100,6 +99,22 @@ describe('page re-rendering', function () {
         .then(function (res) {
             assert.deepEqual(res.headers.etag, r1tid2);
             hasTextContentType(res);
+        });
+    });
+
+    it('should render & re-render independent revisions, if-unmodified-since support', function () {
+        return preq.get({
+            uri: server.config.bucketURL + dynamic1,
+            headers: {
+                'cache-control': 'no-cache',
+                'if-unmodified-since': 'Wed Dec 11 2013 16:00:00 GMT-0800',
+            }
+        })
+        .then(function() {
+            throw new Error('Expected a precondition failure');
+        },
+        function(res) {
+            assert.deepEqual(res.status, 412);
         });
     });
 
@@ -165,7 +180,6 @@ describe('page re-rendering', function () {
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
 
-            // Delay a bit to give the async save time to complete
             return preq.get({
                 uri: server.config.bucketURL + static2 + '/' + r2tid1
             });

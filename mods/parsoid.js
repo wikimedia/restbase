@@ -134,50 +134,40 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
     }
 };
 
-PSP.generateAndSave = function(restbase, req, format, isUpdateRequest) {
+// Temporary work-around for Parsoid issue
+// https://phabricator.wikimedia.org/T93715
+function normalizeHtml(html) {
+    return html && html.toString
+        && html.toString().replace(/ about="[^"]+"(?=[\/> ])/g, '');
+}
+function sameHtml(a, b) {
+    return normalizeHtml(a) === normalizeHtml(b);
+}
+
+PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     var self = this;
     var tid = uuid.v1();
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
     var storageRequest = null;
-    if (isUpdateRequest && req.params.revision) {
-        storageRequest = self.getFormat(format, restbase, {
-            uri: req.uri,
-            params: req.params
-        }).catch(function() {
-            // Don't care about errors.
-            return null;
-        });
-    }
 
-    return P.props({
-        parsoid: restbase.get({
-            uri: new URI([rp.domain,'sys','parsoid','pagebundle',
-                         normalizeTitle(rp.title),rp.revision])
-        }),
-        storage: storageRequest
+    return restbase.get({
+        uri: new URI([rp.domain,'sys','parsoid','pagebundle',
+                     normalizeTitle(rp.title),rp.revision])
     })
-    .then(function(responses) {
-        // Temporary work-around for Parsoid issue
-        // https://phabricator.wikimedia.org/T93715
-        function normalizeHtml(html) {
-            return html && html.toString
-                && html.toString().replace(/ about="[^"]+"(?=[\/> ])/g, '');
-        }
-        function sameHtml(a, b) {
-            return normalizeHtml(a) === normalizeHtml(b);
-        }
-        if (responses.storage
-                && sameHtml(responses.parsoid.body[format].body,
-                    responses.storage.body)) {
+    .then(function(res) {
+        if (format === 'html' && currentContentRes
+                && sameHtml(res.body.html.body, currentContentRes.body)) {
             // New render is the same as the previous one, no need to store
             // it.
             //console.log('not saving a new revision!');
             restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
 
-            return self.wrapContentReq(restbase, req, P.resolve(responses.storage));
+            // No need for wrapping here, as we rely on the pagebundle request
+            // being wrapped & throwing an error if access is denied
+            return currentContentRes;
         } else {
-            return self.saveParsoidResult(restbase, req, format, tid, responses.parsoid);
+            return self.saveParsoidResult(restbase, req, format, tid, res);
         }
     });
 };
@@ -205,35 +195,58 @@ PSP.getFormat = function (format, restbase, req) {
     var self = this;
     var rp = req.params;
     rp.title = normalizeTitle(rp.title);
+
+    function generateContent (storageRes) {
+        if (storageRes.status === 404 || storageRes.status === 200) {
+            return self.getRevisionInfo(restbase, req)
+            .then(function(revInfo) {
+                rp.revision = revInfo.rev + '';
+                if (revInfo.title !== rp.title) {
+                    // Re-try to retrieve from storage with the
+                    // normalized title & revision
+                    rp.title = revInfo.title;
+                    return self.getFormat(format, restbase, req);
+                } else {
+                    return self.generateAndSave(restbase, req, format, storageRes);
+                }
+            });
+        } else {
+            // Don't generate content if there's some other error.
+            throw storageRes;
+        }
+    }
+
+    var contentReq = restbase.get({
+        uri: self.getBucketURI(rp, format, rp.tid)
+    });
+
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])
             && rp.revision)
     {
-        return self.generateAndSave(restbase, req, format, true);
+        // Check content generation either way
+        return contentReq.then(function(res) {
+                if (req.headers['if-unmodified-since']) {
+                    try {
+                        var jobTime = new Date(req.headers['if-unmodified-since']);
+                        if (uuid.v1time(res.headers.etag) >= jobTime) {
+                            // Already up to date, nothing to do.
+                            return {
+                                status: 412,
+                                body: {
+                                    type: 'precondition_failed',
+                                    detail: 'The precondition failed'
+                                }
+                            };
+                        }
+                    } catch (e) {} // Ignore errors from date parsing
+                }
+                return generateContent(res);
+            },
+            generateContent);
     } else {
-        var beReq = {
-            uri: self.getBucketURI(rp, format, rp.tid)
-        };
-        var contentReq = restbase.get(beReq)
-        .catch(function(e) {
-            if (e.status === 404) {
-                return self.getRevisionInfo(restbase, req)
-                .then(function(revInfo) {
-                    rp.revision = revInfo.rev + '';
-                    if (revInfo.title !== rp.title) {
-                        // Re-try to retrieve from storage with the
-                        // normalized title & revision
-                        rp.title = revInfo.title;
-                        return self.getFormat(format, restbase, req);
-                    } else {
-                        return self.generateAndSave(restbase, req, format);
-                    }
-                });
-            } else {
-                // Don't generate content if there's some other error.
-                throw e;
-            }
-        });
-        return self.wrapContentReq(restbase, req, contentReq);
+        // Only (possibly) generate content if there was an error
+        return self.wrapContentReq(restbase, req,
+                contentReq.catch(generateContent));
     }
 };
 
