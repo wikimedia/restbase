@@ -24,6 +24,25 @@ function ParsoidService(options) {
     options = options || {};
     this.parsoidHost = options.parsoidHost
         || 'http://parsoid-lb.eqiad.wikimedia.org';
+    // Set up operations
+    var self = this;
+    this.operations = {
+        getPageBundle: function(restbase, req) {
+            return self.wrapContentReq(restbase, req, self.pagebundle(restbase, req));
+        },
+        // revision retrieval per format
+        getWikitext: self.getFormat.bind(self, 'wikitext'),
+        getHtml: self.getFormat.bind(self, 'html'),
+        getDataParsoid: self.getFormat.bind(self, 'data-parsoid'),
+        // listings
+        listWikitextRevisions: self.listRevisions.bind(self, 'wikitext'),
+        listHtmlRevisions: self.listRevisions.bind(self, 'html'),
+        listDataParsoidRevisions: self.listRevisions.bind(self, 'data-parsoid'),
+        // transforms
+        transformHtmlToHtml: self.makeTransform('html', 'html'),
+        transformHtmlToWikitext: self.makeTransform('html', 'wikitext'),
+        transformWikitextToHtml: self.makeTransform('wikitext', 'html'),
+    };
 }
 
 // Short alias
@@ -115,19 +134,51 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
     }
 };
 
-PSP.generateAndSave = function(restbase, req, format, tid) {
+PSP.generateAndSave = function(restbase, req, format, isUpdateRequest) {
     var self = this;
-    if (!tid) {
-        throw new Error('no tid');
-    }
+    var tid = uuid.v1();
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
-    return restbase.get({
-        uri: new URI([rp.domain,'sys','parsoid','pagebundle',
-                     normalizeTitle(rp.title),rp.revision])
+    var storageRequest = null;
+    if (isUpdateRequest && req.params.revision) {
+        storageRequest = self.getFormat(format, restbase, {
+            uri: req.uri,
+            params: req.params
+        }).catch(function() {
+            // Don't care about errors.
+            return null;
+        });
+    }
+
+    return P.props({
+        parsoid: restbase.get({
+            uri: new URI([rp.domain,'sys','parsoid','pagebundle',
+                         normalizeTitle(rp.title),rp.revision])
+        }),
+        storage: storageRequest
     })
-    .then(function(parsoidResp) {
-        return self.saveParsoidResult(restbase, req, format, tid, parsoidResp);
+    .then(function(responses) {
+        // Temporary work-around for Parsoid issue
+        // https://phabricator.wikimedia.org/T93715
+        function normalizeHtml(html) {
+            return html && html.toString
+                && html.toString().replace(/ about="[^"]+"(?=[\/> ])/g, '');
+        }
+        function sameHtml(a, b) {
+            return normalizeHtml(a) === normalizeHtml(b);
+        }
+        if (responses.storage
+                && sameHtml(responses.parsoid.body[format].body,
+                    responses.storage.body)) {
+            // New render is the same as the previous one, no need to store
+            // it.
+            //console.log('not saving a new revision!');
+            restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
+
+            return self.wrapContentReq(restbase, req, P.resolve(responses.storage));
+        } else {
+            return self.saveParsoidResult(restbase, req, format, tid, responses.parsoid);
+        }
     });
 };
 
@@ -150,54 +201,49 @@ PSP.getRevisionInfo = function(restbase, req) {
     });
 };
 
-PSP.getFormat = function (format) {
+PSP.getFormat = function (format, restbase, req) {
     var self = this;
-
-    return function _getFormat(restbase, req) {
-        var rp = req.params;
-        rp.title = normalizeTitle(rp.title);
-        if (req.headers && /no-cache/i.test(req.headers['cache-control'])
-                && rp.revision)
-        {
-            return self.generateAndSave(restbase, req, format, uuid.v1());
-        } else {
-            var beReq = {
-                uri: self.getBucketURI(rp, format, rp.tid)
-            };
-            var contentReq = restbase.get(beReq)
-            .catch(function(e) {
-                if (e.status === 404) {
-                    return self.getRevisionInfo(restbase, req)
-                    .then(function(revInfo) {
-                        rp.revision = revInfo.rev + '';
-                        if (revInfo.title !== rp.title) {
-                            // Re-try to retrieve from storage with the
-                            // normalized title & revision
-                            rp.title = revInfo.title;
-                            return _getFormat(restbase, req);
-                        } else {
-                            return self.generateAndSave(restbase, req, format, uuid.v1());
-                        }
-                    });
-                } else {
-                    // Don't generate content if there's some other error.
-                    throw e;
-                }
-            });
-            return self.wrapContentReq(restbase, req, contentReq);
-        }
-    };
+    var rp = req.params;
+    rp.title = normalizeTitle(rp.title);
+    if (req.headers && /no-cache/i.test(req.headers['cache-control'])
+            && rp.revision)
+    {
+        return self.generateAndSave(restbase, req, format, true);
+    } else {
+        var beReq = {
+            uri: self.getBucketURI(rp, format, rp.tid)
+        };
+        var contentReq = restbase.get(beReq)
+        .catch(function(e) {
+            if (e.status === 404) {
+                return self.getRevisionInfo(restbase, req)
+                .then(function(revInfo) {
+                    rp.revision = revInfo.rev + '';
+                    if (revInfo.title !== rp.title) {
+                        // Re-try to retrieve from storage with the
+                        // normalized title & revision
+                        rp.title = revInfo.title;
+                        return self.getFormat(format, restbase, req);
+                    } else {
+                        return self.generateAndSave(restbase, req, format);
+                    }
+                });
+            } else {
+                // Don't generate content if there's some other error.
+                throw e;
+            }
+        });
+        return self.wrapContentReq(restbase, req, contentReq);
+    }
 };
 
-PSP.listRevisions = function (format) {
+PSP.listRevisions = function (format, restbase, req) {
     var self = this;
-    return function (restbase, req) {
-        var rp = req.params;
-        return restbase.get({
-            uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
-                         normalizeTitle(rp.title), ''])
-        });
-    };
+    var rp = req.params;
+    return restbase.get({
+        uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
+                     normalizeTitle(rp.title), ''])
+    });
 };
 
 PSP.transformRevision = function (restbase, req, from, to) {
@@ -343,20 +389,7 @@ module.exports = function (options) {
 
     return {
         spec: spec,
-        operations: {
-            getPageBundle: function(restbase, req) {
-                return ps.wrapContentReq(restbase, req, ps.pagebundle(restbase, req));
-            },
-            listWikitextRevisions: ps.listRevisions('wikitext'),
-            getWikitext: ps.getFormat('wikitext'),
-            listHtmlRevisions: ps.listRevisions('html'),
-            getHtml: ps.getFormat('html'),
-            listDataParsoidRevisions: ps.listRevisions('data-parsoid'),
-            getDataParsoid: ps.getFormat('data-parsoid'),
-            transformHtmlToHtml: ps.makeTransform('html', 'html'),
-            transformHtmlToWikitext: ps.makeTransform('html', 'wikitext'),
-            transformWikitextToHtml: ps.makeTransform('wikitext', 'html')
-        },
+        operations: ps.operations,
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
