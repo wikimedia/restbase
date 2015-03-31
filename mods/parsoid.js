@@ -138,7 +138,8 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
 // https://phabricator.wikimedia.org/T93715
 function normalizeHtml(html) {
     return html && html.toString
-        && html.toString().replace(/ about="[^"]+"(?=[\/> ])/g, '');
+        && html.toString()
+            .replace(/ about="[^"]+"(?=[\/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
 }
 function sameHtml(a, b) {
     return normalizeHtml(a) === normalizeHtml(b);
@@ -156,6 +157,13 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                      normalizeTitle(rp.title),rp.revision])
     })
     .then(function(res) {
+        var htmlBody = res.body.html.body;
+        // Also make sure we have a meta tag for the tid in our output
+        if (!/<meta property="mw:TimeUuid" [^>]+>/.test(htmlBody)) {
+            res.body.html.body = htmlBody
+                .replace(/(<head [^>]+>)/, '$1<meta property="mw:TimeUuid" '
+                    + 'content="' + tid + '"/>');
+        }
         if (format === 'html' && currentContentRes
                 && sameHtml(res.body.html.body, currentContentRes.body)) {
             // New render is the same as the previous one, no need to store
@@ -263,10 +271,28 @@ PSP.transformRevision = function (restbase, req, from, to) {
     var self = this;
     var rp = req.params;
 
+    var tid;
+    if (from === 'html') {
+        if (req.headers && req.headers['if-match']) {
+            // Prefer the If-Match header
+            tid = req.headers['if-match'];
+        } else if (req.body && req.body.html) {
+            // Fall back to an inline meta tag in the HTML
+            var tidMatch = /<meta property="mw:TimeUuid" content="([^"]+)"\/?>/
+                                .exec(req.body.html);
+            tid = tidMatch && tidMatch[1];
+        }
+    }
+
     function get(format) {
+        var path = [rp.domain,'sys','parsoid',format,
+                     normalizeTitle(rp.title),rp.revision];
+        if (tid) {
+            path.push(tid);
+        }
+
         return restbase.get({
-            uri: new URI([rp.domain,'sys','parsoid',format,
-                         normalizeTitle(rp.title),rp.revision])
+            uri: new URI(path)
         })
         .then(function (res) {
             if (res.body && res.body.constructor === Buffer) {
