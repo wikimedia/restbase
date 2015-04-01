@@ -109,7 +109,12 @@ describe('item requests', function() {
        .then(function(res) {
            assert.deepEqual(res.status, 200);
            assert.contentType(res, 'application/json');
-           assert.deepEqual(res.body.items, ['Foobar']);
+           if (!res.body.items || !res.body.items.length) {
+               throw new Error("Empty listing result!");
+           }
+           if (!/^!/.test(res.body.items[0])) {
+               throw new Error("Expected the first titles to start with !");
+           }
        });
     });
 

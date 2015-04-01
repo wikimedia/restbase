@@ -95,14 +95,12 @@ describe('revision requests', function() {
        .then(function(res) {
            assert.deepEqual(res.status, 200);
 			assert.contentType(res, 'application/json');
-			// at least the revisions from this test file
-			// should be present in storage
-			assert.deepEqual(res.body.items.some(function(revId) {
-				return revId === revOk;
-			}), true);
-			assert.deepEqual(res.body.items.some(function(revId) {
-				return revId === revDeleted;
-			}), true);
+            if (!res.body.items || !res.body.items.length) {
+                throw new Error("No revisions returned!");
+            }
+            if (typeof res.body.items[0] !== 'number') {
+                throw new Error("Expected a numeric revision id!");
+            }
        });
     });
 
