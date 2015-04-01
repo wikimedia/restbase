@@ -122,28 +122,32 @@ PRS.prototype._checkRevReturn = function(res) {
 PRS.prototype.listTitles = function(restbase, req, options) {
     var rp = req.params;
     var listReq = {
-        uri: this.tableURI(rp.domain),
+        uri: new URI([rp.domain,'sys','action','query']),
+        method: 'post',
         body: {
-            table: this.tableName,
-            proj: ['title','rev'],
-            //distinct: true,
-            limit: 1000
+            generator: 'allpages',
+            gaplimit: 500,
+            prop: 'revisions',
+            format: 'json',
+            // gapcontinue: rp.next
         }
     };
 
     return restbase.get(listReq)
     .then(function(res) {
-        // Hacky distinct implementation as workaround
+        var pages = res.body.items;
         var items = [];
-        var lastTitle;
-        res.body.items.forEach(function(row) {
-            if (row.title !== lastTitle) {
-                items.push(row.title);
-                lastTitle = row.title;
-            }
+        Object.keys(pages).forEach(function(pageId) {
+            var article = pages[pageId];
+            items.push(article.title);
         });
-        res.body.items = items;
-        return res;
+
+        return {
+            status: 200,
+            body: {
+                items: items
+            }
+        };
     });
 };
 
@@ -321,28 +325,31 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
 PRS.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
     var listReq = {
-        uri: this.tableURI(rp.domain),
+        uri: new URI([rp.domain,'sys','action','query']),
+        method: 'post',
         body: {
-            table: this.tableName,
-            index: 'by_rev',
-            proj: ['rev','tid'],
-            //distinct: true,
-            limit: 1000
+            generator: 'allpages',
+            gaplimit: 500,
+            prop: 'revisions',
+            format: 'json',
+            // gapcontinue: rp.next
         }
     };
     return restbase.get(listReq)
     .then(function(res) {
-        // Hacky distinct implementation as workaround
+        var pages = res.body.items;
         var items = [];
-        var lastRev;
-        res.body.items.forEach(function(row) {
-            if (row.rev !== lastRev) {
-                items.push(row.rev);
-                lastRev = row.rev;
-            }
+        Object.keys(pages).forEach(function(pageId) {
+            var article = pages[pageId];
+            items.push(article.revisions[0].revid);
         });
-        res.body.items = items;
-        return res;
+
+        return {
+            status: 200,
+            body: {
+                items: items
+            }
+        };
     });
 };
 
