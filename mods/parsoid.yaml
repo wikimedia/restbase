@@ -12,6 +12,9 @@ paths:
     get:
       summary: Retrieve a JSON bundle containing html and data-parsoid
       operationId: getPageBundle
+    post:
+      summary: Retrieve a JSON bundle containing html and data-parsoid
+      operationId: getPageBundle
   
   /wikitext/{title}/:
     get:

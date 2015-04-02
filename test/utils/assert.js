@@ -48,6 +48,17 @@ function remoteRequests(slice, expected) {
     );
 }
 
+/**
+ * Finds the first request to parsoid
+ */
+function findParsoidRequest(slice) {
+    var logEntry = slice.get().find(function(line) {
+            var entry = JSON.parse(line);
+            return entry.req && /^http:\/\/parsoid/.test(entry.req.uri);
+    });
+    return JSON.parse(logEntry).req;
+}
+
 function isDeepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
@@ -123,4 +134,5 @@ module.exports.isSuperset     = isSuperset;
 module.exports.contentType    = contentType;
 module.exports.localRequests  = localRequests;
 module.exports.remoteRequests = remoteRequests;
+module.exports.findParsoidRequest = findParsoidRequest;
 

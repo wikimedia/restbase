@@ -13,6 +13,7 @@ var fs     = require('fs');
 
 var revA = '45451075';
 var revB = '623616192';
+var revC = '645915794';
 var title = 'LCX';
 var pageUrl = server.config.bucketURL;
 
@@ -102,14 +103,15 @@ describe('on-demand generation of html and data-parsoid', function() {
         });
     });
 
-    it('should pass (stored) data-parsoid revision B to Parsoid for cache-control:no-cache',
+    it('should pass (stored) revision B content to Parsoid for template update',
     function () {
         // Start watching for new log entries
         var slice = server.config.logStream.slice();
         return preq.get({
             uri: pageUrl + '/data-parsoid/' + title + '/' + revB,
             headers: {
-                'cache-control': 'no-cache'
+                'cache-control': 'no-cache',
+                'x-restbase-mode': 'templates'
             },
         })
         .then(function (res) {
@@ -120,7 +122,89 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
+            var parsoidRequest = assert.findParsoidRequest(slice);
+            assert.deepEqual(parsoidRequest.method, 'post');
+            var prBody = parsoidRequest.body;
+            assert.deepEqual(prBody.update, 'templates');
+            assert.deepEqual(prBody.original.revid, revB);
+            if (!prBody.original.html.body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+            if (!prBody.original['data-parsoid'].body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
         });
     });
+
+    it('should pass (stored) revision B content to Parsoid for image update',
+    function () {
+        // Start watching for new log entries
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: pageUrl + '/html/' + title + '/' + revB,
+            headers: {
+                'cache-control': 'no-cache',
+                'x-restbase-mode': 'images'
+            },
+        })
+        .then(function (res) {
+            // Stop watching for new log entries
+            slice.halt();
+            assert.contentType(res,
+              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            if (!/<html/.test(res.body)) {
+                throw new Error("Expected html content!");
+            }
+            assert.localRequests(slice, false);
+            assert.remoteRequests(slice, true);
+            var parsoidRequest = assert.findParsoidRequest(slice);
+            assert.deepEqual(parsoidRequest.method, 'post');
+            var prBody = parsoidRequest.body;
+            assert.deepEqual(prBody.update, 'images');
+            assert.deepEqual(prBody.original.revid, revB);
+            if (!prBody.original.html.body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+            if (!prBody.original['data-parsoid'].body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+        });
+    });
+
+    it('should pass (stored) revision B content to Parsoid for edit update',
+    function () {
+        // Start watching for new log entries
+        var slice = server.config.logStream.slice();
+        return preq.get({
+            uri: pageUrl + '/html/' + title + '/' + revC,
+            headers: {
+                'cache-control': 'no-cache',
+                'x-restbase-parentrevision': revB
+            },
+        })
+        .then(function (res) {
+            // Stop watching for new log entries
+            slice.halt();
+            assert.contentType(res,
+              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            if (!/<html/.test(res.body)) {
+                throw new Error("Expected html content!");
+            }
+            assert.localRequests(slice, false);
+            assert.remoteRequests(slice, true);
+            var parsoidRequest = assert.findParsoidRequest(slice);
+            assert.deepEqual(parsoidRequest.method, 'post');
+            var prBody = parsoidRequest.body;
+            assert.deepEqual(prBody.update, undefined);
+            assert.deepEqual(prBody.previous.revid, revB);
+            if (!prBody.previous.html.body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+            if (!prBody.previous['data-parsoid'].body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+        });
+    });
+
 
 });

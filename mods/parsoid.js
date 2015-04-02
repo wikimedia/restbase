@@ -99,9 +99,11 @@ PSP.pagebundle = function(restbase, req) {
     var domain = rp.domain;
     if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     // TODO: Pass in current or predecessor version data if available
-    var uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
+    var newReq = Object.assign({}, req);
+    if (!newReq.method) { newReq.method = 'get'; }
+    newReq.uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
         + encodeURIComponent(normalizeTitle(rp.title)) + '/' + rp.revision;
-    return restbase.get({ uri: uri });
+    return restbase.request(newReq);
 };
 
 PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
@@ -147,17 +149,55 @@ function sameHtml(a, b) {
 
 PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     var self = this;
-    var tid = uuid.v1();
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
-    var storageRequest = null;
 
-    return restbase.get({
-        uri: new URI([rp.domain,'sys','parsoid','pagebundle',
-                     normalizeTitle(rp.title),rp.revision])
-    })
+    var pageBundleUri = new URI([rp.domain,'sys','parsoid','pagebundle',
+                     normalizeTitle(rp.title),rp.revision]);
+
+    // Helper for retrieving original content from storage & posting it to
+    // the Parsoid pagebundle end point
+    function getOrigAndPostToParsoid(revision, contentName, updateMode) {
+        return self._getOriginalContent(restbase, req, revision)
+        .then(function(res) {
+            var body = {
+                update: updateMode
+            };
+            body[contentName] = res;
+            return restbase.post({
+                uri: pageBundleUri,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: body
+            });
+        })
+        .catch(function(e) {
+            // Fall back to plain GET
+            return restbase.get({ uri: pageBundleUri });
+        });
+    }
+
+    var parentRev = parseInt(req.headers['x-restbase-parentrevision']);
+    var updateMode = req.headers['x-restbase-mode'];
+    var parsoidReq;
+    if (parentRev) {
+        // OnEdit job update: pass along the predecessor version
+        parsoidReq = getOrigAndPostToParsoid(parentRev + '', 'previous');
+    } else if (updateMode) {
+        // Template or image updates. Similar to html2wt, pass:
+        // - current data-parsoid and html
+        // - the edit mode
+        parsoidReq = getOrigAndPostToParsoid(rp.revision, 'original', updateMode);
+    } else {
+        // Plain render
+        parsoidReq = restbase.get({ uri: pageBundleUri });
+    }
+
+    return parsoidReq
     .then(function(res) {
         var htmlBody = res.body.html.body;
+        var tid = uuid.v1();
         // Also make sure we have a meta tag for the tid in our output
         if (!/<meta property="mw:TimeUuid" [^>]+>/.test(htmlBody)) {
             res.body.html.body = htmlBody
@@ -168,7 +208,6 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                 && sameHtml(res.body.html.body, currentContentRes.body)) {
             // New render is the same as the previous one, no need to store
             // it.
-            //console.log('not saving a new revision!');
             restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
 
             // No need for wrapping here, as we rely on the pagebundle request
@@ -267,26 +306,12 @@ PSP.listRevisions = function (format, restbase, req) {
     });
 };
 
-PSP.transformRevision = function (restbase, req, from, to) {
-    var self = this;
+PSP._getOriginalContent = function(restbase, req, revision, tid) {
     var rp = req.params;
-
-    var tid;
-    if (from === 'html') {
-        if (req.headers && req.headers['if-match']) {
-            // Prefer the If-Match header
-            tid = req.headers['if-match'];
-        } else if (req.body && req.body.html) {
-            // Fall back to an inline meta tag in the HTML
-            var tidMatch = /<meta property="mw:TimeUuid" content="([^"]+)"\/?>/
-                                .exec(req.body.html);
-            tid = tidMatch && tidMatch[1];
-        }
-    }
 
     function get(format) {
         var path = [rp.domain,'sys','parsoid',format,
-                     normalizeTitle(rp.title),rp.revision];
+                     normalizeTitle(rp.title),revision];
         if (tid) {
             path.push(tid);
         }
@@ -312,8 +337,32 @@ PSP.transformRevision = function (restbase, req, from, to) {
         // wikitext: get('wikitext'),
         'data-parsoid': get('data-parsoid')
     })
+    .then(function(res) {
+        res.revid = revision;
+        return res;
+    });
+
+};
+
+PSP.transformRevision = function (restbase, req, from, to) {
+    var self = this;
+    var rp = req.params;
+
+    var tid;
+    if (from === 'html') {
+        if (req.headers && req.headers['if-match']) {
+            // Prefer the If-Match header
+            tid = req.headers['if-match'];
+        } else if (req.body && req.body.html) {
+            // Fall back to an inline meta tag in the HTML
+            var tidMatch = /<meta property="mw:TimeUuid" content="([^"]+)"\/?>/
+                                .exec(req.body.html);
+            tid = tidMatch && tidMatch[1];
+        }
+    }
+
+    return this._getOriginalContent(restbase, req, rp.revision, tid)
     .then(function (original) {
-        original.revid = rp.revision;
         var body2 = {
             original: original
         };
