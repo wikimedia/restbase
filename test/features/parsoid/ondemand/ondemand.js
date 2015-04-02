@@ -111,7 +111,7 @@ describe('on-demand generation of html and data-parsoid', function() {
             uri: pageUrl + '/data-parsoid/' + title + '/' + revB,
             headers: {
                 'cache-control': 'no-cache',
-				'x-restbase-mode': 'templates'
+                'x-restbase-mode': 'templates'
             },
         })
         .then(function (res) {
@@ -122,17 +122,17 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
-			var parsoidRequest = assert.findParsoidRequest(slice);
-			assert.deepEqual(parsoidRequest.method, 'post');
-			var prBody = parsoidRequest.body;
-			assert.deepEqual(prBody.update, 'templates');
-			assert.deepEqual(prBody.original.revid, revB);
-			if (!prBody.original.html.body) {
-				throw new Error('Missing original html body in parsoid request');
-			}
-			if (!prBody.original['data-parsoid'].body) {
-				throw new Error('Missing original html body in parsoid request');
-			}
+            var parsoidRequest = assert.findParsoidRequest(slice);
+            assert.deepEqual(parsoidRequest.method, 'post');
+            var prBody = parsoidRequest.body;
+            assert.deepEqual(prBody.update, 'templates');
+            assert.deepEqual(prBody.original.revid, revB);
+            if (!prBody.original.html.body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+            if (!prBody.original['data-parsoid'].body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
         });
     });
 
@@ -144,7 +144,7 @@ describe('on-demand generation of html and data-parsoid', function() {
             uri: pageUrl + '/html/' + title + '/' + revB,
             headers: {
                 'cache-control': 'no-cache',
-				'x-restbase-mode': 'images'
+                'x-restbase-mode': 'images'
             },
         })
         .then(function (res) {
@@ -153,21 +153,21 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.contentType(res,
               'text/html;profile=mediawiki.org/specs/html/1.0.0');
             if (!/<html/.test(res.body)) {
-				throw new Error("Expected html content!");
-			}
+                throw new Error("Expected html content!");
+            }
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
-			var parsoidRequest = assert.findParsoidRequest(slice);
-			assert.deepEqual(parsoidRequest.method, 'post');
-			var prBody = parsoidRequest.body;
-			assert.deepEqual(prBody.update, 'images');
-			assert.deepEqual(prBody.original.revid, revB);
-			if (!prBody.original.html.body) {
-				throw new Error('Missing original html body in parsoid request');
-			}
-			if (!prBody.original['data-parsoid'].body) {
-				throw new Error('Missing original html body in parsoid request');
-			}
+            var parsoidRequest = assert.findParsoidRequest(slice);
+            assert.deepEqual(parsoidRequest.method, 'post');
+            var prBody = parsoidRequest.body;
+            assert.deepEqual(prBody.update, 'images');
+            assert.deepEqual(prBody.original.revid, revB);
+            if (!prBody.original.html.body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+            if (!prBody.original['data-parsoid'].body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
         });
     });
 
@@ -179,7 +179,7 @@ describe('on-demand generation of html and data-parsoid', function() {
             uri: pageUrl + '/html/' + title + '/' + revC,
             headers: {
                 'cache-control': 'no-cache',
-				'x-restbase-parentrevision': revB
+                'x-restbase-parentrevision': revB
             },
         })
         .then(function (res) {
@@ -188,21 +188,21 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.contentType(res,
               'text/html;profile=mediawiki.org/specs/html/1.0.0');
             if (!/<html/.test(res.body)) {
-				throw new Error("Expected html content!");
-			}
+                throw new Error("Expected html content!");
+            }
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
-			var parsoidRequest = assert.findParsoidRequest(slice);
-			assert.deepEqual(parsoidRequest.method, 'post');
-			var prBody = parsoidRequest.body;
-			assert.deepEqual(prBody.update, undefined);
-			assert.deepEqual(prBody.previous.revid, revB);
-			if (!prBody.previous.html.body) {
-				throw new Error('Missing original html body in parsoid request');
-			}
-			if (!prBody.previous['data-parsoid'].body) {
-				throw new Error('Missing original html body in parsoid request');
-			}
+            var parsoidRequest = assert.findParsoidRequest(slice);
+            assert.deepEqual(parsoidRequest.method, 'post');
+            var prBody = parsoidRequest.body;
+            assert.deepEqual(prBody.update, undefined);
+            assert.deepEqual(prBody.previous.revid, revB);
+            if (!prBody.previous.html.body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
+            if (!prBody.previous['data-parsoid'].body) {
+                throw new Error('Missing original html body in parsoid request');
+            }
         });
     });
 
