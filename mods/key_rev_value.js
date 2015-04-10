@@ -50,7 +50,7 @@ KRVBucket.prototype.makeSchema = function (opts) {
             'content-sha256': 'blob',
             // redirect
             'content-location': 'string',
-            tags: 'set<string>'
+            tags: 'set<string>',
             //headers: 'map<string,string>'
         },
         index: [
