@@ -60,8 +60,7 @@ KVBucket.prototype.makeSchema = function (opts) {
 };
 
 KVBucket.prototype.createBucket = function(restbase, req) {
-    var opts = req.body;
-    if (!opts.type) { opts.type = 'kv'; }
+    var opts = req.body || {};
     if (!opts.keyType) { opts.keyType = 'string'; }
     if (!opts.valueType) { opts.valueType = 'blob'; }
     if (!opts.revisioned) { opts.revisioned = true; } // No choice..

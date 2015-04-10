@@ -36,10 +36,10 @@ SimpleService.prototype.processSpec = function(spec) {
                 if (!conf.storage.bucket_request.uri) {
                     throw new Error('Broken config: expected storage.bucket_request.uri for ' + path);
                 }
-                storageUriTemplate = new URI('/{domain}/sys/key_value/'
-                        + conf.storage.bucket_name + '/{key}{/tid}');
+                storageUriTemplate = new URI(conf.storage.item_request.uri, {}, true);
+                resources.push(conf.storage.bucket_request);
             }
-            var backendUriTemplate = new URI(conf.backend_request.uri);
+            var backendUriTemplate = new URI(conf.backend_request.uri, {}, true);
             operations[conf.operationId] = function(restbase, req) {
                 var rp = req.params;
                 if (rp.key) {
@@ -47,11 +47,13 @@ SimpleService.prototype.processSpec = function(spec) {
                 }
 
                 function backendRequest() {
-                    backendUriTemplate.params = req.params;
+                    var headers = Object.assign({},req.headers);
+                    delete headers.host;
+                    // TODO: be more selective / only configure a whitelist of
+                    // headers
                     return restbase.request({
-                        uri: backendUriTemplate.expand(),
-                        // TODO: be selective / configurable about forwarding
-                        headers: req.headers,
+                        uri: backendUriTemplate.expand(req.params),
+                        headers: headers,
                         method: method,
                         body: req.body,
                     });
@@ -61,7 +63,15 @@ SimpleService.prototype.processSpec = function(spec) {
                     // Fall back to the backend service
                     return backendRequest()
                     .then(function(res) {
-                        // TODO: store the result
+                        // store the result
+                        restbase.put({
+                            uri: storageUriTemplate.expand(req.params),
+                            headers: res.headers,
+                            body: res.body,
+                        })
+                        .catch(function(e) {
+                            restbase.log('warning/simple_service/regenerateAndSave/put', e);
+                        });
                         return res;
                     });
                 }
@@ -72,9 +82,8 @@ SimpleService.prototype.processSpec = function(spec) {
                         return regenerateAndSave();
                     } else {
                         // Try storage first
-                        storageUriTemplate.params = req.params;
                         return restbase.get({
-                            uri: storageUriTemplate.expand()
+                            uri: storageUriTemplate.expand(req.params)
                         })
                         .catch(function(e) {
                             if (e.status === 404) {
