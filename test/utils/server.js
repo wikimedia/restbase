@@ -19,7 +19,7 @@ var config = {
     baseURL: baseURL,
     bucketURL: bucketURL,
     logStream: logStream(),
-    conf: yaml.safeLoad(fs.readFileSync(__dirname + '/../../config.example.yaml')),
+    conf: yaml.safeLoad(fs.readFileSync(__dirname + '/../../config.test.yaml')),
 };
 config.conf.num_workers = 0;
 config.conf.logging = {

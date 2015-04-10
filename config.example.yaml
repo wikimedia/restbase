@@ -94,25 +94,6 @@ templates:
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
-      /{module:simple_service}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /someservice/foo/{key}:
-                  get:
-                    backend_request:
-                      uri: http://some.svc.eqiad.wmnet:12345/{key}
-                    storage: 
-                      no-cache_refresh: true
-                      bucket_request: 
-                        uri: /{domain}/sys/key_value/someservice.foo
-                      item_request:
-                        uri: /{domain}/sys/key_value/someservice.foo/{key}
-
-
       /{module:action}:
         x-modules:
           - name: action
