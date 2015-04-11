@@ -21,6 +21,17 @@ function SimpleService(options) {
     this.exports = this.processSpec(this.spec);
 }
 
+var headerWhitelist = ['accept', 'accept-language', 'accept-language'];
+function filterHeaders(headers) {
+    var res = {};
+    headerWhitelist.forEach(function(name) {
+        if (headers[name]) {
+            res[name] = headers[name];
+        }
+    });
+    return res;
+}
+
 SimpleService.prototype.processSpec = function(spec) {
     var self = this;
     var operations = {};
@@ -47,16 +58,17 @@ SimpleService.prototype.processSpec = function(spec) {
                 }
 
                 function backendRequest() {
-                    var headers = Object.assign({},req.headers);
-                    delete headers.host;
-                    // TODO: be more selective / only configure a whitelist of
-                    // headers
-                    return restbase.request({
-                        uri: backendUriTemplate.expand(req.params),
-                        headers: headers,
+                    var beReq = {
+                        uri: backendUriTemplate.toString({
+                            params: req.params
+                        }),
+                        // TODO: be more selective / only configure a whitelist of
+                        // headers
+                        headers: filterHeaders(req.headers),
                         method: method,
                         body: req.body,
-                    });
+                    };
+                    return restbase.request(beReq);
                 }
 
                 function regenerateAndSave() {
@@ -64,15 +76,15 @@ SimpleService.prototype.processSpec = function(spec) {
                     return backendRequest()
                     .then(function(res) {
                         // store the result
-                        restbase.put({
+                        return restbase.put({
                             uri: storageUriTemplate.expand(req.params),
                             headers: res.headers,
                             body: res.body,
                         })
-                        .catch(function(e) {
-                            restbase.log('warning/simple_service/regenerateAndSave/put', e);
+                        .then(function(storeRes) {
+                            res.headers.etag = storeRes.headers.etag;
+                            return res;
                         });
-                        return res;
                     });
                 }
 
