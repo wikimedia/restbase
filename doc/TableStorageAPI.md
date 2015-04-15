@@ -27,6 +27,12 @@ Example:
             // Project some additional attributes into the secondary index
             { type: 'proj', attribute: 'length' }
         }
+    },
+    // Optional policy for retention of obsolete versions (defaults to type all).
+    revisionRetentionPolicy: {
+        type: 'latest',
+        count: 5,
+        grace_ttl: 86400
     }
 }
 ```
@@ -61,6 +67,23 @@ positives* are returned for a short time after the primary request was
 acknowledged. We will also support optional strongly consistent secondary
 index requests at the cost of cross-checking the index match with the actual
 data, at least on some backends.
+
+## Revision retention policies
+In an MVCC system, each update of a record results in a new revision.
+Depending on the application, these historical versions may or may not be
+useful; It may be desirable to limit the number of revisions retained in
+order to bound the storage requirements.
+
+The currently supported revision retention policy types are:
+
+### all
+When `revisionRetentionPolicy.type` is `all`, all revisions are maintained
+indefinitely.
+
+### latest
+When `revisionRetentionPolicy.type` is `latest`, the last
+`revisionRetentionPolicy.count` records are maintained, any others are
+expired in no less than `revisionRetentionPolicy.grace_ttl` seconds.
 
 # Queries
 Select the first 50 entries:
