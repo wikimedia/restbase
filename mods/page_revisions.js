@@ -47,6 +47,7 @@ PRS.prototype.getTableSchema = function () {
             // listing: /titles.rev/Barack_Obama/master/
             // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
             title: 'string',
+            page_id: 'int',
             rev: 'int',             // MediaWiki oldid
             latest_rev: 'int',      // Latest MediaWiki revision
             tid: 'timeuuid',
@@ -65,7 +66,9 @@ PRS.prototype.getTableSchema = function () {
             // revision metadata in individual attributes for ease of indexing
             user_id: 'int',         // stable for contributions etc
             user_text: 'string',
-            comment: 'string'
+            timestamp: 'timestamp',
+            comment: 'string',
+            redirect: 'boolean'
         },
         index: [
             { attribute: 'title', type: 'hash' },
@@ -160,7 +163,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
         body: {
             format: 'json',
             action: 'query',
-            prop: 'revisions',
+            prop: 'info|revisions',
             continue: '',
             rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags'
         }
@@ -193,6 +196,10 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
         var restrictions = Object.keys(apiRev).filter(function(key) {
             return /hidden$/.test(key);
         });
+
+        //get the redirect property, it's inclusion means true
+        var redirect = typeof dataResp.redirect !== "undefined" ? true : false;
+
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
             body: {
@@ -202,14 +209,17 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     // matches the one returned by the MW API
                     // cf. https://phabricator.wikimedia.org/T87393
                     title: normalizeTitle(dataResp.title),
+                    page_id: parseInt(dataResp.pageid),
                     rev: parseInt(apiRev.revid),
                     tid: uuid.v1(),
                     namespace: parseInt(dataResp.ns),
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
+                    timestamp: apiRev.timestamp,
                     comment: apiRev.comment,
                     tags: apiRev.tags,
-                    restrictions: restrictions
+                    restrictions: restrictions,
+                    redirect: redirect
                 }
             }
         })

@@ -12,6 +12,7 @@ describe('revision requests', function() {
 
 	var revOk = 642497713;
 	var revDeleted = 645504917;
+    var revRedirect = 591082967;
 
     this.timeout(20000);
 
@@ -24,6 +25,18 @@ describe('revision requests', function() {
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].rev, revOk);
             assert.deepEqual(res.body.items[0].title, 'Foobar');
+            assert.deepEqual(res.body.items[0].page_id, '11178');
+            assert.deepEqual(res.body.items[0].redirect, false);
+        });
+    });
+
+    it('should return redirect true when included', function() {
+        return preq.get({ uri: server.config.bucketURL + '/revision/' + revRedirect })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].rev, revRedirect);
+            assert.deepEqual(res.body.items[0].redirect, true);
         });
     });
 
