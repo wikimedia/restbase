@@ -21,7 +21,7 @@ function SimpleService(options) {
     this.exports = this.processSpec(this.spec);
 }
 
-var headerWhitelist = ['accept', 'accept-language', 'accept-language'];
+var headerWhitelist = ['accept', 'accept-language'];
 function filterHeaders(headers) {
     var res = {};
     headerWhitelist.forEach(function(name) {
