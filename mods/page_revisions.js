@@ -198,7 +198,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
         });
 
         //get the redirect property, it's inclusion means true
-        var redirect = typeof dataResp.redirect !== "undefined" ? true : false;
+        var redirect = dataResp.redirect !== undefined;
 
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
