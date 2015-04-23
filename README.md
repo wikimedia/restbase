@@ -36,6 +36,11 @@ issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-P
 
 ## Installation
 
+Make sure that you have node 0.10+:
+```sh
+sudo apt-get install nodejs nodejs-legacy nodejs-dev npm
+```
+
 From the *restbase* project directory, install the Node dependencies:
 
 ```sh
