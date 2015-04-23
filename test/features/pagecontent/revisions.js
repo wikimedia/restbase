@@ -12,7 +12,7 @@ describe('revision requests', function() {
 
 	var revOk = 642497713;
 	var revDeleted = 645504917;
-    var revRedirect = 591082967;
+	var revRedirect = 591082967;
 
     this.timeout(20000);
 
