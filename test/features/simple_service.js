@@ -21,6 +21,8 @@ describe('simple_service', function () {
         assert.contentType(res, 'text/html');
     }
 
+    var slice;
+
     it('retrieve content from backend service', function () {
         var tid1;
         var tid2;
@@ -32,7 +34,9 @@ describe('simple_service', function () {
             tid1 = res.headers.etag;
             hasTextContentType(res);
 
-            // delay for 1s to make sure that the timestamp differs on re-render
+            // Delay for 1s to make sure that the content differs on
+            // re-render, then force a re-render and check that it happened.
+            slice = server.config.logStream.slice();
             return P.delay(1100)
             .then(function() {
                 return preq.get({
@@ -42,11 +46,30 @@ describe('simple_service', function () {
             });
         })
         .then(function (res) {
-            // Since this is a dynamic page which should render the same each
-            // time, the tid should not change.
             tid2 = res.headers.etag;
             assert.notDeepEqual(tid2, tid1);
             assert.notDeepEqual(tid2, undefined);
+            hasTextContentType(res);
+            slice.halt();
+            assert.remoteRequests(slice, true);
+            // delay for 1s to let the content change on re-render
+            slice = server.config.logStream.slice();
+
+            // Check retrieval of a stored render
+            return P.delay(1100)
+            .then(function() {
+                return preq.get({
+                    uri: testPage,
+                });
+            });
+        })
+        .then(function (res) {
+            var tid3 = res.headers.etag;
+            assert.deepEqual(tid3, tid2);
+            assert.notDeepEqual(tid3, undefined);
+            // Check that there were no remote requests
+            slice.halt();
+            assert.remoteRequests(slice, false);
             hasTextContentType(res);
         });
     });
