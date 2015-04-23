@@ -86,7 +86,8 @@ PRS.prototype.getTableSchema = function () {
                 { attribute: 'rev', type: 'range', order: 'desc' },
                 { attribute: 'tid', type: 'range', order: 'desc' }
             ]
-        }
+        },
+        version: 1
     };
 };
 

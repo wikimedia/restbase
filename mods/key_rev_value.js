@@ -57,7 +57,8 @@ KRVBucket.prototype.makeSchema = function (opts) {
             { attribute: 'key', type: 'hash' },
             { attribute: 'rev', type: 'range', order: 'desc' },
             { attribute: 'tid', type: 'range', order: 'desc' }
-        ]
+        ],
+        version: 1
     };
 };
 
