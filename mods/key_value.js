@@ -30,56 +30,37 @@ KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KVBucket.prototype.makeSchema = function (opts) {
-    if (opts.type === 'kv') {
-        opts.schemaVersion = 1;
-        return {
-            // Associate this bucket with the table
-            bucket: opts,
-            attributes: {
-                key: opts.keyType || 'string',
-                tid: 'timeuuid',
-                latestTid: 'timeuuid',
-                value: opts.valueType || 'blob',
-                'content-type': 'string',
-                'content-length': 'varint',
-                'content-sha256': 'string',
-                // redirect
-                'content-location': 'string',
-                // 'deleted', 'nomove' etc?
-                tags: 'set<string>',
-            },
-            index: [
-                { attribute: 'key', type: 'hash' },
-                { attribute: 'latestTid', type: 'static' },
-                { attribute: 'tid', type: 'range', order: 'desc' }
+    opts.schemaVersion = 1;
+    return {
+        options: {
+            compression: [
+                {
+                    algorithm: 'deflate',
+                    block_size: 256
+                }
             ]
-        };
-    } else {
-        throw new Error('Bucket type ' + opts.type + ' not yet implemented');
-    }
+        },
+        attributes: {
+            key: opts.keyType || 'string',
+            tid: 'timeuuid',
+            latestTid: 'timeuuid',
+            value: opts.valueType || 'blob',
+            'content-type': 'string',
+            'content-sha256': 'blob',
+            // redirect
+            'content-location': 'string',
+            tags: 'set<string>',
+            //headers: 'map<string,string>'
+        },
+        index: [
+            { attribute: 'key', type: 'hash' },
+            { attribute: 'tid', type: 'range', order: 'desc' }
+        ]
+    };
 };
 
 KVBucket.prototype.createBucket = function(restbase, req) {
-    if (!req.body || req.body.constructor !== Object ) {
-        // XXX: validate with JSON schema
-        var exampleBody = {
-            type: 'kv',
-            revisioned: true,
-            keyType: 'string',
-            valueType: 'blob'
-        };
-
-        return P.resolve({
-            status: 400,
-            body: {
-                type: 'invalid_bucket_schema_kv',
-                message: "Expected JSON body describing the bucket.",
-                example: exampleBody
-            }
-        });
-    }
-    var opts = req.body;
-    if (!opts.type) { opts.type = 'kv'; }
+    var opts = req.body || {};
     if (!opts.keyType) { opts.keyType = 'string'; }
     if (!opts.valueType) { opts.valueType = 'blob'; }
     if (!opts.revisioned) { opts.revisioned = true; } // No choice..
@@ -95,15 +76,11 @@ KVBucket.prototype.createBucket = function(restbase, req) {
 
 
 KVBucket.prototype.getListQuery = function (options, bucket) {
-    // TODO: support other bucket types
-    //if (!options.revisioned || options.ordered) {
-    //    throw new Error('Only unordered & revisioned key-value buckets supported to far');
-    //}
     return {
         table: bucket,
         distinct: true,
         proj: 'key',
-        limit: 10000
+        limit: 1000
     };
 };
 
@@ -135,7 +112,7 @@ KVBucket.prototype.listBucket = function(restbase, req, options) {
     })
     .catch(function(error) {
         self.log('error/kv/listBucket', error);
-        return { status: 404 };
+        throw new rbUtil.HTTPError({ status: 404 });
     });
 };
 
@@ -155,101 +132,74 @@ function returnRevision(req) {
                 body: row.value
             };
         } else {
-            return {
+            throw new rbUtil.HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found',
                     uri: req.uri,
                     method: req.method
                 }
-            };
+            });
         }
     };
 }
 
-function getRevision(restbase, req, revPred) {
-    var rp = req.params;
-    if (revPred === null) {
-        return P.resolve({
+function coerceTid (tidString) {
+    if (rbUtil.isTimeUUID(tidString)) {
+        return tidString;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(tidString)) {
+        // timestamp
+        try {
+            return rbUtil.tidFromDate(tidString);
+        } catch (e) {} // fall through
+    }
+
+    // Out of luck
+    throw new rbUtil.HTTPError({
+        status: 400,
+        body: {
+            type: 'key_rev_value/invalid_tid',
+            title: 'Invalid tid parameter',
+            tid: tidString
+        }
+    });
+}
+
+function parseRevision (rev) {
+    if (!/^[0-9]+/.test(rev)) {
+        throw new rbUtil.HTTPError({
             status: 400,
             body: {
-                type: 'invalid_revision_parameter',
-                title: 'Invalid revision parameter.',
-                revision: rp.revision
+                type: 'key_rev_value/invalid_revision',
+                title: 'Invalid revision parameter',
+                rev: rev
             }
         });
     }
+
+    return parseInt(rev);
+}
+
+KVBucket.prototype.getRevision = function(restbase, req) {
+    var rp = req.params;
     var storeReq = {
         uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
         body: {
             table: rp.bucket,
             attributes: {
-                key: rp.key,
-                tid: revPred
-            }
-        }
-    };
-    return restbase.get(storeReq).then(returnRevision(req));
-}
-
-
-KVBucket.prototype.getLatest = function(restbase, req) {
-    if (req.body) {
-        return getRevision(restbase, req, req.body);
-    }
-    var rp = req.params;
-    return restbase.get(new URI([rp.domain,'sys','table',rp.bucket,'']));
-};
-
-KVBucket.prototype.putLatest = function(restbase, req) {
-    var self = this;
-    var rp = req.params;
-
-    var tid = uuid.v1();
-    if (req.headers['last-modified']) {
-        try {
-            // XXX: require elevated rights for passing in the revision time
-            tid = rbUtil.tidFromDate(req.headers['last-modified']);
-        } catch (e) { }
-    }
-
-    var query = {
-        table: req.params.bucket,
-        attributes: {
-            key: req.params.key,
-            tid: tid,
-            value: req.body,
-            'content-type': req.headers['content-type']
-        }
-    };
-    var request = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
-        body: query
-    };
-
-    return restbase.put(request)
-    .then(function(result) {
-        return {
-            status: 201,
-            headers: {
-                etag: tid
+                key: rp.key
             },
-            body: {
-                message: "Created.",
-                tid: tid
-            }
-        };
-    })
-    .catch(function(err) {
-        self.log(err.stack);
-        return {
-            status: 500,
-            body: {
-                message: "Unknown error\n" + err.stack
-            }
-        };
-    });
+            limit: 1
+        }
+    };
+    if (rp.tid) {
+        storeReq.body.attributes.tid = coerceTid(rp.tid);
+    }
+    return restbase.get(storeReq).then(returnRevision(req));
 };
+
 
 KVBucket.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
@@ -260,7 +210,8 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
             attributes: {
                 key: req.params.key
             },
-            proj: ['tid']
+            proj: ['tid'],
+            limit: 1000
         }
     };
     return restbase.get(storeRequest)
@@ -279,59 +230,11 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
     });
 };
 
-var uuidRe = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-function getRevisionPredicate (revString) {
-    var rev = null;
-
-    if (revString === 'latest') {
-        // latest revision
-        rev = revString;
-    } else if (/^\d{4}-\d{2}-\d{2}/.test(revString)) {
-        // timestamp
-        var revTime = Date.parse(revString);
-        if (isNaN(revTime)) {
-            // invalid date
-            return P.resolve({
-                status: 400,
-                body: 'Invalid date'
-            });
-        }
-        rev = {
-            le: rbUtil.tidFromDate(revTime)
-        };
-    } else if (uuidRe.test(revString)) {
-        // uuid
-        rev = revString;
-    }
-    return rev;
-}
-
-KVBucket.prototype.getRevision = function(restbase, req) {
-    // TODO: support other formats! See cassandra backend getRevision impl.
-    var revPred = getRevisionPredicate(req.params.revision);
-    return getRevision(restbase, req, revPred);
-};
 
 KVBucket.prototype.putRevision = function(restbase, req) {
     // TODO: support other formats! See cassandra backend getRevision impl.
     var rp = req.params;
-    var rev = getRevisionPredicate(rp.revision);
-    if (rev === null) {
-        return P.resolve({
-            status: 400,
-            body: {
-                type: 'invalid_revision_parameter',
-                title: 'Invalid revision parameter.',
-                revision: rp.revision
-            }
-        });
-    }
-
-    if (typeof rev === 'object') {
-        // XXX: Restrict access to passing in an explicit revision id via a
-        // timestamp
-        rev = rev.le;
-    }
+    var tid = uuid.v1();
 
     var storeReq = {
         uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
@@ -339,7 +242,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             table: rp.bucket,
             attributes: {
                 key: rp.key,
-                tid: rev,
+                tid: tid,
                 value: req.body,
                 'content-type': req.headers['content-type']
                 // TODO: include other data!
@@ -352,7 +255,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: rp.revision
+                    etag: tid
                 },
                 body: {
                     message: "Created.",
@@ -378,8 +281,6 @@ module.exports = function(options) {
             getBucketInfo: kvBucket.getBucketInfo.bind(kvBucket),
             createBucket: kvBucket.createBucket.bind(kvBucket),
             listBucket: kvBucket.listBucket.bind(kvBucket),
-            getLatest: kvBucket.getLatest.bind(kvBucket),
-            putLatest: kvBucket.putLatest.bind(kvBucket),
             listRevisions: kvBucket.listRevisions.bind(kvBucket),
             getRevision: kvBucket.getRevision.bind(kvBucket),
             putRevision: kvBucket.putRevision.bind(kvBucket)

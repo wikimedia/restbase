@@ -1,0 +1,9 @@
+# Simple test spec
+
+swagger: 2.0
+
+paths:
+  /{module:service}/test/{title}{/revision}:
+    get:
+      x-backend-request:
+        uri: /{domain}/sys/testservice/test/{title}{/revision}
