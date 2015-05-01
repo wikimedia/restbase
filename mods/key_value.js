@@ -123,7 +123,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
             var headers = {
-                etag: row.tid,
+                etag: rbUtil.makeETag(row.rev, row.tid),
                 'content-type': row['content-type']
             };
             return {
@@ -255,7 +255,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: tid
+                    etag: rbUtil.makeETag(rp.revision, tid)
                 },
                 body: {
                     message: "Created.",

@@ -8,6 +8,10 @@ var preq   = require('preq');
 var server = require('../../utils/server.js');
 var P = require('bluebird');
 
+function getTid(etag) {
+    return /^"[^\/]+\/([^"]+)"/.exec(etag)[1];
+}
+
 describe('page re-rendering', function () {
     this.timeout(20000);
 
@@ -23,15 +27,15 @@ describe('page re-rendering', function () {
     }
 
     it('should render & re-render independent revisions', function () {
-        var r1tid1;
-        var r1tid2;
-        var r2tid1;
+        var r1etag1;
+        var r1etag2;
+        var r2etag1;
         return preq.get({
             uri: server.config.bucketURL + dynamic1
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            r1tid1 = res.headers.etag;
+            r1etag1 = res.headers.etag;
             hasTextContentType(res);
 
             // delay for 1s to make sure that the timestamp differs on re-render
@@ -46,17 +50,17 @@ describe('page re-rendering', function () {
         .then(function (res) {
             // Since this is a dynamic page which should render the same each
             // time, the tid should not change.
-            r1tid2 = res.headers.etag;
-            assert.notDeepEqual(r1tid2, r1tid1);
-            assert.notDeepEqual(r1tid2, undefined);
+            r1etag2 = res.headers.etag;
+            assert.notDeepEqual(r1etag2, r1etag1);
+            assert.notDeepEqual(r1etag2, undefined);
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic1 + '/' + r1tid1
+                uri: server.config.bucketURL + dynamic1 + '/' + getTid(r1etag1)
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid1);
+            assert.deepEqual(res.headers.etag, r1etag1);
             hasTextContentType(res);
 
             return preq.get({
@@ -64,15 +68,15 @@ describe('page re-rendering', function () {
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid2);
+            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic1 + '/' + r1tid2
+                uri: server.config.bucketURL + dynamic1 + '/' + getTid(r1etag2)
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid2);
+            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
             return preq.get({
@@ -80,16 +84,16 @@ describe('page re-rendering', function () {
             });
         })
         .then(function (res) {
-            r2tid1 = res.headers.etag;
+            r2etag1 = res.headers.etag;
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic2 + '/' + r2tid1
+                uri: server.config.bucketURL + dynamic2 + '/' + getTid(r2etag1)
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r2tid1);
+            assert.deepEqual(res.headers.etag, r2etag1);
             hasTextContentType(res);
 
             return preq.get({
@@ -97,7 +101,7 @@ describe('page re-rendering', function () {
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid2);
+            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
         });
     });
@@ -123,15 +127,16 @@ describe('page re-rendering', function () {
     var static2 = '/html/User:GWicke%2fStatic/653529961';
 
     it('should render & re-render independent revisions, but not update unchanged content', function () {
-        var r1tid1;
-        var r1tid2;
-        var r2tid1;
+        var r1etag1;
+        var r1etag2;
+        var r2etag1;
+        var tid;
         return preq.get({
             uri: server.config.bucketURL + static1
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            r1tid1 = res.headers.etag;
+            r1etag1 = res.headers.etag;
             hasTextContentType(res);
 
             return preq.get({
@@ -142,17 +147,17 @@ describe('page re-rendering', function () {
         .then(function (res) {
             // Since this is a static page which should render the same each
             // time, the tid should not change.
-            r1tid2 = res.headers.etag;
-            assert.deepEqual(r1tid2, r1tid1);
-            assert.notDeepEqual(r1tid2, undefined);
+            r1etag2 = res.headers.etag;
+            assert.deepEqual(r1etag2, r1etag1);
+            assert.notDeepEqual(r1etag2, undefined);
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1 + '/' + r1tid1
+                uri: server.config.bucketURL + static1 + '/' + getTid(r1etag1)
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid1);
+            assert.deepEqual(res.headers.etag, r1etag1);
             hasTextContentType(res);
 
             return preq.get({
@@ -160,15 +165,15 @@ describe('page re-rendering', function () {
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid2);
+            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1 + '/' + r1tid2
+                uri: server.config.bucketURL + static1 + '/' + getTid(r1etag2)
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid2);
+            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
             return preq.get({
@@ -176,16 +181,16 @@ describe('page re-rendering', function () {
             });
         })
         .then(function (res) {
-            r2tid1 = res.headers.etag;
+            r2etag1 = res.headers.etag;
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static2 + '/' + r2tid1
+                uri: server.config.bucketURL + static2 + '/' + getTid(r2etag1)
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r2tid1);
+            assert.deepEqual(res.headers.etag, r2etag1);
             hasTextContentType(res);
 
             return preq.get({
@@ -193,7 +198,7 @@ describe('page re-rendering', function () {
             });
         })
         .then(function (res) {
-            assert.deepEqual(res.headers.etag, r1tid2);
+            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
         });
     });
