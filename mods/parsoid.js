@@ -129,7 +129,7 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
             headers: parsoidResp.body[format].headers,
             body: parsoidResp.body[format].body
         };
-        resp.headers.etag = tid;
+        resp.headers.etag = rbUtil.makeETag(rp.revision, tid);
         return this.wrapContentReq(restbase, req, P.resolve(resp));
     } else {
         return parsoidResp;
@@ -275,7 +275,8 @@ PSP.getFormat = function (format, restbase, req) {
                 if (req.headers['if-unmodified-since']) {
                     try {
                         var jobTime = new Date(req.headers['if-unmodified-since']);
-                        if (uuid.v1time(res.headers.etag) >= jobTime) {
+                        var revInfo = rbUtil.parseETag(res.headers.etag);
+                        if (revInfo && uuid.v1time(revInfo.tid) >= jobTime) {
                             // Already up to date, nothing to do.
                             return {
                                 status: 412,
@@ -350,9 +351,10 @@ PSP.transformRevision = function (restbase, req, from, to) {
 
     var tid;
     if (from === 'html') {
-        if (req.headers && req.headers['if-match']) {
+        if (req.headers && req.headers['if-match']
+                && rbUtil.parseETag(req.headers['if-match'])) {
             // Prefer the If-Match header
-            tid = req.headers['if-match'];
+            tid = rbUtil.parseETag(req.headers['if-match']).tid;
         } else if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
             var tidMatch = /<meta property="mw:TimeUuid" content="([^"]+)"\/?>/

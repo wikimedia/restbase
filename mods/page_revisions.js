@@ -286,7 +286,8 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         if (!res.headers) {
             res.headers = {};
         }
-        res.headers.etag = res.body.items[0].tid;
+        var info = res.body.items[0];
+        res.headers.etag = rbUtil.makeETag(info.rev, info.tid);
         return res;
     });
     // TODO: handle other revision formats (tid)
