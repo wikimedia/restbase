@@ -485,7 +485,13 @@ module.exports = function (options) {
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.html',
                 body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
                     valueType: 'blob',
+                    version: 1,
                 }
             },
             {
@@ -497,7 +503,13 @@ module.exports = function (options) {
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-parsoid',
                 body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
                     valueType: 'json',
+                    version: 1,
                 }
             },
             {
