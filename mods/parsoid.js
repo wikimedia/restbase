@@ -301,10 +301,29 @@ PSP.getFormat = function (format, restbase, req) {
 PSP.listRevisions = function (format, restbase, req) {
     var self = this;
     var rp = req.params;
-    return restbase.get({
+    var revReq = {
         uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
                      normalizeTitle(rp.title), ''])
-    });
+        generator: 'allpages',
+        gaplimit: 500,
+        gapcontinue: ''
+    }
+
+    if (req.next) {
+        listReq.gapcontinue = restbase.decodeToken(req.next);
+    }
+
+    return restbase.get(revReq)
+        .then(function(res) {
+            if (res.body.next) {
+                res.body.next = {
+                    _links: {
+                        next: { "href": "?next="+restbase.encodeToken(res.body.next.allpages.gapcontinue); } 
+                    }
+                };
+            }
+            return res;
+        });
 };
 
 PSP._getOriginalContent = function(restbase, req, revision, tid) {

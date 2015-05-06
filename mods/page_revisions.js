@@ -133,25 +133,40 @@ PRS.prototype.listTitles = function(restbase, req, options) {
             gaplimit: 500,
             prop: 'revisions',
             format: 'json',
-            // gapcontinue: rp.next
+            gapcontinue: ''
         }
     };
+
+    if (req.next) {
+        listReq.gapcontinue = restbase.decodeToken(req.next);
+    }
 
     return restbase.get(listReq)
     .then(function(res) {
         var pages = res.body.items;
         var items = [];
+
         Object.keys(pages).forEach(function(pageId) {
             var article = pages[pageId];
             items.push(article.title);
         });
 
+        var next;
+        if (res.body.next) {
+            next = {
+                _links: {
+                    next: { "href": "?next="+restbase.encodeToken(res.body.next.allpages.gapcontinue); } 
+                }
+            };
+        }
+
         return {
             status: 200,
-            body: {
-                items: items
+            body : {
+                items: items,
+                next: next
             }
-        };
+        };;
     });
 };
 
@@ -294,6 +309,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     .then(function(res) {
         // check if the revision has any restrictions
         self._checkRevReturn(res);
+
+        // clear paging info
+        delete res.body.next;
+
         if (!res.headers) {
             res.headers = {};
         }
@@ -306,16 +325,20 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
 
 PRS.prototype.listTitleRevisions = function(restbase, req) {
     var rp = req.params;
+    var revisionRequest = {
+        table: this.tableName,
+        attributes: {
+            title: normalizeTitle(rp.title)
+        },
+        proj: ['rev'],
+        limit: 1000
+    }
+    if (req.next) {
+        revisionRequest.next = restbase.decodeToken(req.next);
+    }
     return restbase.get({
         uri: this.tableURI(rp.domain),
-        body: {
-            table: this.tableName,
-            attributes: {
-                title: normalizeTitle(rp.title)
-            },
-            proj: ['rev'],
-            limit: 1000
-        }
+        body: revisionRequest
     })
     .then(function(res) {
         // Flatten to an array of revisions rather than an array of objects &
@@ -328,6 +351,13 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
                 lastRev = row.rev;
             }
         });
+        if (res.body.next) {
+            res.body.next = {
+                _links: {
+                    next: { "href": "?next="+restbase.encodeToken(res.body.next); } 
+                }
+            };
+        }
         res.body.items = items;
         return res;
     });
@@ -344,9 +374,12 @@ PRS.prototype.listRevisions = function(restbase, req) {
             gaplimit: 500,
             prop: 'revisions',
             format: 'json',
-            // gapcontinue: rp.next
+            gapcontinue: ''
         }
     };
+    if (req.next) {
+        listReq.gapcontinue = restbase.decodeToken(req.next);
+    }
     return restbase.get(listReq)
     .then(function(res) {
         var pages = res.body.items;
@@ -355,11 +388,20 @@ PRS.prototype.listRevisions = function(restbase, req) {
             var article = pages[pageId];
             items.push(article.revisions[0].revid);
         });
+        var next;
+        if (res.body.next) {
+            next = { 
+                _links: { 
+                    next: { "href": "?next="+restbase.encodeToken(res.body.next.allpages.gapcontinue); } 
+                }
+            };
+        }
 
         return {
             status: 200,
             body: {
-                items: items
+                items: items,
+                next: next
             }
         };
     });
@@ -371,7 +413,7 @@ PRS.prototype.getRevision = function(restbase, req) {
     // sanity check
     if (!/^[0-9]+$/.test(rp.revision)) {
         throw new rbUtil.HTTPError({
-            status: 400,
+            status: 500,
             body: {
                 type: 'invalidRevision',
                 description: 'Invalid revision specified.'
@@ -399,6 +441,10 @@ PRS.prototype.getRevision = function(restbase, req) {
     .then(function(res) {
         // check the return
         self._checkRevReturn(res);
+
+        // clear paging info
+        delete res.body.next;
+
         // and get the revision info for the
         // page now that we have the title
         rp.title = res.body.items[0].title;

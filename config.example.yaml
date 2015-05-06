@@ -158,6 +158,7 @@ services:
     conf: 
       port: 7231
       spec: *spec
+      saltKey: secret
 
 logging:
   name: restbase
