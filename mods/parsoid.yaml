@@ -15,7 +15,7 @@ paths:
     post:
       summary: Retrieve a JSON bundle containing html and data-parsoid
       operationId: getPageBundle
-  
+
   /wikitext/{title}/:
     get:
       summary: List Wikitext revisions.
@@ -25,7 +25,7 @@ paths:
     get:
       summary: Retrieve the wikitext for a title and revision.
       operationId: getWikitext
-  
+
   /html/{title}/:
     get:
       summary: List HTML revisions.
@@ -35,7 +35,7 @@ paths:
     get:
       summary: Retrieve the HTML for title and revision.
       operationId: getHtml
-  
+
   /data-parsoid/{title}/:
     get:
       summary: List data-parsoid revisions.
@@ -45,7 +45,7 @@ paths:
     get:
       summary: Retrieve the data-parsoid JSON for title & revision.
       operationId: getDataParsoid
-  
+
   /transform/html/to/html{/title}{/revision}:
     post:
       summary: Update HTML, while optionally passing in title & revision.
