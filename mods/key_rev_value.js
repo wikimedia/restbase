@@ -30,8 +30,9 @@ KRVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KRVBucket.prototype.makeSchema = function (opts) {
-    opts.schemaVersion = 1;
-    return {
+    var schemaVersionMajor = 1;
+
+    var schema =  {
         options: {
             compression: [
                 {
@@ -57,8 +58,17 @@ KRVBucket.prototype.makeSchema = function (opts) {
             { attribute: 'key', type: 'hash' },
             { attribute: 'rev', type: 'range', order: 'desc' },
             { attribute: 'tid', type: 'range', order: 'desc' }
-        ]
+        ],
     };
+
+    if (opts.revisionRetentionPolicy) {
+        schema.revisionRetentionPolicy = opts.revisionRetentionPolicy;
+    }
+    if (opts.version) {
+        schema.version = schemaVersionMajor + opts.version;
+    }
+
+    return schema;
 };
 
 KRVBucket.prototype.createBucket = function(restbase, req) {
