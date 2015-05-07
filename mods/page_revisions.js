@@ -43,6 +43,7 @@ PRS.prototype.tableURI = function(domain) {
 PRS.prototype.getTableSchema = function () {
     return {
         table: this.tableName,
+        version: 2,
         attributes: {
             // listing: /titles.rev/Barack_Obama/master/
             // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
