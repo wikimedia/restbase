@@ -130,15 +130,15 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         method: 'post',
         body: {
             generator: 'allpages',
-            gaplimit: 500,
+            gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
             format: 'json',
             gapcontinue: ''
         }
     };
 
-    if (req.next) {
-        listReq.gapcontinue = restbase.decodeToken(req.next);
+    if (req.query.page) {
+        listReq.body.gapcontinue = restbase.decodeToken(req.query.page);
     }
 
     return restbase.get(listReq)
@@ -151,12 +151,10 @@ PRS.prototype.listTitles = function(restbase, req, options) {
             items.push(article.title);
         });
 
-        var next;
+        var next = {};
         if (res.body.next) {
             next = {
-                _links: {
-                    next: { "href": "?next="+restbase.encodeToken(res.body.next.allpages.gapcontinue); } 
-                }
+                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
             };
         }
 
@@ -164,9 +162,9 @@ PRS.prototype.listTitles = function(restbase, req, options) {
             status: 200,
             body : {
                 items: items,
-                next: next
+                _links: next
             }
-        };;
+        };
     });
 };
 
@@ -331,10 +329,10 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
             title: normalizeTitle(rp.title)
         },
         proj: ['rev'],
-        limit: 1000
-    }
-    if (req.next) {
-        revisionRequest.next = restbase.decodeToken(req.next);
+        limit: restbase.rb_config.default_page_size
+    };
+    if (req.query.page) {
+        revisionRequest.next = restbase.decodeToken(req.query.page);
     }
     return restbase.get({
         uri: this.tableURI(rp.domain),
@@ -352,10 +350,8 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
             }
         });
         if (res.body.next) {
-            res.body.next = {
-                _links: {
-                    next: { "href": "?next="+restbase.encodeToken(res.body.next); } 
-                }
+            res.body._links = {
+                next: { "href": "?page="+restbase.encodeToken(res.body.next) } 
             };
         }
         res.body.items = items;
@@ -366,19 +362,20 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
 // /rev/
 PRS.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
+
     var listReq = {
         uri: new URI([rp.domain,'sys','action','query']),
         method: 'post',
         body: {
             generator: 'allpages',
-            gaplimit: 500,
+            gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
             format: 'json',
             gapcontinue: ''
         }
     };
-    if (req.next) {
-        listReq.gapcontinue = restbase.decodeToken(req.next);
+    if (req.query.page) {
+        listReq.body.gapcontinue = restbase.decodeToken(req.query.page);
     }
     return restbase.get(listReq)
     .then(function(res) {
@@ -388,12 +385,10 @@ PRS.prototype.listRevisions = function(restbase, req) {
             var article = pages[pageId];
             items.push(article.revisions[0].revid);
         });
-        var next;
+        var next={};
         if (res.body.next) {
             next = { 
-                _links: { 
-                    next: { "href": "?next="+restbase.encodeToken(res.body.next.allpages.gapcontinue); } 
-                }
+                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
             };
         }
 
@@ -401,7 +396,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
             status: 200,
             body: {
                 items: items,
-                next: next
+                _links: next
             }
         };
     });
@@ -413,7 +408,7 @@ PRS.prototype.getRevision = function(restbase, req) {
     // sanity check
     if (!/^[0-9]+$/.test(rp.revision)) {
         throw new rbUtil.HTTPError({
-            status: 500,
+            status: 400,
             body: {
                 type: 'invalidRevision',
                 description: 'Invalid revision specified.'
