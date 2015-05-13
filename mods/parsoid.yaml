@@ -20,6 +20,12 @@ paths:
     get:
       summary: List Wikitext revisions.
       operationId: listWikitextRevisions
+      parameters:
+        - name: page
+          in: Query
+          description: The next page token
+          type: string
+          required: false
 
   /wikitext/{title}{/revision}{/tid}:
     get:
@@ -30,6 +36,12 @@ paths:
     get:
       summary: List HTML revisions.
       operationId: listHtmlRevisions
+      parameters:
+        - name: page
+          in: Query
+          description: The next page token
+          type: string
+          required: false
 
   /html/{title}{/revision}{/tid}:
     get:
@@ -40,6 +52,12 @@ paths:
     get:
       summary: List data-parsoid revisions.
       operationId: listDataParsoidRevisions
+      parameters:
+        - name: page
+          in: Query
+          description: The next page token
+          type: string
+          required: false
 
   /data-parsoid/{title}{/revision}{/tid}:
     get:

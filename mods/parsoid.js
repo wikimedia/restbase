@@ -302,24 +302,22 @@ PSP.listRevisions = function (format, restbase, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
-        uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
-                     normalizeTitle(rp.title), ''])
-        generator: 'allpages',
-        gaplimit: 500,
-        gapcontinue: ''
-    }
+        uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, normalizeTitle(rp.title), '']),
+        body: {
+            gaplimit: restbase.rb_config.default_page_size,
+            gapcontinue: ''
+        }
+    };
 
-    if (req.next) {
-        listReq.gapcontinue = restbase.decodeToken(req.next);
+    if (req.query.page) {
+        revReq.body.gapcontinue = restbase.decodeToken(req.query.page);
     }
 
     return restbase.get(revReq)
         .then(function(res) {
             if (res.body.next) {
-                res.body.next = {
-                    _links: {
-                        next: { "href": "?next="+restbase.encodeToken(res.body.next.allpages.gapcontinue); } 
-                    }
+                res.body._links = {
+                    next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
                 };
             }
             return res;

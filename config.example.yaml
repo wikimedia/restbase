@@ -158,7 +158,8 @@ services:
     conf: 
       port: 7231
       spec: *spec
-      saltKey: secret
+      salt: secret
+      default_page_size: 250
 
 logging:
   name: restbase

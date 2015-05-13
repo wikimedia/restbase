@@ -44,6 +44,12 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
       produces:
         - application/json
+      parameters:
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The queriable list of page titles
@@ -76,6 +82,11 @@ paths:
           description: The page title.
           type: string
           required: true
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The queriable list of page revisions.
@@ -99,6 +110,12 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+      parameters:
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The queriable list of page titles
@@ -171,6 +188,11 @@ paths:
           description: The page title
           type: string
           required: true
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The list of revisions
@@ -254,6 +276,12 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
+      parameters:
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The queriable list of page titles
@@ -317,6 +345,11 @@ paths:
           description: The page title
           type: string
           required: true
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The list of revisions
@@ -393,6 +426,12 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
       produces:
         - application/json
+      parameters:
+        - name: page
+          in: Query
+          description: The next page token
+          type: string
+          required: false
       responses:
         '200':
           description: The queriable sub-items

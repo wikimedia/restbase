@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var pagingToken = '';
 
 describe('item requests', function() {
     this.timeout(20000);
@@ -115,7 +116,22 @@ describe('item requests', function() {
            if (!/^!/.test(res.body.items[0])) {
                throw new Error("Expected the first titles to start with !");
            }
+           pagingToken = res.body._links.next.href;
        });
+    });
+
+
+    it('should list another set of page titles using pagination', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/title/' + pagingToken,
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            if (!res.body.items || !res.body.items.length) {
+                throw new Error("Empty listing result!");
+            }
+        });
     });
 
     it('should list revisions for a title', function() {
@@ -125,10 +141,21 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [624484477,624165266]);
+            assert.deepEqual(res.body.items, [624484477]);
+            pagingToken = res.body._links.next.href;
         });
     });
 
+    it('should list next set of revisions for a title using pagination', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/title/Foobar/' + pagingToken
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            assert.deepEqual(res.body.items, [624484477]);
+        });
+    });
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
     //    this.timeout(20000);
     //    return preq.get({
