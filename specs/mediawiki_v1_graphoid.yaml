@@ -8,7 +8,7 @@ paths:
       tags:
         - Page content
       description: >
-        Retrieve PNG renders of graphs embedded in specific revisions of a
+        Retrieve PNG graph images embedded in specific revisions of a
         page. See [the Graphoid
         documentation](https://www.mediawiki.org/wiki/Extension:Graph#Graphoid_service)
         for details.
@@ -47,5 +47,6 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+
       x-backend-request:
         uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
