@@ -39,7 +39,7 @@
     "js-yaml": "~3.2.2",
     "node-txstatsd": "~0.1.5",
     "node-uuid": "git+https://github.com/gwicke/node-uuid#master",
-    "preq": "~0.3.6",
+    "preq": "^0.4.0",
     "request": "^2.44.0",
     "restbase-mod-table-cassandra": "^0.6.5",
     "service-runner": "^0.1.10",
