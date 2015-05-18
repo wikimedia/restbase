@@ -1,0 +1,52 @@
+# Graphoid graph render service
+
+swagger: 2.0
+
+paths:
+  /{module:page}/graph/png/{title}/{revision}/{graph_id}:
+    get:
+      tags:
+        - Page content
+      description: >
+        Retrieve PNG graph images embedded in specific revisions of a
+        page. See [the Graphoid
+        documentation](https://www.mediawiki.org/wiki/Extension:Graph#Graphoid_service)
+        for details.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - image/png
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: true
+        - name: graph_id
+          in: path
+          description: The graph ID, consisting of a hash and the suffix `.png`.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The PNG render of the requested graph.
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-backend-request:
+        uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
