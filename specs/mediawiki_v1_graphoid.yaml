@@ -24,7 +24,7 @@ paths:
           required: true
         - name: revision
           in: path
-          description: The page revision
+          description: The page revision, or 0 if unknown
           type: integer
           required: true
         - name: graph_id
