@@ -21,12 +21,6 @@ var yaml = require('js-yaml');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/page_revisions.yaml'));
 
 
-// Store titles as MediaWiki db keys
-function normalizeTitle (title) {
-    return title.replace(/ /g, '_');
-}
-
-
 // Title Revision Service
 function PRS (options) {
     this.options = options;
@@ -222,7 +216,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     // FIXME: if a title has been given, check it
                     // matches the one returned by the MW API
                     // cf. https://phabricator.wikimedia.org/T87393
-                    title: normalizeTitle(dataResp.title),
+                    title: rbUtil.normalizeTitle(dataResp.title),
                     page_id: parseInt(dataResp.pageid),
                     rev: parseInt(apiRev.revid),
                     tid: uuid.v1(),
@@ -286,7 +280,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             body: {
                 table: this.tableName,
                 attributes: {
-                    title: normalizeTitle(rp.title),
+                    title: rbUtil.normalizeTitle(rp.title),
                     rev: parseInt(rp.revision)
                 },
                 limit: 1
@@ -326,7 +320,7 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
     var revisionRequest = {
         table: this.tableName,
         attributes: {
-            title: normalizeTitle(rp.title)
+            title: rbUtil.normalizeTitle(rp.title)
         },
         proj: ['rev'],
         limit: restbase.rb_config.default_page_size
