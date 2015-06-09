@@ -126,6 +126,11 @@ templates:
                         uri: /{domain}/sys/key_value/testservice.test/{key}
 
 
+      /{module:page_save}:
+        x-modules:
+          - name: page_save
+            type: file
+
   wp-default-1.0.0: &wp/default/1.0.0
     x-subspecs:
       - paths:

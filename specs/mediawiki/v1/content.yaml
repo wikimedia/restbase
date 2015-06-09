@@ -484,6 +484,68 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
 
+  /{module:page}/wikitext/{title}{/revision}:
+    post:
+      tags:
+        - Page content
+        - Save
+        - Wikitext
+      description: >
+        Save a new revision of a page
+
+        For new pages, the `revision` parameter should be left empty.
+        For editing existing pages, it should contain the revision ID
+        the edit is derived from.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision of the page the edit is based on.
+        - name: text
+          in: formData
+          description: The wikitext source of the page to save
+          type: string
+          required: true
+        - name: token
+          in: formData
+          description: The CRSF edit token provided by the MW API
+          type: string
+          required: true
+        - name: summary
+          in: formData
+          description: The summary of the change
+          type: string
+          required: false
+        - name: minor
+          in: formData
+          description: Whether this represents a minor change
+          type: boolean
+          required: false
+        - name: bot
+          in: formData
+          description: Whether the change is being made by a bot
+          type: boolean
+          required: false
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: A new revision of the page has been created
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/page_save/wikitext/{title}{/revision}
+
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:
       tags:
