@@ -44,7 +44,7 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
     .then(function(res) {
         return res.body.items[0];
     }).catch(function(err) {
-        if(err.status != 403) {
+        if(err.status !== 403) {
             throw err;
         }
         // we are dealing with a restricted revision

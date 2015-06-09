@@ -119,25 +119,24 @@ function apiError(apiErr) {
 
 function buildQueryResponse(res) {
     if (res.status !== 200) {
-        throw rbUtil.httpErrors.server('Unexpected response status (' + res.status + ') from the PHP action API.');
+        throw apiError({info: 'Unexpected response status (' + res.status + ') from the PHP action API.'});
     } else if(!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
     } else if (!res.body.query || !res.body.query.pages) {
-        throw rbUtil.httpErrors.server('Missing query pages from the PHP action API response.');
-    } else {
-        // Rewrite res.body
-        // XXX: Rethink!
-        var pages = res.body.query.pages;
-        var newBody = Object.keys(pages).map(function(key) {
-            return pages[key];
-        });
-        // XXX: Clean this up!
-        res.body = {
-            items: newBody,
-            next: res.body["query-continue"]
-        };
-        return res;
+        throw apiError({info: 'Missing query pages from the PHP action API response.'});
     }
+    // Rewrite res.body
+    // XXX: Rethink!
+    var pages = res.body.query.pages;
+    var newBody = Object.keys(pages).map(function(key) {
+        return pages[key];
+    });
+    // XXX: Clean this up!
+    res.body = {
+        items: newBody,
+        next: res.body["query-continue"]
+    };
+    return res;
 }
 
 function buildEditResponse(res) {
@@ -160,7 +159,7 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     body.formatversion = body.formatversion || defBody.formatversion || 1;
     req.method = 'post';
     return restbase[req.method](req).then(cont);
-}
+};
 
 ActionService.prototype.query = function(restbase, req) {
     return this._doRequest(restbase, req, {
