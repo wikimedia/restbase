@@ -15,10 +15,114 @@ ActionService.prototype.apiURI = function(domain) {
     return this.apiURITemplate.replace(/\{domain\}/, domain);
 };
 
+function apiError(apiErr) {
+    var ret;
+    apiErr = apiErr || {};
+    ret = {
+        status: 500,
+        body: {
+            type: 'server_error',
+            title: apiErr.code || 'MW API Error',
+            description: apiErr.info || 'Unknown MW API error'
+        }
+    };
+    if(!apiErr.code) {
+        return new rbUtil.HTTPError(ret);
+    }
+    switch(apiErr.code) {
+        /* 400 - bad request */
+        case 'articleexists':
+        case 'badformat':
+        case 'badmd5':
+        case 'badtoken':
+        case 'invalidparammix':
+        case 'invalidsection':
+        case 'invalidtitle':
+        case 'invaliduser':
+        case 'missingparam':
+        case 'missingtitle':
+        case 'nosuchpageid':
+        case 'nosuchrcid':
+        case 'nosuchrevid':
+        case 'nosuchsection':
+        case 'nosuchuser':
+        case 'notext':
+        case 'notitle':
+        case 'pagecannotexist':
+        case 'revwrongpage':
+            ret.status = 400;
+            ret.body.type = 'invalid_request';
+            break;
+        /* 401 - unauthorised */
+        case 'cantcreate-anon':
+        case 'confirmemail':
+        case 'noedit-anon':
+        case 'noimageredirect-anon':
+        case 'protectedpage':
+        case 'readapidenied':
+            ret.status = 401;
+            ret.body.type = 'unauthorized';
+            break;
+        /* 403 - access denied */
+        case 'autoblocked':
+        case 'blocked':
+        case 'cantcreate':
+        case 'customcssjsprotected':
+        case 'customcssprotected':
+        case 'customjsprotected':
+        case 'emptynewsection':
+        case 'emptypage':
+        case 'noedit':
+        case 'noimageredirect':
+        case 'permissiondenied':
+        case 'protectednamespace':
+        case 'protectednamespace-interface':
+        case 'protectedtitle':
+        case 'readonly':
+        case 'writeapidenied':
+            ret.status = 403;
+            ret.body.type = 'access_denied#edit';
+            break;
+        /* 409 - conflict */
+        case 'cascadeprotected':
+        case 'editconflict':
+        case 'pagedeleted':
+        case 'spamdetected':
+            ret.status = 409;
+            ret.body.type = 'conflict';
+            break;
+        /* 412 - precondition failed */
+        case 'filtered':
+        case 'hookaborted':
+        case 'unsupportednamespace':
+            ret.status = 412;
+            ret.body.type = 'precondition_fail';
+            break;
+        /* 413 - body too large */
+        case 'contenttoobig':
+            ret.status = 413;
+            ret.body.type = 'too_large';
+            break;
+        /* 429 - rate limit exceeded */
+        case 'ratelimited':
+            ret.status = 429;
+            ret.body.type = 'rate_exceeded';
+            break;
+        /* 501 - not supported */
+        case 'editnotsupported':
+            ret.status = 501;
+            ret.body.type = 'not_supported';
+            break;
+    }
+    return new rbUtil.HTTPError(ret);
+}
+
 function buildQueryResponse(res) {
     if (res.status !== 200) {
         throw rbUtil.httpErrors.server('Unexpected response status (' + res.status + ') from the PHP action API.');
-    } else if (!res.body || !res.body.query || !res.body.query.pages) {
+    } else if(!res.body || res.body.error) {
+        throw apiError((res.body || {}).error);
+    } else if (!res.body.query || !res.body.query.pages) {
         throw rbUtil.httpErrors.server('Missing query pages from the PHP action API response.');
     } else {
         // Rewrite res.body
@@ -38,9 +142,9 @@ function buildQueryResponse(res) {
 
 function buildEditResponse(res) {
     if (res.status !== 200) {
-        throw rbUtil.httpErrors.server('Unexpected response status (' + res.status + ') from the PHP action API.');
+        throw apiError({info: 'Unexpected response status (' + res.status + ') from the PHP action API.'});
     } else if (!res.body || res.body.error) {
-        throw rbUtil.httpErrors.server('Bad return');
+        throw apiError((res.body || {}).error);
     }
     res.body = undefined;
     res.status = 201;
