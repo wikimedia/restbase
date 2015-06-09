@@ -55,7 +55,6 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
 };
 
 PageSave.prototype._checkParams = function(params) {
-    console.log("\n\nPARAMS: " + JSON.stringify(params, null, 2) + "\n\n");
     if(!(params && params.text && params.text.trim() && params.token)) {
         throw new rbUtil.HTTPError({
             status: 400,
@@ -80,9 +79,6 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     }
     return promise.then(function(revInfo) {
         var body = {
-            action: 'edit',
-            format: 'json',
-            formatversion: 2,
             title: revInfo.title,
             text: req.body.text,
             summary: req.body.summary || 'Change text to: ' + req.body.text.substr(0, 100),
@@ -93,11 +89,16 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
         // we need to add each info separately
         // since the presence of an empty value
         // might startle the MW API
-        if(revInfo.rev) { body.parentrevid = revInfo.rev; }
-        if(revInfo.timestamp) { body.basetimestamp = revInfo.timestamp; }
-        // FIXME: use the action module instead here!
+        if(revInfo.rev) {
+            // for forward compat with https://gerrit.wikimedia.org/r/#/c/94584
+            body.parentrevid = revInfo.rev;
+        }
+        if(revInfo.timestamp) {
+            // TODO: remove once the above patch gets merged
+            body.basetimestamp = revInfo.timestamp;
+        }
         return restbase.post({
-            uri: 'http://' + rp.domain + '/w/api.php',
+            uri: new URI([rp.domain, 'sys', 'action', 'edit']),
             headers: {
                 cookie: req.headers.cookie
             },
