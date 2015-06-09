@@ -15,7 +15,7 @@ ActionService.prototype.apiURI = function(domain) {
     return this.apiURITemplate.replace(/\{domain\}/, domain);
 };
 
-function buildResponse(res) {
+function buildQueryResponse(res) {
     if (res.status !== 200) {
         throw rbUtil.httpErrors.server('Unexpected response status (' + res.status + ') from the PHP action API.');
     } else if (!res.body || !res.body.query || !res.body.query.pages) {
@@ -36,16 +36,43 @@ function buildResponse(res) {
     }
 }
 
-ActionService.prototype.query = function(restbase, req) {
+function buildEditResponse(res) {
+    if (res.status !== 200) {
+        throw rbUtil.httpErrors.server('Unexpected response status (' + res.status + ') from the PHP action API.');
+    } else if (!res.body || res.body.error) {
+        throw rbUtil.httpErrors.server('Bad return');
+    }
+    res.body = undefined;
+    res.status = 201;
+    return res;
+}
+
+ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     var rp = req.params;
     req.uri = this.apiURI(rp.domain);
     var body = req.body;
-    body.action = 'query';
-    // Always request json
-    body.format = 'json';
+    body.action = defBody.action;
+    body.format = body.format || defBody.format || 'json';
+    body.formatversion = body.formatversion || defBody.formatversion || 1;
     req.method = 'post';
-    return restbase[req.method](req).then(buildResponse);
+    return restbase[req.method](req).then(cont);
+}
+
+ActionService.prototype.query = function(restbase, req) {
+    return this._doRequest(restbase, req, {
+        action: 'query',
+        format: 'json'
+    }, buildQueryResponse);
 };
+
+ActionService.prototype.edit = function(restbase, req) {
+    return this._doRequest(restbase, req, {
+        action: 'edit',
+        format: 'json',
+        formatversion: 2
+    }, buildEditResponse);
+};
+
 
 module.exports = function (options) {
     var actionService = new ActionService(options);
@@ -54,13 +81,19 @@ module.exports = function (options) {
             paths: {
                 '/query': {
                     all: {
-                        operationId: 'query'
+                        operationId: 'mwApiQuery'
+                    }
+                },
+                '/edit': {
+                    post: {
+                        operationId: 'mwApiEdit'
                     }
                 }
             }
         },
         operations: {
-            query: actionService.query.bind(actionService)
+            mwApiQuery: actionService.query.bind(actionService),
+            mwApiEdit: actionService.edit.bind(actionService)
         }
     };
 };
