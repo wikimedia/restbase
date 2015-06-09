@@ -507,6 +507,7 @@ paths:
         - name: revision
           in: path
           description: The revision of the page the edit is based on.
+          type: string
         - name: text
           in: formData
           description: The wikitext source of the page to save

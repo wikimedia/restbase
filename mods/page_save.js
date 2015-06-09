@@ -54,9 +54,25 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
     });
 };
 
+PageSave.prototype._checkParams = function(params) {
+    console.log("\n\nPARAMS: " + JSON.stringify(params, null, 2) + "\n\n");
+    if(!(params && params.text && params.text.trim() && params.token)) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalid_request',
+                title: 'Missing parameters',
+                description: 'The text and token parameters are required'
+            }
+        });
+    }
+};
+
 PageSave.prototype.saveWikitext = function(restbase, req) {
     var rp = req.params;
-    var promise = P.resolve({
+    var promise;
+    this._checkParams(req.body);
+    promise = P.resolve({
         title: rbUtil.normalizeTitle(rp.title)
     });
     if(rp.revision) {
@@ -70,8 +86,8 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             title: revInfo.title,
             text: req.body.text,
             summary: req.body.summary || 'Change text to: ' + req.body.text.substr(0, 100),
-            minor: req.body.minor,
-            bot: req.body.bot,
+            minor: req.body.minor || false,
+            bot: req.body.bot || false,
             token: req.body.token
         };
         // we need to add each info separately
