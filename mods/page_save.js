@@ -104,6 +104,9 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             },
             body: body
         });
+    }).then(function(res) {
+        res.status = 201;
+        return res;
     });
 };
 

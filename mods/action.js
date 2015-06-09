@@ -145,8 +145,7 @@ function buildEditResponse(res) {
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
     }
-    res.body = undefined;
-    res.status = 201;
+    res.body = res.body.edit;
     return res;
 }
 
