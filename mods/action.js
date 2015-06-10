@@ -139,6 +139,9 @@ function buildEditResponse(res) {
         throw apiError((res.body || {}).error);
     }
     res.body = res.body.edit;
+    if(res.body && !res.body.nochange) {
+        res.status = 201;
+    }
     return res;
 }
 
