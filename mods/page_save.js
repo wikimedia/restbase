@@ -69,17 +69,15 @@ PageSave.prototype._checkParams = function(params) {
 
 PageSave.prototype.saveWikitext = function(restbase, req) {
     var rp = req.params;
-    var promise;
+    var title = rbUtil.normalizeTitle(rp.title);
+    var promise = P.resolve({});
     this._checkParams(req.body);
-    promise = P.resolve({
-        title: rbUtil.normalizeTitle(rp.title)
-    });
     if(rp.revision) {
         promise = this._getRevInfo(restbase, req);
     }
     return promise.then(function(revInfo) {
         var body = {
-            title: revInfo.title,
+            title: title,
             text: req.body.text,
             summary: req.body.summary || 'Change text to: ' + req.body.text.substr(0, 100),
             minor: req.body.minor || false,
