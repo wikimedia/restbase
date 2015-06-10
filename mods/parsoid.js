@@ -28,7 +28,8 @@ function ParsoidService(options) {
     var self = this;
     this.operations = {
         getPageBundle: function(restbase, req) {
-            return self.wrapContentReq(restbase, req, self.pagebundle(restbase, req));
+            return self.wrapContentReq(restbase, req,
+                    self.pagebundle(restbase, req), 'pagebundle');
         },
         // revision retrieval per format
         getWikitext: self.getFormat.bind(self, 'wikitext'),
@@ -58,7 +59,7 @@ var PSP = ParsoidService.prototype;
  * @param req Object the user request
  * @param promise Promise the promise object to wrap
  */
-PSP.wrapContentReq = function(restbase, req, promise) {
+PSP.wrapContentReq = function(restbase, req, promise, format) {
     var rp = req.params;
     function ensureCharsetInContentType(res) {
         var cType = res.headers['content-type'];
@@ -69,17 +70,63 @@ PSP.wrapContentReq = function(restbase, req, promise) {
         return res;
     }
 
-    if(!rp.revision || rbUtil.isTimeUUID(rp.revision) || /^latest$/.test(rp.revision)) {
+    if(!rp.revision && !req.query.sections) {
         // we are dealing with the latest revision,
         // so no need to check it, as the latest
         // revision can never be supressed
         return promise.then(ensureCharsetInContentType);
     }
     // bundle the promise together with a call to getRevisionInfo()
-    return P.all([promise, this.getRevisionInfo(restbase, req)]).then(function(resx) {
+    var reqs = {
+        content: promise,
+        revisionInfo: this.getRevisionInfo(restbase, req)
+    };
+
+    // If the format is HTML and sections were requested, also request section
+    // offsets
+    if (format === 'html' && req.query.sections) {
+        reqs.sectionOffsets = restbase.get({
+            uri: this.getBucketURI(rp, 'section.offsets', rp.tid)
+        });
+    }
+
+    return P.props(reqs)
+    .then(function(responses) {
         // if we have reached this point,
         // it means access is not denied
-        return ensureCharsetInContentType(resx[0]);
+        if (format === 'html' && req.query.sections) {
+            // Handle section requests
+            var sectionOffsets = responses.sectionOffsets.body;
+            var sections = req.query.sections.split(',').map(function(id) {
+                return id.trim();
+            });
+            var body = cheapBodyInnerHTML(responses.content.body.toString());
+            var chunks = {};
+            sections.forEach(function(id) {
+                var offsets = sectionOffsets[id];
+                if (!offsets) {
+                    throw new rbUtil.HTTPError({
+                        status: 400,
+                        body: {
+                            type: 'invalid_request',
+                            description: 'Unknown section id: ' + id
+                        }
+                    });
+                }
+                chunks[id] = body.substring(offsets.html[0], offsets.html[1]);
+            });
+
+            return {
+                status: 200,
+                headers: {
+                    etag: responses.content.headers.etag,
+                    'content-type': 'application/json',
+                },
+                body: chunks,
+            };
+        } else {
+            return ensureCharsetInContentType(responses.content);
+        }
     });
 };
 
@@ -120,6 +167,11 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
                 uri: this.getBucketURI(rp, 'data-parsoid', tid),
                 headers: parsoidResp.body['data-parsoid'].headers,
                 body: parsoidResp.body['data-parsoid'].body
+            }),
+            restbase.put({
+                uri: this.getBucketURI(rp, 'section.offsets', tid),
+                headers: { 'content-type': 'application/json' },
+                body: parsoidResp.body['data-parsoid'].body.sectionOffsets
             })
         ]);
         // And return the response to the client
@@ -130,7 +182,7 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
             body: parsoidResp.body[format].body
         };
         resp.headers.etag = rbUtil.makeETag(rp.revision, tid);
-        return this.wrapContentReq(restbase, req, P.resolve(resp));
+        return this.wrapContentReq(restbase, req, P.resolve(resp), format);
     } else {
         return parsoidResp;
     }
@@ -294,7 +346,7 @@ PSP.getFormat = function (format, restbase, req) {
     } else {
         // Only (possibly) generate content if there was an error
         return self.wrapContentReq(restbase, req,
-                contentReq.catch(generateContent));
+                contentReq.catch(generateContent), format);
     }
 };
 
@@ -502,6 +554,18 @@ module.exports = function (options) {
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-parsoid',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'json',
+                    version: 1,
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.section.offsets',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
