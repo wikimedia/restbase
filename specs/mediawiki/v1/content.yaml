@@ -488,8 +488,6 @@ paths:
     post:
       tags:
         - Page content
-        - Save
-        - Wikitext
       description: >
         Save a new revision of a page
 
@@ -538,6 +536,8 @@ paths:
       produces:
         - application/json
       responses:
+        '200':
+          description: The existing revision of the page matches the sent text
         '201':
           description: A new revision of the page has been created
         default:
