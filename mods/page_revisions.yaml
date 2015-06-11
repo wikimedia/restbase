@@ -1,13 +1,25 @@
-paths:
+ paths:
   /page/:
     get:
       summary: List titles
       operationId: listTitles
+      parameters:
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
 
   /page/{title}/:
     get:
       summary: List revisions for a title (page history)
       operationId: listTitleRevisions
+      parameters:
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
 
   /page/{title}{/revision}:
     get:
@@ -31,6 +43,12 @@ paths:
     get:
       summary: List all revisions, ever
       operationId: listRevisions
+      parameters:
+        - name: page
+          in: query
+          description: The next page token
+          type: string
+          required: false
 
   /rev/{revision}:
     get:
