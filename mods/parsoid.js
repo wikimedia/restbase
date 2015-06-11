@@ -274,9 +274,9 @@ PSP.getFormat = function (format, restbase, req) {
         return contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
                     try {
-                        var jobTime = new Date(req.headers['if-unmodified-since']);
+                        var jobTime = Date.parse(req.headers['if-unmodified-since']);
                         var revInfo = rbUtil.parseETag(res.headers.etag);
-                        if (revInfo && uuid.v1time(revInfo.tid) >= jobTime) {
+                        if (revInfo && uuid.v1time(uuid.parse(revInfo.tid)) >= jobTime) {
                             // Already up to date, nothing to do.
                             return {
                                 status: 412,
