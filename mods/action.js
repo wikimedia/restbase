@@ -106,6 +106,8 @@ function ActionService (options) {
 }
 
 ActionService.prototype.apiURI = function(domain) {
+    // Re-map test domain
+    if(domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     // TODO: use proper templating
     return this.apiURITemplate.replace(/\{domain\}/, domain);
 };
