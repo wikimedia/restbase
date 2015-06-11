@@ -7,21 +7,17 @@
 "use strict";
 var P = require('bluebird');
 
-var fs = require("fs"),
-	writeFile = P.promisify(fs.writeFile),
-	request = P.promisify(require('preq/node_modules/request')),
-	downloadUrl = "https://en.wikipedia.org/w/api.php?action=sitematrix&format=json",
-	filename = "sitematrix.json";
+var fs = require("fs");
+var writeFile = P.promisify(fs.writeFile);
+var preq = require('preq');
+var downloadUrl = "https://en.wikipedia.org/w/api.php?action=sitematrix&format=json";
+var filename = "sitematrix.json";
 
-request({
-	url: downloadUrl,
-	json: true
+preq.get({
+	uri: downloadUrl,
 })
-.spread(function(res, body) {
-	if ( res.statusCode !== 200 ) {
-		throw "Error fetching sitematrix! Returned " + res.statusCode;
-	}
-    var sm = body.sitematrix;
+.then(function(res) {
+    var sm = res.body.sitematrix;
     var projects = {
         wikipedia: [],
         wiktionary: [],
