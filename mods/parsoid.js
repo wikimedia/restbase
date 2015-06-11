@@ -304,20 +304,19 @@ PSP.listRevisions = function (format, restbase, req) {
     var revReq = {
         uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, normalizeTitle(rp.title), '']),
         body: {
-            gaplimit: restbase.rb_config.default_page_size,
-            gapcontinue: ''
+            limit: restbase.rb_config.default_page_size,
         }
     };
 
     if (req.query.page) {
-        revReq.body.gapcontinue = restbase.decodeToken(req.query.page);
+        revReq.body.next = restbase.decodeToken(req.query.page);
     }
 
     return restbase.get(revReq)
         .then(function(res) {
             if (res.body.next) {
                 res.body._links = {
-                    next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
+                    next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) }
                 };
             }
             return res;
