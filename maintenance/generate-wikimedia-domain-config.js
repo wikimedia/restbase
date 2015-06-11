@@ -31,13 +31,16 @@ request({
         wikinews: [],
         wikiversity: [],
         wikivoyage: [],
+        wikimedia: [],
         '*': []
     };
+
     Object.keys(sm).forEach(function(k) {
         var lang = sm[k];
-        if (lang.site) {
-            lang.site.forEach(function(site) {
-                if (site.closed === undefined) {
+        if (lang.site || k === 'specials') {
+            var sites = lang.site || lang;
+            sites.forEach(function(site) {
+                if (site.closed === undefined && site.private === undefined) {
                     var domain = site.url.replace(/^https?:\/\//, '');
                     var name = domain.replace(/[^.]+\.(\w+)\.org$/, '$1');
                     if (projects[name]) {
