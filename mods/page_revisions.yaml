@@ -5,7 +5,7 @@
       operationId: listTitles
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false
@@ -16,7 +16,7 @@
       operationId: listTitleRevisions
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false
@@ -45,7 +45,7 @@
       operationId: listRevisions
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false

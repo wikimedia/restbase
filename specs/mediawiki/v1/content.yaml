@@ -428,7 +428,7 @@ paths:
         - application/json
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false
