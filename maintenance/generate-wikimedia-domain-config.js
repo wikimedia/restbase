@@ -9,7 +9,7 @@ var P = require('bluebird');
 
 var fs = require("fs"),
 	writeFile = P.promisify(fs.writeFile),
-	request = P.promisify(require('request')),
+	request = P.promisify(require('preq/node_modules/request')),
 	downloadUrl = "https://en.wikipedia.org/w/api.php?action=sitematrix&format=json",
 	filename = "sitematrix.json";
 
