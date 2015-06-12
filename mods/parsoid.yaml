@@ -22,7 +22,7 @@ paths:
       operationId: listWikitextRevisions
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false
@@ -38,7 +38,7 @@ paths:
       operationId: listHtmlRevisions
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false
@@ -54,7 +54,7 @@ paths:
       operationId: listDataParsoidRevisions
       parameters:
         - name: page
-          in: Query
+          in: query
           description: The next page token
           type: string
           required: false

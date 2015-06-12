@@ -104,23 +104,8 @@ describe('revision requests', function() {
     });
 
     it('should list stored revisions', function() {
-       return preq.get({ uri: server.config.bucketURL + '/revision/' })
-       .then(function(res) {
-            assert.deepEqual(res.status, 200);
-			assert.contentType(res, 'application/json');
-            if (!res.body.items || !res.body.items.length) {
-                throw new Error("No revisions returned!");
-            }
-            if (typeof res.body.items[0] !== 'number') {
-                throw new Error("Expected a numeric revision id!");
-            }
-            pagingToken = res.body._links.next.href;
-       });
-    });
-
-    it('should list next set of stored revisions using pagination', function() {
-       return preq.get({ uri: server.config.bucketURL + '/revision/' + pagingToken })
-       .then(function(res) {
+        return preq.get({ uri: server.config.bucketURL + '/revision/' })
+        .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             if (!res.body.items || !res.body.items.length) {
@@ -129,7 +114,22 @@ describe('revision requests', function() {
             if (typeof res.body.items[0] !== 'number') {
                 throw new Error("Expected a numeric revision id!");
             }
-       })
+            pagingToken = res.body._links.next.href;
+        });
+    });
+
+    it('should list next set of stored revisions using pagination', function() {
+        return preq.get({ uri: server.config.bucketURL + '/revision/' + pagingToken })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            if (!res.body.items || !res.body.items.length) {
+                throw new Error("No revisions returned!");
+            }
+            if (typeof res.body.items[0] !== 'number') {
+                throw new Error("Expected a numeric revision id!");
+            }
+        })
     });
 
 });

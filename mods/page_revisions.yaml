@@ -1,4 +1,4 @@
- paths:
+paths:
   /page/:
     get:
       summary: List titles

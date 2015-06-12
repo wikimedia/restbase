@@ -104,19 +104,19 @@ describe('item requests', function() {
     });
 
     it('should list page titles', function() {
-       return preq.get({
-           uri: server.config.bucketURL + '/title/'
-       })
-       .then(function(res) {
-           assert.deepEqual(res.status, 200);
-           assert.contentType(res, 'application/json');
-           if (!res.body.items || !res.body.items.length) {
-               throw new Error("Empty listing result!");
-           }
-           if (!/^!/.test(res.body.items[0])) {
-               throw new Error("Expected the first titles to start with !");
-           }
-           pagingToken = res.body._links.next.href;
+        return preq.get({
+            uri: server.config.bucketURL + '/title/'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            if (!res.body.items || !res.body.items.length) {
+                throw new Error("Empty listing result!");
+            }
+            if (!/^!/.test(res.body.items[0])) {
+                throw new Error("Expected the first titles to start with !");
+            }
+            pagingToken = res.body._links.next.href;
        });
     });
 
