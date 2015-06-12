@@ -19,6 +19,7 @@ var errDefs = {
     '500': { status: 500, type: 'server_error' },
     '501': { status: 501, type: 'not_supported' }
 };
+
 var errCodes = {
     /* 400 - bad request */
     'articleexists': errDefs['400'],
@@ -79,6 +80,7 @@ var errCodes = {
     /* 501 - not supported */
     'editnotsupported': errDefs['501']
 };
+
 function apiError(apiErr) {
     var ret;
     apiErr = apiErr || {};
@@ -98,6 +100,7 @@ function apiError(apiErr) {
     return new rbUtil.HTTPError(ret);
 }
 
+
 /**
  * Action module code
  */
@@ -106,8 +109,6 @@ function ActionService (options) {
 }
 
 ActionService.prototype.apiURI = function(domain) {
-    // Re-map test domain
-    if(domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     // TODO: use proper templating
     return this.apiURITemplate.replace(/\{domain\}/, domain);
 };
