@@ -130,26 +130,39 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         method: 'post',
         body: {
             generator: 'allpages',
-            gaplimit: 500,
+            gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
             format: 'json',
-            // gapcontinue: rp.next
+            gapcontinue: ''
         }
     };
+
+    if (req.query.page) {
+        listReq.body.gapcontinue = restbase.decodeToken(req.query.page);
+    }
 
     return restbase.get(listReq)
     .then(function(res) {
         var pages = res.body.items;
         var items = [];
+
         Object.keys(pages).forEach(function(pageId) {
             var article = pages[pageId];
             items.push(article.title);
         });
 
+        var next = {};
+        if (res.body.next) {
+            next = {
+                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
+            };
+        }
+
         return {
             status: 200,
-            body: {
-                items: items
+            body : {
+                items: items,
+                _links: next
             }
         };
     });
@@ -294,6 +307,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     .then(function(res) {
         // check if the revision has any restrictions
         self._checkRevReturn(res);
+
+        // clear paging info
+        delete res.body.next;
+
         if (!res.headers) {
             res.headers = {};
         }
@@ -306,16 +323,20 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
 
 PRS.prototype.listTitleRevisions = function(restbase, req) {
     var rp = req.params;
+    var revisionRequest = {
+        table: this.tableName,
+        attributes: {
+            title: normalizeTitle(rp.title)
+        },
+        proj: ['rev'],
+        limit: restbase.rb_config.default_page_size
+    };
+    if (req.query.page) {
+        revisionRequest.next = restbase.decodeToken(req.query.page);
+    }
     return restbase.get({
         uri: this.tableURI(rp.domain),
-        body: {
-            table: this.tableName,
-            attributes: {
-                title: normalizeTitle(rp.title)
-            },
-            proj: ['rev'],
-            limit: 1000
-        }
+        body: revisionRequest
     })
     .then(function(res) {
         // Flatten to an array of revisions rather than an array of objects &
@@ -328,6 +349,11 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
                 lastRev = row.rev;
             }
         });
+        if (res.body.next) {
+            res.body._links = {
+                next: { "href": "?page="+restbase.encodeToken(res.body.next) } 
+            };
+        }
         res.body.items = items;
         return res;
     });
@@ -336,17 +362,21 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
 // /rev/
 PRS.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
+
     var listReq = {
         uri: new URI([rp.domain,'sys','action','query']),
         method: 'post',
         body: {
             generator: 'allpages',
-            gaplimit: 500,
+            gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
             format: 'json',
-            // gapcontinue: rp.next
+            gapcontinue: ''
         }
     };
+    if (req.query.page) {
+        listReq.body.gapcontinue = restbase.decodeToken(req.query.page);
+    }
     return restbase.get(listReq)
     .then(function(res) {
         var pages = res.body.items;
@@ -355,11 +385,18 @@ PRS.prototype.listRevisions = function(restbase, req) {
             var article = pages[pageId];
             items.push(article.revisions[0].revid);
         });
+        var next={};
+        if (res.body.next) {
+            next = { 
+                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
+            };
+        }
 
         return {
             status: 200,
             body: {
-                items: items
+                items: items,
+                _links: next
             }
         };
     });
@@ -399,6 +436,10 @@ PRS.prototype.getRevision = function(restbase, req) {
     .then(function(res) {
         // check the return
         self._checkRevReturn(res);
+
+        // clear paging info
+        delete res.body.next;
+
         // and get the revision info for the
         // page now that we have the title
         rp.title = res.body.items[0].title;
