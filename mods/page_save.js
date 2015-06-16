@@ -55,13 +55,13 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
 };
 
 PageSave.prototype._checkParams = function(params) {
-    if(!(params && params.text && params.text.trim() && params.token)) {
+    if(!(params && params.wikitext && params.wikitext.trim() && params.token)) {
         throw new rbUtil.HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
                 title: 'Missing parameters',
-                description: 'The text and token parameters are required'
+                description: 'The wikitexttext and token parameters are required'
             }
         });
     }
@@ -78,8 +78,8 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     return promise.then(function(revInfo) {
         var body = {
             title: title,
-            text: req.body.text,
-            summary: req.body.summary || 'Change text to: ' + req.body.text.substr(0, 100),
+            text: req.body.wikitext,
+            summary: req.body.comment || 'Change text to: ' + req.body.wikitext.substr(0, 100),
             minor: req.body.minor || false,
             bot: req.body.bot || false,
             token: req.body.token

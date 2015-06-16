@@ -506,7 +506,7 @@ paths:
           in: path
           description: The revision of the page the edit is based on.
           type: string
-        - name: text
+        - name: wikitext
           in: formData
           description: The wikitext source of the page to save
           type: string
@@ -516,7 +516,7 @@ paths:
           description: The CRSF edit token provided by the MW API
           type: string
           required: true
-        - name: summary
+        - name: comment
           in: formData
           description: The summary of the change
           type: string

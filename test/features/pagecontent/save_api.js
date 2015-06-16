@@ -37,7 +37,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                text: ''
+                wikitext: ''
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -51,7 +51,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                text: 'abcd'
+                wikitext: 'abcd'
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -65,7 +65,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                text: 'abcd',
+                wikitext: 'abcd',
                 token: 'this_is_a_bad_token'
             }
         }).then(function(res) {
@@ -80,7 +80,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                text: saveText,
+                wikitext: saveText,
                 token: token
             }
         }).then(function(res) {
@@ -92,7 +92,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                text: saveText,
+                wikitext: saveText,
                 token: token
             }
         }).then(function(res) {
@@ -105,7 +105,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri + '/' + oldRev,
             body: {
-                text: saveText + "\n\nExtra text",
+                wikitext: saveText + "\n\nExtra text",
                 token: token
             }
         }).then(function(res) {
