@@ -170,6 +170,69 @@ paths:
         # work in current Chrome and Firefox.
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}
+    post:
+      tags:
+        - Page content
+      description: >
+        Save a new revision of a page given in HTML format
+
+        Note that the title must exist. See [the MediaWiki DOM
+        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+        description of the MediaWiki-specific semantic markup needed by this API
+        end-point.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+        - name: revision
+          in: formData
+          description: The revision of the page the edit is based on.
+          type: string
+          required: false
+        - name: html
+          in: formData
+          description: The HTML of the page to save
+          type: string
+          required: true
+        - name: token
+          in: formData
+          description: The CRSF edit token provided by the MW API
+          type: string
+          required: true
+        - name: comment
+          in: formData
+          description: The summary of the change
+          type: string
+          required: false
+        - name: minor
+          in: formData
+          description: Whether this represents a minor change
+          type: boolean
+          required: false
+        - name: bot
+          in: formData
+          description: Whether the change is being made by a bot
+          type: boolean
+          required: false
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The existing revision of the page matches the sent text
+        '201':
+          description: A new revision of the page has been created
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/page_save/html/{title}
 
   /{module:page}/html/{title}/:
     get:
@@ -546,7 +609,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/page_save/wikitext/{title}{/revision}
+        uri: /{domain}/sys/page_save/wikitext/{title}
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:
@@ -578,6 +641,7 @@ paths:
           required: true
       responses:
         '200':
+          description: The transformed wikitext
           schema: 'text/plain'
         '403':
           description: Access to the specific revision is restricted

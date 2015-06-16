@@ -4,7 +4,7 @@
 /**
  * page_save module
  *
- * Sends the wikitext of a page to the MW API for saving
+ * Sends the HTML or wikitext of a page to the MW API for saving
  */
 
 
@@ -22,11 +22,17 @@ function PageSave(options) {
                 post: {
                     operationId: 'saveWikitext'
                 }
+            },
+            '/html/{title}': {
+                post: {
+                    operationId: 'saveHTML'
+                }
             }
         }
     };
     this.operations = {
-        saveWikitext: self.saveWikitext.bind(self)
+        saveWikitext: self.saveWikitext.bind(self),
+        saveHTML: self.saveHtml.bind(self)
     };
 }
 
@@ -62,13 +68,15 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
 };
 
 PageSave.prototype._checkParams = function(params) {
-    if(!(params && params.wikitext && params.wikitext.trim() && params.token)) {
+    if(!(params && params.token &&
+            ((params.wikitext && params.wikitext.trim()) || (params.html && params.html.trim()))
+    )) {
         throw new rbUtil.HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
                 title: 'Missing parameters',
-                description: 'The wikitexttext and token parameters are required'
+                description: 'The html/wikitext and token parameters are required'
             }
         });
     }
@@ -112,6 +120,26 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     });
 };
 
+PageSave.prototype.saveHtml = function(restbase, req) {
+    var self = this;
+    var rp = req.params;
+    var title = rbUtil.normalizeTitle(rp.title);
+    var promise = P.resolve({});
+    this._checkParams(req.body);
+    // first transform the HTML to wikitext via the parsoid module
+    return restbase.post({
+        uri: new URI([rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title]),
+        body: {
+            revision: req.body.revision,
+            html: req.body.html
+        }
+    }).then(function(res) {
+        // then send it to the MW API
+        req.body.wikitext = res.body;
+        delete req.body.html;
+        return self.saveWikitext(restbase, req);
+    });
+};
 
 
 module.exports = function(options) {
