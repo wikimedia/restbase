@@ -9,11 +9,13 @@ var server = require('../../utils/server.js');
 describe('page save api', function() {
 
     var uri = server.config.bucketURL + '/wikitext/User:Mobrovac-WMF%2FRB_Save_Api_Test';
-    var token;
+    var htmlUri = server.config.bucketURL + '/html/User:Mobrovac-WMF%2FRB_Save_Api_Test';
+    var token = '';
     var saveText = "Welcome to the page which tests the RESTBase save API!\n\n" +
         "== Date ==\nText generated on " + new Date().toUTCString() + "\n\n" +
         "== Random ==\nHere's a random number: " + Math.floor(Math.random() * 32768);
     var oldRev = 666464140;
+    var lastRev = 0;
 
     this.timeout(20000);
 
@@ -101,6 +103,7 @@ describe('page save api', function() {
             }
         }).then(function(res) {
             assert.deepEqual(res.status, 201);
+            lastRev = res.body.newrevid;
         });
     });
 
@@ -130,6 +133,27 @@ describe('page save api', function() {
         }, function(err) {
             assert.deepEqual(err.status, 409);
             assert.deepEqual(err.body.title, 'editconflict');
+        });
+    });
+
+    it('save HTML', function() {
+        return preq.get({
+            uri: htmlUri + '/' + lastRev
+        }).then(function(res) {
+            assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
+            return preq.post({
+                uri: htmlUri,
+                body: {
+                    html: res.body.replace(/\<\/body\>/, '<p>Generated via direct HTML save!</p></body>'),
+                    token: token,
+                    revision: lastRev
+                }
+            });
+        }).then(function(res) {
+            assert.deepEqual(res.status, 201);
+        }).catch(function(err) {
+            console.log(JSON.stringify(err.body, null, 2));
+            throw err;
         });
     });
 
