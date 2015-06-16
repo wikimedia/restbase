@@ -484,7 +484,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
 
-  /{module:page}/wikitext/{title}{/revision}:
+  /{module:page}/wikitext/{title}:
     post:
       tags:
         - Page content
@@ -503,9 +503,10 @@ paths:
           type: string
           required: true
         - name: revision
-          in: path
+          in: formData
           description: The revision of the page the edit is based on.
           type: string
+          required: false
         - name: wikitext
           in: formData
           description: The wikitext source of the page to save

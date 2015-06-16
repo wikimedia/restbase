@@ -76,6 +76,22 @@ describe('page save api', function() {
         });
     });
 
+    it('fail for bad revision', function() {
+        return preq.post({
+            uri: uri,
+            body: {
+                revision: '13r25fv31',
+                wikitext: 'abcd',
+                token: 'this_is_a_bad_token'
+            }
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 400);
+            assert.deepEqual(err.body.title, 'Bad revision');
+        });
+    });
+
     it('save page', function() {
         return preq.post({
             uri: uri,
@@ -103,8 +119,9 @@ describe('page save api', function() {
 
     it('detect conflict', function() {
         return preq.post({
-            uri: uri + '/' + oldRev,
+            uri: uri,
             body: {
+                revision: oldRev,
                 wikitext: saveText + "\n\nExtra text",
                 token: token
             }

@@ -18,7 +18,7 @@ function PageSave(options) {
     this.log = options.log || function() {};
     this.spec = {
         paths: {
-            '/wikitext/{title}{/revision}': {
+            '/wikitext/{title}': {
                 post: {
                     operationId: 'saveWikitext'
                 }
@@ -34,10 +34,17 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
     var rp = req.params;
     var path = [rp.domain,'sys','page_revisions','page',
                          rbUtil.normalizeTitle(rp.title)];
-    if (!/^(?:[0-9]+)$/.test(rp.revision)) {
-        throw new Error("Invalid revision: " + rp.revision);
+    if (!/^(?:[0-9]+)$/.test(req.body.revision)) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalid_request',
+                title: 'Bad revision',
+                description: 'The supplied revision ID is invalid'
+            }
+        });
     }
-    path.push(rp.revision);
+    path.push(req.body.revision);
     return restbase.get({
         uri: new URI(path)
     })
@@ -72,7 +79,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     var title = rbUtil.normalizeTitle(rp.title);
     var promise = P.resolve({});
     this._checkParams(req.body);
-    if(rp.revision) {
+    if(req.body.revision) {
         promise = this._getRevInfo(restbase, req);
     }
     return promise.then(function(revInfo) {
