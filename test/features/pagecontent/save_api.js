@@ -136,6 +136,8 @@ describe('page save api', function() {
         });
     });
 
+    /*
+     * TODO: Uncomment once POST /page/html/{title} is publicly available
     it('save HTML', function() {
         return preq.get({
             uri: htmlUri + '/' + lastRev
@@ -151,11 +153,9 @@ describe('page save api', function() {
             });
         }).then(function(res) {
             assert.deepEqual(res.status, 201);
-        }).catch(function(err) {
-            console.log(JSON.stringify(err.body, null, 2));
-            throw err;
         });
     });
+    */
 
 });
 
