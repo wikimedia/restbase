@@ -113,6 +113,11 @@ templates:
                     backend_request:
                       uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
 
+      /{module:page_save}:
+        x-modules:
+          - name: page_save
+            type: file
+
 #      /{module:revscore}:
 #        title: Simple revscore service wrapper
 #        x-modules:

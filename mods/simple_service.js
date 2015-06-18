@@ -6,11 +6,8 @@
 
 var P = require('bluebird');
 var URI = require('swagger-router').URI;
+var rbUtil = require('../lib/rbUtil');
 
-// Store titles as MediaWiki db keys
-function normalizeTitle (title) {
-    return title.replace(/ /g, '_');
-}
 
 function SimpleService(options) {
     options = options || {};
@@ -54,7 +51,7 @@ SimpleService.prototype.processSpec = function(spec) {
             operations[conf.operationId] = function(restbase, req) {
                 var rp = req.params;
                 if (rp.key) {
-                    rp.key = normalizeTitle(rp.key);
+                    rp.key = rbUtil.normalizeTitle(rp.key);
                 }
 
                 function backendRequest() {
