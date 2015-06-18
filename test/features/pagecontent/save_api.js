@@ -11,7 +11,7 @@ describe('page save api', function() {
     var uri = server.config.bucketURL + '/wikitext/User:Mobrovac-WMF%2FRB_Save_Api_Test';
     var htmlUri = server.config.bucketURL + '/html/User:Mobrovac-WMF%2FRB_Save_Api_Test';
     var token = '';
-    var saveText = "Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save" +
+    var saveText = "Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
         "API! This page is created by an automated test to make sure RESTBase works " +
         "with the current version of MediaWiki.\n\n" +
         "== Date ==\nText generated on " + new Date().toUTCString() + "\n\n" +
