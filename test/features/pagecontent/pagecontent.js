@@ -201,7 +201,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [624484477]);
+            assert.deepEqual(res.body.items, [624165266]);
         });
     });
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
