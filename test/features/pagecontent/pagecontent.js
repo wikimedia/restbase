@@ -68,6 +68,54 @@ describe('item requests', function() {
         });
     });
 
+    it('should return sections of Main_Page', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main_Page/664887982',
+            query: {
+                sections: 'mp-topbanner,mp-upper'
+            },
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            var body = res.body;
+            if (!body['mp-topbanner'] || typeof body['mp-topbanner'] !== 'string'
+                    || !body['mp-upper']) {
+                throw new Error('Missing section content!');
+            }
+        })
+        .then(function() {
+            return preq.get({
+                uri: server.config.bucketURL + '/html/Main_Page',
+                query: {
+                    sections: 'mp-topbanner'
+                },
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            var body = res.body;
+            if (!body['mp-topbanner'] || typeof body['mp-topbanner'] !== 'string') {
+                throw new Error('Missing section content!');
+            }
+        });
+    });
+
+    it('section retrieval: error handling', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main_Page/664887982',
+            query: {
+                sections: 'somethingThatDoesNotExist'
+            },
+        })
+        .then(function(res) {
+            throw new Error('Request should return status 400');
+        }, function(res) {
+            assert.deepEqual(res.status, 400);
+        });
+    });
+
     it('should list APIs using the generic listing handler', function() {
         return preq.get({
             uri: server.config.hostPort + '/en.wikipedia.test.local/'
@@ -153,7 +201,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [624484477]);
+            assert.deepEqual(res.body.items, [624165266]);
         });
     });
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {

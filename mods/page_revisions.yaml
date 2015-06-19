@@ -23,8 +23,7 @@ paths:
 
   /page/{title}{/revision}:
     get:
-      summary: Get the revision metadata for a specific revision (can be
-        'latest')
+      summary: Get the revision metadata for a specific revision
       operationId: getTitleRevision
 
 #  /page/{title}/{revision}/id:
