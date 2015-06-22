@@ -65,7 +65,7 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
         return res;
     }
 
-    if(!rp.revision && !req.query.sections || rbUtil.isTimeUUID(rp.revision)) {
+    if(!rp.revision && !req.query.sections) {
         // we are dealing with the latest revision,
         // so no need to check it, as the latest
         // revision can never be supressed
