@@ -5,7 +5,7 @@
  */
 
 var P = require('bluebird');
-var uuid = require('node-uuid');
+var uuid = require('cassandra-uuid').TimeUuid;
 var rbUtil = require('../lib/rbUtil');
 var URI = require('swagger-router').URI;
 
@@ -252,7 +252,7 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
 KRVBucket.prototype.putRevision = function(restbase, req) {
     var rp = req.params;
     var rev = parseRevision(rp.revision);
-    var tid = rp.tid && coerceTid(rp.tid) || uuid.v1();
+    var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
     if (req.headers['last-modified']) {
         // XXX: require elevated rights for passing in the revision time
         tid = rbUtil.tidFromDate(req.headers['last-modified']);

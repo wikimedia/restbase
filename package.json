@@ -36,7 +36,7 @@
     "busboy": "^0.2.9",
     "js-yaml": "^3.3.1",
     "jsonwebtoken": "^5.0.1",
-    "node-uuid": "git+https://github.com/gwicke/node-uuid#master",
+    "cassandra-uuid": "^0.0.2",
     "preq": "^0.4.3",
     "restbase-mod-table-cassandra": "^0.6.6",
     "service-runner": "^0.2.0",

@@ -6,7 +6,7 @@
 
 var P = require('bluebird');
 var URI = require('swagger-router').URI;
-var uuid   = require('node-uuid');
+var uuid   = require('cassandra-uuid').TimeUuid;
 var rbUtil = require('../lib/rbUtil');
 
 // TODO: move tests & spec to separate npm module!
@@ -256,7 +256,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     return parsoidReq
     .then(function(res) {
         var htmlBody = res.body.html.body;
-        var tid = uuid.v1();
+        var tid = uuid.now().toString();
         // Also make sure we have a meta tag for the tid in our output
         if (!/<meta property="mw:TimeUuid" [^>]+>/.test(htmlBody)) {
             res.body.html.body = htmlBody
@@ -335,7 +335,7 @@ PSP.getFormat = function (format, restbase, req) {
                     try {
                         var jobTime = Date.parse(req.headers['if-unmodified-since']);
                         var revInfo = rbUtil.parseETag(res.headers.etag);
-                        if (revInfo && uuid.v1time(uuid.parse(revInfo.tid)) >= jobTime) {
+                        if (revInfo && uuid.fromString(revInfo.tid).getDate() >= jobTime) {
                             // Already up to date, nothing to do.
                             return {
                                 status: 412,
