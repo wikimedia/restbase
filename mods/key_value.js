@@ -5,7 +5,7 @@
  */
 
 var P = require('bluebird');
-var uuid = require('node-uuid');
+var uuid = require('cassandra-uuid').TimeUuid;
 var rbUtil = require('../lib/rbUtil');
 var URI = require('swagger-router').URI;
 
@@ -234,7 +234,7 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
 KVBucket.prototype.putRevision = function(restbase, req) {
     // TODO: support other formats! See cassandra backend getRevision impl.
     var rp = req.params;
-    var tid = uuid.v1();
+    var tid = uuid.now().toString();
 
     var storeReq = {
         uri: new URI([rp.domain,'sys','table',rp.bucket,'']),

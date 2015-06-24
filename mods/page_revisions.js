@@ -13,7 +13,7 @@
 
 var rbUtil = require('../lib/rbUtil.js');
 var URI = require('swagger-router').URI;
-var uuid = require('node-uuid');
+var uuid = require('cassandra-uuid').TimeUuid;
 
 // TODO: move to module
 var fs = require('fs');
@@ -219,7 +219,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     title: rbUtil.normalizeTitle(dataResp.title),
                     page_id: parseInt(dataResp.pageid),
                     rev: parseInt(apiRev.revid),
-                    tid: uuid.v1(),
+                    tid: uuid.now().toString(),
                     namespace: parseInt(dataResp.ns),
                     user_id: apiRev.userid,
                     user_text: apiRev.user,
