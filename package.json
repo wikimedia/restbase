@@ -52,6 +52,7 @@
     "mocha-jshint": "^2.2.3",
     "mocha-lcov-reporter": "^0.0.2",
     "swagger-test": "0.2.0",
-    "url-template": "^2.0.6"
+    "url-template": "^2.0.6",
+    "nock": "^2.6.0"
   }
 }

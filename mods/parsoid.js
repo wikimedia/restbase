@@ -66,21 +66,13 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
         return res;
     }
 
-    if(!rp.revision && !req.query.sections) {
-        // we are dealing with the latest revision,
-        // so no need to check it, as the latest
-        // revision can never be supressed
-        return promise.then(ensureCharsetInContentType);
-    }
     var reqs = {
         content: promise,
     };
 
-    if (rp.revision) {
-        // Bundle the promise together with a call to getRevisionInfo(). A
-        // failure in getRevisionInfo will abort the entire request.
-        reqs.revisionInfo = this.getRevisionInfo(restbase, req);
-    }
+    // Bundle the promise together with a call to getRevisionInfo(). A
+    // failure in getRevisionInfo will abort the entire request.
+    reqs.revisionInfo = this.getRevisionInfo(restbase, req);
 
     // If the format is HTML and sections were requested, also request section
     // offsets

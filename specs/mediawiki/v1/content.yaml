@@ -99,6 +99,44 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}/
 
+  /{module:page}/title/{title}/{revision}:
+      get:
+        tags:
+          - Page content
+        description: >
+          Get a specific revision for a title.
+          In case 'latest' string is provided as a revision, the latest revision is returned
+          Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        produces:
+          - application/json
+        parameters:
+          - name: title
+            in: path
+            description: The page title.
+            type: string
+            required: true
+          - name: revision
+            in: path
+            description: The revision id or a 'latest' string
+            type: string
+            required: true
+          - name: page
+            in: query
+            description: The next page token
+            type: string
+            required: false
+        responses:
+          '200':
+            description: The revision's properties
+            schema:
+              $ref: '#/definitions/revision'
+          default:
+            description: Error
+            schema:
+              $ref: '#/definitions/problem'
+        x-backend-request:
+          uri: /{domain}/sys/page_revisions/page/{title}/{revision}
+
   /{module:page}/html/:
     get:
       tags:

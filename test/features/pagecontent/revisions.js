@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var P = require('bluebird');
 var pagingToken = '';
 
 describe('revision requests', function() {
@@ -13,6 +14,8 @@ describe('revision requests', function() {
 	var revOk = 642497713;
 	var revDeleted = 645504917;
 	var revRedirect = 591082967;
+    var pageName = 'User:GWicke%2fDate';
+    var pageLastRev = 653530930;
 
     this.timeout(20000);
 
@@ -132,5 +135,13 @@ describe('revision requests', function() {
         })
     });
 
+    it('should return latest revision for a page', function () {
+        return preq.get({uri: server.config.bucketURL + '/title/' + pageName + '/latest'})
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body.items.length, 1);
+                assert.deepEqual(res.body.items[0].rev, pageLastRev);
+            });
+    });
 });
 
