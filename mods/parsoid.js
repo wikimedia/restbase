@@ -445,12 +445,14 @@ PSP.transformRevision = function (restbase, req, from, to) {
     return this._getOriginalContent(restbase, req, rp.revision, tid)
     .then(function (original) {
         // Check if parsoid metadata is present as it's required by parsoid.
-        if (!original['data-parsoid'].body || !original['data-parsoid'].body.ids) {
+        if (!original['data-parsoid'].body
+                || original['data-parsoid'].body.constructor !== Object
+                || !original['data-parsoid'].body.ids) {
             throw new rbUtil.HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
-                    description: "Couldn't find parsoid metadata for page " + req.body.title + ' ' + rp.revision
+                    description: 'The page/revision has no associated Parsoid data'
                 }
             });
         }
