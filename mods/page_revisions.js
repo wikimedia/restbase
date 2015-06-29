@@ -304,44 +304,45 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         });
     } else if (!rp.revision || rp.revision === 'latest') {
         revisionRequest = self.fetchAndStoreMWRevision(restbase, req)
-            .catch(function (e) {
-                if (e.status !== 404) {
+        .catch(function(e) {
+            if (e.status !== 404) {
+                throw e;
+            }
+            // In case 404 is returned by MW api, the page is deleted
+            return self.listTitleRevisions(restbase, req)
+            .then(function(res) {
+                if (res.body.items && res.body.items.length > 0) {
+                    var revReq = {
+                        uri: new URI([rp.domain, 'sys', 'page_revisions', 'rev', res.body.items[0]]),
+                        params: {
+                            api: 'sys',
+                            domain: rp.domain,
+                            module: 'page_revisions',
+                            revision: res.body.items[0]
+                        }
+                    };
+                    return self.getRevision(restbase, revReq);
+                } else {
                     throw e;
                 }
-                // In case 404 is returned by MW api, the page is deleted
-                return self.listTitleRevisions(restbase, req)
-                    .then(function (res) {
-                        if (res.body.items && res.body.items.length > 0 ) {
-                            var revReq = {
-                                uri: new URI([rp.domain, 'sys', 'page_revisions', 'rev', res.body.items[0]]),
-                                params: {
-                                    api: 'sys',
-                                    domain: rp.domain,
-                                    module: 'page_revisions',
-                                    revision: res.body.items[0]
-                                }
-                            };
-                            return self.getRevision(restbase, revReq);
-                        } else {
-                            throw e;
-                        }
-                    })
-                    .then(function(result) {
-                        result = result.body.items[0];
-                        result.tid = uuid.now().toString();
-                        result.restrictions = result.restrictions || [];
-                        result.restrictions.push('page_deleted');
-                        return restbase.put({
-                            uri: self.tableURI(rp.domain),
-                            body: {
-                                table: self.tableName,
-                                attributes: result
-                            }
-                        }).then(function () {
-                            throw e;
-                        });
-                    });
+            })
+            .then(function(result) {
+                result = result.body.items[0];
+                result.tid = uuid.now().toString();
+                result.restrictions = result.restrictions || [];
+                result.restrictions.push('page_deleted');
+                return restbase.put({
+                    uri: self.tableURI(rp.domain),
+                    body: {
+                        table: self.tableName,
+                        attributes: result
+                    }
+                })
+                .then(function() {
+                    throw e;
+                });
             });
+        });
     } else {
         throw new Error("Invalid revision: " + rp.revision);
     }
