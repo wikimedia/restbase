@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "description": "REST storage and service dispatcher",
   "main": "server.js",
   "scripts": {
@@ -38,7 +38,7 @@
     "jsonwebtoken": "^5.0.1",
     "cassandra-uuid": "^0.0.2",
     "preq": "^0.4.3",
-    "restbase-mod-table-cassandra": "^0.6.6",
+    "restbase-mod-table-cassandra": "^0.7.0",
     "service-runner": "^0.2.0",
     "swagger-router": "^0.1.0",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master"
