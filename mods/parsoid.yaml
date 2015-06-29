@@ -79,7 +79,7 @@ paths:
       summary: Transform wikitext to HTML.
       operationId: transformWikitextToHtml
 
-  /transform/sections/to/wikitext{/title}{/revision}:
+  /transform/sections/to/wikitext/{title}/{revision}:
     post:
       summary: Transform sections to wikitext.
       operationId: transformSectionsToWikitext
