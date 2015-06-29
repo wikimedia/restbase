@@ -143,8 +143,47 @@ describe('transform api', function() {
         });
     });
 
-});
+    it('sections2wt, replace', function() {
+        var pageWithSectionsTitle = 'User:Pchelolo',
+            pageWithSectionsRev = 669197670;
+        return preq.post({
+            uri: server.config.baseURL
+                + '/transform/sections/to/wikitext/'
+                + pageWithSectionsTitle
+                + '/' + pageWithSectionsRev,
+            body: {
+                sections: '{"mwAQ":"<h2>First section replaced</h2>",'
+                    + '"mwAg":"<h2>Second section replaced</h2>"}'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.deepEqual(/== First section replaced ==/.test(res.body), true);
+            assert.deepEqual(/== Second section replaced ==/.test(res.body), true);
+        });
+    });
 
+    it('sections2wt, append', function() {
+        var pageWithSectionsTitle = 'User:Pchelolo',
+            pageWithSectionsRev = 669197670;
+        return preq.post({
+            uri: server.config.baseURL
+                + '/transform/sections/to/wikitext/'
+                + pageWithSectionsTitle
+                + '/' + pageWithSectionsRev,
+            body: {
+                sections: '{"mwAQ":"<h2>First section replaced</h2><h2>Appended section</h2>"}'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.deepEqual(/== Appended section ==/.test(res.body), true);
+            assert.deepEqual(/== Second section ==/.test(res.body), true);
+        });
+    });
+});
 
 
 /* TODO: actually implement wikitext fetching

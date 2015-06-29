@@ -760,6 +760,52 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 
+  /{module:transform}/sections/to/wikitext/{title}/{revision}:
+    post:
+      tags:
+        - Transforms
+      description: >
+        Transform sections representation to wikitext
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - multipart/form-data
+      produces:
+        - text/html; profile=mediawiki.org/specs/html/1.0.0
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: true
+        - name: sections
+          in: formData
+          description: Sections to transform
+          type: string
+          required: true
+      responses:
+        '200':
+          schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
   problem:

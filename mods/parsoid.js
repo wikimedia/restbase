@@ -38,6 +38,7 @@ function ParsoidService(options) {
         transformHtmlToHtml: self.makeTransform('html', 'html'),
         transformHtmlToWikitext: self.makeTransform('html', 'wikitext'),
         transformWikitextToHtml: self.makeTransform('wikitext', 'html'),
+        transformSectionsToWikitext: self.makeTransform('sections', 'wikitext')
     };
 }
 
@@ -459,7 +460,27 @@ PSP.transformRevision = function (restbase, req, from, to) {
         var body2 = {
             original: original
         };
-        body2[from] = req.body[from];
+        if (from === 'sections') {
+            try {
+                var sections = JSON.parse(req.body.sections);
+                body2.html = {
+                    body: replaceSections(original, sections)
+                };
+                from = 'html';
+            } catch(e) {
+                // Catch JSON parsing exception and return 400
+                throw new rbUtil.HTTPError({
+                    status: 400,
+                    body: {
+                        type: 'invalid_request',
+                        description: 'Invalid JSON provided in the request'
+                    }
+                });
+            }
+        } else {
+            body2[from] = req.body[from];
+        }
+
         var path = [rp.domain,'sys','parsoid','transform',from,'to',to];
         if (rp.title) {
             path.push(rbUtil.normalizeTitle(rp.title));
@@ -528,6 +549,45 @@ function cheapBodyInnerHTML(html) {
     } else {
         return match[1];
     }
+}
+
+/**
+ * Replaces sections in original content with sections provided in sectionsJson
+ */
+function replaceSections(original, sectionsJson) {
+    var sectionOffsets = original['data-parsoid'].body.sectionOffsets,
+        newBody = cheapBodyInnerHTML(original.html.body);
+    Object.keys(sectionsJson)
+    .sort(function(id1, id2) {
+        var offset1 = sectionOffsets[id2],
+            offset2 = sectionOffsets[id1];
+        if (!offset1 || !offset2) {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    description: 'Invalid section ids'
+                }
+            });
+        }
+        return offset1.html[0] - offset2.html[0];
+    })
+    .forEach(function(id) {
+        var offset = sectionOffsets[id];
+        if (!offset) {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    description: 'Invalid section id ' + id
+                }
+            });
+        }
+        newBody = newBody.substring(0, offset.html[0])
+            + sectionsJson[id]
+            + newBody.substring(offset.html[1], newBody.length);
+    });
+    return '<body>' + newBody + '</body>';
 }
 
 PSP.makeTransform = function (from, to) {
