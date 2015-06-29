@@ -82,8 +82,8 @@ describe('404 handling', function() {
     });
     it('should set page_deleted on deleted page', function() {
         var apiURI = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:action}']['x-modules'][0].options.apiURI;
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiURI;
         var title = 'TestingTitle';
         var revision = 12345;
 
