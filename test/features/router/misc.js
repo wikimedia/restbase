@@ -8,6 +8,7 @@ var preq   = require('preq');
 var server = require('../../utils/server.js');
 var Template = require('../../../lib/reqTemplate.js');
 var URI = require('swagger-router').URI;
+var nock   = require('nock');
 
 describe('router - misc', function() {
 
@@ -86,6 +87,42 @@ describe('router - misc', function() {
         });
     });
 
+    it('should forward cookies on request to MW api', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiURI;
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .matchHeader('cookie', 'test=test_cookie')
+        .post('')
+        .reply(200, function() {
+            return {
+                query: {
+                    pages: {
+                        '1': {
+                            ns: 0,
+                            pageid: 1,
+                            revisions: [1],
+                            title: 'test'
+                        }
+                    }
+                }
+            };
+        });
+        return preq.get({
+            uri: server.config.bucketURL + '/title/',
+            headers: {
+                'Cookie': 'test=test_cookie'
+            }
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+            nock.restore();
+        });
+    });
     it('should correctly resolve request templates', function() {
         var requestTemplate = {
             uri: '/{domain}/test',
