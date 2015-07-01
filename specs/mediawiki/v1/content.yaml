@@ -67,7 +67,9 @@ paths:
       tags:
         - Page content
       description: >
-        Returns the latest revision of the title
+        Returns the latest revision for the title. By default returns the latest revision
+        stored in RESTBase, but if Cache-Control header is set to no-cache, MediaWiki API
+        is queried for the latest revision.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -80,9 +82,9 @@ paths:
           required: true
       responses:
         '200':
-          description: The queriable list of page revisions.
+          description: The latest revision for the title
           schema:
-            $ref: '#/definitions/listing'
+            $ref: '#/definitions/revision'
         '404':
           description: Unknown page title or no revisions found
           schema:
