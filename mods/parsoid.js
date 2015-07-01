@@ -555,34 +555,26 @@ function cheapBodyInnerHTML(html) {
  * Replaces sections in original content with sections provided in sectionsJson
  */
 function replaceSections(original, sectionsJson) {
-    var sectionOffsets = original['data-parsoid'].body.sectionOffsets,
-        newBody = cheapBodyInnerHTML(original.html.body);
-    Object.keys(sectionsJson)
-    .sort(function(id1, id2) {
-        var offset1 = sectionOffsets[id2],
-            offset2 = sectionOffsets[id1];
-        if (!offset1 || !offset2) {
-            throw new rbUtil.HTTPError({
-                status: 400,
-                body: {
-                    type: 'invalid_request',
-                    description: 'Invalid section ids'
-                }
-            });
-        }
-        return offset1.html[0] - offset2.html[0];
+    var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
+    var newBody = cheapBodyInnerHTML(original.html.body);
+    var sectionIds = Object.keys(sectionsJson);
+    var illegalId = sectionIds.some(function(id) {
+        return !sectionOffsets[id];
+    });
+    if (illegalId) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalid_request',
+                description: 'Invalid section ids'
+            }
+        });
+    }
+    sectionIds.sort(function(id1, id2) {
+        return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
     })
     .forEach(function(id) {
         var offset = sectionOffsets[id];
-        if (!offset) {
-            throw new rbUtil.HTTPError({
-                status: 400,
-                body: {
-                    type: 'invalid_request',
-                    description: 'Invalid section id ' + id
-                }
-            });
-        }
         newBody = newBody.substring(0, offset.html[0])
             + sectionsJson[id]
             + newBody.substring(offset.html[1], newBody.length);

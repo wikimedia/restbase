@@ -40,15 +40,15 @@ describe('400 handling', function() {
     });
 
     it('Should return 400 on invalid JSON sections', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo',
-            pageWithSectionsRev = 669197670;
+        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        var pageWithSectionsRev = 669458404;
         return preq.post({
             uri: server.config.baseURL
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
             body: {
-                sections: '{"mwAQ":"First section replaced" INVALID}'
+                sections: '{"mwAg":"First section replaced" INVALID}'
             }
         })
         .then(function() {
@@ -61,8 +61,8 @@ describe('400 handling', function() {
     });
 
     it('Should return 400 if non-existent section id provided', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo',
-            pageWithSectionsRev = 669197670;
+        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        var pageWithSectionsRev = 669458404;
         return preq.post({
             uri: server.config.baseURL
                 + '/transform/sections/to/wikitext/'

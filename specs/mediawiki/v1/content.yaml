@@ -791,6 +791,10 @@ paths:
       responses:
         '200':
           schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
+        '400':
+          description: Illegal JSON provided or section id does not exist
+          schema:
+            $ref: '#/definitions/problem'
         '403':
           description: access to the specific revision is restricted
           schema:
