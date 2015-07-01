@@ -87,7 +87,7 @@ describe('router - misc', function() {
         });
     });
 
-    it('should forward cookies on request to MW api', function() {
+    it('should forward cookies on request to api', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiURI;
@@ -115,7 +115,7 @@ describe('router - misc', function() {
                 'Cookie': 'test=test_cookie'
             }
         })
-        .then(function() {
+        .then(function(res) {
             api.done();
         })
         .finally(function() {
@@ -123,6 +123,7 @@ describe('router - misc', function() {
             nock.restore();
         });
     });
+
     it('should correctly resolve request templates', function() {
         var requestTemplate = {
             uri: '/{domain}/test',

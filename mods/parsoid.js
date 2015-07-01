@@ -141,6 +141,7 @@ PSP.pagebundle = function(restbase, req) {
     // TODO: Pass in current or predecessor version data if available
     var newReq = Object.assign({}, req);
     if (!newReq.method) { newReq.method = 'get'; }
+    newReq = rbUtil.copyForwardedHeaders(restbase, newReq);
     newReq.uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
         + encodeURIComponent(rbUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.request(newReq);
@@ -543,6 +544,7 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         headers: { 'content-type': 'application/json' },
         body: req.body
     };
+    parsoidReq = rbUtil.copyForwardedHeaders(restbase, parsoidReq);
     return restbase.post(parsoidReq);
 };
 

@@ -183,6 +183,8 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     if (!apiRequest.body.hasOwnProperty('continue')) {
         apiRequest.body.continue = '';
     }
+    req.method = 'post';
+    req = rbUtil.copyForwardedHeaders(restbase, req);
     return restbase.request(apiRequest).then(cont);
 };
 
