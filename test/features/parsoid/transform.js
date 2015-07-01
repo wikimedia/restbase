@@ -187,6 +187,33 @@ describe('transform api', function() {
             assert.deepEqual(/== Second Section ==/.test(res.body), true);
         });
     });
+
+    it('sections2wt, append, application/json', function() {
+        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        var pageWithSectionsRev = 669458404;
+        return preq.post({
+            uri: server.config.baseURL
+                + '/transform/sections/to/wikitext/'
+                + pageWithSectionsTitle
+                + '/' + pageWithSectionsRev,
+            body: {
+                sections: {
+                    'mwAg':'<h2>First Section replaced</h2><h2>Appended Section</h2>'
+                }
+            },
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.deepEqual(/== First Section ==/.test(res.body), false);
+            assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
+            assert.deepEqual(/== Appended Section ==/.test(res.body), true);
+            assert.deepEqual(/== Second Section ==/.test(res.body), true);
+        });
+    });
 });
 
 

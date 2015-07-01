@@ -461,22 +461,25 @@ PSP.transformRevision = function (restbase, req, from, to) {
             original: original
         };
         if (from === 'sections') {
-            try {
-                var sections = JSON.parse(req.body.sections);
-                body2.html = {
-                    body: replaceSections(original, sections)
-                };
-                from = 'html';
-            } catch(e) {
-                // Catch JSON parsing exception and return 400
-                throw new rbUtil.HTTPError({
-                    status: 400,
-                    body: {
-                        type: 'invalid_request',
-                        description: 'Invalid JSON provided in the request'
-                    }
-                });
+            var sections = req.body.sections;
+            if (req.body.sections.constructor !== Object) {
+                try {
+                     sections = JSON.parse(req.body.sections.toString());
+                } catch (e) {
+                    // Catch JSON parsing exception and return 400
+                    throw new rbUtil.HTTPError({
+                        status: 400,
+                        body: {
+                            type: 'invalid_request',
+                            description: 'Invalid JSON provided in the request'
+                        }
+                    });
+                }
             }
+            body2.html = {
+                body: replaceSections(original, sections)
+            };
+            from = 'html';
         } else {
             body2[from] = req.body[from];
         }
