@@ -103,15 +103,25 @@ PRS.prototype._checkRevReturn = function(res) {
     // https://phabricator.wikimedia.org/T76165#1030962
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
         // there are some restrictions, deny access to the revision
-        throw new rbUtil.HTTPError({
-            status: 403,
-            body: {
-                type: 'access_denied#revision',
-                title: 'Access to resource denied',
-                description: 'Access is restricted for revision ' + item.rev,
-                restrictions: item.restrictions
-            }
-        });
+        if (item.restrictions.indexOf('page_deleted') >= 0) {
+            throw new rbUtil.HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page was deleted'
+                }
+            });
+        } else {
+            throw new rbUtil.HTTPError({
+                status: 403,
+                body: {
+                    type: 'access_denied#revision',
+                    title: 'Access to resource denied',
+                    description: 'Access is restricted for revision ' + item.rev,
+                    restrictions: item.restrictions
+                }
+            });
+        }
     }
     return true;
 };
@@ -293,7 +303,58 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             return self.fetchAndStoreMWRevision(restbase, req);
         });
     } else if (!rp.revision) {
-        revisionRequest = self.fetchAndStoreMWRevision(restbase, req);
+        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+            revisionRequest = self.fetchAndStoreMWRevision(restbase, req)
+            .catch(function(e) {
+                if (e.status !== 404) {
+                    throw e;
+                }
+                // In case 404 is returned by MW api, the page is deleted
+                return self.listTitleRevisions(restbase, req)
+                .then(function(res) {
+                    if (res.body.items && res.body.items.length > 0) {
+                        return restbase.get({
+                            uri: new URI([rp.domain, 'sys', 'page_revisions', 'rev', '' + res.body.items[0]])
+                        });
+                    } else {
+                        throw e;
+                    }
+                })
+                .then(function(result) {
+                    result = result.body.items[0];
+                    result.tid = uuid.now().toString();
+                    result.restrictions = result.restrictions || [];
+                    result.restrictions.push('page_deleted');
+                    return restbase.put({
+                        uri: self.tableURI(rp.domain),
+                        body: {
+                            table: self.tableName,
+                            attributes: result
+                        }
+                    })
+                    .then(function() {
+                        throw e;
+                    });
+                });
+            });
+        } else {
+            revisionRequest = self.listTitleRevisions(restbase, req)
+            .then(function(res) {
+                if (res.body.items && res.body.items.length > 0) {
+                    return restbase.get({
+                        uri: new URI([rp.domain, 'sys', 'page_revisions', 'rev', '' + res.body.items[0]])
+                    });
+                } else {
+                    throw new rbUtil.HTTPError({
+                        status: 404,
+                        body: {
+                            type: 'not_found#page_revisions',
+                            description: 'No revisions of a page stored in restbase'
+                        }
+                    });
+                }
+            });
+        }
     } else {
         throw new Error("Invalid revision: " + rp.revision);
     }

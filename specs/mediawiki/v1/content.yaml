@@ -62,12 +62,44 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
 
+  /{module:page}/title/{title}:
+    get:
+      tags:
+        - Page content
+      description: >
+        Returns the latest revision ID for the title present in storage.
+        Supply the Cache-Control: no-cache header to obtain the latest available revision ID
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The latest revision for the title
+          schema:
+            $ref: '#/definitions/revision'
+        '404':
+          description: Unknown page title or no revisions found
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/page_revisions/page/{title}
 
   /{module:page}/title/{title}/:
     get:
       tags:
         - Page content
-      description: > 
+      description: >
         List revisions for a title. Currently this lists all revisions that
         ever used this title and are stored in RESTBase, but eventually it
         should probably return the linear history (across renames) of the page
