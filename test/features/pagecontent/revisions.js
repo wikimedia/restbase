@@ -136,7 +136,10 @@ describe('revision requests', function() {
 
     it('should return latest revision for a page', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + pageName + '/latest'
+            uri: server.config.bucketURL + '/title/' + pageName,
+            headers: {
+                'cache-control': 'no-cache'
+            }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);

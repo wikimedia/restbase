@@ -86,6 +86,7 @@ describe('404 handling', function() {
             .paths['/{module:action}']['x-modules'][0].options.apiURI;
         var title = 'TestingTitle';
         var revision = 12345;
+        var emptyResponse = {'batchcomplete':'','query':{'badrevids':{'12345' :{'revid':'12345'}}}};
 
         nock.enableNetConnect();
         var api = nock(apiURI)
@@ -121,12 +122,15 @@ describe('404 handling', function() {
         })
         // Other requests return nothing as if the page is deleted.
         .post('')
-        .reply(200, {})
+        .reply(200, emptyResponse)
         .post('')
-        .reply(200, {});
+        .reply(200, emptyResponse);
         // Fetch the page
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + title + '/latest'
+            uri: server.config.bucketURL + '/title/' + title,
+            headers: {
+                'cache-control': 'no-cache'
+            }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -135,7 +139,11 @@ describe('404 handling', function() {
         })
         // Now fetch info that it's deleted
         .then(function() {
-            return preq.get({uri: server.config.bucketURL + '/title/' + title + '/latest'});
+            return preq.get({
+                uri: server.config.bucketURL + '/title/' + title,
+                headers: {
+                    'cache-control': 'no-cache'
+                }});
         })
         .then(function() {
             throw new Error('404 should have been returned for a deleted page');
