@@ -173,6 +173,17 @@ function buildEditResponse(res) {
     return res;
 }
 
+function buildUserInfoResponse(res) {
+    if (res.status !== 200) {
+        throw apiError({info: 'Unexpected response status (' + res.status + ') from the PHP action API.'});
+    } else if (!res.body || res.body.error) {
+        throw apiError((res.body || {}).error);
+    } else if (!res.body.query || !res.body.query.userinfo) {
+        throw apiError({info: 'Missing user info from the PHP action API response.'});
+    }
+    return res.body.query.userinfo;
+}
+
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     var apiRequest = this.apiRequestTemplate.eval({
         request: req
@@ -203,6 +214,12 @@ ActionService.prototype.edit = function(restbase, req) {
     }, buildEditResponse);
 };
 
+ActionService.prototype.userInfo = function(restbase, req) {
+    return this._doRequest(restbase, req, {
+        action: 'query',
+        format: 'json'
+    }, buildUserInfoResponse);
+};
 
 module.exports = function(options) {
     var actionService = new ActionService(options);
@@ -218,12 +235,18 @@ module.exports = function(options) {
                     post: {
                         operationId: 'mwApiEdit'
                     }
+                },
+                '/userinfo': {
+                    all: {
+                        operationId: 'mwApiUserInfo'
+                    }
                 }
             }
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
-            mwApiEdit: actionService.edit.bind(actionService)
+            mwApiEdit: actionService.edit.bind(actionService),
+            mwApiUserInfo: actionService.userInfo.bind(actionService)
         }
     };
 };

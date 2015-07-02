@@ -1,0 +1,169 @@
+'use strict';
+
+// mocha defines to avoid JSHint breakage
+/* global describe, it, before, beforeEach, after, afterEach */
+
+var assert = require('../../utils/assert.js');
+var preq   = require('preq');
+var server = require('../../utils/server.js');
+var nock   = require('nock');
+
+describe('router - security', function() {
+    this.timeout(20000);
+
+    before(function () { return server.start(); });
+
+    it('should forward cookies on request to api', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiURI;
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .matchHeader('cookie', 'test=test_cookie')
+        .post('')
+        .reply(200, function() {
+            return {
+                query: {
+                    pages: {
+                        '1': {
+                            ns: 0,
+                            pageid: 1,
+                            revisions: [1],
+                            title: 'test'
+                        }
+                    }
+                }
+            };
+        });
+        return preq.get({
+            uri: server.config.bucketURL + '/title/',
+            headers: {
+                'Cookie': 'test=test_cookie'
+            }
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+        });
+    });
+
+    it('should forward cookies on request to parsoid', function() {
+        var nock   = require('nock');
+        var apiURI = server.config
+        .conf.templates['wmf-sys-1.0.0']
+        .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
+        var title = 'User%3APchelolo%2Fsections_test';
+        var revision = 669458404;
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .matchHeader('cookie', 'test=test_cookie')
+        .get('/v2/en.wikipedia.org/pagebundle/' + title + '/' + revision)
+        .reply(200, function() {
+            return {
+                'html': {
+                    'headers': {},
+                    'body': '<html></html>'
+                },
+                'data-parsoid': {
+                    'headers': {},
+                    'body': {
+                        'counter': 1,
+                        'ids': {
+                            'mwAA': {'dsr': [0, 1, 0, 0]}
+                        },
+                        'sectionOffsets': {
+                            'mwAQ': {'html': [0, 1], 'wt': [2, 3]}
+                        }
+                    }
+                }
+            };
+        });
+        return preq.get({
+            uri: server.config.bucketURL + '/html/' + title + '/' + revision,
+            headers: {
+                'Cookie': 'test=test_cookie',
+                'Cache-control': 'no-cache'
+            }
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+        });
+    });
+
+    it('should deny access to resources stored in restbase', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiURI;
+        var title = 'TestingTitle';
+        var revision = 12345;
+
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        // The first request would return a revision.
+        .post('')
+        .reply(200, {
+            'batchcomplete': '',
+            'query': {
+                'pages': {
+                    '11089416': {
+                        'pageid': 11089416,
+                        'ns': 0,
+                        'title': title,
+                        'contentmodel': 'wikitext',
+                        'pagelanguage': 'en',
+                        'touched': '2015-05-22T08:49:39Z',
+                        'lastrevid': 653508365,
+                        'length': 2941,
+                        'revisions': [{
+                            'revid': revision,
+                            'user': 'Chuck Norris',
+                            'userid': 3606755,
+                            'timestamp': '2015-03-25T20:29:50Z',
+                            'size': 2941,
+                            'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
+                            'contentmodel': 'wikitext',
+                            'comment': 'Test',
+                            'tags': []
+                        }]
+                    }
+                }
+            }
+        })
+        // The second request would return userInfo without read access
+        .post('')
+        .reply(200, {
+            'query': {
+                'userinfo': {
+                    'id': 1,
+                    'name': 'test',
+                    'rights': ['som right', 'some other right']
+                }
+            }
+        });
+        return preq.get({
+            uri: server.config.secureURL + '/title/' + title,
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function() {
+            throw new Error('Access denied should be posted')
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.status, 401);
+            assert.contentType(e, 'application/problem+json');
+            assert.deepEqual(e.body.detail.indexOf('read') >= 0, true);
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+        });
+    });
+});

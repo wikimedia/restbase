@@ -86,6 +86,89 @@ templates:
                 uri: 'http://localhost/w/api.php'
                 body: '{$.request.body}'
 
+      /{module:graphoid}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/png/{title}/{revision}/{graph_id}:
+                  get:
+                    on_request:
+                      - get_from_graphoid:
+                          request:
+                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:mobileapps}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/html/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+                /v1/sections/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+                /v1/sections-lead/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+                /v1/sections-remaining/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+                /v1/text/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+
+      /{module:page_save}:
+        x-modules:
+          - name: page_save
+            type: file
+
+#      /{module:revscore}:
+#        title: Simple revscore service wrapper
+#        x-modules:
+#          # Generic revision service interface; Expects requests of the form
+#          # /{title}/{revision}.
+#          # Specific interface documentation (content types etc) at public
+#          # entry point, although we might also want to enforce them
+#          # internally.
+#          - name: restbase-mod-service
+#            version: 1.0.0 # simple service module, to be shared
+#            options:
+#              storage:
+#                uri: /{domain}/sys/key_rev_value/revscore.scores/{title}/{revision}
+#              service: 
+#                uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
+
+  wp-default-1.0.0: &wp/default/1.0.0
+    x-subspecs:
+      - paths:
+          /{api:v1}:
+            x-subspec: *wp/content/1.0.0
+      - paths:
+          /{api:sys}:
+            x-subspec: *wp/sys/1.0.0
+
+
 spec: &spec
   title: "The RESTBase root"
   # Some more general RESTBase info
