@@ -115,15 +115,59 @@ describe('router - misc', function() {
                 'Cookie': 'test=test_cookie'
             }
         })
-        .then(function(res) {
+        .then(function() {
             api.done();
         })
         .finally(function() {
             nock.cleanAll();
-            nock.restore();
         });
     });
 
+    it('should forward cookies on request to parsoid', function() {
+        var nock   = require('nock');
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
+        var title = 'User%3APchelolo%2Fsections_test';
+        var revision = 669458404;
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .matchHeader('cookie', 'test=test_cookie')
+        .get('/v2/en.wikipedia.org/pagebundle/' + title + '/' + revision)
+        .reply(200, function() {
+            return {
+                'html': {
+                    'headers': {},
+                    'body': '<html></html>'
+                },
+                'data-parsoid': {
+                    'headers': {},
+                    'body': {
+                        'counter': 1,
+                        'ids': {
+                            'mwAA': {'dsr': [0, 1, 0, 0]}
+                        },
+                        'sectionOffsets': {
+                            'mwAQ': {'html': [0, 1], 'wt': [2, 3]}
+                        }
+                    }
+                }
+            };
+        });
+        return preq.get({
+            uri: server.config.bucketURL + '/html/' + title + '/' + revision,
+            headers: {
+                'Cookie': 'test=test_cookie',
+                'Cache-control': 'no-cache'
+            }
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+        });
+    });
     it('should correctly resolve request templates', function() {
         var requestTemplate = {
             uri: '/{domain}/test',
