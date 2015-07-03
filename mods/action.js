@@ -155,7 +155,7 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     body.action = defBody.action;
     body.format = body.format || defBody.format || 'json';
     body.formatversion = body.formatversion || defBody.formatversion || 1;
-    if (defBody.rawcontinue && !body.continue) {
+    if (defBody.rawcontinue && !body.hasOwnProperty('continue')) {
         body.rawcontinue = defBody.rawcontinue;
     }
     req.method = 'post';
