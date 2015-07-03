@@ -155,7 +155,7 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     body.action = defBody.action;
     body.format = body.format || defBody.format || 'json';
     body.formatversion = body.formatversion || defBody.formatversion || 1;
-    if (defBody.rawcontinue !== undefined) {
+    if (defBody.rawcontinue) {
         body.rawcontinue = defBody.rawcontinue;
     }
     req.method = 'post';
@@ -166,7 +166,7 @@ ActionService.prototype.query = function(restbase, req) {
     return this._doRequest(restbase, req, {
         action: 'query',
         format: 'json',
-        rawcontinue: ''
+        rawcontinue: 1
     }, buildQueryResponse);
 };
 
