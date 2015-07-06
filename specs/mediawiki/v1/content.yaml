@@ -11,7 +11,8 @@ info:
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
-
+x-default-params:
+  domain: en.wikipedia.org
 paths:
 
   /{module:page}/:
@@ -94,6 +95,19 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}
+      x-amples:
+        - title: Should get a latest revision of a page by title
+          request:
+            params:
+              title: Foobar
+            headers:
+              cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+
 
   /{module:page}/title/{title}/:
     get:
@@ -202,6 +216,18 @@ paths:
         # work in current Chrome and Firefox.
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}
+      x-amples:
+        - title: Should get a latest html of a page by title
+          request:
+            params:
+              title: Foobar
+            headers:
+              cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: text/html
 #    post:
 #      tags:
 #        - Page content
@@ -422,6 +448,18 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
+      x-amples:
+        - title: Should get a latest data-parsoid of a page by title
+          request:
+            params:
+              title: Foobar
+            headers:
+              cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
 
   /{module:page}/data-parsoid/{title}/:
     get:
@@ -578,7 +616,16 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
-
+      x-amples:
+        - title: Should get a revision
+          request:
+            params:
+              revision: 642497713
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
 #  /{module:page}/wikitext/{title}:
 #    post:
 #      tags:
@@ -740,6 +787,21 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+      x-amples:
+        - title: Should transform wikitext to html
+          request:
+            params:
+              title: Foobar
+            headers:
+              cache-control: no-cache
+            body:
+              wikitext: == Heading ==
+              bodyOnly: true
+          response:
+            status: 200
+            headers:
+              content-type: text/html
+            body: /^<h2.*> Heading <\/h2>$/
 
   /{module:transform}/html/to/html{/title}{/revision}:
     post:
