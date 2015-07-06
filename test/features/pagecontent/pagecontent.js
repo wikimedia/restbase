@@ -13,6 +13,10 @@ describe('item requests', function() {
 
     before(function () { return server.start(); });
 
+    var htmlContentType = server.config
+        .conf.templates['wmf-sys-1.0.0']
+        .paths['/{module:parsoid}']['x-modules'][0].options.htmlContentType;
+
     it('should respond to OPTIONS request with CORS headers', function() {
         return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })
         .then(function(res) {
@@ -45,7 +49,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, htmlContentType);
         });
     });
     it('should return data-parsoid just created by revision 624165266, rev 2', function() {

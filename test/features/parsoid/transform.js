@@ -31,6 +31,10 @@ describe('transform api', function() {
         });
     });
 
+    var htmlContentType = server.config
+        .conf.templates['wmf-sys-1.0.0']
+        .paths['/{module:parsoid}']['x-modules'][0].options.htmlContentType;
+
     it('html2html', function () {
         return preq.post({
             uri: server.config.baseURL
@@ -47,7 +51,7 @@ describe('transform api', function() {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, htmlContentType);
         });
     });
 
@@ -68,7 +72,7 @@ describe('transform api', function() {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, htmlContentType);
         });
     });
 
@@ -82,7 +86,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, htmlContentType);
             var pattern = /<h2.*> Heading <\/h2>/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
@@ -102,7 +106,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, htmlContentType);
             var pattern = /^<h2.*> Heading <\/h2>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
