@@ -22,9 +22,9 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     before(function () { return server.start(); });
 
-    var htmlContentType = server.config
+    var contentTypes = server.config
         .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:parsoid}']['x-modules'][0].options.htmlContentType;
+        .paths['/{module:parsoid}']['x-modules'][0].options.contentTypes;
 
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
@@ -33,8 +33,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res,
-              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -48,7 +47,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res, htmlContentType);
+            assert.contentType(res, contentTypes.html);
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -62,7 +61,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res, htmlContentType);
+            assert.contentType(res, contentTypes.html);
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
@@ -76,8 +75,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res,
-              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
@@ -97,7 +95,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res, htmlContentType);
+            assert.contentType(res, contentTypes.html);
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -118,8 +116,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res,
-              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -151,7 +148,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res, htmlContentType);
+            assert.contentType(res, contentTypes.html);
             if (!/<html/.test(res.body)) {
                 throw new Error("Expected html content!");
             }
@@ -185,7 +182,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res, htmlContentType);
+            assert.contentType(res, contentTypes.html);
             if (!/<html/.test(res.body)) {
                 throw new Error("Expected html content!");
             }

@@ -13,9 +13,9 @@ describe('item requests', function() {
 
     before(function () { return server.start(); });
 
-    var htmlContentType = server.config
+    var contentTypes = server.config
         .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:parsoid}']['x-modules'][0].options.htmlContentType;
+        .paths['/{module:parsoid}']['x-modules'][0].options.contentTypes;
 
     it('should respond to OPTIONS request with CORS headers', function() {
         return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })
@@ -49,7 +49,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, htmlContentType);
+            assert.contentType(res, contentTypes.html);
         });
     });
     it('should return data-parsoid just created by revision 624165266, rev 2', function() {
@@ -58,7 +58,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
         });
     });
 
@@ -68,7 +68,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
         });
     });
 
