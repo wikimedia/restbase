@@ -75,7 +75,6 @@ function validateTestResponse(testCase, res) {
         assert.deepEqual(res.headers.hasOwnProperty(key), true, 'Header ' + key + ' not found in response!');
         cmp(res.headers[key], val, key + ' header mismatch!');
     });
-    // check the body
     if(!expRes.body) {
         return true;
     }
@@ -97,12 +96,10 @@ function validateTestResponse(testCase, res) {
     } else {
         cmp(res.body, expRes.body, 'Body mismatch!');
     }
-
     return true;
-
 }
 
-describe('Monitoring endpoints', function() {
+describe('Monitoring tests', function() {
     this.timeout(20000);
 
     var spec;
@@ -117,14 +114,16 @@ describe('Monitoring endpoints', function() {
             assert.contentType(res, 'application/json');
             assert.notDeepEqual(res.body, undefined, 'No body received!');
             return res.body;
-        }).then(function(spec) {
-            describe('monitoring routes', function() {
+        })
+        .then(function(spec) {
+            describe('Monitoring endpoints', function() {
                 constructTests(spec.paths, spec['x-default-params'] || {}).forEach(function(testCase) {
                     it(testCase.title, function() {
                         return preq(testCase.request)
                         .then(function(res) {
                             validateTestResponse(testCase, res);
-                        }, function(err) {
+                        })
+                        .catch(function(err) {
                             validateTestResponse(testCase, err);
                         });
                     });
