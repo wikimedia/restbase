@@ -75,26 +75,39 @@ function validateTestResponse(testCase, res) {
         assert.deepEqual(res.headers.hasOwnProperty(key), true, 'Header ' + key + ' not found in response!');
         cmp(res.headers[key], val, key + ' header mismatch!');
     });
-    if(!expRes.body) {
+    validateBody(res.body || '', expRes.body);
+}
+
+function validateBody(resBody, expBody) {
+    if(!expBody) {
         return true;
     }
-    res.body = res.body || '';
-    if(Buffer.isBuffer(res.body)) { res.body = res.body.toString(); }
-    if(expRes.body.constructor !== res.body.constructor) {
-        if(expRes.body.constructor === String) {
-            res.body = JSON.stringify(res.body);
+    if(Buffer.isBuffer(resBody)) { resBody = resBody.toString(); }
+    if(expBody.constructor !== resBody.constructor) {
+        if(expBody.constructor === String) {
+            resBody = JSON.stringify(resBody);
         } else {
-            res.body = JSON.parse(res.body);
+            resBody = JSON.parse(resBody);
         }
     }
-    if(expRes.body.constructor === Object) {
-        Object.keys(expRes.body).forEach(function(key) {
-            var val = expRes.body[key];
-            assert.deepEqual(res.body.hasOwnProperty(key), true, 'Body field ' + key + ' not found in response!');
-            cmp(res.body[key], val, key + ' body field mismatch!');
+    if(expBody.constructor === Object) {
+        Object.keys(expBody).forEach(function(key) {
+            var val = expBody[key];
+            assert.deepEqual(resBody.hasOwnProperty(key), true, 'Body field ' + key + ' not found in response!');
+            if (val.constructor === Object) {
+                validateBody(resBody[key], val)
+            } else if (val.constructor === Array) {
+                assert.deepEqual(val.length === resBody[key].length, true,
+                    'Different size of array: expected ' + val.length + ' actual ' + resBody[key].length);
+                val.forEach(function(item, index) {
+                    validateBody(resBody[key][index], item);
+                })
+            } else {
+                cmp(resBody[key], val, key + ' body field mismatch!');
+            }
         });
     } else {
-        cmp(res.body, expRes.body, 'Body mismatch!');
+        cmp(resBody, expBody.body, 'Body mismatch!');
     }
     return true;
 }
@@ -116,14 +129,13 @@ describe('Monitoring tests', function() {
             return res.body;
         })
         .then(function(spec) {
-            describe('Monitoring endpoints', function() {
+            describe('Monitoring routes', function() {
                 constructTests(spec.paths, spec['x-default-params'] || {}).forEach(function(testCase) {
                     it(testCase.title, function() {
                         return preq(testCase.request)
                         .then(function(res) {
                             validateTestResponse(testCase, res);
-                        })
-                        .catch(function(err) {
+                        }, function(err) {
                             validateTestResponse(testCase, err);
                         });
                     });
