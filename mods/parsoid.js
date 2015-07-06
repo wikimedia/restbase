@@ -324,7 +324,6 @@ PSP.getFormat = function (format, restbase, req) {
     if ('html' === format) {
         contentReq = contentReq.then(function(res) {
             if (self.htmlContentType !== res.headers['content-type']) {
-                console.log(format, self.htmlContentType, res.headers['content-type']);
                 throw new rbUtil.HTTPError({
                     status: 404,
                     body: {
