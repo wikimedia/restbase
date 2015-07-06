@@ -96,31 +96,23 @@ updates later without a full rebuild won't be trivial with sharing. A good
 compromise could be to always rebuild an entire domain on any change. (So back
 do passing trees, except that they are not the root tree?)
 
-For ACLs it *might* be useful to leverage the DAG structure by checking ACLs all
-the way down the path. This would allow us to restrict access at the domain
-level, for the entire domain, while still sharing sub-trees. To avoid tight
-coupling of the router to the actual ACL implementation we can have
-`lookup(path)` (optionally) return an array of all value objects encountered
-in a successful lookup in addition to the actual lookup result / leaf
-valueObject. We can then check each of those valueObjects for the presence of
-an acl object (or whatever other info we stash in there), and run the
-associated authorization or [insert here] logic. In the spec, an ACL for a
-sub-path could look like this:
+For ACLs the DAG structure is leveraged by checking ACLs all the way down the path.
+This would allows us to restrict access at the domain level, for the entire domain,
+while still sharing sub-trees. To avoid tight coupling of the router to the actual
+ACL implementation we can have `lookup(path)` (optionally) return an array of all
+value objects encountered in a successful lookup in addition to the actual lookup
+result / leaf valueObject. Currently router returns a list of required permissions
+collected along the path. In the spec, an ACL for a sub-path looks like this:
 
 ```yaml
 paths:
   /{domain:en.wikipedia.org}:
-    x-restbase:
-      security: # basically as in https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#securityRequirementObject
-        mediaWikiSecurity:
-          # ACLs that apply to all *children* accessed through this point in
-          # the tree
-          - readContent
-      specs:
-        - mediawiki/v1/content
-    get:
-      # optional: spec for a GET to /en.wikipedia.org itself
-      # can have its own security settings
+    x-subspecs:
+        - paths:
+            /{api:v1}:
+              x-subspec: *wp/content/1.0.0
+              security: # list of required permissions
+                - read
 ```
 
 The effective required capabilities (aka roles|scopes|..) for a given route
