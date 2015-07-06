@@ -19,6 +19,8 @@ function ParsoidService(options) {
     options = options || {};
     this.parsoidHost = options.parsoidHost
         || 'http://parsoid-lb.eqiad.wikimedia.org';
+    this.htmlContentType = options.htmlContentType
+        || 'text/html;profile=mediawiki.org/specs/html/1.1.0;charset=utf-8';
     // Set up operations
     var self = this;
     this.operations = {
@@ -318,6 +320,22 @@ PSP.getFormat = function (format, restbase, req) {
     var contentReq = restbase.get({
         uri: self.getBucketURI(rp, format, rp.tid)
     });
+
+    if ('html' === format) {
+        contentReq = contentReq.then(function(res) {
+            if (self.htmlContentType !== res.headers['content-type']) {
+                console.log(format, self.htmlContentType, res.headers['content-type']);
+                throw new rbUtil.HTTPError({
+                    status: 404,
+                    body: {
+                        type: 'not_found',
+                        description: 'Invalid html content-type found'
+                    }
+                });
+            }
+            return res;
+        });
+    }
 
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])
             && rp.revision)

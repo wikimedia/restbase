@@ -96,6 +96,7 @@ templates:
             type: file
             options:
               parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+              htmlContentType: text/html;profile=mediawiki.org/specs/html/1.0.0;charset=utf-8
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
