@@ -38,6 +38,68 @@ var faultySpec = {
     }
 };
 
+var additionalMethodSpec = {
+    paths: {
+        '/{domain:en.wikipedia.org}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/page/{title}/html': {
+                            get: {
+                                'x-backend-request': {
+                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    paths: {
+                        '/page/{title}/html': {
+                            post: {
+                                'x-backend-request': {
+                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+};
+
+var overlappingMethodSpec = {
+    paths: {
+        '/{domain:en.wikipedia.org}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/page/{title}/html': {
+                            get: {
+                                'x-backend-request': {
+                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    paths: {
+                        '/page/{title}/html': {
+                            get: {
+                                'x-backend-request': {
+                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+};
+
 var fullSpec = yaml.safeLoad(fs.readFileSync('config.example.yaml'));
 
 describe('tree building', function() {
@@ -80,6 +142,26 @@ describe('tree building', function() {
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.org');
             assert.equal(handler.params.title, 'Foo');
+        });
+    });
+
+    it('should allow adding methods to existing paths', function() {
+        return router.loadSpec(additionalMethodSpec)
+        .then(function() {
+            var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
+            assert.equal(!!handler.value.methods.get, true);
+            assert.equal(!!handler.value.methods.post, true);
+        });
+    });
+
+    it('should on overlapping methods on the same path', function() {
+        return router.loadSpec(additionalMethodSpec)
+        .then(function() {
+            throw new Error("Should throw an exception!");
+        },
+        function(e) {
+            // exception thrown as expected
+            return;
         });
     });
 });
