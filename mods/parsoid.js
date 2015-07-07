@@ -325,7 +325,7 @@ PSP.getFormat = function (format, restbase, req) {
                 status: 404,
                 body: {
                     type: 'not_found',
-                    description: 'Invalid html content-type found'
+                    description: 'Invalid ' + format + ' content-type found'
                 }
             });
         }
