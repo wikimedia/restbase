@@ -31,9 +31,7 @@ describe('transform api', function() {
         });
     });
 
-    var contentTypes = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:parsoid}']['x-modules'][0].options.contentTypes;
+    var contentTypes = server.config.conf.services[0].conf.contentTypes;
 
     it('html2html', function () {
         return preq.post({

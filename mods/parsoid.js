@@ -19,7 +19,6 @@ function ParsoidService(options) {
     options = options || {};
     this.parsoidHost = options.parsoidHost
         || 'http://parsoid-lb.eqiad.wikimedia.org';
-    this.contentTypes = options.contentTypes;
     // Set up operations
     var self = this;
     this.operations = {

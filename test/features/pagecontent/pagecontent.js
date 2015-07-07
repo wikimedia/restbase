@@ -13,9 +13,7 @@ describe('item requests', function() {
 
     before(function () { return server.start(); });
 
-    var contentTypes = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:parsoid}']['x-modules'][0].options.contentTypes;
+    var contentTypes = server.config.conf.services[0].conf.contentTypes;
 
     it('should respond to OPTIONS request with CORS headers', function() {
         return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })

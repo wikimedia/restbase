@@ -22,9 +22,7 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     before(function () { return server.start(); });
 
-    var contentTypes = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:parsoid}']['x-modules'][0].options.contentTypes;
+    var contentTypes = server.config.conf.services[0].conf.contentTypes;
 
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
