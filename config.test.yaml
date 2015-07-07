@@ -157,7 +157,6 @@ spec: &spec
   title: "The RESTBase root"
   # Some more general RESTBase info
   paths:
-    /{domain:en.wikipedia.org}: *wp/default/1.0.0
     # test domain
     /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 
