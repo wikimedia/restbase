@@ -51,6 +51,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
 
+      x-monitor: true
       x-amples:
         - title: Get a graph from Graphoid
           request:

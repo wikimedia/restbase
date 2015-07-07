@@ -55,9 +55,6 @@ SimpleService.prototype.processSpec = function(spec) {
                 }
 
                 function backendRequest() {
-                    if (req.params.domain === 'en.wikipedia.test.local') {
-                        req.params.domain = 'en.wikipedia.org';
-                    }
                     var beReq = {
                         uri: backendUriTemplate.toString({
                             params: req.params

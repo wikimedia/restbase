@@ -110,7 +110,7 @@ templates:
                 /v1/png/{title}/{revision}/{graph_id}:
                   get:
                     backend_request:
-                      uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+                      uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
 
       /{module:action}:
         x-modules:
@@ -157,6 +157,7 @@ spec: &spec
   title: "The RESTBase root"
   # Some more general RESTBase info
   paths:
+    /{domain:en.wikipedia.org}: *wp/default/1.0.0
     # test domain
     /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 

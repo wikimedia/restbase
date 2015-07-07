@@ -7,6 +7,7 @@ paths:
     get:
       x-backend-request:
         uri: /{domain}/sys/testservice/test/{title}{/revision}
+      x-monitor: false
 
   /{module:page}/wikitext/{title}:
     post:
@@ -71,4 +72,5 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_save/wikitext/{title}
+      x-monitor: false
 

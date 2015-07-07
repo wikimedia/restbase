@@ -24,15 +24,32 @@ function constructTestCase(title, path, method, request, response) {
     };
 }
 
-function constructTests(paths, defParams) {
+function constructTests(spec, defParams) {
+    var paths = spec.paths;
+    if (spec['x-default-params']) {
+        Object.keys(spec['x-default-params']).forEach(function(paramName) {
+           if (!defParams[paramName]) {
+               defParams[paramName] = spec['x-default-params'][paramName];
+           }
+        });
+    }
     var ret = [];
     Object.keys(paths).forEach(function(pathStr) {
+        if (!pathStr) return;
         Object.keys(paths[pathStr]).filter(function(method) {
-            return !!paths[pathStr][method]['x-amples'];
+            if (paths[pathStr][method]['x-monitor'] === undefined) {
+                throw new Error('x-monitor not specified for endpoint.'
+                    + ' Path: ' + pathStr + ' Method: ' + method)
+            }
+            return paths[pathStr][method]['x-monitor'];
         })
         .forEach(function(method) {
             var p = paths[pathStr][method];
             var uri = new URI(pathStr, {}, true);
+            if (!p['x-amples']) {
+                throw new Error('Method without examples should decalre x-monitor: false.'
+                    + ' Path: ' + pathStr + ' Method: ' + method);
+            }
             p['x-amples'].forEach(function(ex) {
                 ex.request = ex.request || {};
                 ret.push(constructTestCase(
@@ -40,8 +57,7 @@ function constructTests(paths, defParams) {
                     uri.toString({params: Object.assign({}, defParams, ex.request.params || {})}),
                     method,
                     ex.request,
-                    ex.response || {},
-                    defParams
+                    ex.response || {}
                 ));
             });
         });
@@ -130,7 +146,7 @@ describe('Monitoring tests', function() {
         })
         .then(function(spec) {
             describe('Monitoring routes', function() {
-                constructTests(spec.paths, spec['x-default-params'] || {}).forEach(function(testCase) {
+                constructTests(spec, spec['x-default-params'] || {}).forEach(function(testCase) {
                     it(testCase.title, function() {
                         return preq(testCase.request)
                         .then(function(res) {
