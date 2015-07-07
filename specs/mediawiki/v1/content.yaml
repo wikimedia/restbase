@@ -253,7 +253,7 @@ paths:
             status: 200
             headers:
               etag: /.+/
-              content-type: /^text/html;\s?profile=mediawiki.org/specs/html/\d\.\d\.\d.*/
+              content-type: /^text\/html.+/
             body: /^<!DOCTYPE html>.*/
         - title: Get html by title from storage
           request:
@@ -263,7 +263,7 @@ paths:
             status: 200
             headers:
               etag: /.+/
-              content-type: /^text/html;\s?profile=mediawiki.org/specs/html/\d\.\d\.\d.*/
+              content-type: /^text\/html.+/
             body: /^<!DOCTYPE html>.*/
 #    post:
 #      tags:
@@ -852,7 +852,7 @@ paths:
           response:
             status: 200
             headers:
-              content-type: /^text/html;\s?profile=mediawiki.org/specs/html/\d\.\d\.\d.*/
+              content-type: /^text\/html.+/
             body: /^<h2.*> Heading <\/h2>$/
 
   /{module:transform}/html/to/html{/title}{/revision}:
