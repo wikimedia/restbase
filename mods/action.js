@@ -140,21 +140,28 @@ function buildQueryResponse(res) {
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
-    } else if (!res.body.query || !res.body.query.pages) {
-        throw apiError({ info: 'Missing query pages from the PHP action API response.' });
+    } else if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
+        throw apiError({info: 'Missing query pages from the PHP action API response.'});
     }
-    // Rewrite res.body
-    // XXX: Rethink!
-    var pages = res.body.query.pages;
-    var newBody = Object.keys(pages).map(function(key) {
-        return pages[key];
-    });
-    // XXX: Clean this up!
-    res.body = {
-        items: newBody,
-        next: res.body.continue
-    };
-    return res;
+
+    if (res.body.query.pages) {
+        // Rewrite res.body
+        // XXX: Rethink!
+        var pages = res.body.query.pages;
+        var newBody = Object.keys(pages).map(function(key) {
+            return pages[key];
+        });
+        // XXX: Clean this up!
+        res.body = {
+            items: newBody,
+            next: res.body["continue"]
+        };
+        return res;
+    } else if (res.body.query.userinfo) {
+        return res.body.query.userinfo;
+    } else {
+        throw apiError({info: 'Unable to parse PHP action API response.'});
+    }
 }
 
 function buildEditResponse(res) {
@@ -171,17 +178,6 @@ function buildEditResponse(res) {
         res.status = 201;
     }
     return res;
-}
-
-function buildUserInfoResponse(res) {
-    if (res.status !== 200) {
-        throw apiError({info: 'Unexpected response status (' + res.status + ') from the PHP action API.'});
-    } else if (!res.body || res.body.error) {
-        throw apiError((res.body || {}).error);
-    } else if (!res.body.query || !res.body.query.userinfo) {
-        throw apiError({info: 'Missing user info from the PHP action API response.'});
-    }
-    return res.body.query.userinfo;
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
@@ -221,7 +217,7 @@ ActionService.prototype.userInfo = function(restbase, req) {
     }, buildUserInfoResponse);
 };
 
-module.exports = function(options) {
+module.exports = function (options) {
     var actionService = new ActionService(options);
     return {
         spec: {
@@ -235,18 +231,12 @@ module.exports = function(options) {
                     post: {
                         operationId: 'mwApiEdit'
                     }
-                },
-                '/userinfo': {
-                    all: {
-                        operationId: 'mwApiUserInfo'
-                    }
                 }
             }
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
-            mwApiEdit: actionService.edit.bind(actionService),
-            mwApiUserInfo: actionService.userInfo.bind(actionService)
+            mwApiEdit: actionService.edit.bind(actionService)
         }
     };
 };

@@ -40,7 +40,7 @@
     "preq": "^0.4.3",
     "restbase-mod-table-cassandra": "^0.7.11",
     "service-runner": "^0.2.0",
-    "swagger-router": "^0.1.0",
+    "swagger-router": "^0.1.1",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "tassembly": "^0.1.4"
   },
