@@ -13,7 +13,7 @@ describe('item requests', function() {
 
     before(function () { return server.start(); });
 
-    var contentTypes = server.config.conf.services[0].conf.contentTypes;
+    var contentTypes = server.config.conf.test.content_types;
 
     it('should respond to OPTIONS request with CORS headers', function() {
         return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })

@@ -157,10 +157,12 @@ services:
       spec: *spec
       salt: secret
       default_page_size: 1
-      contentTypes:
-        html: text/html;profile=mediawiki.org/specs/html/1.1.0;charset=utf-8
-        data-parsoid: application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1;charset=utf-8
-        wikitext: text/plain;profile=mediawiki.org/specs/wikitext/1.0.0;charset=utf-8
+
+test:
+  content_types:
+    html: text/html;profile=mediawiki.org/specs/html/1.1.0;charset=utf-8
+    data-parsoid: application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1;charset=utf-8
+    wikitext: text/plain;profile=mediawiki.org/specs/wikitext/1.0.0;charset=utf-8
 
 logging:
   name: restbase

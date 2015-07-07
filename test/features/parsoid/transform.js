@@ -31,7 +31,7 @@ describe('transform api', function() {
         });
     });
 
-    var contentTypes = server.config.conf.services[0].conf.contentTypes;
+    var contentTypes = server.config.conf.test.content_types;
 
     it('html2html', function () {
         return preq.post({

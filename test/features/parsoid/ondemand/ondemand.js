@@ -22,7 +22,7 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     before(function () { return server.start(); });
 
-    var contentTypes = server.config.conf.services[0].conf.contentTypes;
+    var contentTypes = server.config.conf.test.content_types;
 
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
