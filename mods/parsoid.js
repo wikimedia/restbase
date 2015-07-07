@@ -318,18 +318,6 @@ PSP.getFormat = function (format, restbase, req) {
 
     var contentReq = restbase.get({
         uri: self.getBucketURI(rp, format, rp.tid)
-    })
-    .then(function(res) {
-        if (self.contentTypes[format] !== res.headers['content-type']) {
-            throw new rbUtil.HTTPError({
-                status: 404,
-                body: {
-                    type: 'not_found',
-                    description: 'Invalid ' + format + ' content-type found'
-                }
-            });
-        }
-        return res;
     });
 
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])
