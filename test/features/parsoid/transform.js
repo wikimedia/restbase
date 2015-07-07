@@ -31,6 +31,8 @@ describe('transform api', function() {
         });
     });
 
+    var contentTypes = server.config.conf.test.content_types;
+
     it('html2html', function () {
         return preq.post({
             uri: server.config.baseURL
@@ -47,7 +49,7 @@ describe('transform api', function() {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
         });
     });
 
@@ -68,7 +70,7 @@ describe('transform api', function() {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
         });
     });
 
@@ -82,7 +84,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             var pattern = /<h2.*> Heading <\/h2>/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
@@ -102,7 +104,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             var pattern = /^<h2.*> Heading <\/h2>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
@@ -123,7 +125,7 @@ describe('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, 'The modified HTML');
-            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.contentType(res, contentTypes.wikitext);
         });
     });
 
@@ -139,7 +141,7 @@ describe('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, testPage.wikitext);
-            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.contentType(res, contentTypes.wikitext);
         });
     });
 
@@ -158,7 +160,7 @@ describe('transform api', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(/== First Section ==/.test(res.body), false);
             assert.deepEqual(/== Second Section ==/.test(res.body), false);
             assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
@@ -180,7 +182,7 @@ describe('transform api', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(/== First Section ==/.test(res.body), false);
             assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
             assert.deepEqual(/== Appended Section ==/.test(res.body), true);
@@ -207,7 +209,7 @@ describe('transform api', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0');
+            assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(/== First Section ==/.test(res.body), false);
             assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
             assert.deepEqual(/== Appended Section ==/.test(res.body), true);

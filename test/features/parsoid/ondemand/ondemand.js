@@ -22,6 +22,8 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     before(function () { return server.start(); });
 
+    var contentTypes = server.config.conf.test.content_types;
+
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
@@ -29,8 +31,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res,
-              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -44,8 +45,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res,
-              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -59,8 +59,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res,
-              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
@@ -74,8 +73,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function (res) {
             slice.halt();
-            assert.contentType(res,
-              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
@@ -95,8 +93,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res,
-              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -117,8 +114,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res,
-              'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1');
+            assert.contentType(res, contentTypes['data-parsoid']);
             assert.deepEqual(typeof res.body, 'object');
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -150,8 +146,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res,
-              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             if (!/<html/.test(res.body)) {
                 throw new Error("Expected html content!");
             }
@@ -185,8 +180,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             // Stop watching for new log entries
             slice.halt();
-            assert.contentType(res,
-              'text/html;profile=mediawiki.org/specs/html/1.0.0');
+            assert.contentType(res, contentTypes.html);
             if (!/<html/.test(res.body)) {
                 throw new Error("Expected html content!");
             }
