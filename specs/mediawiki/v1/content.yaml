@@ -96,12 +96,27 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}
       x-amples:
-        - title: Should get a latest revision of a page by title
+        - title: Get rev of by title from MW
           request:
             params:
               title: Foobar
             headers:
               cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              items:
+                - title: 'Foobar'
+                  rev: /\d+/
+                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+                  comment: /.*/
+        - title: Get rev by title from storage
+          request:
+            params:
+              title: Foobar
           response:
             status: 200
             headers:
@@ -222,7 +237,17 @@ paths:
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}
       x-amples:
-        - title: Should get a latest html of a page by title
+        - title: Get html by title from Parsoid
+          request:
+            params:
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^text/html;\s?profile=mediawiki.org/specs/html/\d\.\d\.\d.*/
+            body: /^<!DOCTYPE html>.*/
+        - title: Get html by title from storage
           request:
             params:
               title: Foobar
@@ -232,7 +257,7 @@ paths:
             status: 200
             headers:
               etag: /.+/
-              content-type: text/html
+              content-type: /^text/html;\s?profile=mediawiki.org/specs/html/\d\.\d\.\d.*/
             body: /^<!DOCTYPE html>.*/
 #    post:
 #      tags:
@@ -455,12 +480,10 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
       x-amples:
-        - title: Should get a latest data-parsoid of a page by title
+        - title: Get data-parsoid by title
           request:
             params:
               title: Foobar
-            headers:
-              cache-control: no-cache
           response:
             status: 200
             headers:
@@ -627,7 +650,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
       x-amples:
-        - title: Should get a revision
+        - title: Get rev by ID
           request:
             params:
               revision: 642497713
@@ -804,7 +827,7 @@ paths:
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
       x-amples:
-        - title: Should transform wikitext to html
+        - title: Transform wikitext to html
           request:
             params:
               title: Foobar
@@ -816,7 +839,7 @@ paths:
           response:
             status: 200
             headers:
-              content-type: text/html
+              content-type: /^text/html;\s?profile=mediawiki.org/specs/html/\d\.\d\.\d.*/
             body: /^<h2.*> Heading <\/h2>$/
 
   /{module:transform}/html/to/html{/title}{/revision}:

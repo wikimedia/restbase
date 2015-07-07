@@ -52,7 +52,7 @@ paths:
         uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
 
       x-amples:
-        - title: Should get a graph from graphoid
+        - title: Get a graph from Graphoid
           request:
             params:
               title: User:Pchelolo/Graph
