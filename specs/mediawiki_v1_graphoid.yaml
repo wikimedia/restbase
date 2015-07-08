@@ -50,3 +50,16 @@ paths:
 
       x-backend-request:
         uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
+
+      x-monitor: true
+      x-amples:
+        - title: Get a graph from Graphoid
+          request:
+            params:
+              title: User:Pchelolo/Graph
+              revision: 670213569
+              graph_id: 1533aaad45c733dcc7e07614b54cbae4119a6747.png
+          response:
+            status: 200
+            headers:
+              content-type: image/png

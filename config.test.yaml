@@ -41,6 +41,7 @@ templates:
         - user:read
     x-subspecs:
       - mediawiki/v1/content
+      - mediawiki_v1_graphoid
       - test
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
@@ -99,6 +100,17 @@ templates:
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
+      /{module:graphoid}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/png/{title}/{revision}/{graph_id}:
+                  get:
+                    backend_request:
+                      uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
 
       /{module:action}:
         x-modules:

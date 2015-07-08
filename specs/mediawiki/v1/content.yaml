@@ -11,7 +11,8 @@ info:
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
-
+x-default-params:
+  domain: en.wikipedia.org
 paths:
 
   /{module:page}/:
@@ -33,6 +34,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-monitor: false
 
   /{module:page}/title/:
     get:
@@ -61,6 +63,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
+      x-monitor: false
 
   /{module:page}/title/{title}:
     get:
@@ -94,6 +97,40 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}
+      x-monitor: true
+      x-amples:
+        - title: Get rev of by title from MW
+          request:
+            params:
+              title: Foobar
+            headers:
+              cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              items:
+                - title: 'Foobar'
+                  rev: /\d+/
+                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+                  comment: /.*/
+        - title: Get rev by title from storage
+          request:
+            params:
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              items:
+                - title: 'Foobar'
+                  rev: /\d+/
+                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+                  comment: /.*/
 
   /{module:page}/title/{title}/:
     get:
@@ -130,6 +167,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}/
+      x-monitor: false
 
   /{module:page}/html/:
     get:
@@ -159,6 +197,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
+      x-monitor: false
 
   /{module:page}/html/{title}:
     get:
@@ -202,6 +241,30 @@ paths:
         # work in current Chrome and Firefox.
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}
+      x-monitor: true
+      x-amples:
+        - title: Get html by title from Parsoid
+          request:
+            params:
+              title: Foobar
+            headers:
+              cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^text\/html.+/
+            body: /^<!DOCTYPE html>.*/
+        - title: Get html by title from storage
+          request:
+            params:
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^text\/html.+/
+            body: /^<!DOCTYPE html>.*/
 #    post:
 #      tags:
 #        - Page content
@@ -299,7 +362,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/
-
+      x-monitor: false
 
   /{module:page}/html/{title}/{revision}{/tid}:
     get:
@@ -359,6 +422,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
+      x-monitor: false
 
   /{module:page}/data-parsoid/:
     get:
@@ -390,6 +454,7 @@ paths:
         # Fixme: only list pages that have at least one revision with content
         # model 'wikitext'
         uri: /{domain}/sys/page_revisions/page/
+      x-monitor: false
 
   /{module:page}/data-parsoid/{title}:
     get:
@@ -422,6 +487,21 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
+      x-monitor: true
+      x-amples:
+        - title: Get data-parsoid by title
+          request:
+            params:
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              counter: /\d+/
+              ids: /.*/
+              sectionOffsets: /.*/
 
   /{module:page}/data-parsoid/{title}/:
     get:
@@ -460,6 +540,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/
+      x-monitor: false
 
   /{module:page}/data-parsoid/{title}/{revision}{/tid}:
     get:
@@ -510,6 +591,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
+      x-monitor: false
 
   /{module:page}/revision/:
     get:
@@ -538,6 +620,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/
+      x-monitor: false
 
   /{module:page}/revision/{revision}:
     get:
@@ -578,7 +661,23 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
-
+      x-monitor: true
+      x-amples:
+        - title: Get rev by ID
+          request:
+            params:
+              revision: 642497713
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              items:
+                - title: 'Foobar'
+                  rev: /\d+/
+                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+                  comment: /.*/
 #  /{module:page}/wikitext/{title}:
 #    post:
 #      tags:
@@ -689,6 +788,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+      x-monitor: false
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
     post:
@@ -740,6 +840,20 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+      x-monitor: true
+      x-amples:
+        - title: Transform wikitext to html
+          request:
+            params:
+              title: Foobar
+            body:
+              wikitext: == Heading ==
+              bodyOnly: true
+          response:
+            status: 200
+            headers:
+              content-type: /^text\/html.+/
+            body: /^<h2.*> Heading <\/h2>$/
 
   /{module:transform}/html/to/html{/title}{/revision}:
     post:
@@ -791,6 +905,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+      x-monitor: false
 
   /{module:transform}/sections/to/wikitext/{title}/{revision}:
     post:
@@ -841,6 +956,7 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+      x-monitor: false
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
