@@ -226,7 +226,7 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
                 key: req.params.key
             },
             proj: ['rev', 'tid'],
-            limit: 1000
+            limit: (req.body && req.body.limit) ? req.body.limit : restbase.rb_config.default_page_size
         }
     };
     if (rp.revision) {
@@ -234,7 +234,7 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
     }
     return restbase.get(storeRequest)
     .then(function(res) {
-        return {
+        var result = {
             status: 200,
             headers: {
                 'content-type': 'application/json'
@@ -245,6 +245,10 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
                 })
             }
         };
+        if (res.body.next) {
+            result.next = res.body.next;
+        }
+        return result;
     });
 };
 
