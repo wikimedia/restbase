@@ -234,7 +234,7 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
     }
     return restbase.get(storeRequest)
     .then(function(res) {
-        var result = {
+        return {
             status: 200,
             headers: {
                 'content-type': 'application/json'
@@ -242,13 +242,10 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
             body: {
                 items: res.body.items.map(function(row) {
                     return { revision: row.rev, tid: row.tid };
-                })
+                }),
+                next: res.body.next
             }
         };
-        if (res.body.next) {
-            result.next = res.body.next;
-        }
-        return result;
     });
 };
 
