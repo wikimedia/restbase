@@ -136,13 +136,12 @@ PRS.prototype.listTitles = function(restbase, req, options) {
             generator: 'allpages',
             gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
-            format: 'json',
-            gapcontinue: ''
+            format: 'json'
         }
     };
 
     if (req.query.page) {
-        listReq.body.gapcontinue = restbase.decodeToken(req.query.page);
+        Object.assign(listReq.body, restbase.decodeToken(req.query.page));
     }
 
     return restbase.get(listReq)
@@ -158,7 +157,7 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         var next = {};
         if (res.body.next) {
             next = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
+                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
             };
         }
 
@@ -425,12 +424,11 @@ PRS.prototype.listRevisions = function(restbase, req) {
             generator: 'allpages',
             gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
-            format: 'json',
-            gapcontinue: ''
+            format: 'json'
         }
     };
     if (req.query.page) {
-        listReq.body.gapcontinue = restbase.decodeToken(req.query.page);
+        Object.assign(listReq.body, restbase.decodeToken(req.query.page));
     }
     return restbase.get(listReq)
     .then(function(res) {
@@ -443,7 +441,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
         var next={};
         if (res.body.next) {
             next = { 
-                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) } 
+                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
             };
         }
 

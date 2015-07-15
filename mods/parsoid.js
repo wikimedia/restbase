@@ -372,7 +372,7 @@ PSP.listRevisions = function (format, restbase, req) {
     .then(function(res) {
         if (res.body.next) {
             res.body._links = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next.allpages.gapcontinue) }
+                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
             };
         }
         return res;

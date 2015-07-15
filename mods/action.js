@@ -130,7 +130,7 @@ function buildQueryResponse(res) {
     // XXX: Clean this up!
     res.body = {
         items: newBody,
-        next: res.body["query-continue"]
+        next: res.body["continue"]
     };
     return res;
 }
@@ -155,8 +155,8 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     body.action = defBody.action;
     body.format = body.format || defBody.format || 'json';
     body.formatversion = body.formatversion || defBody.formatversion || 1;
-    if (defBody.rawcontinue && !body.hasOwnProperty('continue')) {
-        body.rawcontinue = defBody.rawcontinue;
+    if (!body.hasOwnProperty('continue')) {
+        body.continue = '';
     }
     req.method = 'post';
     return restbase[req.method](req).then(cont);
@@ -165,8 +165,7 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
 ActionService.prototype.query = function(restbase, req) {
     return this._doRequest(restbase, req, {
         action: 'query',
-        format: 'json',
-        rawcontinue: 1
+        format: 'json'
     }, buildQueryResponse);
 };
 
