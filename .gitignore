@@ -5,3 +5,6 @@ node_modules
 npm-debug.log
 # WebStorm IDE files
 .idea/*
+*.iml
+
+*swp
