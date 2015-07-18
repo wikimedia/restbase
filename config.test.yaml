@@ -39,6 +39,7 @@ templates:
       - mediawiki/v1/content
       - mediawiki/v1/graphoid
       - mediawiki/v1/mobileapps
+      - analytics_v1_pageviews
       - test
     securityDefinitions:
       mediawiki_auth:
@@ -175,6 +176,12 @@ templates:
         x-modules:
           - name: page_save
             type: file
+
+      /{module:pageviews}:
+        x-modules:
+            - name: pageviews
+              version: 1.0.0
+              type: file
 
   wp-default-1.0.0: &wp/default/1.0.0
     x-subspecs:

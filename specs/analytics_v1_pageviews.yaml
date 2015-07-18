@@ -1,0 +1,297 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: Analytics Pageviews API
+  description: Analytics Pageviews API.
+  termsofservice: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: Analytics
+    email: analytics@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/Analytics
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+x-default-params:
+  domain: analytics.wikimedia.org
+paths:
+  /{module:pageviews}/:
+    get:
+      tags:
+        - Pageviews data
+      description: >
+        List pageviews data sub-apis.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The queriable sub-items
+          schema:
+            $ref: '#/definitions/listing'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+
+  /{module:pageviews}/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}:
+    get:
+      tags:
+        - Pageviews data
+        - per-article
+      description: >
+        List pageviews for a given article in a project, over a given time period.
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: Name of the project
+          type: string
+          required: true
+        - name: access
+          in: path
+          description: Type of access method [all-access|desktop|mobile-app|mobile-web]
+          type: string
+          required: true
+        - name: agent
+          in: path
+          description: Type of user agent [all-agents|user|spider]
+          type: string
+          required: true
+        - name: article
+          in: path
+          description: Name of the article for which to get data
+          type: string
+          required: true
+        - name: granularity
+          in: path
+          description: Time granularity of the response data [hourly|daily]
+          type: string
+          required: true
+        - name: start
+          in: path
+          description: Start timestamp in YYYYMMDDHH format
+          type: string
+          required: true
+        - name: end
+          in: path
+          description: End timestamp in YYYYMMDDHH format
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of values
+          schema:
+            $ref: '#/definitions/article'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+          request:
+            uri: /{domain}/sys/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}
+      x-monitor: false
+
+  /{module:pageviews}/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}:
+    get:
+      tags:
+        - Pageviews data
+        - per-project
+      description: >
+        List pageviews for a given project, over a given time period.
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: Name of the project [all-projects|project-name]
+          type: string
+          required: true
+        - name: access
+          in: path
+          description: Type of access method [all-access|desktop|mobile-app|mobile-web]
+          type: string
+          required: true
+        - name: agent
+          in: path
+          description: Type of user agent [all-agents|user|spider]
+          type: string
+          required: true
+        - name: granularity
+          in: path
+          description: Time granularity of the response data [hourly|daily]
+          type: string
+          required: true
+        - name: start
+          in: path
+          description: Start timestamp in YYYYMMDDHH format
+          type: string
+          required: true
+        - name: end
+          in: path
+          description: End timestamp in YYYYMMDDHH format
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of values
+          schema:
+            $ref: '#/definitions/project'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+          request:
+            uri: /{domain}/sys/pageviews/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}
+      x-monitor: false
+
+  /{module:pageviews}/top/{project}/{access}/{year}/{month}/{day}:
+    get:
+      tags:
+        - Pageviews data
+        - Top articles
+      description: >
+        List pageviews for a given project, over a given time period.
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: Name of the project [all-projects|project-name]
+          type: string
+          required: true
+        - name: access
+          in: path
+          description: Type of access method [all-access|desktop|mobile-app|mobile-web]
+          type: string
+          required: true
+        - name: year
+          in: path
+          description: The year for which to retrieve top articles [all-years|year]
+          type: string
+          required: true
+        - name: month
+          in: path
+          description: The month for which to retrieve top articles [all-months|month]
+          type: string
+          required: true
+        - name: day
+          in: path
+          description: The day for which to retrieve top articles [all-days|day]
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of top articles in the project
+          schema:
+            $ref: '#/definitions/tops'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+          request:
+            uri:  /{domain}/sys/pageviews/top/{project}/{access}/{year}/{month}/{day}
+      x-monitor: false
+
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  listing:
+    description: The result format for listings
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        items:
+          type: string
+
+  article:
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        properties:
+          project:
+            type : string
+          access:
+            type : string
+          article:
+            type: string
+          agent:
+            type: string
+          granularity:
+            type: string
+          timestamp:
+            # the hourly timestamp will be stored as YYYYMMDDHH
+            type: string
+          views:
+            type: integer
+            format: int64
+
+  project:
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        properties:
+          project:
+            type : string
+          access:
+            type : string
+          agent:
+            type: string
+          granularity:
+            type: string
+          timestamp:
+            # the hourly timestamp will be stored as YYYYMMDDHH
+            type: string
+          views:
+            type: integer
+            format: int64
+
+  tops:
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        properties:
+          project:
+            type: string
+          access:
+            type : string
+          year:
+            type: string
+          month:
+            type: string
+          day:
+            type: string
+          articles:
+            # format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
+            type: string

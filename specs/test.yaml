@@ -97,3 +97,60 @@ paths:
             request:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
+
+  /{module:post_data}/insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}:
+    post:
+      x-request-handler:
+        - put_to_storage:
+            request:
+              method: 'put'
+              uri: '/{domain}/sys/table/pageviews.per.article/'
+              body:
+                table: 'pageviews.per.article'
+                attributes:
+                  project: '{$.request.params.project}'
+                  access: '{$.request.params.access}'
+                  agent: '{$.request.params.agent}'
+                  article: '{$.request.params.article}'
+                  granularity: '{$.request.params.granularity}'
+                  timestamp: '{$.request.params.timestamp}'
+                  views: '{$.request.params.views}'
+      x-monitor: false
+
+  /{module:post_data}/insert-per-project/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+    post:
+      x-request-handler:
+        - put_to_storage:
+            request:
+              method: 'put'
+              uri: '/{domain}/sys/table/pageviews.per.project/'
+              body:
+                table: 'pageviews.per.project'
+                attributes:
+                  project: '{$.request.params.project}'
+                  access: '{$.request.params.access}'
+                  agent: '{$.request.params.agent}'
+                  granularity: '{$.request.params.granularity}'
+                  timestamp: '{$.request.params.timestamp}'
+                  views: '{$.request.params.views}'
+      x-monitor: false
+
+  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{rank}/{article}/{views}:
+    post:
+      x-request-handler:
+        - put_to_storage:
+            request:
+              method: 'put'
+              uri: '/{domain}/sys/table/top.pageviews/'
+              body:
+                table: 'top.pageviews'
+                attributes:
+                  project: '{$.request.params.project}'
+                  access: '{$.request.params.access}'
+                  year: '{$.request.params.year}'
+                  month: '{$.request.params.month}'
+                  day: '{$.request.params.day}'
+                  rank: '{$.request.params.article}'
+                  article: '{$.request.params.article}'
+                  views: '{$.request.params.views}'
+      x-monitor: false
