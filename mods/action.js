@@ -154,7 +154,7 @@ function buildQueryResponse(res) {
         // XXX: Clean this up!
         res.body = {
             items: newBody,
-            next: res.body["continue"]
+            next: res.body.continue
         };
         return res;
     } else if (res.body.query.userinfo) {
