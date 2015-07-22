@@ -76,16 +76,16 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/mobileapps/v1/lite/{title}
-      x-monitor: true
-      x-amples:
-        - title: Get MobileApps Lite Main Page
-          request:
-            params:
-              title: Main_Page
-          response:
-            status: 200
-            headers:
-              content-type: /application\/json/
-            body:
-              revision: /.+/
-              displaytitle: /.+/
+      x-monitor: false
+#      x-amples:
+#        - title: Get MobileApps Lite Main Page
+#          request:
+#            params:
+#              title: Main_Page
+#          response:
+#            status: 200
+#            headers:
+#              content-type: /application\/json/
+#            body:
+#              revision: /.+/
+#              displaytitle: /.+/
