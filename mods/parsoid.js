@@ -323,7 +323,7 @@ PSP.getFormat = function (format, restbase, req) {
             && rp.revision)
     {
         // Check content generation either way
-        return contentReq.then(function(res) {
+        contentReq = contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
                     try {
                         var jobTime = Date.parse(req.headers['if-unmodified-since']);
@@ -345,13 +345,19 @@ PSP.getFormat = function (format, restbase, req) {
             generateContent);
     } else {
         // Only (possibly) generate content if there was an error
-        return contentReq
-        .then(function(res) {
+        contentReq = contentReq.then(function(res) {
             return self.wrapContentReq(restbase, req, P.resolve(res), format);
         },
         generateContent // No need to wrap generateContent
         );
     }
+    return contentReq
+    .then(function(res) {
+        if (res && res.headers && !/^application\/json/.test(res.headers['content-type'])) {
+            res.headers['Content-Security-Policy'] = rbUtil.constructCSP(rp.domain, { allowInline: true } );
+        }
+        return res;
+    });
 };
 
 PSP.listRevisions = function (format, restbase, req) {
