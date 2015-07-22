@@ -24,10 +24,25 @@ describe('item requests', function() {
             assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type');
         });
     });
+    it('should transparently create a new HTML revision for Main_Page', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main_Page',
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            return preq.get({
+                uri: server.config.bucketURL + '/html/Main_Page/'
+            });
+        })
+        .then(function(res) {
+            if (res.body.items.length !== 1) {
+                throw new Error('Expected a single revision for Main_Page');
+            }
+        });
+    });
     it('should transparently create a new HTML revision with id 624484477', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/Foobar/624484477',
-            body: 'Hello there'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
