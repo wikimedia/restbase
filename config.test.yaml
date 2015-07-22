@@ -42,6 +42,7 @@ templates:
     x-subspecs:
       - mediawiki/v1/content
       - mediawiki_v1_graphoid
+      - mediawiki/v1/mobileapps
       - test
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
@@ -111,6 +112,18 @@ templates:
                   get:
                     backend_request:
                       uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:mobileapps}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/std/html/{title}:
+                  get:
+                    backend_request:
+                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/mobile/app/page/html/{title}
 
       /{module:action}:
         x-modules:

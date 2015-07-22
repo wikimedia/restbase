@@ -1,0 +1,46 @@
+# MobileApps page-manipulation service
+
+swagger: 2.0
+
+paths:
+  /{module:page}/mobile-html-full/{title}:
+    get:
+      tags:
+        - Page content
+        - Mobile
+      description: >
+        Retrieve the latest HTML for a page title optimised for viewing with
+        native mobile applications.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+      produces:
+        - text/html
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The HTML for the given page title.
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mobileapps/v1/std/html/{title}
+      x-monitor: true
+      x-amples:
+        - title: Get MobileApps Main Page
+          request:
+            params:
+              title: Main_Page
+          response:
+            status: 200
+            headers:
+              content-type: /text\/html/
