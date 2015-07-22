@@ -352,6 +352,12 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                         }
                     });
                 }
+            })
+            .catch(function(e) {
+                if (e.status !== 404) {
+                    throw e;
+                }
+                return self.fetchAndStoreMWRevision(restbase, req);
             });
         }
     } else {
@@ -405,7 +411,7 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
         });
         if (res.body.next) {
             res.body._links = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next) } 
+                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
             };
         }
         res.body.items = items;
@@ -440,7 +446,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
         });
         var next={};
         if (res.body.next) {
-            next = { 
+            next = {
                 next: { "href": "?page="+restbase.encodeToken(res.body.next) }
             };
         }
