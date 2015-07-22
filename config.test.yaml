@@ -124,6 +124,10 @@ templates:
                   get:
                     backend_request:
                       uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/mobile/app/page/html/{title}
+                /v1/lite/{title}:
+                  get:
+                    backend_request:
+                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/mobile/app/page/lite/{title}
 
       /{module:action}:
         x-modules:

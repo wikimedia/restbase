@@ -44,3 +44,48 @@ paths:
             status: 200
             headers:
               content-type: /text\/html/
+            body: /body/
+  /{module:page}/mobile-json-lite/{title}:
+    get:
+      tags:
+        - Page content
+        - Mobile
+      description: >
+        Retrieve the *lite* version of the latest HTML for a page title optimised for viewing with
+        native mobile applications.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The JSON comprising the HTML and various page attributes for the given page title.
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mobileapps/v1/lite/{title}
+      x-monitor: true
+      x-amples:
+        - title: Get MobileApps Lite Main Page
+          request:
+            params:
+              title: Main_Page
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              revision: /.+/
+              displaytitle: /.+/
