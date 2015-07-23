@@ -42,7 +42,7 @@
     "service-runner": "^0.2.0",
     "swagger-router": "^0.1.0",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
-    "tassembly": "/Users/pchelko/sandbox/wiki/tassembly"
+    "tassembly": "git+https://github.com/Pchelolo/tassembly#safe"
   },
   "devDependencies": {
     "bunyan": "^1.4.0",

@@ -6,6 +6,8 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var Template = require('../../../lib/reqTemplate.js');
+var URI = require('swagger-router').URI;
 
 describe('router - misc', function() {
 
@@ -84,4 +86,92 @@ describe('router - misc', function() {
         });
     });
 
+    it('should correctly resolve request templates', function() {
+        var requestTemplate = {
+            uri: '/{domain}/test',
+            method: 'post',
+            headers: {
+                'name-with-dashes': '{name-with-dashes}',
+                'global-header': '{$.req.params.domain}',
+                'added-string-header': 'added-string-header'
+            },
+            query: {
+                'simple': '{simple}',
+                'added': 'addedValue',
+                'global': '{$.req.headers.name-with-dashes}'
+            },
+            body: {
+                'object': '{object}',
+                'global': '{$.req.params.domain}',
+                'added': 'addedValue',
+                'nested': {
+                    'a': {
+                        'b': {
+                            c: '{a.b.c}'
+                        }
+                    }
+                }
+            }
+        };
+        var testRequest = {
+            params: {
+                'domain': 'testDomain'
+            },
+            method: 'get',
+            headers: {
+                'name-with-dashes': 'name-with-dashes-value',
+                'removed-header': 'this-will-be-removed'
+            },
+            query: {
+                'simple': 'simpleValue',
+                'removed': 'this-will-be-removed'
+            },
+            body: {
+                'object': {
+                    'testField': 'testValue'
+                },
+                'removed': {
+                    'field': 'this-will-be-removed'
+                },
+                'a': {
+                    'b': {
+                        'c': 'nestedValue'
+                    }
+                }
+            }
+        };
+        var expectedTemplatedRequest = {
+            params: {
+                'domain': 'testDomain'
+            },
+            uri: new URI('testDomain/test'),
+            method: 'post',
+            headers: {
+                'name-with-dashes': 'name-with-dashes-value',
+                'global-header': 'testDomain',
+                'added-string-header': 'added-string-header'
+            },
+            query: {
+                'simple': 'simpleValue',
+                'added': 'addedValue',
+                'global': 'name-with-dashes-value'
+            },
+            body: {
+                'object': {
+                    'testField': 'testValue'
+                },
+                'global': 'testDomain',
+                'added': 'addedValue',
+                'nested': {
+                    'a': {
+                        b: {
+                            c: 'nestedValue'
+                        }
+                    }
+                }
+            }
+        };
+        var result = new Template(requestTemplate).eval(testRequest);
+        assert.deepEqual(result, expectedTemplatedRequest);
+    });
 });

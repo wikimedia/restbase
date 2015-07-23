@@ -229,6 +229,10 @@ paths:
           description: The page title.
           type: string
           required: true
+        - name: sections
+          in: query
+          description: Comma-separated list of dection IDs
+          type: string
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.1.0
       responses:
@@ -255,6 +259,8 @@ paths:
           if-unmodified-since: '{if-unmodified-since}'
           x-restbase-mode: '{x-restbase-mode}'
           x-restbase-parentrevision: '{x-restbase-parentrevision}'
+        query:
+          sections: '{sections}'
       x-monitor: true
       x-amples:
         - title: Get html by title from Parsoid
@@ -420,6 +426,10 @@ paths:
           in: path
           description: The revision's time ID
           type: string
+        - name: sections
+          in: query
+          description: Comma-separated list of dection IDs
+          type: string
       responses:
         '200':
           description: >
@@ -448,6 +458,8 @@ paths:
           if-unmodified-since: '{if-unmodified-since}'
           x-restbase-mode: '{x-restbase-mode}'
           x-restbase-parentrevision: '{x-restbase-parentrevision}'
+        query:
+          sections: '{sections}'
       x-monitor: false
 
   /{module:page}/data-parsoid/:

@@ -74,5 +74,6 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_save/wikitext/{title}
+        body: '{$.req.body}'
       x-monitor: false
 
