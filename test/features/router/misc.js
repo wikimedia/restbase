@@ -92,17 +92,17 @@ describe('router - misc', function() {
             method: 'post',
             headers: {
                 'name-with-dashes': '{name-with-dashes}',
-                'global-header': '{$.req.params.domain}',
+                'global-header': '{$.request.params.domain}',
                 'added-string-header': 'added-string-header'
             },
             query: {
                 'simple': '{simple}',
                 'added': 'addedValue',
-                'global': '{$.req.headers.name-with-dashes}'
+                'global': '{$.request.headers.name-with-dashes}'
             },
             body: {
                 'object': '{object}',
-                'global': '{$.req.params.domain}',
+                'global': '{$.request.params.domain}',
                 'added': 'addedValue',
                 'nested': {
                     'a': {
