@@ -112,6 +112,10 @@ templates:
                   get:
                     backend_request:
                       uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
+                      headers:
+                        accept: '{accept}'
+                        accept-language: '{accept-language}'
+                      body: '{$.request.body}'
 
       /{module:mobileapps}:
         x-modules:
@@ -147,6 +151,10 @@ templates:
                   get:
                     backend_request:
                       uri: http://en.wikipedia.org/wiki/{+key}
+                      headers:
+                        accept: '{accept}'
+                        accept-language: '{accept-language}'
+                      body: '{$.request.body}'
                     storage: 
                       no-cache_refresh: true
                       bucket_request: 
