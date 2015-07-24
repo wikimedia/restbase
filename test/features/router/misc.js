@@ -112,7 +112,6 @@ describe('router - misc', function() {
                     }
                 },
                 'field_name_with_underscore': '{field_name_with_underscore}',
-                'array': ['one', '{$.request.params.domain}', '{object}', { 'field': '{object}'}]
             }
         };
         var testRequest = {
@@ -170,7 +169,6 @@ describe('router - misc', function() {
                     }
                 },
                 'field_name_with_underscore': 'field_value_with_underscore',
-                'array': ['one', 'testDomain', {'testField': 'testValue'}, { 'field': {'testField': 'testValue'}}]
             }
         };
         var result = new Template(requestTemplate).eval(testRequest);
