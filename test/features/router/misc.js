@@ -110,7 +110,9 @@ describe('router - misc', function() {
                             'tree': '{a.b.c}'
                         }
                     }
-                }
+                },
+                'field_name_with_underscore': '{field_name_with_underscore}',
+                'array': ['one', '{$.request.params.domain}', '{object}', { 'field': '{object}'}]
             }
         };
         var testRequest = {
@@ -137,7 +139,8 @@ describe('router - misc', function() {
                     'b': {
                         'c': 'nestedValue'
                     }
-                }
+                },
+                'field_name_with_underscore': 'field_value_with_underscore'
             }
         };
         var expectedTemplatedRequest = {
@@ -165,7 +168,9 @@ describe('router - misc', function() {
                             'tree': 'nestedValue'
                         }
                     }
-                }
+                },
+                'field_name_with_underscore': 'field_value_with_underscore',
+                'array': ['one', 'testDomain', {'testField': 'testValue'}, { 'field': {'testField': 'testValue'}}]
             }
         };
         var result = new Template(requestTemplate).eval(testRequest);
