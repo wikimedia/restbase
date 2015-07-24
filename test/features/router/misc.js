@@ -105,9 +105,9 @@ describe('router - misc', function() {
                 'global': '{$.request.params.domain}',
                 'added': 'addedValue',
                 'nested': {
-                    'a': {
-                        'b': {
-                            c: '{a.b.c}'
+                    'one': {
+                        'two': {
+                            'tree': '{a.b.c}'
                         }
                     }
                 }
@@ -141,9 +141,6 @@ describe('router - misc', function() {
             }
         };
         var expectedTemplatedRequest = {
-            params: {
-                'domain': 'testDomain'
-            },
             uri: new URI('testDomain/test'),
             method: 'post',
             headers: {
@@ -163,9 +160,9 @@ describe('router - misc', function() {
                 'global': 'testDomain',
                 'added': 'addedValue',
                 'nested': {
-                    'a': {
-                        b: {
-                            c: 'nestedValue'
+                    'one': {
+                        'two': {
+                            'tree': 'nestedValue'
                         }
                     }
                 }

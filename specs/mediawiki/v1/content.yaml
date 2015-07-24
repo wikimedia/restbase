@@ -231,7 +231,7 @@ paths:
           required: true
         - name: sections
           in: query
-          description: Comma-separated list of dection IDs
+          description: Comma-separated list of section IDs
           type: string
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.1.0
@@ -428,7 +428,7 @@ paths:
           type: string
         - name: sections
           in: query
-          description: Comma-separated list of dection IDs
+          description: Comma-separated list of section IDs
           type: string
       responses:
         '200':
