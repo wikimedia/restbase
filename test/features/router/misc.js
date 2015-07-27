@@ -112,6 +112,7 @@ describe('router - misc', function() {
                     }
                 },
                 'field_name_with_underscore': '{field_name_with_underscore}',
+                'additional_context_field': '{$.additional_context.field}'
             }
         };
         var testRequest = {
@@ -169,9 +170,15 @@ describe('router - misc', function() {
                     }
                 },
                 'field_name_with_underscore': 'field_value_with_underscore',
+                additional_context_field: 'additional_test_value'
             }
         };
-        var result = new Template(requestTemplate).eval(testRequest);
+        var result = new Template(requestTemplate).eval({
+            request: testRequest,
+            additional_context: {
+                field: 'additional_test_value'
+            }
+        });
         assert.deepEqual(result, expectedTemplatedRequest);
     });
 });

@@ -45,7 +45,7 @@ SimpleService.prototype.processSpec = function(spec) {
                 }
 
                 function backendRequest() {
-                    return restbase.request(backendRequestTemplate.eval(req));
+                    return restbase.request(backendRequestTemplate.eval({request:req}));
                 }
 
                 function regenerateAndSave() {
