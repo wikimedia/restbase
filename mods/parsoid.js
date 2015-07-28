@@ -482,6 +482,13 @@ PSP.transformRevision = function (restbase, req, from, to) {
             body2[from] = req.body[from];
         }
 
+        // For now, simply pass this through.
+        // See https://phabricator.wikimedia.org/T106909 for the discussion
+        // about the longer term plan.
+        if (req.body.scrubWikitext) {
+            body2.scrubWikitext = true;
+        }
+
         var path = [rp.domain,'sys','parsoid','transform',from,'to',to];
         if (rp.title) {
             path.push(rbUtil.normalizeTitle(rp.title));
