@@ -216,6 +216,20 @@ describe('transform api', function() {
             assert.deepEqual(/== Second Section ==/.test(res.body), true);
         });
     });
+
+    it('passes scrubWikitext parameter', function() {
+        return preq.post({
+            uri: server.config.baseURL + '/transform/html/to/wikitext',
+            body: {
+                html: '<h2></h2>',
+                scrubWikitext: 1
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, '');
+        });
+    });
 });
 
 

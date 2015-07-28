@@ -113,9 +113,6 @@ templates:
                   get:
                     backend_request:
                       uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
-                      headers:
-                        accept: '{accept}'
-                        accept-language: '{accept-language}'
                       body: '{$.request.body}'
 
       /{module:mobileapps}:

@@ -851,6 +851,7 @@ paths:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
         body:
           html: '{html}'
+          scrubWikitext: '{scrubWikitext}'
       x-monitor: false
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
