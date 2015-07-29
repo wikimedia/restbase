@@ -8,6 +8,7 @@ var yaml = require('js-yaml');
 
 var assert = require('assert');
 var Router = require('../../../lib/router');
+var loadConfig = require('../../utils/server').loadConfig;
 var router = new Router();
 
 var rootSpec = {
@@ -100,7 +101,7 @@ var overlappingMethodSpec = {
     }
 };
 
-var fullSpec = yaml.safeLoad(fs.readFileSync('config.example.yaml'));
+var fullSpec = loadConfig('config.example.yaml');
 
 describe('tree building', function() {
 

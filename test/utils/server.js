@@ -14,13 +14,28 @@ var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/en.wikipedia.test.local/v1';
 var bucketURL = baseURL + '/page';
 
+function loadConfig(path) {
+    var confString = fs.readFileSync(path).toString();
+    var backendImpl = process.env.RB_TEST_BACKEND;
+    if (backendImpl) {
+        if (backendImpl !== 'cassandra' && backendImpl !== 'sqlite') {
+            throw new Error('Invalid test_backend config variable value. Allowed values: "cassandra", "sqlite"');
+        }
+        if (backendImpl === 'sqlite') {
+            confString = confString.replace('restbase-mod-table-cassandra', 'restbase-mod-table-sqlite')
+        }
+    }
+    return yaml.safeLoad(confString);
+}
+
 var config = {
     hostPort: hostPort,
     baseURL: baseURL,
     bucketURL: bucketURL,
     logStream: logStream(),
-    conf: yaml.safeLoad(fs.readFileSync(__dirname + '/../../config.test.yaml')),
+    conf: loadConfig(__dirname + '/../../config.test.yaml')
 };
+
 config.conf.num_workers = 0;
 config.conf.logging = {
     name: 'restbase-tests',
@@ -61,3 +76,4 @@ function start(_options) {
 
 module.exports.config = config;
 module.exports.start  = start;
+module.exports.loadConfig = loadConfig;
