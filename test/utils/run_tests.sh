@@ -21,7 +21,7 @@ runTest ( ) {
 
     if [ "$2" = "coverage" ]
     then
-        istanbul cover _mocha -- -R spec
+        istanbul cover node_modules/.bin/_mocha -- -R spec
     fi
 }
 
