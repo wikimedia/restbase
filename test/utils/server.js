@@ -19,7 +19,7 @@ function loadConfig(path) {
     var backendImpl = process.env.RB_TEST_BACKEND;
     if (backendImpl) {
         if (backendImpl !== 'cassandra' && backendImpl !== 'sqlite') {
-            throw new Error('Invalid test_backend config variable value. Allowed values: "cassandra", "sqlite"');
+            throw new Error('Invalid RB_TEST_BACKEND env variable value. Allowed values: "cassandra", "sqlite"');
         }
         if (backendImpl === 'sqlite') {
             confString = confString.replace('restbase-mod-table-cassandra', 'restbase-mod-table-sqlite')

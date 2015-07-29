@@ -6,7 +6,7 @@
   "scripts": {
     "start": "service-runner",
     "test": "sh test/utils/run_tests.sh test",
-    "coverage": "sh test/utils/run_test.sh coverage",
+    "coverage": "sh test/utils/run_tests.sh coverage",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
