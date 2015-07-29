@@ -6,6 +6,8 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var Template = require('../../../lib/reqTemplate.js');
+var URI = require('swagger-router').URI;
 
 describe('router - misc', function() {
 
@@ -84,4 +86,99 @@ describe('router - misc', function() {
         });
     });
 
+    it('should correctly resolve request templates', function() {
+        var requestTemplate = {
+            uri: '/{domain}/test',
+            method: 'post',
+            headers: {
+                'name-with-dashes': '{name-with-dashes}',
+                'global-header': '{$.request.params.domain}',
+                'added-string-header': 'added-string-header'
+            },
+            query: {
+                'simple': '{simple}',
+                'added': 'addedValue',
+                'global': '{$.request.headers.name-with-dashes}'
+            },
+            body: {
+                'object': '{object}',
+                'global': '{$.request.params.domain}',
+                'added': 'addedValue',
+                'nested': {
+                    'one': {
+                        'two': {
+                            'tree': '{a.b.c}'
+                        }
+                    }
+                },
+                'field_name_with_underscore': '{field_name_with_underscore}',
+                'additional_context_field': '{$.additional_context.field}'
+            }
+        };
+        var testRequest = {
+            params: {
+                'domain': 'testDomain'
+            },
+            method: 'get',
+            headers: {
+                'name-with-dashes': 'name-with-dashes-value',
+                'removed-header': 'this-will-be-removed'
+            },
+            query: {
+                'simple': 'simpleValue',
+                'removed': 'this-will-be-removed'
+            },
+            body: {
+                'object': {
+                    'testField': 'testValue'
+                },
+                'removed': {
+                    'field': 'this-will-be-removed'
+                },
+                'a': {
+                    'b': {
+                        'c': 'nestedValue'
+                    }
+                },
+                'field_name_with_underscore': 'field_value_with_underscore'
+            }
+        };
+        var expectedTemplatedRequest = {
+            uri: new URI('testDomain/test'),
+            method: 'post',
+            headers: {
+                'name-with-dashes': 'name-with-dashes-value',
+                'global-header': 'testDomain',
+                'added-string-header': 'added-string-header'
+            },
+            query: {
+                'simple': 'simpleValue',
+                'added': 'addedValue',
+                'global': 'name-with-dashes-value'
+            },
+            body: {
+                'object': {
+                    'testField': 'testValue'
+                },
+                'global': 'testDomain',
+                'added': 'addedValue',
+                'nested': {
+                    'one': {
+                        'two': {
+                            'tree': 'nestedValue'
+                        }
+                    }
+                },
+                'field_name_with_underscore': 'field_value_with_underscore',
+                additional_context_field: 'additional_test_value'
+            }
+        };
+        var result = new Template(requestTemplate).eval({
+            request: testRequest,
+            additional_context: {
+                field: 'additional_test_value'
+            }
+        });
+        assert.deepEqual(result, expectedTemplatedRequest);
+    });
 });

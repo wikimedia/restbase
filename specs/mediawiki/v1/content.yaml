@@ -63,6 +63,8 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/title/{title}:
@@ -97,6 +99,9 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
       x-monitor: true
       x-amples:
         - title: Get rev of by title from MW
@@ -167,6 +172,8 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/{title}/
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/html/:
@@ -197,6 +204,8 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/page/
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/html/{title}:
@@ -220,6 +229,10 @@ paths:
           description: The page title.
           type: string
           required: true
+        - name: sections
+          in: query
+          description: Comma-separated list of section IDs
+          type: string
       produces:
         - text/html; profile=mediawiki.org/specs/html/1.1.0
       responses:
@@ -241,6 +254,13 @@ paths:
         # work in current Chrome and Firefox.
         # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
         uri: /{domain}/sys/parsoid/html/{title}
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
+          x-restbase-mode: '{x-restbase-mode}'
+          x-restbase-parentrevision: '{x-restbase-parentrevision}'
+        query:
+          sections: '{sections}'
       x-monitor: true
       x-amples:
         - title: Get html by title from Parsoid
@@ -362,6 +382,13 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
+          x-restbase-mode: '{x-restbase-mode}'
+          x-restbase-parentrevision: '{x-restbase-parentrevision}'
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/html/{title}/{revision}{/tid}:
@@ -399,6 +426,10 @@ paths:
           in: path
           description: The revision's time ID
           type: string
+        - name: sections
+          in: query
+          description: Comma-separated list of section IDs
+          type: string
       responses:
         '200':
           description: >
@@ -422,6 +453,13 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
+          x-restbase-mode: '{x-restbase-mode}'
+          x-restbase-parentrevision: '{x-restbase-parentrevision}'
+        query:
+          sections: '{sections}'
       x-monitor: false
 
   /{module:page}/data-parsoid/:
@@ -454,6 +492,8 @@ paths:
         # Fixme: only list pages that have at least one revision with content
         # model 'wikitext'
         uri: /{domain}/sys/page_revisions/page/
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/data-parsoid/{title}:
@@ -487,6 +527,11 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
+          x-restbase-mode: '{x-restbase-mode}'
+          x-restbase-parentrevision: '{x-restbase-parentrevision}'
       x-monitor: true
       x-amples:
         - title: Get data-parsoid by title
@@ -540,6 +585,13 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
+          x-restbase-mode: '{x-restbase-mode}'
+          x-restbase-parentrevision: '{x-restbase-parentrevision}'
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/data-parsoid/{title}/{revision}{/tid}:
@@ -591,6 +643,11 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
+        headers:
+          cache-control: '{cache-control}'
+          if-unmodified-since: '{if-unmodified-since}'
+          x-restbase-mode: '{x-restbase-mode}'
+          x-restbase-parentrevision: '{x-restbase-parentrevision}'
       x-monitor: false
 
   /{module:page}/revision/:
@@ -620,6 +677,8 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/
+        query:
+          page: '{page}'
       x-monitor: false
 
   /{module:page}/revision/{revision}:
@@ -661,6 +720,8 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/page_revisions/rev/{revision}
+        headers:
+          cache-control: '{cache-control}'
       x-monitor: true
       x-amples:
         - title: Get rev by ID
@@ -788,6 +849,9 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+        body:
+          html: '{html}'
+          scrubWikitext: '{scrubWikitext}'
       x-monitor: false
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
@@ -840,6 +904,9 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+        body:
+          wikitext: '{wikitext}'
+          bodyOnly: '{bodyOnly}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -905,6 +972,9 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+        body:
+          html: '{html}'
+          bodyOnly: '{bodyOnly}'
       x-monitor: false
 
   /{module:transform}/sections/to/wikitext/{title}/{revision}:
@@ -956,6 +1026,8 @@ paths:
             $ref: '#/definitions/problem'
       x-backend-request:
         uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+        body:
+          sections: '{sections}'
       x-monitor: false
 
 definitions:

@@ -7,6 +7,7 @@
 var P = require('bluebird');
 var URI = require('swagger-router').URI;
 var rbUtil = require('../lib/rbUtil');
+var Template = require('../lib/reqTemplate');
 
 
 function SimpleService(options) {
@@ -16,17 +17,6 @@ function SimpleService(options) {
     };
 
     this.exports = this.processSpec(this.spec);
-}
-
-var headerWhitelist = ['accept', 'accept-language'];
-function filterHeaders(headers) {
-    var res = {};
-    headerWhitelist.forEach(function(name) {
-        if (headers[name]) {
-            res[name] = headers[name];
-        }
-    });
-    return res;
 }
 
 SimpleService.prototype.processSpec = function(spec) {
@@ -47,7 +37,7 @@ SimpleService.prototype.processSpec = function(spec) {
                 storageUriTemplate = new URI(conf.storage.item_request.uri, {}, true);
                 resources.push(conf.storage.bucket_request);
             }
-            var backendUriTemplate = new URI(conf.backend_request.uri, {}, true);
+            var backendRequestTemplate = new Template(conf.backend_request);
             operations[conf.operationId] = function(restbase, req) {
                 var rp = req.params;
                 if (rp.key) {
@@ -55,17 +45,7 @@ SimpleService.prototype.processSpec = function(spec) {
                 }
 
                 function backendRequest() {
-                    var beReq = {
-                        uri: backendUriTemplate.toString({
-                            params: req.params
-                        }),
-                        // TODO: be more selective / only configure a whitelist of
-                        // headers
-                        headers: filterHeaders(req.headers),
-                        method: method,
-                        body: req.body,
-                    };
-                    return restbase.request(beReq);
+                    return restbase.request(backendRequestTemplate.eval({request:req}));
                 }
 
                 function regenerateAndSave() {
