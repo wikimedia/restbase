@@ -50,6 +50,5 @@ fi
 
 if [ "$2" = "all" ]
 then
-    runTest "sqlite" $1
-    runTest "cassandra" $1
+    runTest "sqlite" $1 && runTest "cassandra" $1
 fi
