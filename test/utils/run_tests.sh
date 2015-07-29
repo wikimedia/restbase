@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PATH=$PATH:node_modules/.bin
+
 runTest ( ) {
     if [ "$1" = "sqlite" ]
     then
@@ -8,7 +10,7 @@ runTest ( ) {
         rm -f restbase
     else
         echo "Running with Cassandra backend"
-         export RB_TEST_BACKEND=cassandra
+        export RB_TEST_BACKEND=cassandra
         sh ./test/utils/cleandb.sh
     fi
 
