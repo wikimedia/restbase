@@ -399,7 +399,7 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
             uri: new URI(path)
         })
         .then(function (res) {
-            if (res.body && res.body.constructor === Buffer) {
+            if (res.body && Buffer.isBuffer(res.body)) {
                 res.body = res.body.toString();
             }
             return {
