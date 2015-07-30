@@ -100,7 +100,12 @@ templates:
           - name: action
             type: file
             options:
-              apiURI: http://{domain}/w/api.php
+              apiRequest:
+                method: post
+                uri: '{$.default_uri}'
+                headers:
+                  host: '{$.request.params.domain}'
+                body: '{$.request.body}'
 
       /{module:graphoid}:
         x-modules:

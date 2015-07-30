@@ -5,7 +5,7 @@
  */
 
 var rbUtil = require('../lib/rbUtil');
-
+var Template = require('../lib/reqTemplate');
 /**
  * Error translation
  */
@@ -105,13 +105,8 @@ function apiError(apiErr) {
  * Action module code
  */
 function ActionService (options) {
-    this.apiURITemplate = options.apiURI;
+    this.apiRequestTemplate = new Template(options.apiRequest);
 }
-
-ActionService.prototype.apiURI = function(domain) {
-    // TODO: use proper templating
-    return this.apiURITemplate.replace(/\{domain\}/, domain);
-};
 
 function buildQueryResponse(res) {
     if (res.status !== 200) {
@@ -149,17 +144,17 @@ function buildEditResponse(res) {
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
-    var rp = req.params;
-    req.uri = this.apiURI(rp.domain);
-    var body = req.body;
-    body.action = defBody.action;
-    body.format = body.format || defBody.format || 'json';
-    body.formatversion = body.formatversion || defBody.formatversion || 1;
-    if (!body.hasOwnProperty('continue')) {
-        body.continue = '';
+    var apiRequest = this.apiRequestTemplate.eval({
+        request: req,
+        default_uri: 'http://' + req.params.domain + '/w/api.php'
+    });
+    apiRequest.body.action = defBody.action;
+    apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
+    apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
+    if (!apiRequest.body.hasOwnProperty('continue')) {
+        apiRequest.body.continue = '';
     }
-    req.method = 'post';
-    return restbase[req.method](req).then(cont);
+    return restbase.request(apiRequest).then(cont);
 };
 
 ActionService.prototype.query = function(restbase, req) {

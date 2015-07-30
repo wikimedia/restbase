@@ -135,7 +135,13 @@ templates:
           - name: action
             type: file
             options:
-              apiURI: http://en.wikipedia.org/w/api.php
+              apiRequest:
+                method: post
+                uri: http://en.wikipedia.org/w/api.php
+                headers:
+                  # the domain is en.wikipedia.test.local, so we can't use it. use en.wikipedia.org instead
+                  host: 'en.wikipedia.org'
+                body: '{$.request.body}'
 
       /{module:testservice}:
         x-modules:
