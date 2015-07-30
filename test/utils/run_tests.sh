@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 mod_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../.. && pwd )/node_modules
 mocha="$mod_dir"/mocha/bin/mocha
@@ -16,16 +16,16 @@ runTest ( ) {
         sh ./test/utils/cleandb.sh
     fi
 
-    if [[ "$2" = "test" ]]
+    if [ "$2" = "test" ]
     then
         ${mocha}
-    elif [[ "$2" = "coverage" ]]
+    elif [ "$2" = "coverage" ]
     then
         ${istanbul} cover node_modules/.bin/_mocha -- -R spec
     fi
 }
 
-if [[ -z ${2+x} ]]
+if [ -z ${2+x} ]
 then
     # no concrete backend is provided, check for cassandra
     `echo exit;` | cqlsh
@@ -38,13 +38,13 @@ then
     fi
 fi
 
-if [[ "$2" = "sqlite" ]]
+if [ "$2" = "sqlite" ]
 then
     runTest "sqlite" $1
-elif [[ "$2" = "cassandra" ]]
+elif [ "$2" = "cassandra" ]
 then
     runTest "cassandra" $1
-elif [[ "$2" = "all" ]]
+elif [ "$2" = "all" ]
 then
     runTest "sqlite" $1 && runTest "cassandra" $1
 else
