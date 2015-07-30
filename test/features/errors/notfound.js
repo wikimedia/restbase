@@ -83,7 +83,7 @@ describe('404 handling', function() {
     it('should set page_deleted on deleted page', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiURI;
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
         var title = 'TestingTitle';
         var revision = 12345;
         var emptyResponse = {'batchcomplete':'','query':{'badrevids':{'12345' :{'revid':'12345'}}}};
