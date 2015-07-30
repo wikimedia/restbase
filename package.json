@@ -55,6 +55,6 @@
     "swagger-test": "0.2.0",
     "url-template": "^2.0.6",
     "nock": "^2.6.0",
-    "restbase-mod-table-sqlite": "git+https://github.com/wikimedia/restbase-mod-table-sqlite#master"
+    "restbase-mod-table-sqlite": "^0.1.0"
   }
 }
