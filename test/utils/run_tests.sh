@@ -2,7 +2,7 @@
 
 mod_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../.. && pwd )/node_modules
 mocha="$mod_dir"/mocha/bin/mocha
-istambul="$mod_dir"/istambul/bin/istambul
+istanbul="$mod_dir"/istanbul/bin/istanbul
 
 runTest ( ) {
     if [ "$1" = "sqlite" ]
