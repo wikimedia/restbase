@@ -183,6 +183,7 @@ services:
       spec: *spec
       salt: secret
       default_page_size: 250
+      user_agent: RESTBase
 
 logging:
   name: restbase
