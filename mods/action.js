@@ -144,7 +144,10 @@ function buildEditResponse(res) {
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
-    var apiRequest = this.apiRequestTemplate.eval({request: req});
+    var apiRequest = this.apiRequestTemplate.eval({
+        request: req,
+        default_uri: 'http://' + req.params.domain + '/w/api.php'
+    });
     apiRequest.body.action = defBody.action;
     apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
     apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
