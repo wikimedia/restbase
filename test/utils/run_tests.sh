@@ -25,10 +25,10 @@ runTest ( ) {
     fi
 }
 
-if [ -z ${2+x} ]
+if [ "x$2" == "x" ]
 then
     # no concrete backend is provided, check for cassandra
-    `echo exit;` | cqlsh
+    `echo exit;` | cqlsh 2> /dev/null
     if [ "$?" -eq 0 ]
     then
         runTest "cassandra" $1
@@ -36,9 +36,7 @@ then
         echo "Cassandra not available. Using SQLite backed for tests"
         runTest "sqlite" $1
     fi
-fi
-
-if [ "$2" = "sqlite" ]
+elif [ "$2" = "sqlite" ]
 then
     runTest "sqlite" $1
 elif [ "$2" = "cassandra" ]
@@ -48,6 +46,6 @@ elif [ "$2" = "all" ]
 then
     runTest "sqlite" $1 && runTest "cassandra" $1
 else
-    echo "Invalid  testing mode"
+    echo "Invalid testing mode"
     exit 1
 fi
