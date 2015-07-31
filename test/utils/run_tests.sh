@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mod_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../.. && pwd )/node_modules
+mod_dir=$( cd "$( dirname "$0" )"/../.. && pwd )/node_modules
 mocha="$mod_dir"/mocha/bin/mocha
 istanbul="$mod_dir"/istanbul/lib/cli.js
 
