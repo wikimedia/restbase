@@ -13,6 +13,7 @@ before_script:
       echo 'waiting for cassandra...' ;
       sleep 1 ;
     done
+  - nodetool -h 127.0.0.1 version
 
 notifications:
   email:
