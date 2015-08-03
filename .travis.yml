@@ -18,4 +18,4 @@ notifications:
   email:
     - services@wikimedia.org
 
-script: npm run-script coverage && (npm run-script coveralls || exit 0)
+script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
