@@ -105,6 +105,17 @@ function apiError(apiErr) {
  * Action module code
  */
 function ActionService (options) {
+    // be backwards-compatible with apiURI-style configs
+    if(!options.apiRequest && options.apiURI) {
+        options.apiRequest = {
+            method: 'post',
+            // assume the URI is in the form https?://{domain}/w/api.php
+            // as we cannot currently template the host in swagger-router
+            uri: '{$.default_uri}',
+            headers: { host: '{$.request.params.domain}' },
+            body: '{$.request.body}'
+        };
+    }
     this.apiRequestTemplate = new Template(options.apiRequest);
 }
 
