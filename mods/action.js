@@ -107,6 +107,8 @@ function apiError(apiErr) {
 function ActionService (options) {
     // be backwards-compatible with apiURI-style configs
     if(!options.apiRequest && options.apiURI) {
+        // log a deprecation warning
+        options.log('warn/actionService', 'The config options for this module have changed. Please use the apiRequest template stanza');
         options.apiRequest = {
             method: 'post',
             // TODO: assume the URI is in the form https?://{domain}/w/api.php
@@ -122,6 +124,8 @@ function ActionService (options) {
         }
         // TODO: decide what to do when apiURI has got a host param, but
         // the rest isn't /w/api.php
+    } else if(!options.apiRequest) {
+        throw new Error('The action module needs the apiRequest temaplting stanza to exist!');
     }
     this.apiRequestTemplate = new Template(options.apiRequest);
 }
