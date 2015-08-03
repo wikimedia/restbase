@@ -112,7 +112,8 @@ describe('router - misc', function() {
                     }
                 },
                 'field_name_with_underscore': '{field_name_with_underscore}',
-                'additional_context_field': '{$.additional_context.field}'
+                'additional_context_field': '{$.additional_context.field}',
+                'string_templated': 'test {field_name_with_underscore}'
             }
         };
         var testRequest = {
@@ -170,7 +171,8 @@ describe('router - misc', function() {
                     }
                 },
                 'field_name_with_underscore': 'field_value_with_underscore',
-                additional_context_field: 'additional_test_value'
+                additional_context_field: 'additional_test_value',
+                'string_templated': 'test field_value_with_underscore'
             }
         };
         var result = new Template(requestTemplate).eval({
@@ -180,5 +182,72 @@ describe('router - misc', function() {
             }
         });
         assert.deepEqual(result, expectedTemplatedRequest);
+    });
+
+    it('should encode uri components', function() {
+        var requestTemplate = {
+            uri: '{domain}/path1/{path2}'
+        };
+        var result = new Template(requestTemplate).eval({
+            request: {
+                params: {
+                    domain: 'en.wikipedia.org',
+                    path2: 'test1/test2/test3'
+                }
+            }
+        });
+        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1%2Ftest2%2Ftest3'))
+    });
+
+    it('should support optional path elements in uri template', function() {
+        var requestTemplate = {
+            uri: '{domain}/path1{/optional}'
+        };
+        var resultNoOptional = new Template(requestTemplate).eval({
+            request: {
+                params: {
+                    domain: 'en.wikipedia.org'
+                }
+            }
+        });
+        assert.deepEqual(resultNoOptional.uri, new URI('en.wikipedia.org/path1'));
+        var resultWithOptional = new Template(requestTemplate).eval({
+            request: {
+                params: {
+                    domain: 'en.wikipedia.org',
+                    optional: 'value'
+                }
+            }
+        });
+        assert.deepEqual(resultWithOptional.uri, new URI('en.wikipedia.org/path1/value'));
+    });
+
+    it('should support + templates in path', function() {
+        var requestTemplate = {
+            uri: '{domain}/path1/{+path}'
+        };
+        var result = new Template(requestTemplate).eval({
+            request: {
+                params: {
+                    domain: 'en.wikipedia.org',
+                    path: 'test1/test2/test3'
+                }
+            }
+        });
+        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3'));
+    });
+
+    it('should support templating the whole uri', function() {
+        var requestTemplate = {
+            uri: '{uri}'
+        };
+        var result = new Template(requestTemplate).eval({
+            request: {
+                params: {
+                    uri: 'en.wikipedia.org/path1/test1/test2/test3'
+                }
+            }
+        });
+        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3'));
     });
 });
