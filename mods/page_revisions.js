@@ -278,10 +278,24 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
     });
 };
 
+
 PRS.prototype.getTitleRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
     var revisionRequest;
+    function getLatestTitleRevision() {
+        return restbase.get({
+            uri: self.tableURI(rp.domain),
+            body: {
+                table: self.tableName,
+                attributes: {
+                    title: rbUtil.normalizeTitle(rp.title)
+                },
+                limit: 1
+            }
+        });
+    }
+
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
         revisionRequest = restbase.get({
@@ -308,17 +322,8 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 if (e.status !== 404) {
                     throw e;
                 }
+                return getLatestTitleRevision()
                 // In case 404 is returned by MW api, the page is deleted
-                return self.listTitleRevisions(restbase, req)
-                .then(function(res) {
-                    if (res.body.items && res.body.items.length > 0) {
-                        return restbase.get({
-                            uri: new URI([rp.domain, 'sys', 'page_revisions', 'rev', '' + res.body.items[0]])
-                        });
-                    } else {
-                        throw e;
-                    }
-                })
                 .then(function(result) {
                     result = result.body.items[0];
                     result.tid = uuid.now().toString();
@@ -337,22 +342,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 });
             });
         } else {
-            revisionRequest = self.listTitleRevisions(restbase, req)
-            .then(function(res) {
-                if (res.body.items && res.body.items.length > 0) {
-                    return restbase.get({
-                        uri: new URI([rp.domain, 'sys', 'page_revisions', 'rev', '' + res.body.items[0]])
-                    });
-                } else {
-                    throw new rbUtil.HTTPError({
-                        status: 404,
-                        body: {
-                            type: 'not_found#page_revisions',
-                            description: 'No revisions of a page stored in restbase'
-                        }
-                    });
-                }
-            })
+            revisionRequest = getLatestTitleRevision()
             .catch(function(e) {
                 if (e.status !== 404) {
                     throw e;
