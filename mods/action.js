@@ -109,12 +109,19 @@ function ActionService (options) {
     if(!options.apiRequest && options.apiURI) {
         options.apiRequest = {
             method: 'post',
-            // assume the URI is in the form https?://{domain}/w/api.php
+            // TODO: assume the URI is in the form https?://{domain}/w/api.php
             // as we cannot currently template the host in swagger-router
             uri: '{$.default_uri}',
             headers: { host: '{$.request.params.domain}' },
             body: '{$.request.body}'
         };
+        // now check if there's really a param in the host of the URI
+        if(!/^(:?https?:\/\/){[^\s}]+}\//.test(options.apiURI)) {
+            // no host templating, use the string provided by the config
+            options.apiRequest.uri = options.apiURI;
+        }
+        // TODO: decide what to do when apiURI has got a host param, but
+        // the rest isn't /w/api.php
     }
     this.apiRequestTemplate = new Template(options.apiRequest);
 }
