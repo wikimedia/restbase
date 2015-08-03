@@ -186,7 +186,7 @@ describe('router - misc', function() {
 
     it('should encode uri components', function() {
         var requestTemplate = {
-            uri: '{domain}/path1/{path2}'
+            uri: 'http://{domain}/path1/{path2}'
         };
         var result = new Template(requestTemplate).eval({
             request: {
@@ -196,12 +196,15 @@ describe('router - misc', function() {
                 }
             }
         });
-        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1%2Ftest2%2Ftest3'))
+        assert.deepEqual(result.uri,
+            new URI('http://en.wikipedia.org/path1/{path2}', {}, true).expand({
+                path2: 'test1/test2/test3'
+        }));
     });
 
     it('should support optional path elements in uri template', function() {
         var requestTemplate = {
-            uri: '{domain}/path1{/optional}'
+            uri: '/{domain}/path1{/optional}'
         };
         var resultNoOptional = new Template(requestTemplate).eval({
             request: {
@@ -210,7 +213,7 @@ describe('router - misc', function() {
                 }
             }
         });
-        assert.deepEqual(resultNoOptional.uri, new URI('en.wikipedia.org/path1'));
+        assert.deepEqual(resultNoOptional.uri, new URI('/en.wikipedia.org/path1{/optional}', {}, true).expand());
         var resultWithOptional = new Template(requestTemplate).eval({
             request: {
                 params: {
@@ -219,12 +222,14 @@ describe('router - misc', function() {
                 }
             }
         });
-        assert.deepEqual(resultWithOptional.uri, new URI('en.wikipedia.org/path1/value'));
+        assert.deepEqual(resultWithOptional.uri, new URI('/en.wikipedia.org/path1{/optional}', {}, true).expand({
+            optional: 'value'
+        }));
     });
 
     it('should support + templates in path', function() {
         var requestTemplate = {
-            uri: '{domain}/path1/{+path}'
+            uri: 'http://{domain}/path1/{+path}'
         };
         var result = new Template(requestTemplate).eval({
             request: {
@@ -234,7 +239,10 @@ describe('router - misc', function() {
                 }
             }
         });
-        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3'));
+        assert.deepEqual(result.uri,
+            new URI('http://en.wikipedia.org/path1/{+path}', {}, true).expand({
+            path: 'test1/test2/test3'
+        }));
     });
 
     it('should support templating the whole uri', function() {
@@ -248,6 +256,6 @@ describe('router - misc', function() {
                 }
             }
         });
-        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3'));
+        assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3', {}, false));
     });
 });
