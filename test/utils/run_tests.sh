@@ -22,7 +22,7 @@ runTest ( ) {
     fi
 }
 
-if [ "x$2" == "x" ]; then
+if [ "x$2" = "x" ]; then
     # no concrete backend is provided, check for cassandra
     `echo exit;` | cqlsh 2> /dev/null
     if [ "$?" -eq 0 ]; then
