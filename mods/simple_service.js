@@ -56,7 +56,7 @@ SimpleService.prototype.processSpec = function(spec) {
                         return restbase.put({
                             uri: storageUriTemplate.expand(req.params),
                             headers: res.headers,
-                            body: res.body,
+                            body: res.body
                         })
                         .then(function(storeRes) {
                             res.headers.etag = storeRes.headers.etag;
@@ -93,7 +93,7 @@ SimpleService.prototype.processSpec = function(spec) {
     return {
         spec: spec,
         operations: operations,
-        resources: resources,
+        resources: resources
     };
 };
 
