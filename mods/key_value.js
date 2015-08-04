@@ -7,6 +7,7 @@
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
 var rbUtil = require('../lib/rbUtil');
+var HTTPError = rbUtil.HTTPError;
 var URI = require('swagger-router').URI;
 
 // TODO: move to separate spec package
@@ -182,6 +183,12 @@ function parseRevision(rev) {
 }
 
 KVBucket.prototype.getRevision = function(restbase, req) {
+    if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
+        throw new HTTPError({
+            status: 404
+        });
+    }
+
     var rp = req.params;
     var storeReq = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),

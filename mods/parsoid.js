@@ -8,6 +8,7 @@ var P = require('bluebird');
 var URI = require('swagger-router').URI;
 var uuid   = require('cassandra-uuid').TimeUuid;
 var rbUtil = require('../lib/rbUtil');
+var Template = require('../lib/reqTemplate');
 
 // TODO: move tests & spec to separate npm module!
 var yaml = require('js-yaml');
@@ -635,7 +636,7 @@ module.exports = function(options) {
         operations: ps.operations,
         // Dynamic resource dependencies, specific to implementation
         resources: [
-            {
+            new Template({
                 uri: '/{domain}/sys/key_rev_value/parsoid.html',
                 body: {
                     revisionRetentionPolicy: {
@@ -646,14 +647,14 @@ module.exports = function(options) {
                     valueType: 'blob',
                     version: 1
                 }
-            },
-            {
+            }),
+            new Template({
                 uri: '/{domain}/sys/key_rev_value/parsoid.wikitext',
                 body: {
                     valueType: 'blob'
                 }
-            },
-            {
+            }),
+            new Template({
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
@@ -664,8 +665,8 @@ module.exports = function(options) {
                     valueType: 'json',
                     version: 1
                 }
-            },
-            {
+            }),
+            new Template({
                 uri: '/{domain}/sys/key_rev_value/parsoid.section.offsets',
                 body: {
                     revisionRetentionPolicy: {
@@ -676,13 +677,13 @@ module.exports = function(options) {
                     valueType: 'json',
                     version: 1
                 }
-            },
-            {
+            }),
+            new Template({
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-mw',
                 body: {
                     valueType: 'json'
                 }
-            }
+            })
         ]
     };
 };

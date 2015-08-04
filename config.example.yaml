@@ -117,8 +117,10 @@ templates:
               paths:
                 /v1/png/{title}/{revision}/{graph_id}:
                   get:
-                    backend_request:
-                      uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+                    on_request:
+                      - get_from_graphoid:
+                          request:
+                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
 
       /{module:mobileapps}:
         x-modules:
