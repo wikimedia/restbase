@@ -22,31 +22,31 @@ var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/page_revisions.yaml'));
 
 
 // Title Revision Service
-function PRS (options) {
+function PRS(options) {
     this.options = options;
-    this.log = options.log || function(){};
+    this.log = options.log || function() {};
 }
 
 
 PRS.prototype.tableName = 'title_revisions';
 PRS.prototype.tableURI = function(domain) {
-    return new URI([domain,'sys','table',this.tableName,'']);
+    return new URI([domain, 'sys', 'table', this.tableName, '']);
 };
 
 // Get the schema for the revision table
-PRS.prototype.getTableSchema = function () {
+PRS.prototype.getTableSchema = function() {
     return {
         table: this.tableName,
         version: 2,
         attributes: {
-            // listing: /titles.rev/Barack_Obama/master/
+            // Listing: /titles.rev/Barack_Obama/master/
             // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
             title: 'string',
             page_id: 'int',
             rev: 'int',             // MediaWiki oldid
             latest_rev: 'int',      // Latest MediaWiki revision
             tid: 'timeuuid',
-            namespace: 'int',       // the namespace ID of the page
+            namespace: 'int',       // The namespace ID of the page
             // revision deletion or suppression, can be:
             // - sha1hidden, commenthidden, texthidden
             restrictions: 'set<string>',
@@ -56,10 +56,10 @@ PRS.prototype.getTableSchema = function () {
             // Page renames. null, to:destination or from:source
             // Followed for linear history, possibly useful for branches / drafts
             renames: 'set<string>',
-            nextrev_tid: 'timeuuid',// tid of next revision, or null
-            latest_tid: 'timeuuid', // static, CAS synchronization point
-            // revision metadata in individual attributes for ease of indexing
-            user_id: 'int',         // stable for contributions etc
+            nextrev_tid: 'timeuuid',// Tid of next revision, or null
+            latest_tid: 'timeuuid', // Static, CAS synchronization point
+            // Revision metadata in individual attributes for ease of indexing
+            user_id: 'int',         // Stable for contributions etc
             user_text: 'string',
             timestamp: 'timestamp',
             comment: 'string',
@@ -98,11 +98,11 @@ PRS.prototype.getTableSchema = function () {
  */
 PRS.prototype._checkRevReturn = function(res) {
     var item = res.body.items.length && res.body.items[0];
-    // if there are any restrictions imposed on this
+    // If there are any restrictions imposed on this
     // revision, forbid its retrieval, cf.
     // https://phabricator.wikimedia.org/T76165#1030962
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
-        // there are some restrictions, deny access to the revision
+        // There are some restrictions, deny access to the revision
         if (item.restrictions.indexOf('page_deleted') >= 0) {
             throw new rbUtil.HTTPError({
                 status: 404,
@@ -130,7 +130,7 @@ PRS.prototype._checkRevReturn = function(res) {
 PRS.prototype.listTitles = function(restbase, req, options) {
     var rp = req.params;
     var listReq = {
-        uri: new URI([rp.domain,'sys','action','query']),
+        uri: new URI([rp.domain, 'sys', 'action', 'query']),
         method: 'post',
         body: {
             generator: 'allpages',
@@ -157,13 +157,15 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         var next = {};
         if (res.body.next) {
             next = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
+                next: {
+                    href: "?page=" + restbase.encodeToken(res.body.next)
+                }
             };
         }
 
         return {
             status: 200,
-            body : {
+            body: {
                 items: items,
                 _links: next
             }
@@ -171,12 +173,12 @@ PRS.prototype.listTitles = function(restbase, req, options) {
     });
 };
 
-PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
+PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
     // Try to resolve MW oldids to tids
     var apiReq = {
-        uri: new URI([rp.domain,'sys','action','query']),
+        uri: new URI([rp.domain, 'sys', 'action', 'query']),
         body: {
             format: 'json',
             action: 'query',
@@ -203,18 +205,18 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                 }
             });
         }
-        // the response item
+        // The response item
         var dataResp = apiRes.body.items[0];
-        // the revision info
+        // The revision info
         var apiRev = dataResp.revisions[0];
-        // are there any restrictions set?
+        // Are there any restrictions set?
         // FIXME: test for the precise attributes instead, this can easily
         // break if new keys are added.
         var restrictions = Object.keys(apiRev).filter(function(key) {
             return /hidden$/.test(key);
         });
 
-        //get the redirect property, it's inclusion means true
+        // Get the redirect property, it's inclusion means true
         var redirect = dataResp.redirect !== undefined;
 
         return restbase.put({ // Save / update the revision entry
@@ -241,7 +243,7 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
             }
         })
         .then(function() {
-            // if there are any restrictions imposed on this
+            // If there are any restrictions imposed on this
             // revision, forbid its retrieval, cf.
             // https://phabricator.wikimedia.org/T76165#1030962
             if (restrictions && restrictions.length > 0) {
@@ -255,16 +257,16 @@ PRS.prototype.fetchAndStoreMWRevision = function (restbase, req) {
                     }
                 });
             }
-            // no restrictions, continue
+            // No restrictions, continue
             rp.revision = apiRev.revid + '';
             rp.title = dataResp.title;
             return self.getTitleRevision(restbase, req);
         });
     }).catch(function(e) {
-        // if a bad revision is supplied, the action module
+        // If a bad revision is supplied, the action module
         // returns a 500 with the 'Missing query pages' message
         // so catch that and turn it into a 404 in our case
-        if(e.status === 500 && /^Missing query pages/.test(e.body.description)) {
+        if (e.status === 500 && /^Missing query pages/.test(e.body.description)) {
             throw new rbUtil.HTTPError({
                 status: 404,
                 body: {
@@ -355,10 +357,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     }
     return revisionRequest
     .then(function(res) {
-        // check if the revision has any restrictions
+        // Check if the revision has any restrictions
         self._checkRevReturn(res);
 
-        // clear paging info
+        // Clear paging info
         delete res.body.next;
 
         if (!res.headers) {
@@ -401,7 +403,9 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
         });
         if (res.body.next) {
             res.body._links = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
+                next: {
+                    href: "?page=" + restbase.encodeToken(res.body.next)
+                }
             };
         }
         res.body.items = items;
@@ -414,7 +418,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
 
     var listReq = {
-        uri: new URI([rp.domain,'sys','action','query']),
+        uri: new URI([rp.domain, 'sys', 'action', 'query']),
         method: 'post',
         body: {
             generator: 'allpages',
@@ -434,10 +438,12 @@ PRS.prototype.listRevisions = function(restbase, req) {
             var article = pages[pageId];
             items.push(article.revisions[0].revid);
         });
-        var next={};
+        var next = {};
         if (res.body.next) {
             next = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
+                next: {
+                    href: "?page=" + restbase.encodeToken(res.body.next)
+                }
             };
         }
 
@@ -454,7 +460,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
 PRS.prototype.getRevision = function(restbase, req) {
     var rp = req.params;
     var self = this;
-    // sanity check
+    // Sanity check
     if (!/^[0-9]+$/.test(rp.revision)) {
         throw new rbUtil.HTTPError({
             status: 400,
@@ -465,11 +471,11 @@ PRS.prototype.getRevision = function(restbase, req) {
         });
     }
     if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
-        // ask the MW API directly and
+        // Ask the MW API directly and
         // store and return its result
         return this.fetchAndStoreMWRevision(restbase, req);
     }
-    // check the storage, and, if no match is found
+    // Check the storage, and, if no match is found
     // ask the MW API about the revision
     return restbase.get({
         uri: this.tableURI(rp.domain),
@@ -483,13 +489,13 @@ PRS.prototype.getRevision = function(restbase, req) {
         }
     })
     .then(function(res) {
-        // check the return
+        // Check the return
         self._checkRevReturn(res);
 
-        // clear paging info
+        // Clear paging info
         delete res.body.next;
 
-        // and get the revision info for the
+        // And get the revision info for the
         // page now that we have the title
         rp.title = res.body.items[0].title;
         return self.getTitleRevision(restbase, req);
@@ -511,7 +517,6 @@ module.exports = function(options) {
             listTitles: prs.listTitles.bind(prs),
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
-            //getTitleRevisionId: prs.getTitleRevisionId.bind(prs)
             listRevisions: prs.listRevisions.bind(prs),
             getRevision: prs.getRevision.bind(prs)
         },

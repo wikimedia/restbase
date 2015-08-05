@@ -32,7 +32,8 @@ SimpleService.prototype.processSpec = function(spec) {
             var storageUriTemplate;
             if (conf.storage) {
                 if (!conf.storage.bucket_request.uri) {
-                    throw new Error('Broken config: expected storage.bucket_request.uri for ' + path);
+                    throw new Error('Broken config: ' +
+                        'expected storage.bucket_request.uri for ' + path);
                 }
                 storageUriTemplate = new URI(conf.storage.item_request.uri, {}, true);
                 resources.push(conf.storage.bucket_request);
@@ -45,14 +46,14 @@ SimpleService.prototype.processSpec = function(spec) {
                 }
 
                 function backendRequest() {
-                    return restbase.request(backendRequestTemplate.eval({request:req}));
+                    return restbase.request(backendRequestTemplate.eval({ request: req }));
                 }
 
                 function regenerateAndSave() {
                     // Fall back to the backend service
                     return backendRequest()
                     .then(function(res) {
-                        // store the result
+                        // Store the result
                         return restbase.put({
                             uri: storageUriTemplate.expand(req.params),
                             headers: res.headers,
@@ -98,6 +99,6 @@ SimpleService.prototype.processSpec = function(spec) {
 };
 
 
-module.exports = function (options) {
+module.exports = function(options) {
     return new SimpleService(options).exports;
 };

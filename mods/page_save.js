@@ -2,7 +2,7 @@
 
 
 /**
- * page_save module
+ * Page_save module
  *
  * Sends the HTML or wikitext of a page to the MW API for saving
  */
@@ -38,7 +38,7 @@ function PageSave(options) {
 
 PageSave.prototype._getRevInfo = function(restbase, req) {
     var rp = req.params;
-    var path = [rp.domain,'sys','page_revisions','page',
+    var path = [rp.domain, 'sys', 'page_revisions', 'page',
                          rbUtil.normalizeTitle(rp.title)];
     if (!/^(?:[0-9]+)$/.test(req.body.revision)) {
         throw new rbUtil.HTTPError({
@@ -57,18 +57,18 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
     .then(function(res) {
         return res.body.items[0];
     }).catch(function(err) {
-        if(err.status !== 403) {
+        if (err.status !== 403) {
             throw err;
         }
-        // we are dealing with a restricted revision
+        // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit
-        return {title: rbUtil.normalizeTitle(rp.title)};
+        return { title: rbUtil.normalizeTitle(rp.title) };
     });
 };
 
 PageSave.prototype._checkParams = function(params) {
-    if(!(params && params.token &&
+    if (!(params && params.token &&
             ((params.wikitext && params.wikitext.trim()) || (params.html && params.html.trim()))
     )) {
         throw new rbUtil.HTTPError({
@@ -87,7 +87,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     var title = rbUtil.normalizeTitle(rp.title);
     var promise = P.resolve({});
     this._checkParams(req.body);
-    if(req.body.revision) {
+    if (req.body.revision) {
         promise = this._getRevInfo(restbase, req);
     }
     return promise.then(function(revInfo) {
@@ -99,14 +99,14 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             bot: req.body.bot || false,
             token: req.body.token
         };
-        // we need to add each info separately
+        // We need to add each info separately
         // since the presence of an empty value
         // might startle the MW API
-        if(revInfo.rev) {
-            // for forward compat with https://gerrit.wikimedia.org/r/#/c/94584
+        if (revInfo.rev) {
+            // For forward compat with https://gerrit.wikimedia.org/r/#/c/94584
             body.parentrevid = revInfo.rev;
         }
-        if(revInfo.timestamp) {
+        if (revInfo.timestamp) {
             // TODO: remove once the above patch gets merged
             body.basetimestamp = revInfo.timestamp;
         }
@@ -126,7 +126,7 @@ PageSave.prototype.saveHtml = function(restbase, req) {
     var title = rbUtil.normalizeTitle(rp.title);
     var promise = P.resolve({});
     this._checkParams(req.body);
-    // first transform the HTML to wikitext via the parsoid module
+    // First transform the HTML to wikitext via the parsoid module
     return restbase.post({
         uri: new URI([rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title]),
         body: {
@@ -134,7 +134,7 @@ PageSave.prototype.saveHtml = function(restbase, req) {
             html: req.body.html
         }
     }).then(function(res) {
-        // then send it to the MW API
+        // Then send it to the MW API
         req.body.wikitext = res.body;
         delete req.body.html;
         return self.saveWikitext(restbase, req);

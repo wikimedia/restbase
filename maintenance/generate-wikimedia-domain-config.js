@@ -14,7 +14,7 @@ var downloadUrl = "https://en.wikipedia.org/w/api.php?action=sitematrix&format=j
 var filename = "sitematrix.json";
 
 preq.get({
-	uri: downloadUrl,
+    uri: downloadUrl
 })
 .then(function(res) {
     var sm = res.body.sitematrix;

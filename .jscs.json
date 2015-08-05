@@ -1,0 +1,26 @@
+{
+  "preset": "node-style-guide",
+  "requireCurlyBraces": [
+    "if",
+    "else",
+    "for",
+    "while",
+    "do",
+    "try",
+    "catch"
+  ],
+  "validateIndentation": 4,
+  "requireCamelCaseOrUpperCaseIdentifiers": "ignoreProperties",
+  "requireCapitalizedComments": null,
+  "maximumLineLength": 100,
+  "validateQuoteMarks": null,
+  "requireTrailingComma": null,
+  "disallowTrailingComma": null,
+  "requireSpacesInsideObjectBrackets": "all",
+
+  "excludeFiles": [
+    "node_modules/**",
+    "test/**",
+    "coverage/**"
+  ]
+}
