@@ -67,22 +67,22 @@ PRS.prototype.getTableSchema = function() {
         },
         index: [
             { attribute: 'title', type: 'hash' },
-            { attribute: 'rev', type: 'range', order: 'desc'},
-            { attribute: 'latest_rev', type: 'static'},
-            { attribute: 'tid', type: 'range', order: 'desc'}
+            { attribute: 'rev', type: 'range', order: 'desc' },
+            { attribute: 'latest_rev', type: 'static' },
+            { attribute: 'tid', type: 'range', order: 'desc' }
         ],
         secondaryIndexes: {
             by_rev: [
                 { attribute: 'rev', type: 'hash' },
-                { attribute: 'tid', type: 'range', order: 'desc'},
-                { attribute: 'title', type: 'range', order: 'asc'},
-                { attribute: 'restrictions', type: 'proj'}
+                { attribute: 'tid', type: 'range', order: 'desc' },
+                { attribute: 'title', type: 'range', order: 'asc' },
+                { attribute: 'restrictions', type: 'proj' }
             ],
             by_ns: [
                 { attribute: 'namespace', type: 'hash' },
-                { attribute: 'title', type: 'range', order: 'asc'},
-                { attribute: 'rev', type: 'range', order: 'desc'},
-                { attribute: 'tid', type: 'range', order: 'desc'}
+                { attribute: 'title', type: 'range', order: 'asc' },
+                { attribute: 'rev', type: 'range', order: 'desc' },
+                { attribute: 'tid', type: 'range', order: 'desc' }
             ]
         }
     };

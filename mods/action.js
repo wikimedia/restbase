@@ -10,14 +10,14 @@ var Template = require('../lib/reqTemplate');
  * Error translation
  */
 var errDefs = {
-    400: { status: 400, type: 'invalid_request'},
-    401: { status: 401, type: 'unauthorized'},
-    403: { status: 403, type: 'access_denied#edit'},
-    409: { status: 409, type: 'conflict'},
-    413: { status: 413, type: 'too_large'},
-    429: { status: 429, type: 'rate_exceeded'},
-    500: { status: 500, type: 'server_error'},
-    501: { status: 501, type: 'not_supported'}
+    400: { status: 400, type: 'invalid_request' },
+    401: { status: 401, type: 'unauthorized' },
+    403: { status: 403, type: 'access_denied#edit' },
+    409: { status: 409, type: 'conflict' },
+    413: { status: 413, type: 'too_large' },
+    429: { status: 429, type: 'rate_exceeded' },
+    500: { status: 500, type: 'server_error' },
+    501: { status: 501, type: 'not_supported' }
 };
 
 var errCodes = {
@@ -105,9 +105,9 @@ function apiError(apiErr) {
  * Action module code
  */
 function ActionService(options) {
-    // be backwards-compatible with apiURI-style configs
+    // Be backwards-compatible with apiURI-style configs
     if (!options.apiRequest && options.apiURI) {
-        // log a deprecation warning
+        // Log a deprecation warning
         options.log('warn/actionService',
             'The config options for this module have changed. ' +
             'Please use the apiRequest template stanza');
@@ -116,12 +116,12 @@ function ActionService(options) {
             // TODO: assume the URI is in the form https?://{domain}/w/api.php
             // as we cannot currently template the host in swagger-router
             uri: 'http://{domain}/w/api.php',
-            headers: { host: '{$.request.params.domain}'},
+            headers: { host: '{$.request.params.domain}' },
             body: '{$.request.body}'
         };
-        // now check if there's really a param in the host of the URI
+        // Now check if there's really a param in the host of the URI
         if (!/^(:?https?:\/\/){[^\s}]+}\//.test(options.apiURI)) {
-            // no host templating, use the string provided by the config
+            // No host templating, use the string provided by the config
             options.apiRequest.uri = options.apiURI;
         }
         // TODO: decide what to do when apiURI has got a host param, but
@@ -141,7 +141,7 @@ function buildQueryResponse(res) {
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
     } else if (!res.body.query || !res.body.query.pages) {
-        throw apiError({info: 'Missing query pages from the PHP action API response.'});
+        throw apiError({ info: 'Missing query pages from the PHP action API response.' });
     }
     // Rewrite res.body
     // XXX: Rethink!

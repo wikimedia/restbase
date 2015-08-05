@@ -63,7 +63,7 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
         // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit
-        return {title: rbUtil.normalizeTitle(rp.title)};
+        return { title: rbUtil.normalizeTitle(rp.title) };
     });
 };
 

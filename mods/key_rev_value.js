@@ -55,8 +55,8 @@ KRVBucket.prototype.makeSchema = function(opts) {
         },
         index: [
             { attribute: 'key', type: 'hash' },
-            { attribute: 'rev', type: 'range', order: 'desc'},
-            { attribute: 'tid', type: 'range', order: 'desc'}
+            { attribute: 'rev', type: 'range', order: 'desc' },
+            { attribute: 'tid', type: 'range', order: 'desc' }
         ]
     };
 
@@ -241,7 +241,7 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
             },
             body: {
                 items: res.body.items.map(function(row) {
-                    return { revision: row.rev, tid: row.tid};
+                    return { revision: row.rev, tid: row.tid };
                 }),
                 next: res.body.next
             }
@@ -292,7 +292,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
     })
     .catch(function(error) {
         restbase.log('error/kv/putRevision', error);
-        return { status: 400};
+        return { status: 400 };
     });
 };
 

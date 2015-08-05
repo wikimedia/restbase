@@ -52,8 +52,8 @@ KVBucket.prototype.makeSchema = function(opts) {
             tags: 'set<string>'
         },
         index: [
-            { attribute: 'key', type: 'hash'},
-            { attribute: 'tid', type: 'range', order: 'desc'}
+            { attribute: 'key', type: 'hash' },
+            { attribute: 'tid', type: 'range', order: 'desc' }
         ]
     };
 };
