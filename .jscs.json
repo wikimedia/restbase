@@ -17,6 +17,7 @@
 
   "excludeFiles": [
     "node_modules/**",
-    "test/**"
+    "test/**",
+    "coverage/**"
   ]
 }
