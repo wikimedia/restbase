@@ -115,7 +115,7 @@ function ActionService(options) {
             method: 'post',
             // TODO: assume the URI is in the form https?://{domain}/w/api.php
             // as we cannot currently template the host in swagger-router
-            uri: 'http://{domain}/w/api.php',
+            uri: options.apiURI,
             headers: { host: '{$.request.params.domain}' },
             body: '{$.request.body}'
         };
@@ -127,7 +127,7 @@ function ActionService(options) {
         // TODO: decide what to do when apiURI has got a host param, but
         // the rest isn't /w/api.php
     } else if (!options.apiRequest) {
-        throw new Error('The action module needs the apiRequest temaplting stanza to exist!');
+        throw new Error('The action module needs the apiRequest templating stanza to exist!');
     }
     this.apiRequestTemplate = new Template(options.apiRequest);
 }
