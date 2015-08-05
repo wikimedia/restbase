@@ -2,7 +2,7 @@ language: node_js
 node_js:
     - "0.10"
     - "0.12"
-    - "iojs"
+    - "iojs-v2.5.0"
 
 before_install:
   - sudo sh -c "echo 'JVM_OPTS=\"\${JVM_OPTS} -Djava.net.preferIPv4Stack=false\"' >> /usr/local/cassandra/conf/cassandra-env.sh"
