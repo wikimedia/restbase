@@ -10,14 +10,14 @@ var Template = require('../lib/reqTemplate');
  * Error translation
  */
 var errDefs = {
-    400: { status: 400, type: 'invalid_request', },
-    401: { status: 401, type: 'unauthorized', },
-    403: { status: 403, type: 'access_denied#edit', },
-    409: { status: 409, type: 'conflict', },
-    413: { status: 413, type: 'too_large', },
-    429: { status: 429, type: 'rate_exceeded', },
-    500: { status: 500, type: 'server_error', },
-    501: { status: 501, type: 'not_supported', },
+    400: { status: 400, type: 'invalid_request'},
+    401: { status: 401, type: 'unauthorized'},
+    403: { status: 403, type: 'access_denied#edit'},
+    409: { status: 409, type: 'conflict'},
+    413: { status: 413, type: 'too_large'},
+    429: { status: 429, type: 'rate_exceeded'},
+    500: { status: 500, type: 'server_error'},
+    501: { status: 501, type: 'not_supported'}
 };
 
 var errCodes = {
@@ -78,7 +78,7 @@ var errCodes = {
     /* 429 - rate limit exceeded */
     ratelimited: errDefs['429'],
     /* 501 - not supported */
-    editnotsupported: errDefs['501'],
+    editnotsupported: errDefs['501']
 };
 
 function apiError(apiErr) {
@@ -90,8 +90,8 @@ function apiError(apiErr) {
         body: {
             type: errDefs['500'].type,
             title: apiErr.code || 'MW API Error',
-            description: apiErr.info || 'Unknown MW API error',
-        },
+            description: apiErr.info || 'Unknown MW API error'
+        }
     };
     if (apiErr.code && errCodes.hasOwnProperty(apiErr.code)) {
         ret.status = errCodes[apiErr.code].status;
@@ -116,8 +116,8 @@ function ActionService(options) {
             // TODO: assume the URI is in the form https?://{domain}/w/api.php
             // as we cannot currently template the host in swagger-router
             uri: 'http://{domain}/w/api.php',
-            headers: { host: '{$.request.params.domain}', },
-            body: '{$.request.body}',
+            headers: { host: '{$.request.params.domain}'},
+            body: '{$.request.body}'
         };
         // now check if there's really a param in the host of the URI
         if (!/^(:?https?:\/\/){[^\s}]+}\//.test(options.apiURI)) {
@@ -136,7 +136,7 @@ function buildQueryResponse(res) {
     if (res.status !== 200) {
         throw apiError({
             info: 'Unexpected response status ('
-                    + res.status + ') from the PHP action API.',
+                    + res.status + ') from the PHP action API.'
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
@@ -152,7 +152,7 @@ function buildQueryResponse(res) {
     // XXX: Clean this up!
     res.body = {
         items: newBody,
-        next: res.body.continue,
+        next: res.body.continue
     };
     return res;
 }
@@ -161,7 +161,7 @@ function buildEditResponse(res) {
     if (res.status !== 200) {
         throw apiError({
             info: 'Unexpected response status ('
-                    + res.status + ') from the PHP action API.',
+                    + res.status + ') from the PHP action API.'
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
@@ -175,7 +175,7 @@ function buildEditResponse(res) {
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     var apiRequest = this.apiRequestTemplate.eval({
-        request: req,
+        request: req
     });
     apiRequest.body.action = defBody.action;
     apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
@@ -189,7 +189,7 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
 ActionService.prototype.query = function(restbase, req) {
     return this._doRequest(restbase, req, {
         action: 'query',
-        format: 'json',
+        format: 'json'
     }, buildQueryResponse);
 };
 
@@ -197,7 +197,7 @@ ActionService.prototype.edit = function(restbase, req) {
     return this._doRequest(restbase, req, {
         action: 'edit',
         format: 'json',
-        formatversion: 2,
+        formatversion: 2
     }, buildEditResponse);
 };
 
@@ -209,19 +209,19 @@ module.exports = function(options) {
             paths: {
                 '/query': {
                     all: {
-                        operationId: 'mwApiQuery',
-                    },
+                        operationId: 'mwApiQuery'
+                    }
                 },
                 '/edit': {
                     post: {
-                        operationId: 'mwApiEdit',
-                    },
-                },
-            },
+                        operationId: 'mwApiEdit'
+                    }
+                }
+            }
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
-            mwApiEdit: actionService.edit.bind(actionService),
-        },
+            mwApiEdit: actionService.edit.bind(actionService)
+        }
     };
 };

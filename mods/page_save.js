@@ -20,39 +20,39 @@ function PageSave(options) {
         paths: {
             '/wikitext/{title}': {
                 post: {
-                    operationId: 'saveWikitext',
-                },
+                    operationId: 'saveWikitext'
+                }
             },
             '/html/{title}': {
                 post: {
-                    operationId: 'saveHTML',
-                },
-            },
-        },
+                    operationId: 'saveHTML'
+                }
+            }
+        }
     };
     this.operations = {
         saveWikitext: self.saveWikitext.bind(self),
-        saveHTML: self.saveHtml.bind(self),
+        saveHTML: self.saveHtml.bind(self)
     };
 }
 
 PageSave.prototype._getRevInfo = function(restbase, req) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
-                         rbUtil.normalizeTitle(rp.title), ];
+                         rbUtil.normalizeTitle(rp.title)];
     if (!/^(?:[0-9]+)$/.test(req.body.revision)) {
         throw new rbUtil.HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
                 title: 'Bad revision',
-                description: 'The supplied revision ID is invalid',
-            },
+                description: 'The supplied revision ID is invalid'
+            }
         });
     }
     path.push(req.body.revision);
     return restbase.get({
-        uri: new URI(path),
+        uri: new URI(path)
     })
     .then(function(res) {
         return res.body.items[0];
@@ -76,8 +76,8 @@ PageSave.prototype._checkParams = function(params) {
             body: {
                 type: 'invalid_request',
                 title: 'Missing parameters',
-                description: 'The html/wikitext and token parameters are required',
-            },
+                description: 'The html/wikitext and token parameters are required'
+            }
         });
     }
 };
@@ -97,7 +97,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             summary: req.body.comment || 'Change text to: ' + req.body.wikitext.substr(0, 100),
             minor: req.body.minor || false,
             bot: req.body.bot || false,
-            token: req.body.token,
+            token: req.body.token
         };
         // We need to add each info separately
         // since the presence of an empty value
@@ -113,9 +113,9 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
         return restbase.post({
             uri: new URI([rp.domain, 'sys', 'action', 'edit']),
             headers: {
-                cookie: req.headers.cookie,
+                cookie: req.headers.cookie
             },
-            body: body,
+            body: body
         });
     });
 };
@@ -131,8 +131,8 @@ PageSave.prototype.saveHtml = function(restbase, req) {
         uri: new URI([rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title]),
         body: {
             revision: req.body.revision,
-            html: req.body.html,
-        },
+            html: req.body.html
+        }
     }).then(function(res) {
         // Then send it to the MW API
         req.body.wikitext = res.body;
@@ -146,7 +146,7 @@ module.exports = function(options) {
     var ps = new PageSave(options || {});
     return {
         spec: ps.spec,
-        operations: ps.operations,
+        operations: ps.operations
     };
 };
 

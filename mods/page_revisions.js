@@ -30,7 +30,7 @@ function PRS(options) {
 
 PRS.prototype.tableName = 'title_revisions';
 PRS.prototype.tableURI = function(domain) {
-    return new URI([domain, 'sys', 'table', this.tableName, '', ]);
+    return new URI([domain, 'sys', 'table', this.tableName, '']);
 };
 
 // Get the schema for the revision table
@@ -63,28 +63,28 @@ PRS.prototype.getTableSchema = function() {
             user_text: 'string',
             timestamp: 'timestamp',
             comment: 'string',
-            redirect: 'boolean',
+            redirect: 'boolean'
         },
         index: [
             { attribute: 'title', type: 'hash' },
-            { attribute: 'rev', type: 'range', order: 'desc', },
-            { attribute: 'latest_rev', type: 'static', },
-            { attribute: 'tid', type: 'range', order: 'desc', },
+            { attribute: 'rev', type: 'range', order: 'desc'},
+            { attribute: 'latest_rev', type: 'static'},
+            { attribute: 'tid', type: 'range', order: 'desc'}
         ],
         secondaryIndexes: {
             by_rev: [
                 { attribute: 'rev', type: 'hash' },
-                { attribute: 'tid', type: 'range', order: 'desc', },
-                { attribute: 'title', type: 'range', order: 'asc', },
-                { attribute: 'restrictions', type: 'proj', },
+                { attribute: 'tid', type: 'range', order: 'desc'},
+                { attribute: 'title', type: 'range', order: 'asc'},
+                { attribute: 'restrictions', type: 'proj'}
             ],
             by_ns: [
                 { attribute: 'namespace', type: 'hash' },
-                { attribute: 'title', type: 'range', order: 'asc', },
-                { attribute: 'rev', type: 'range', order: 'desc', },
-                { attribute: 'tid', type: 'range', order: 'desc', },
-            ],
-        },
+                { attribute: 'title', type: 'range', order: 'asc'},
+                { attribute: 'rev', type: 'range', order: 'desc'},
+                { attribute: 'tid', type: 'range', order: 'desc'}
+            ]
+        }
     };
 };
 
@@ -108,8 +108,8 @@ PRS.prototype._checkRevReturn = function(res) {
                 status: 404,
                 body: {
                     type: 'not_found#page_revisions',
-                    description: 'Page was deleted',
-                },
+                    description: 'Page was deleted'
+                }
             });
         } else {
             throw new rbUtil.HTTPError({
@@ -118,8 +118,8 @@ PRS.prototype._checkRevReturn = function(res) {
                     type: 'access_denied#revision',
                     title: 'Access to resource denied',
                     description: 'Access is restricted for revision ' + item.rev,
-                    restrictions: item.restrictions,
-                },
+                    restrictions: item.restrictions
+                }
             });
         }
     }
@@ -130,14 +130,14 @@ PRS.prototype._checkRevReturn = function(res) {
 PRS.prototype.listTitles = function(restbase, req, options) {
     var rp = req.params;
     var listReq = {
-        uri: new URI([rp.domain, 'sys', 'action', 'query', ]),
+        uri: new URI([rp.domain, 'sys', 'action', 'query']),
         method: 'post',
         body: {
             generator: 'allpages',
             gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
-            format: 'json',
-        },
+            format: 'json'
+        }
     };
 
     if (req.query.page) {
@@ -158,8 +158,8 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         if (res.body.next) {
             next = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next),
-                },
+                    href: "?page=" + restbase.encodeToken(res.body.next)
+                }
             };
         }
 
@@ -167,8 +167,8 @@ PRS.prototype.listTitles = function(restbase, req, options) {
             status: 200,
             body: {
                 items: items,
-                _links: next,
-            },
+                _links: next
+            }
         };
     });
 };
@@ -178,14 +178,14 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
     var rp = req.params;
     // Try to resolve MW oldids to tids
     var apiReq = {
-        uri: new URI([rp.domain, 'sys', 'action', 'query', ]),
+        uri: new URI([rp.domain, 'sys', 'action', 'query']),
         body: {
             format: 'json',
             action: 'query',
             prop: 'info|revisions',
             continue: '',
-            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags',
-        },
+            rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags'
+        }
     };
     if (/^[0-9]+$/.test(rp.revision)) {
         apiReq.body.revids = rp.revision;
@@ -201,8 +201,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
                 body: {
                     type: 'not_found#page_revisions',
                     description: 'Page or revision not found.',
-                    apiResponse: apiRes,
-                },
+                    apiResponse: apiRes
+                }
             });
         }
         // The response item
@@ -238,9 +238,9 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
                     comment: apiRev.comment,
                     tags: apiRev.tags,
                     restrictions: restrictions,
-                    redirect: redirect,
-                },
-            },
+                    redirect: redirect
+                }
+            }
         })
         .then(function() {
             // If there are any restrictions imposed on this
@@ -253,8 +253,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
                         type: 'access_denied#revision',
                         title: 'Access to resource denied',
                         description: 'Access is restricted for revision ' + apiRev.revid,
-                        restrictions: restrictions,
-                    },
+                        restrictions: restrictions
+                    }
                 });
             }
             // No restrictions, continue
@@ -272,8 +272,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
                 body: {
                     type: 'not_found#page_revisions',
                     description: 'Page or revision not found.',
-                    apiRequest: apiReq,
-                },
+                    apiRequest: apiReq
+                }
             });
         }
         throw e;
@@ -291,10 +291,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: rbUtil.normalizeTitle(rp.title),
+                    title: rbUtil.normalizeTitle(rp.title)
                 },
-                limit: 1,
-            },
+                limit: 1
+            }
         });
     }
 
@@ -306,10 +306,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 table: this.tableName,
                 attributes: {
                     title: rbUtil.normalizeTitle(rp.title),
-                    rev: parseInt(rp.revision),
+                    rev: parseInt(rp.revision)
                 },
-                limit: 1,
-            },
+                limit: 1
+            }
         })
         .catch(function(e) {
             if (e.status !== 404) {
@@ -335,8 +335,8 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                         uri: self.tableURI(rp.domain),
                         body: {
                             table: self.tableName,
-                            attributes: result,
-                        },
+                            attributes: result
+                        }
                     })
                     .then(function() {
                         throw e;
@@ -378,17 +378,17 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
     var revisionRequest = {
         table: this.tableName,
         attributes: {
-            title: rbUtil.normalizeTitle(rp.title),
+            title: rbUtil.normalizeTitle(rp.title)
         },
         proj: ['rev'],
-        limit: restbase.rb_config.default_page_size,
+        limit: restbase.rb_config.default_page_size
     };
     if (req.query.page) {
         revisionRequest.next = restbase.decodeToken(req.query.page);
     }
     return restbase.get({
         uri: this.tableURI(rp.domain),
-        body: revisionRequest,
+        body: revisionRequest
     })
     .then(function(res) {
         // Flatten to an array of revisions rather than an array of objects &
@@ -404,8 +404,8 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
         if (res.body.next) {
             res.body._links = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next),
-                },
+                    href: "?page=" + restbase.encodeToken(res.body.next)
+                }
             };
         }
         res.body.items = items;
@@ -418,14 +418,14 @@ PRS.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
 
     var listReq = {
-        uri: new URI([rp.domain, 'sys', 'action', 'query', ]),
+        uri: new URI([rp.domain, 'sys', 'action', 'query']),
         method: 'post',
         body: {
             generator: 'allpages',
             gaplimit: restbase.rb_config.default_page_size,
             prop: 'revisions',
-            format: 'json',
-        },
+            format: 'json'
+        }
     };
     if (req.query.page) {
         Object.assign(listReq.body, restbase.decodeToken(req.query.page));
@@ -442,8 +442,8 @@ PRS.prototype.listRevisions = function(restbase, req) {
         if (res.body.next) {
             next = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next),
-                },
+                    href: "?page=" + restbase.encodeToken(res.body.next)
+                }
             };
         }
 
@@ -451,8 +451,8 @@ PRS.prototype.listRevisions = function(restbase, req) {
             status: 200,
             body: {
                 items: items,
-                _links: next,
-            },
+                _links: next
+            }
         };
     });
 };
@@ -466,8 +466,8 @@ PRS.prototype.getRevision = function(restbase, req) {
             status: 400,
             body: {
                 type: 'invalidRevision',
-                description: 'Invalid revision specified.',
-            },
+                description: 'Invalid revision specified.'
+            }
         });
     }
     if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
@@ -483,10 +483,10 @@ PRS.prototype.getRevision = function(restbase, req) {
             table: this.tableName,
             index: 'by_rev',
             attributes: {
-                rev: parseInt(rp.revision),
+                rev: parseInt(rp.revision)
             },
-            limit: 1,
-        },
+            limit: 1
+        }
     })
     .then(function(res) {
         // Check the return
@@ -518,14 +518,14 @@ module.exports = function(options) {
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
             listRevisions: prs.listRevisions.bind(prs),
-            getRevision: prs.getRevision.bind(prs),
+            getRevision: prs.getRevision.bind(prs)
         },
         resources: [
             {
                 // Revision table
                 uri: '/{domain}/sys/table/' + prs.tableName,
-                body: prs.getTableSchema(),
-            },
-        ],
+                body: prs.getTableSchema()
+            }
+        ]
     };
 };
