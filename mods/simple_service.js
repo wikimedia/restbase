@@ -9,7 +9,6 @@ var URI = require('swagger-router').URI;
 var rbUtil = require('../lib/rbUtil');
 var Template = require('../lib/reqTemplate');
 
-
 function SimpleService(options) {
     options = options || {};
     this.spec = {
@@ -19,6 +18,13 @@ function SimpleService(options) {
     this.exports = this.processSpec(this.spec);
 }
 
+/**
+ * Processes an on_setup property and creates request templates
+ * for each resource
+ *
+ * @param {object} conf an endpoint configuration object
+ * @returns {Array} array of request remplates that must be run on service startup
+ */
 function processResources(conf) {
     var resources = [];
     if (conf.on_setup) {
@@ -37,125 +43,236 @@ function processResources(conf) {
     return resources;
 }
 
+/**
+ * Creates a JS function that verifies property equality
+ *
+ * @param catchDefinition the condition in the format of 'catch' and 'return_if' stanza
+ * @returns {Function} a function that verifies the condition
+ */
 function compileCatchFunction(catchDefinition) {
+    function createCondition(catchCond, option) {
+        if (catchCond === 'status') {
+            if (/^[0-9]+$/.test(option.toString())) {
+                return '(res["' + catchCond + '"] === ' + option + ')';
+            } else {
+                return '(/^' + option.replace('x', '.') +
+                    '$/.test(res["' + catchCond + '"].toString())';
+            }
+        } else {
+            return '(res["' + catchCond + '"] === ' + option + ')';
+        }
+    }
+
     var condition = [];
     var code;
     Object.keys(catchDefinition).forEach(function(catchCond) {
         if (Array.isArray(catchDefinition[catchCond])) {
-            var orCondition = [];
-            catchDefinition[catchCond].forEach(function(option) {
-                if (catchCond === 'status') {
-                    if (/^[0-9]+$/.test(option.toString())) {
-                        orCondition.push('(res"[' + catchCond + '"] === ' + option + ')');
-                    } else {
-                        orCondition.push('(/^' + option.replace('x', '.') + '$/.test(res["' + catchCond + '"].toString())');
-                    }
-                } else {
-                    orCondition.push('(res["' + catchCond + '"] === ' + option + ')');
-                }
-                condition.push('(' + orCondition.join(' || ') + ')');
+            var orCondition = catchDefinition[catchCond].map(function(option) {
+                return createCondition(catchCond, option);
             });
+            condition.push('(' + orCondition.join(' || ') + ')');
         } else {
-            condition.push('(res["' + catchCond + '"] === ' + catchDefinition[catchCond] + ')');
+            condition.push(createCondition(catchCond, catchDefinition[catchCond]));
         }
     });
-    code =  'if (' + condition.join(' && ') + ') { return true; } else { return false; }';
+    code =  'return (' + condition.join(' && ') + ');';
     /* jslint evil: true */
     return new Function('res', code);
 }
 
+/**
+ * Checks if a step definition contains 'return' or 'return_if' stanza
+ * @param stepConf step config object
+ * @returns {boolean} true if there's 'return' or 'return_if' in the step
+ */
 function isReturnStep(stepConf) {
     return Object.keys(stepConf).some(function(requestName) {
         return stepConf[requestName].return || stepConf[requestName].return_if;
     });
 }
 
+/**
+ * Validates a single step in the request chain
+ *
+ * @param {object} stepConf step configuration with optional
+ *                 'request', 'return', 'return_if' and 'catch' properties.
+ */
 function validateStep(stepConf) {
+    // Returning steps can't be parallel
     if (isReturnStep(stepConf) && Object.keys(stepConf).length > 1) {
         throw new Error('Invalid spec. ' +
             'Returning requests cannot be parallel. Spec: ' + JSON.stringify(stepConf));
     }
-    if (! Object.keys(stepConf).any)
+
+    // Either 'request' or 'return' must be specified
+    if (! Object.keys(stepConf).every(function(requestName) {
+        return stepConf[requestName].request || stepConf[requestName].return;
+    })) {
+        throw new Error('Invalid spec. ' +
+            'Either request or return must be specified. Step: ' + JSON.stringify(stepConf));
+    }
+
+    // Only supply 'return_if' when 'request' is specified
+    if (Object.keys(stepConf).some(function(requestName) {
+        return stepConf[requestName].return_if && !stepConf[requestName].request;
+    })) {
+        throw new Error('Invalid spec. ' +
+            'return_if should have a matching request. Step: ' + JSON.stringify(stepConf));
+    }
+
+    // Only supply 'catch' when 'request' is specified
+    if (Object.keys(stepConf).some(function(requestName) {
+        return stepConf[requestName].catch && !stepConf[requestName].request;
+    })) {
+        throw new Error('Invalid spec. ' +
+            'catch should have a matching request. Step: ' + JSON.stringify(stepConf));
+    }
 }
 
+/**
+ * Validates the specification of the service,
+ * throws Error if some of the rules are not met.
+ *
+ * Current rules:
+ *  - spec must have at least one path
+ *  - each request handler spec must have 'on_request' property
+ *  - returning steps can't be parallel
+ *  - either 'request' or 'return' must be specified in each step
+ *  - 'return_if' is allowed only if 'request' is specified in a step
+ *  - 'catch' is allowed only if 'request' is specified in a step
+ *  - last step in a request chain can't be parallel
+ *
+ * @param {object} spec service spec object
+ */
 function validateSpec(spec) {
-    if (!spec.paths) {
+    if (!spec.paths || Object.keys(spec.paths).length === 0) {
         throw new Error('Invalid spec. Paths are required. Spec: ' + JSON.stringify(spec));
     }
     Object.keys(spec.paths).forEach(function(path) {
         var conf = spec.paths[path];
-        if (!conf.on_request || !Array.isArray(conf.on_request)) {
-            throw new Error('Invalid spec. on_request part is required and must be an array');
-        }
-        conf.on_request.forEach(validateStep);
+        Object.keys(conf).forEach(function(method) {
+           var handlerConf = conf[method];
+            if (!handlerConf.on_request || !Array.isArray(handlerConf.on_request)) {
+                throw new Error('Invalid spec. ' +
+                    'on_request part is required and must be an array. Spec: ' + JSON.stringify(conf));
+            }
+            handlerConf.on_request.forEach(validateStep);
+
+            // Last step must not be parallel
+            if (Object.keys(handlerConf.on_request[handlerConf.on_request.length - 1]).length > 1) {
+                throw new Error('Invalid spec. The last step in chain must not be parallel.');
+            }
+        });
     });
 }
 
+/**
+ * Prepares a request chain on startup: compiles request/response templates,
+ * creates catch conditions verifiers.
+ * @param conf request chain configuration
+ *
+ * @returns {Array} an array of prepared steps, each containing an
+ */
+function prepareRequestChain(conf) {
+
+    /**
+     * Creates a function gene
+     * @param requestSpec
+     * @param requestName
+     * @param requestConf
+     */
+    function prepareRequest(requestSpec, requestName, requestConf) {
+        var template;
+        if (requestConf.request) {
+            template = new Template(requestConf.request);
+            requestSpec.request = function(restbase, context) {
+                var req = template.eval(context);
+                return restbase.request(req)
+                .then(function(res) {
+                    context[requestName] = res;
+                    return res;
+                });
+            };
+        }
+    }
+
+    function prepareReturn(requestSpec, requestConf) {
+        if (requestConf.return) {
+            var template = new Template(requestConf.return);
+            var originalRequestHandler = requestSpec.request;
+            if (originalRequestHandler) {
+                requestSpec.request = function(restbase, context) {
+                    return originalRequestHandler(restbase, context)
+                    .then(function() {
+                        return template.eval(context);
+                    });
+                };
+            } else {
+                requestSpec.request = function(restbase, context) {
+                    return template.eval(context);
+                };
+            }
+        }
+    }
+
+    function prepareCatch(requestSpec, requestConf) {
+        if (requestConf.catch) {
+            var isCatched = compileCatchFunction(requestConf.catch);
+            var originalRequestHandler = requestSpec.request;
+            requestSpec.request = function(restbase, context) {
+                return originalRequestHandler(restbase, context)
+                .catch(function(err) {
+                    if (!isCatched(err)) {
+                        throw err;
+                    }
+                });
+            };
+        }
+    }
+
+    function prepareReturnIf(requestSpec, requestConf) {
+        if (requestConf.return_if) {
+            requestSpec.return_if = compileCatchFunction(requestConf.return_if);
+        }
+    }
+
+    return conf.map(function(stepConf) {
+        return Object.keys(stepConf).map(function(requestName) {
+            var requestConf = stepConf[requestName];
+            var requestSpec = { name: requestName };
+            prepareRequest(requestSpec, requestName, requestConf);
+            prepareReturn(requestSpec, requestConf);
+            prepareReturnIf(requestSpec, requestConf);
+            prepareCatch(requestSpec, requestConf);
+            return requestSpec;
+        });
+    });
+}
+
+/**
+ * Processes the service spec and prepares the service to work.
+ *
+ * @param spec spec object parsed from yaml config
+ *
+ * @returns {{spec: Object, operations: Object, resources: Array}}
+ *          spec: modified spec object with generated operation ids
+ *          operations: map with request handlers
+ *          resources: array of request templates that should be run on service startup
+ */
 SimpleService.prototype.processSpec = function(spec) {
-    var self = this;
     var operations = [];
     var resources = [];
+
+    validateSpec(spec);
 
     Object.keys(spec.paths).forEach(function(path) {
         var pathObj = spec.paths[path];
         Object.keys(pathObj).forEach(function(method) {
             var conf = pathObj[method];
-            var requestChain = [];
-
+            var requestChain = prepareRequestChain(conf.on_request);
             conf.operationId = method + '_' + path;
-<<<<<<< HEAD
-            var storageUriTemplate;
-            if (conf.storage) {
-                if (!conf.storage.bucket_request.uri) {
-                    throw new Error('Broken config: expected storage.bucket_request.uri for ' + path);
-                }
-                storageUriTemplate = new URI(conf.storage.item_request.uri, {}, true);
-                resources.push(conf.storage.bucket_request);
-            }
-=======
 
             resources = resources.concat(processResources(conf));
->>>>>>> Fixed test config
-
-            conf.on_request.forEach(function(stepConf) {
-                var operation = [];
-                var template;
-                Object.keys(stepConf).forEach(function(requestName) {
-                    var requestConf = stepConf[requestName];
-                    var requestSpec = {
-                        name: requestName
-                    };
-                    if (requestConf.request) {
-                        template = new Template(requestConf.request);
-                        requestSpec.request = function(restbase, context) {
-                            var req = template.eval(context);
-                            return restbase.request(req)
-                            .then(function(res) {
-                                context[requestName] = res;
-                                return res;
-                            });
-                        };
-                    }
-                    if (requestConf.return) {
-                        (function() {
-                            var template = new Template(requestConf.return);
-                            requestSpec.return = function(context) {
-                                return function() {
-                                    return template.eval(context);
-                                };
-                            };
-                        })();
-                    }
-                    if (requestConf.return_if) {
-                        requestSpec.return_if = compileCatchFunction(requestConf.return_if);
-                    }
-                    if (requestConf.catch) {
-                        requestSpec.catch = compileCatchFunction(requestConf.catch);
-                    }
-                    operation.push(requestSpec);
-                });
-                requestChain.push(operation);
-            });
 
             function generatePromiseChain(restbase, context, requestChain) {
                 var promise;
@@ -164,14 +281,13 @@ SimpleService.prototype.processSpec = function(spec) {
                     promise = P.all(currentRequestSpec.map(function(spec) {
                         return spec.request(restbase, context);
                     }));
-                } else {
-                    if (currentRequestSpec[0].request) {
-                        promise = currentRequestSpec[0].request(restbase, context);
-                    }
+                } else if (currentRequestSpec[0].request) {
+                    promise = currentRequestSpec[0].request(restbase, context);
                 }
 
-                function backendRequest() {
-                    return restbase.request(backendRequestTemplate.eval({request:req}));
+                if (currentRequestSpec[0].return) {
+                    promise = promise || P.resolve();
+                    promise = promise.then(currentRequestSpec[0].return(context));
                 }
 
                 if (currentRequestSpec[0].catch) {
@@ -198,6 +314,7 @@ SimpleService.prototype.processSpec = function(spec) {
                     });
                 }
             }
+
             operations[conf.operationId] = function(restbase, req) {
                 var context = {
                     request: req
