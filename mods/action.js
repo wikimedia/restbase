@@ -115,7 +115,7 @@ function ActionService(options) {
             method: 'post',
             // TODO: assume the URI is in the form https?://{domain}/w/api.php
             // as we cannot currently template the host in swagger-router
-            uri: 'http://{domain}/w/api.php',
+            uri: options.apiURI,
             headers: { host: '{$.request.params.domain}' },
             body: '{$.request.body}'
         };
