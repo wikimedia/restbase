@@ -104,27 +104,29 @@ function apiError(apiErr) {
 /**
  * Action module code
  */
-function ActionService (options) {
+function ActionService(options) {
     // be backwards-compatible with apiURI-style configs
-    if(!options.apiRequest && options.apiURI) {
+    if (!options.apiRequest && options.apiURI) {
         // log a deprecation warning
-        options.log('warn/actionService', 'The config options for this module have changed. Please use the apiRequest template stanza');
+        options.log('warn/actionService',
+            'The config options for this module have changed. ' +
+            'Please use the apiRequest template stanza');
         options.apiRequest = {
             method: 'post',
             // TODO: assume the URI is in the form https?://{domain}/w/api.php
             // as we cannot currently template the host in swagger-router
-            uri: '{$.default_uri}',
-            headers: { host: '{$.request.params.domain}' },
-            body: '{$.request.body}'
+            uri: 'http://{domain}/w/api.php',
+            headers: { host: '{$.request.params.domain}', },
+            body: '{$.request.body}',
         };
         // now check if there's really a param in the host of the URI
-        if(!/^(:?https?:\/\/){[^\s}]+}\//.test(options.apiURI)) {
+        if (!/^(:?https?:\/\/){[^\s}]+}\//.test(options.apiURI)) {
             // no host templating, use the string provided by the config
             options.apiRequest.uri = options.apiURI;
         }
         // TODO: decide what to do when apiURI has got a host param, but
         // the rest isn't /w/api.php
-    } else if(!options.apiRequest) {
+    } else if (!options.apiRequest) {
         throw new Error('The action module needs the apiRequest temaplting stanza to exist!');
     }
     this.apiRequestTemplate = new Template(options.apiRequest);
@@ -173,7 +175,7 @@ function buildEditResponse(res) {
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     var apiRequest = this.apiRequestTemplate.eval({
-        request: req
+        request: req,
     });
     apiRequest.body.action = defBody.action;
     apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
