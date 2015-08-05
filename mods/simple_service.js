@@ -105,7 +105,7 @@ function validateStep(stepConf) {
     }
 
     // Either 'request' or 'return' must be specified
-    if (! Object.keys(stepConf).every(function(requestName) {
+    if (!Object.keys(stepConf).every(function(requestName) {
         return stepConf[requestName].request || stepConf[requestName].return;
     })) {
         throw new Error('Invalid spec. ' +
@@ -151,10 +151,10 @@ function validateSpec(spec) {
     Object.keys(spec.paths).forEach(function(path) {
         var conf = spec.paths[path];
         Object.keys(conf).forEach(function(method) {
-           var handlerConf = conf[method];
+            var handlerConf = conf[method];
             if (!handlerConf.on_request || !Array.isArray(handlerConf.on_request)) {
                 throw new Error('Invalid spec. ' +
-                    'on_request part is required and must be an array. Spec: ' + JSON.stringify(conf));
+                    'on_request part is required. Spec: ' + JSON.stringify(conf));
             }
             handlerConf.on_request.forEach(validateStep);
 
@@ -332,6 +332,6 @@ SimpleService.prototype.processSpec = function(spec) {
 };
 
 
-module.exports = function (options) {
+module.exports = function(options) {
     return new SimpleService(options).exports;
 };
