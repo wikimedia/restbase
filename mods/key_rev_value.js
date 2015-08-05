@@ -17,19 +17,19 @@ var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_rev_value.yaml'));
 var backend;
 var config;
 
-function KRVBucket (options) {
-    this.log = options.log || function(){};
+function KRVBucket(options) {
+    this.log = options.log || function() {};
 }
 
 KRVBucket.prototype.getBucketInfo = function(restbase, req, options) {
     var self = this;
     return P.resolve({
         status: 200,
-        body: options
+        body: options,
     });
 };
 
-KRVBucket.prototype.makeSchema = function (opts) {
+KRVBucket.prototype.makeSchema = function(opts) {
     var schemaVersionMajor = 1;
 
     var schema =  {
@@ -37,9 +37,9 @@ KRVBucket.prototype.makeSchema = function (opts) {
             compression: [
                 {
                     algorithm: 'deflate',
-                    block_size: 256
-                }
-            ]
+                    block_size: 256,
+                },
+            ],
         },
         attributes: {
             key: opts.keyType || 'string',
@@ -49,15 +49,14 @@ KRVBucket.prototype.makeSchema = function (opts) {
             value: opts.valueType || 'blob',
             'content-type': 'string',
             'content-sha256': 'blob',
-            // redirect
+            // Redirect
             'content-location': 'string',
             tags: 'set<string>',
-            //headers: 'map<string,string>'
         },
         index: [
             { attribute: 'key', type: 'hash' },
-            { attribute: 'rev', type: 'range', order: 'desc' },
-            { attribute: 'tid', type: 'range', order: 'desc' }
+            { attribute: 'rev', type: 'range', order: 'desc', },
+            { attribute: 'tid', type: 'range', order: 'desc', },
         ],
     };
 
@@ -80,19 +79,19 @@ KRVBucket.prototype.createBucket = function(restbase, req) {
     schema.table = req.params.bucket;
     var rp = req.params;
     var storeRequest = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket]),
-        body: schema
+        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, ]),
+        body: schema,
     };
     return restbase.put(storeRequest);
 };
 
 
-KRVBucket.prototype.getListQuery = function (options, bucket) {
+KRVBucket.prototype.getListQuery = function(options, bucket) {
     return {
         table: bucket,
         distinct: true,
         proj: 'key',
-        limit: 1000
+        limit: 1000,
     };
 };
 
@@ -105,8 +104,8 @@ KRVBucket.prototype.listBucket = function(restbase, req, options) {
 
     var listQuery = this.getListQuery(options, rp.bucket);
     return restbase.get({
-        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
-        body: listQuery
+        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '', ]),
+        body: listQuery,
     })
     .then(function(result) {
         var listing = result.body.items.map(function(row) {
@@ -115,11 +114,11 @@ KRVBucket.prototype.listBucket = function(restbase, req, options) {
         return {
             status: 200,
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
             },
             body: {
-                items: listing
-            }
+                items: listing,
+            },
         };
     })
     .catch(function(error) {
@@ -131,17 +130,17 @@ KRVBucket.prototype.listBucket = function(restbase, req, options) {
 // Format a revision response. Shared between different ways to retrieve a
 // revision (latest & with explicit revision).
 function returnRevision(req) {
-    return function (dbResult) {
+    return function(dbResult) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
             var headers = {
                 etag: rbUtil.makeETag(row.rev, row.tid),
-                'content-type': row['content-type']
+                'content-type': row['content-type'],
             };
             return {
                 status: 200,
                 headers: headers,
-                body: row.value
+                body: row.value,
             };
         } else {
             throw new rbUtil.HTTPError({
@@ -149,23 +148,23 @@ function returnRevision(req) {
                 body: {
                     type: 'not_found',
                     uri: req.uri,
-                    method: req.method
-                }
+                    method: req.method,
+                },
             });
         }
     };
 }
 
-function coerceTid (tidString) {
+function coerceTid(tidString) {
     if (rbUtil.isTimeUUID(tidString)) {
         return tidString;
     }
 
     if (/^\d{4}-\d{2}-\d{2}/.test(tidString)) {
-        // timestamp
+        // Timestamp
         try {
             return rbUtil.tidFromDate(tidString);
-        } catch (e) {} // fall through
+        } catch (e) {} // Fall through
     }
 
     // Out of luck
@@ -174,20 +173,20 @@ function coerceTid (tidString) {
         body: {
             type: 'key_rev_value/invalid_tid',
             title: 'Invalid tid parameter',
-            tid: tidString
-        }
+            tid: tidString,
+        },
     });
 }
 
-function parseRevision (rev) {
+function parseRevision(rev) {
     if (!/^[0-9]+/.test(rev)) {
         throw new rbUtil.HTTPError({
             status: 400,
             body: {
                 type: 'key_rev_value/invalid_revision',
                 title: 'Invalid revision parameter',
-                rev: rev
-            }
+                rev: rev,
+            },
         });
     }
 
@@ -197,14 +196,14 @@ function parseRevision (rev) {
 KRVBucket.prototype.getRevision = function(restbase, req) {
     var rp = req.params;
     var storeReq = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
+        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '', ]),
         body: {
             table: rp.bucket,
             attributes: {
-                key: rp.key
+                key: rp.key,
             },
-            limit: 1
-        }
+            limit: 1,
+        },
     };
     if (rp.revision) {
         storeReq.body.attributes.rev = parseRevision(rp.revision);
@@ -219,15 +218,16 @@ KRVBucket.prototype.getRevision = function(restbase, req) {
 KRVBucket.prototype.listRevisions = function(restbase, req) {
     var rp = req.params;
     var storeRequest = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
+        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '', ]),
         body: {
             table: req.params.bucket,
             attributes: {
-                key: req.params.key
+                key: req.params.key,
             },
             proj: ['rev', 'tid'],
-            limit: (req.body && req.body.limit) ? req.body.limit : restbase.rb_config.default_page_size
-        }
+            limit: (req.body && req.body.limit) ?
+                        req.body.limit : restbase.rb_config.default_page_size,
+        },
     };
     if (rp.revision) {
         storeRequest.body.attributes.rev = parseRevision(rp.revision);
@@ -237,14 +237,14 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
         return {
             status: 200,
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
             },
             body: {
                 items: res.body.items.map(function(row) {
-                    return { revision: row.rev, tid: row.tid };
+                    return { revision: row.rev, tid: row.tid, };
                 }),
-                next: res.body.next
-            }
+                next: res.body.next,
+            },
         };
     });
 };
@@ -260,7 +260,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
     }
 
     var storeReq = {
-        uri: new URI([rp.domain,'sys','table',rp.bucket,'']),
+        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '', ]),
         body: {
             table: rp.bucket,
             attributes: {
@@ -268,10 +268,10 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
                 rev: rev,
                 tid: tid,
                 value: req.body,
-                'content-type': req.headers['content-type']
+                'content-type': req.headers['content-type'],
                 // TODO: include other data!
-            }
-        }
+            },
+        },
     };
     return restbase.put(storeReq)
     .then(function(res) {
@@ -283,8 +283,8 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
                 },
                 body: {
                     message: "Created.",
-                    tid: rp.revision
-                }
+                    tid: rp.revision,
+                },
             };
         } else {
             throw res;
@@ -292,7 +292,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
     })
     .catch(function(error) {
         restbase.log('error/kv/putRevision', error);
-        return { status: 400 };
+        return { status: 400, };
     });
 };
 
@@ -307,7 +307,7 @@ module.exports = function(options) {
             listBucket: krvBucket.listBucket.bind(krvBucket),
             listRevisions: krvBucket.listRevisions.bind(krvBucket),
             getRevision: krvBucket.getRevision.bind(krvBucket),
-            putRevision: krvBucket.putRevision.bind(krvBucket)
-        }
+            putRevision: krvBucket.putRevision.bind(krvBucket),
+        },
     };
 };

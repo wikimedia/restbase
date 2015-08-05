@@ -26,19 +26,19 @@ function ParsoidService(options) {
             return self.wrapContentReq(restbase, req,
                     self.pagebundle(restbase, req), 'pagebundle');
         },
-        // revision retrieval per format
+        // Revision retrieval per format
         getWikitext: self.getFormat.bind(self, 'wikitext'),
         getHtml: self.getFormat.bind(self, 'html'),
         getDataParsoid: self.getFormat.bind(self, 'data-parsoid'),
-        // listings
+        // Listings
         listWikitextRevisions: self.listRevisions.bind(self, 'wikitext'),
         listHtmlRevisions: self.listRevisions.bind(self, 'html'),
         listDataParsoidRevisions: self.listRevisions.bind(self, 'data-parsoid'),
-        // transforms
+        // Transforms
         transformHtmlToHtml: self.makeTransform('html', 'html'),
         transformHtmlToWikitext: self.makeTransform('html', 'wikitext'),
         transformWikitextToHtml: self.makeTransform('wikitext', 'html'),
-        transformSectionsToWikitext: self.makeTransform('sections', 'wikitext')
+        transformSectionsToWikitext: self.makeTransform('sections', 'wikitext'),
     };
 }
 
@@ -78,13 +78,13 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
     // offsets
     if (format === 'html' && req.query.sections) {
         reqs.sectionOffsets = restbase.get({
-            uri: this.getBucketURI(rp, 'section.offsets', tid)
+            uri: this.getBucketURI(rp, 'section.offsets', tid),
         });
     }
 
     return P.props(reqs)
     .then(function(responses) {
-        // if we have reached this point, it means access is not denied, and
+        // If we have reached this point, it means access is not denied, and
         // sections (if requested) were found
         if (format === 'html' && req.query.sections) {
             // Handle section requests
@@ -101,11 +101,11 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
                         status: 400,
                         body: {
                             type: 'invalid_request',
-                            detail: 'Unknown section id: ' + id
-                        }
+                            detail: 'Unknown section id: ' + id,
+                        },
                     });
                 }
-                // offsets as returned by Parsoid are relative to body.innerHTML
+                // Offsets as returned by Parsoid are relative to body.innerHTML
                 chunks[id] = body.substring(offsets.html[0], offsets.html[1]);
             });
 
@@ -124,7 +124,7 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
 };
 
 PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain,'sys','key_rev_value','parsoid.' + format, rp.title];
+    var path = [rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, rp.title, ];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {
@@ -146,21 +146,21 @@ PSP.pagebundle = function(restbase, req) {
     return restbase.request(newReq);
 };
 
-PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
+PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
     var self = this;
     var rp = req.params;
-    // handle the response from Parsoid
+    // Handle the response from Parsoid
     if (parsoidResp.status === 200) {
         return P.all([
             restbase.put({
                 uri: self.getBucketURI(rp, 'data-parsoid', tid),
                 headers: parsoidResp.body['data-parsoid'].headers,
-                body: parsoidResp.body['data-parsoid'].body
+                body: parsoidResp.body['data-parsoid'].body,
             }),
             restbase.put({
                 uri: self.getBucketURI(rp, 'section.offsets', tid),
                 headers: { 'content-type': 'application/json' },
-                body: parsoidResp.body['data-parsoid'].body.sectionOffsets
+                body: parsoidResp.body['data-parsoid'].body.sectionOffsets,
             }),
         ])
         // Save HTML last, so that any error in metadata storage suppresses
@@ -169,16 +169,16 @@ PSP.saveParsoidResult = function (restbase, req, format, tid, parsoidResp) {
             return restbase.put({
                 uri: self.getBucketURI(rp, 'html', tid),
                 headers: parsoidResp.body.html.headers,
-                body: parsoidResp.body.html.body
+                body: parsoidResp.body.html.body,
             });
         })
         // And return the response to the client
         // but only if the revision is accessible
         .then(function() {
             var resp = {
-                'status': parsoidResp.status,
+                status: parsoidResp.status,
                 headers: parsoidResp.body[format].headers,
-                body: parsoidResp.body[format].body
+                body: parsoidResp.body[format].body,
             };
             resp.headers.etag = rbUtil.makeETag(rp.revision, tid);
             return self.wrapContentReq(restbase, req, P.resolve(resp), format, tid);
@@ -204,8 +204,8 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
 
-    var pageBundleUri = new URI([rp.domain,'sys','parsoid','pagebundle',
-                     rbUtil.normalizeTitle(rp.title),rp.revision]);
+    var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
+                     rbUtil.normalizeTitle(rp.title), rp.revision, ]);
 
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
@@ -213,15 +213,15 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
         return self._getOriginalContent(restbase, req, revision)
         .then(function(res) {
             var body = {
-                update: updateMode
+                update: updateMode,
             };
             body[contentName] = res;
             return restbase.post({
                 uri: pageBundleUri,
                 headers: {
-                    'content-type': 'application/json'
+                    'content-type': 'application/json',
                 },
-                body: body
+                body: body,
             });
         })
         .catch(function(e) {
@@ -274,8 +274,8 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 // Get / check the revision metadata for a request
 PSP.getRevisionInfo = function(restbase, req) {
     var rp = req.params;
-    var path = [rp.domain,'sys','page_revisions','page',
-                         rbUtil.normalizeTitle(rp.title)];
+    var path = [rp.domain, 'sys', 'page_revisions', 'page',
+                         rbUtil.normalizeTitle(rp.title), ];
     if (/^(?:[0-9]+)$/.test(rp.revision)) {
         path.push(rp.revision);
     } else if (rp.revision) {
@@ -283,19 +283,19 @@ PSP.getRevisionInfo = function(restbase, req) {
     }
 
     return restbase.get({
-        uri: new URI(path)
+        uri: new URI(path),
     })
     .then(function(res) {
         return res.body.items[0];
     });
 };
 
-PSP.getFormat = function (format, restbase, req) {
+PSP.getFormat = function(format, restbase, req) {
     var self = this;
     var rp = req.params;
     rp.title = rbUtil.normalizeTitle(rp.title);
 
-    function generateContent (storageRes) {
+    function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
             return self.getRevisionInfo(restbase, req)
             .then(function(revInfo) {
@@ -316,12 +316,11 @@ PSP.getFormat = function (format, restbase, req) {
     }
 
     var contentReq = restbase.get({
-        uri: self.getBucketURI(rp, format, rp.tid)
+        uri: self.getBucketURI(rp, format, rp.tid),
     });
 
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])
-            && rp.revision)
-    {
+            && rp.revision) {
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
@@ -334,8 +333,8 @@ PSP.getFormat = function (format, restbase, req) {
                                 status: 412,
                                 body: {
                                     type: 'precondition_failed',
-                                    detail: 'The precondition failed'
-                                }
+                                    detail: 'The precondition failed',
+                                },
                             };
                         }
                     } catch (e) {} // Ignore errors from date parsing
@@ -354,20 +353,22 @@ PSP.getFormat = function (format, restbase, req) {
     return contentReq
     .then(function(res) {
         if (res && res.headers && !/^application\/json/.test(res.headers['content-type'])) {
-            res.headers['Content-Security-Policy'] = rbUtil.constructCSP(rp.domain, { allowInline: true } );
+            res.headers['Content-Security-Policy'] =
+                rbUtil.constructCSP(rp.domain, { allowInline: true });
         }
         return res;
     });
 };
 
-PSP.listRevisions = function (format, restbase, req) {
+PSP.listRevisions = function(format, restbase, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
-        uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, rbUtil.normalizeTitle(rp.title), '']),
+        uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
+                        rbUtil.normalizeTitle(rp.title), '', ]),
         body: {
             limit: restbase.rb_config.default_page_size,
-        }
+        },
     };
 
     if (req.query.page) {
@@ -378,7 +379,9 @@ PSP.listRevisions = function (format, restbase, req) {
     .then(function(res) {
         if (res.body.next) {
             res.body._links = {
-                next: { "href": "?page="+restbase.encodeToken(res.body.next) }
+                next: {
+                    href: "?page=" + restbase.encodeToken(res.body.next),
+                },
             };
         }
         return res;
@@ -389,32 +392,31 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
     var rp = req.params;
 
     function get(format) {
-        var path = [rp.domain,'sys','parsoid',format,
-                     rbUtil.normalizeTitle(rp.title),revision];
+        var path = [rp.domain, 'sys', 'parsoid', format,
+                     rbUtil.normalizeTitle(rp.title), revision, ];
         if (tid) {
             path.push(tid);
         }
 
         return restbase.get({
-            uri: new URI(path)
+            uri: new URI(path),
         })
-        .then(function (res) {
+        .then(function(res) {
             if (res.body && Buffer.isBuffer(res.body)) {
                 res.body = res.body.toString();
             }
             return {
                 headers: {
-                    'content-type': res.headers['content-type']
+                    'content-type': res.headers['content-type'],
                 },
-                body: res.body
+                body: res.body,
             };
         });
     }
 
     return P.props({
         html: get('html'),
-        // wikitext: get('wikitext'),
-        'data-parsoid': get('data-parsoid')
+        'data-parsoid': get('data-parsoid'),
     })
     .then(function(res) {
         res.revid = revision;
@@ -423,7 +425,7 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 
 };
 
-PSP.transformRevision = function (restbase, req, from, to) {
+PSP.transformRevision = function(restbase, req, from, to) {
     var self = this;
     var rp = req.params;
 
@@ -442,7 +444,7 @@ PSP.transformRevision = function (restbase, req, from, to) {
     }
 
     return this._getOriginalContent(restbase, req, rp.revision, tid)
-    .then(function (original) {
+    .then(function(original) {
         // Check if parsoid metadata is present as it's required by parsoid.
         if (!original['data-parsoid'].body
                 || original['data-parsoid'].body.constructor !== Object
@@ -451,31 +453,31 @@ PSP.transformRevision = function (restbase, req, from, to) {
                 status: 400,
                 body: {
                     type: 'invalid_request',
-                    description: 'The page/revision has no associated Parsoid data'
-                }
+                    description: 'The page/revision has no associated Parsoid data',
+                },
             });
         }
         var body2 = {
-            original: original
+            original: original,
         };
         if (from === 'sections') {
             var sections = req.body.sections;
             if (req.body.sections.constructor !== Object) {
                 try {
-                     sections = JSON.parse(req.body.sections.toString());
+                    sections = JSON.parse(req.body.sections.toString());
                 } catch (e) {
                     // Catch JSON parsing exception and return 400
                     throw new rbUtil.HTTPError({
                         status: 400,
                         body: {
                             type: 'invalid_request',
-                            description: 'Invalid JSON provided in the request'
-                        }
+                            description: 'Invalid JSON provided in the request',
+                        },
                     });
                 }
             }
             body2.html = {
-                body: replaceSections(original, sections)
+                body: replaceSections(original, sections),
             };
             from = 'html';
         } else {
@@ -489,7 +491,7 @@ PSP.transformRevision = function (restbase, req, from, to) {
             body2.scrubWikitext = true;
         }
 
-        var path = [rp.domain,'sys','parsoid','transform',from,'to',to];
+        var path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
         if (rp.title) {
             path.push(rbUtil.normalizeTitle(rp.title));
             if (rp.revision) {
@@ -500,14 +502,14 @@ PSP.transformRevision = function (restbase, req, from, to) {
             uri: new URI(path),
             params: req.params,
             headers: { 'content-type': 'application/json' },
-            body: body2
+            body: body2,
         };
         return self.callParsoidTransform(restbase, newReq, from, to);
     });
 
 };
 
-PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, to) {
+PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
     var rp = req.params;
     // Parsoid currently spells 'wikitext' as 'wt'
     var parsoidTo = to;
@@ -523,7 +525,7 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
     if (rp.title) {
         parsoidExtras.push(rbUtil.normalizeTitle(rp.title));
     } else {
-        // fake title to avoid Parsoid error: <400/No title or wikitext was provided>
+        // Fake title to avoid Parsoid error: <400/No title or wikitext was provided>
         parsoidExtras.push('Main_Page');
     }
     if (rp.revision) {
@@ -539,7 +541,7 @@ PSP.callParsoidTransform = function callParsoidTransform (restbase, req, from, t
         uri: this.parsoidHost + '/v2/' + domain + '/'
             + parsoidTo + parsoidExtraPath,
         headers: { 'content-type': 'application/json' },
-        body: req.body
+        body: req.body,
     };
     return restbase.post(parsoidReq);
 };
@@ -574,8 +576,8 @@ function replaceSections(original, sectionsJson) {
             status: 400,
             body: {
                 type: 'invalid_request',
-                description: 'Invalid section ids'
-            }
+                description: 'Invalid section ids',
+            },
         });
     }
     sectionIds.sort(function(id1, id2) {
@@ -590,18 +592,18 @@ function replaceSections(original, sectionsJson) {
     return '<body>' + newBody + '</body>';
 }
 
-PSP.makeTransform = function (from, to) {
+PSP.makeTransform = function(from, to) {
     var self = this;
 
-    return function (restbase, req) {
+    return function(restbase, req) {
         var rp = req.params;
         if (!req.body[from]) {
             throw new rbUtil.HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
-                    description: 'Missing request parameter: ' + from
-                }
+                    description: 'Missing request parameter: ' + from,
+                },
             });
         }
         var transform;
@@ -625,7 +627,7 @@ PSP.makeTransform = function (from, to) {
 };
 
 
-module.exports = function (options) {
+module.exports = function(options) {
     var ps = new ParsoidService(options);
 
     return {
@@ -639,17 +641,17 @@ module.exports = function (options) {
                     revisionRetentionPolicy: {
                         type: 'latest',
                         count: 1,
-                        grace_ttl: 86400
+                        grace_ttl: 86400,
                     },
                     valueType: 'blob',
                     version: 1,
-                }
+                },
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.wikitext',
                 body: {
                     valueType: 'blob',
-                }
+                },
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-parsoid',
@@ -657,11 +659,11 @@ module.exports = function (options) {
                     revisionRetentionPolicy: {
                         type: 'latest',
                         count: 1,
-                        grace_ttl: 86400
+                        grace_ttl: 86400,
                     },
                     valueType: 'json',
                     version: 1,
-                }
+                },
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.section.offsets',
@@ -669,18 +671,18 @@ module.exports = function (options) {
                     revisionRetentionPolicy: {
                         type: 'latest',
                         count: 1,
-                        grace_ttl: 86400
+                        grace_ttl: 86400,
                     },
                     valueType: 'json',
                     version: 1,
-                }
+                },
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-mw',
                 body: {
                     valueType: 'json',
-                }
-            }
+                },
+            },
         ],
     };
 };
