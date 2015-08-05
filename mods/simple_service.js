@@ -37,18 +37,7 @@ function processResources(conf) {
     return resources;
 }
 
-function isReturnStep(stepConf) {
-    for (var request in stepConf) {
-        if (stepConf.hasOwnProperty(request)) {
-            if (stepConf[request].return || stepConf[request].return_if) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-function compileCatchFunction(catchDefinition, filterPredicate) {
+function compileCatchFunction(catchDefinition) {
     var condition = [];
     var code;
     Object.keys(catchDefinition).forEach(function(catchCond) {
@@ -59,10 +48,10 @@ function compileCatchFunction(catchDefinition, filterPredicate) {
                     if (/^[0-9]+$/.test(option.toString())) {
                         orCondition.push('(res"[' + catchCond + '"] === ' + option + ')');
                     } else {
-                        orCondition.push('(/^' + option.replace('x', '.') + '$/.test(res["' + catchCond + '"].toString())')
+                        orCondition.push('(/^' + option.replace('x', '.') + '$/.test(res["' + catchCond + '"].toString())');
                     }
                 } else {
-                    orCondition.push('(res["' + catchCond + '"] === ' + option + ')')
+                    orCondition.push('(res["' + catchCond + '"] === ' + option + ')');
                 }
                 condition.push('(' + orCondition.join(' || ') + ')');
             });
@@ -75,10 +64,31 @@ function compileCatchFunction(catchDefinition, filterPredicate) {
     return new Function('res', code);
 }
 
-function verifyStep(stepConf) {
+function isReturnStep(stepConf) {
+    return Object.keys(stepConf).some(function(requestName) {
+        return stepConf[requestName].return || stepConf[requestName].return_if;
+    });
+}
+
+function validateStep(stepConf) {
     if (isReturnStep(stepConf) && Object.keys(stepConf).length > 1) {
-        throw new Error('Invalid spec. Returning requests cannot be parallel. Spec: ' + JSON.stringify(stepConf));
+        throw new Error('Invalid spec. ' +
+            'Returning requests cannot be parallel. Spec: ' + JSON.stringify(stepConf));
     }
+    if (! Object.keys(stepConf).any)
+}
+
+function validateSpec(spec) {
+    if (!spec.paths) {
+        throw new Error('Invalid spec. Paths are required. Spec: ' + JSON.stringify(spec));
+    }
+    Object.keys(spec.paths).forEach(function(path) {
+        var conf = spec.paths[path];
+        if (!conf.on_request || !Array.isArray(conf.on_request)) {
+            throw new Error('Invalid spec. on_request part is required and must be an array');
+        }
+        conf.on_request.forEach(validateStep);
+    });
 }
 
 SimpleService.prototype.processSpec = function(spec) {
@@ -93,6 +103,7 @@ SimpleService.prototype.processSpec = function(spec) {
             var requestChain = [];
 
             conf.operationId = method + '_' + path;
+<<<<<<< HEAD
             var storageUriTemplate;
             if (conf.storage) {
                 if (!conf.storage.bucket_request.uri) {
@@ -101,11 +112,14 @@ SimpleService.prototype.processSpec = function(spec) {
                 storageUriTemplate = new URI(conf.storage.item_request.uri, {}, true);
                 resources.push(conf.storage.bucket_request);
             }
+=======
+
+            resources = resources.concat(processResources(conf));
+>>>>>>> Fixed test config
 
             conf.on_request.forEach(function(stepConf) {
                 var operation = [];
                 var template;
-                verifyStep(stepConf);
                 Object.keys(stepConf).forEach(function(requestName) {
                     var requestConf = stepConf[requestName];
                     var requestSpec = {
@@ -120,7 +134,7 @@ SimpleService.prototype.processSpec = function(spec) {
                                 context[requestName] = res;
                                 return res;
                             });
-                        }
+                        };
                     }
                     if (requestConf.return) {
                         (function() {
@@ -128,8 +142,8 @@ SimpleService.prototype.processSpec = function(spec) {
                             requestSpec.return = function(context) {
                                 return function() {
                                     return template.eval(context);
-                                }
-                            }
+                                };
+                            };
                         })();
                     }
                     if (requestConf.return_if) {
@@ -148,7 +162,7 @@ SimpleService.prototype.processSpec = function(spec) {
                 var currentRequestSpec = requestChain[0];
                 if (currentRequestSpec.length > 1) {
                     promise = P.all(currentRequestSpec.map(function(spec) {
-                        return spec.request(restbase, context)
+                        return spec.request(restbase, context);
                     }));
                 } else {
                     if (currentRequestSpec[0].request) {
@@ -160,23 +174,13 @@ SimpleService.prototype.processSpec = function(spec) {
                     return restbase.request(backendRequestTemplate.eval({request:req}));
                 }
 
-                function regenerateAndSave() {
-                    // Fall back to the backend service
-                    return backendRequest()
-                    .then(function(res) {
-                        // store the result
-                        return restbase.put({
-                            uri: storageUriTemplate.expand(req.params),
-                            headers: res.headers,
-                            body: res.body,
-                        })
-                        .then(function(storeRes) {
-                            res.headers.etag = storeRes.headers.etag;
-                            return res;
-                        });
+                if (currentRequestSpec[0].catch) {
+                    promise = promise.catch(function(err) {
+                        if (!currentRequestSpec[0].catch(err)) {
+                            throw err;
+                        }
                     });
                 }
-
                 promise = promise || P.resolve();
                 if (requestChain.length === 1) {
                     return promise;
@@ -187,10 +191,10 @@ SimpleService.prototype.processSpec = function(spec) {
                         } else {
                             return generatePromiseChain(restbase, context, requestChain.slice(1));
                         }
-                    })
+                    });
                 } else {
                     return promise.then(function() {
-                        return generatePromiseChain(restbase, context, requestChain.slice(1))
+                        return generatePromiseChain(restbase, context, requestChain.slice(1));
                     });
                 }
             }
@@ -199,7 +203,7 @@ SimpleService.prototype.processSpec = function(spec) {
                     request: req
                 };
                 return generatePromiseChain(restbase, context, requestChain);
-            }
+            };
         });
     });
 
