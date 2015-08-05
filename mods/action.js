@@ -127,7 +127,7 @@ function ActionService(options) {
         // TODO: decide what to do when apiURI has got a host param, but
         // the rest isn't /w/api.php
     } else if (!options.apiRequest) {
-        throw new Error('The action module needs the apiRequest temaplting stanza to exist!');
+        throw new Error('The action module needs the apiRequest templating stanza to exist!');
     }
     this.apiRequestTemplate = new Template(options.apiRequest);
 }
