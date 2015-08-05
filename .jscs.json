@@ -11,11 +11,11 @@
   ],
   "validateIndentation": 4,
   "requireCamelCaseOrUpperCaseIdentifiers": "ignoreProperties",
-  "requireCapitalizedComments": { "allExcept": ["jslint"] },
+  "requireCapitalizedComments": null,
   "maximumLineLength": 100,
   "validateQuoteMarks": null,
   "requireTrailingComma": null,
-  "disallowTrailingComma": true,
+  "disallowTrailingComma": null,
   "requireSpacesInsideObjectBrackets": "all",
 
   "excludeFiles": [
