@@ -3,7 +3,7 @@
 swagger: 2.0
 
 paths:
-  /{module:page}/mobile-html-full/{title}:
+  /{module:page}/mobile-html/{title}:
     get:
       tags:
         - Page content
@@ -33,7 +33,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/std/html/{title}
+        uri: /{domain}/sys/mobileapps/v1/html/{title}
       x-monitor: true
       x-amples:
         - title: Get MobileApps Main Page
@@ -45,7 +45,104 @@ paths:
             headers:
               content-type: /text\/html/
             body: /body/
-  /{module:page}/mobile-json-lite/{title}:
+  /{module:page}/mobile-html-sections/{title}:
+    get:
+      tags:
+        - Page content
+        - Mobile
+      description: >
+        Retrieve the latest HTML for a page title optimised for viewing with
+        native mobile applications. Note that the output is split by sections.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The HTML for the given page title.
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mobileapps/v1/sections/{title}
+      x-monitor: false
+  /{module:page}/mobile-html-sections-lead/{title}:
+    get:
+      tags:
+        - Page content
+        - Mobile
+      description: >
+        Retrieve the lead section of the latest HTML for a page title optimised
+        for viewing with native mobile applications.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The HTML for the given page title.
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mobileapps/v1/sections-lead/{title}
+      x-monitor: false
+  /{module:page}/mobile-html-sections-remaining/{title}:
+    get:
+      tags:
+        - Page content
+        - Mobile
+      description: >
+        Retrieve the remainder of the latest HTML (without the lead section) for
+        a page title optimised for viewing with native mobile applications,
+        provided as a JSON object containing the sections.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The HTML for the given page title.
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mobileapps/v1/sections-remaining/{title}
+      x-monitor: false
+  /{module:page}/mobile-text/{title}:
     get:
       tags:
         - Page content
@@ -75,17 +172,5 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/lite/{title}
+        uri: /{domain}/sys/mobileapps/v1/text/{title}
       x-monitor: false
-#      x-amples:
-#        - title: Get MobileApps Lite Main Page
-#          request:
-#            params:
-#              title: Main_Page
-#          response:
-#            status: 200
-#            headers:
-#              content-type: /application\/json/
-#            body:
-#              revision: /.+/
-#              displaytitle: /.+/
