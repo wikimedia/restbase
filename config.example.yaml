@@ -130,23 +130,23 @@ templates:
                 /v1/html/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/page/mobile-html/{title}
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
                 /v1/sections/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/page/mobile-html-sections/{title}
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
                 /v1/sections-lead/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/page/mobile-html-sections-lead/{title}
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
                 /v1/sections-remaining/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/page/mobile-html-sections-remaining/{title}
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
                 /v1/text/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/en.wikipedia.org/v1/page/mobile-text/{title}
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
 
       /{module:page_save}:
         x-modules:
