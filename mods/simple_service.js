@@ -33,7 +33,7 @@ function processResources(conf) {
                 Object.keys(resourceSpec).forEach(function(requestName) {
                     var requestSpec = resourceSpec[requestName];
                     requestSpec.method = requestSpec.method || 'put';
-                    resources.push(new Template(requestSpec));
+                    resources.push(requestSpec);
                 });
             });
         } else {
@@ -54,9 +54,11 @@ function compileCatchFunction(catchDefinition) {
         if (catchCond === 'status') {
             if (/^[0-9]+$/.test(option.toString())) {
                 return '(res["' + catchCond + '"] === ' + option + ')';
-            } else {
+            } else if (/^[0-9x]$/.test(option.toString())) {
                 return '(/^' + option.replace('x', '.') +
                     '$/.test(res["' + catchCond + '"].toString())';
+            } else {
+                throw new Error('Invalid condition ' + option);
             }
         } else {
             return '(res["' + catchCond + '"] === ' + option + ')';
@@ -171,15 +173,19 @@ function validateSpec(spec) {
  * creates catch conditions verifiers.
  * @param conf request chain configuration
  *
- * @returns {Array} an array of prepared steps, each containing an
+ * @returns {Array} an array of prepared steps, each containing a
+ *                  request function generator
  */
 function prepareRequestChain(conf) {
 
     /**
-     * Creates a function gene
-     * @param requestSpec
-     * @param requestName
-     * @param requestConf
+     * Creates a function generator that returns a closure to execute in order to
+     * make a request
+     * @param requestSpec request spec object, the result would be added there under
+     *        a request property
+     * @param requestName a name of the request, the result would be added to the
+     *        context under this name
+     * @param requestConf request configuration object containing a request template
      */
     function prepareRequest(requestSpec, requestName, requestConf) {
         var template;
@@ -217,12 +223,12 @@ function prepareRequestChain(conf) {
 
     function prepareCatch(requestSpec, requestConf) {
         if (requestConf.catch) {
-            var isCatched = compileCatchFunction(requestConf.catch);
+            var isCaught = compileCatchFunction(requestConf.catch);
             var originalRequestHandler = requestSpec.request;
             requestSpec.request = function(restbase, context) {
                 return originalRequestHandler(restbase, context)
                 .catch(function(err) {
-                    if (!isCatched(err)) {
+                    if (!isCaught(err)) {
                         throw err;
                     }
                 });

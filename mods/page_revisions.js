@@ -14,7 +14,6 @@
 var rbUtil = require('../lib/rbUtil.js');
 var URI = require('swagger-router').URI;
 var uuid = require('cassandra-uuid').TimeUuid;
-var Template = require('../lib/reqTemplate');
 
 // TODO: move to module
 var fs = require('fs');
@@ -522,11 +521,11 @@ module.exports = function(options) {
             getRevision: prs.getRevision.bind(prs)
         },
         resources: [
-            new Template({
+            {
                 // Revision table
                 uri: '/{domain}/sys/table/' + prs.tableName,
                 body: prs.getTableSchema()
-            })
+            }
         ]
     };
 };
