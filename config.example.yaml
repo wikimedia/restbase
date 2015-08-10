@@ -119,7 +119,6 @@ templates:
                   get:
                     backend_request:
                       uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
-                      body: '{$.request.body}'
 
       /{module:mobileapps}:
         x-modules:
@@ -128,14 +127,26 @@ templates:
             type: file
             options:
               paths:
-                /v1/std/html/{title}:
+                /v1/html/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/mobile/app/page/html/{title}
-                /v1/lite/{title}:
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+                /v1/sections/{title}:
                   get:
                     backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/mobile/app/page/lite/{title}
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+                /v1/sections-lead/{title}:
+                  get:
+                    backend_request:
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+                /v1/sections-remaining/{title}:
+                  get:
+                    backend_request:
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+                /v1/text/{title}:
+                  get:
+                    backend_request:
+                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
 
       /{module:page_save}:
         x-modules:
