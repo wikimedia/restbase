@@ -131,24 +131,34 @@ templates:
               paths:
                 /v1/html/{title}:
                   get:
-                    backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
                 /v1/sections/{title}:
                   get:
-                    backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
                 /v1/sections-lead/{title}:
                   get:
-                    backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
                 /v1/sections-remaining/{title}:
                   get:
-                    backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
                 /v1/text/{title}:
                   get:
-                    backend_request:
-                      uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
 
       /{module:page_save}:
         x-modules:
