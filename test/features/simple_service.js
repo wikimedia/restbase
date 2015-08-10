@@ -7,6 +7,7 @@ var assert = require('../utils/assert.js');
 var server = require('../utils/server.js');
 var preq   = require('preq');
 var P = require('bluebird');
+var simple_service = require('../../mods/simple_service');
 
 describe('simple_service', function () {
     this.timeout(20000);
@@ -72,6 +73,134 @@ describe('simple_service', function () {
             assert.remoteRequests(slice, false);
             hasTextContentType(res);
         });
+    });
+
+    it('validates config: checks parallel returning requests', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {
+                                        request: {
+                                            uri: 'http://en.wikipedia.org/wiki/One'
+                                        },
+                                        return: '{$.get_one}'
+                                    },
+                                    get_two: {
+                                        request: {
+                                            uri: 'http://en.wikipedia.org/wiki/Two'
+                                        },
+                                        return: '{$.get_two}'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.message !== 'Should throw error', true);
+        })
+    });
+
+    it('validates config: requires either return or request', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {}
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.message !== 'Should throw error', true);
+        })
+    });
+
+    it('validates config: requires request for return_if', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {
+                                        return_if: {
+                                            status: '5xx'
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.message !== 'Should throw error', true);
+        })
+    });
+
+    it('validates config: requires request for catch', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {
+                                        catch: {
+                                            status: '5xx'
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.message !== 'Should throw error', true);
+        })
+    });
+
+    it('Performs parallel requests', function() {
+        var testPage = server.config.baseURL + '/service/test_parallel/User:GWicke%2fDate/User:GWicke%2fDate';
+        return preq.get({
+            uri: testPage
+        })
+        .then(function(result) {
+            assert.deepEqual(result.body.first.status, 200);
+            assert.deepEqual(result.body.second.status, 200);
+            assert.deepEqual(result.body.first.headers['content-type'], 'text/html');
+            assert.deepEqual(result.body.second.headers['content-type'], 'text/html');
+        })
     });
 
 });

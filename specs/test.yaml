@@ -11,6 +11,12 @@ paths:
           cache-control: '{cache-control}'
       x-monitor: false
 
+  /{module:service}/test_parallel/{key1}/{key2}:
+    get:
+      x-backend-request:
+        uri: /{domain}/sys/testservice_parallel/test/{key1}/{key2}
+      x-monitor: false
+
   /{module:page}/wikitext/{title}:
     post:
       tags:

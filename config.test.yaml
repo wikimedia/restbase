@@ -206,6 +206,28 @@ templates:
                               'etag': '{$.store.headers.etag}'
                             body: '{$.get_from_api.body}'
 
+      /{module:testservice_parallel}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /test/{key1}/{key2}:
+                  get:
+                    on_request:
+                      - get_from_api1:
+                          request:
+                            uri: http://en.wikipedia.org/wiki/{+key1}
+                        get_from_api2:
+                          request:
+                            uri: http://en.wikipedia.org/wiki/{+key2}
+                      - return_response:
+                          return:
+                            status: 200
+                            body:
+                              first: '{$.get_from_api1}'
+                              second: '{$.get_from_api2}'
 
       /{module:page_save}:
         x-modules:
