@@ -104,10 +104,10 @@ describe('simple_service', function () {
         })
         .then(function() {
             throw new Error('Should throw error');
-        })
-        .catch(function(e) {
-            assert.deepEqual(e.message !== 'Should throw error', true);
-        })
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. Returning requests cannot be parallel\..*/.test(e.message), true);
+        });
     });
 
     it('validates config: requires either return or request', function() {
@@ -128,10 +128,10 @@ describe('simple_service', function () {
         })
         .then(function() {
             throw new Error('Should throw error');
-        })
-        .catch(function(e) {
-            assert.deepEqual(e.message !== 'Should throw error', true);
-        })
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. Either request or return must be specified\..*/.test(e.message), true);
+        });
     });
 
     it('validates config: requires request for return_if', function() {
@@ -145,7 +145,8 @@ describe('simple_service', function () {
                                     get_one: {
                                         return_if: {
                                             status: '5xx'
-                                        }
+                                        },
+                                        return: '$.request'
                                     }
                                 }
                             ]
@@ -156,10 +157,10 @@ describe('simple_service', function () {
         })
         .then(function() {
             throw new Error('Should throw error');
-        })
-        .catch(function(e) {
-            assert.deepEqual(e.message !== 'Should throw error', true);
-        })
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. return_if should have a matching request\..*/.test(e.message), true);
+        });
     });
 
     it('validates config: requires request for catch', function() {
@@ -173,7 +174,8 @@ describe('simple_service', function () {
                                     get_one: {
                                         catch: {
                                             status: '5xx'
-                                        }
+                                        },
+                                        return: '$.request'
                                     }
                                 }
                             ]
@@ -184,23 +186,9 @@ describe('simple_service', function () {
         })
         .then(function() {
             throw new Error('Should throw error');
-        })
-        .catch(function(e) {
-            assert.deepEqual(e.message !== 'Should throw error', true);
-        })
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. catch should have a matching request\..*/.test(e.message), true);
+        });
     });
-
-    it('Performs parallel requests', function() {
-        var testPage = server.config.baseURL + '/service/test_parallel/User:GWicke%2fDate/User:GWicke%2fDate';
-        return preq.get({
-            uri: testPage
-        })
-        .then(function(result) {
-            assert.deepEqual(result.body.first.status, 200);
-            assert.deepEqual(result.body.second.status, 200);
-            assert.deepEqual(result.body.first.headers['content-type'], 'text/html');
-            assert.deepEqual(result.body.second.headers['content-type'], 'text/html');
-        })
-    });
-
 });
