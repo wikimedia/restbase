@@ -7,6 +7,7 @@ var assert = require('../utils/assert.js');
 var server = require('../utils/server.js');
 var preq   = require('preq');
 var P = require('bluebird');
+var simple_service = require('../../mods/simple_service');
 
 describe('simple_service', function () {
     this.timeout(20000);
@@ -74,4 +75,120 @@ describe('simple_service', function () {
         });
     });
 
+    it('validates config: checks parallel returning requests', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {
+                                        request: {
+                                            uri: 'http://en.wikipedia.org/wiki/One'
+                                        },
+                                        return: '{$.get_one}'
+                                    },
+                                    get_two: {
+                                        request: {
+                                            uri: 'http://en.wikipedia.org/wiki/Two'
+                                        },
+                                        return: '{$.get_two}'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. Returning requests cannot be parallel\..*/.test(e.message), true);
+        });
+    });
+
+    it('validates config: requires either return or request', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {}
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. Either request or return must be specified\..*/.test(e.message), true);
+        });
+    });
+
+    it('validates config: requires request for return_if', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {
+                                        return_if: {
+                                            status: '5xx'
+                                        },
+                                        return: '$.request'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. return_if should have a matching request\..*/.test(e.message), true);
+        });
+    });
+
+    it('validates config: requires request for catch', function() {
+        return P.try(function() {
+            simple_service({
+                paths: {
+                    test_path: {
+                        get: {
+                            on_request: [
+                                {
+                                    get_one: {
+                                        catch: {
+                                            status: '5xx'
+                                        },
+                                        return: '$.request'
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            })
+        })
+        .then(function() {
+            throw new Error('Should throw error');
+        }, function(e) {
+            // Error expected
+            assert.deepEqual(/^Invalid spec\. catch should have a matching request\..*/.test(e.message), true);
+        });
+    });
 });

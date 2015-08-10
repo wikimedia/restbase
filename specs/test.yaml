@@ -11,6 +11,30 @@ paths:
           cache-control: '{cache-control}'
       x-monitor: false
 
+  /{module:service}/test_parallel/{key1}/{key2}:
+    get:
+      x-backend-request:
+        uri: /{domain}/sys/testservice_parallel/test/{key1}/{key2}
+      x-monitor: true
+      x-amples:
+        - title: Retreives parallel content with simple service
+          request:
+            params:
+              key1: User:GWicke/Date
+              key2: User:GWicke/Date
+          response:
+            status: 200
+            body:
+              first:
+                status: 200
+                headers:
+                  content-type: /^text\/html.+/
+              second:
+                status: 200
+                headers:
+                  content-type: /^text\/html.+/
+
+
   /{module:page}/wikitext/{title}:
     post:
       tags:
