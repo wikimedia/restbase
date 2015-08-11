@@ -54,7 +54,7 @@
     "mocha-lcov-reporter": "^0.0.2",
     "swagger-test": "0.2.0",
     "url-template": "^2.0.6",
-    "nock": "^2.6.0",
+    "nock": "^2.10.0",
     "restbase-mod-table-sqlite": "^0.1.0",
     "mocha-jscs": "^1.2.0"
   }

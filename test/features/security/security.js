@@ -13,53 +13,67 @@ describe('router - security', function() {
 
     before(function () { return server.start(); });
 
+    var sampleRightsResponse = {
+        batchcomplete: '',
+        query: {
+            userinfo: {
+                id: 1,
+                name: 'Petr',
+                rights: ['createaccount','read','edit']
+            }
+        }
+    };
+
+    var sampleApiResponse = {
+        query: {
+            pages: {
+                '1': {
+                    ns: 0,
+                    pageid: 1,
+                    revisions: [1],
+                    title: 'test'
+                }
+            }
+        }
+    };
+
     it('should forward cookies on request to api', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiURI;
-        nock.enableNetConnect();
-        var api = nock(apiURI)
-        .matchHeader('cookie', 'test=test_cookie')
-        .post('')
-        .reply(200, function() {
-            return {
-                query: {
-                    pages: {
-                        '1': {
-                            ns: 0,
-                            pageid: 1,
-                            revisions: [1],
-                            title: 'test'
-                        }
-                    }
-                }
-            };
-        });
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        var api = nock(apiURI, {
+            reqheaders: {
+                cookie: 'test=test_cookie'
+            }
+        })
+        .post('', function(body) { return body && body.generator === 'allpages'; })
+        .reply(200, sampleApiResponse)
+        .post('', function(body) { return body && body.meta === 'userinfo'; })
+        .reply(200, sampleRightsResponse);
+
         return preq.get({
-            uri: server.config.bucketURL + '/title/',
+            uri: server.config.secureURL + '/title/',
             headers: {
                 'Cookie': 'test=test_cookie'
             }
         })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+        .then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
     });
 
     it('should forward cookies on request to parsoid', function() {
         var nock   = require('nock');
         var apiURI = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
         var title = 'User%3APchelolo%2Fsections_test';
         var revision = 669458404;
-        nock.enableNetConnect();
-        var api = nock(apiURI)
-        .matchHeader('cookie', 'test=test_cookie')
-        .get('/v2/en.wikipedia.org/pagebundle/' + title + '/' + revision)
+        var api = nock(apiURI, {
+            reqheaders: {
+                cookie: 'test=test_cookie'
+            }
+        })
+        .get('/v2/secure.wikipedia.test.local/pagebundle/' + title + '/' + revision)
         .reply(200, function() {
             return {
                 'html': {
@@ -80,29 +94,45 @@ describe('router - security', function() {
                 }
             };
         });
+
         return preq.get({
-            uri: server.config.bucketURL + '/html/' + title + '/' + revision,
+            uri: server.config.secureURL + '/html/' + title + '/' + revision,
             headers: {
                 'Cookie': 'test=test_cookie',
                 'Cache-control': 'no-cache'
             }
         })
-        .then(function() {
-            api.done();
+        .then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
+
+    it ('should not send cookies to non-restricted domains', function() {
+        var apiURI = server.config
+        .conf.templates['wmf-sys-1.0.0']
+        .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        var api = nock(apiURI, {
+            badheaders: ['cookie']
         })
-        .finally(function() {
-            nock.cleanAll();
-        });
+        .post('', function(body) { return body && body.generator === 'allpages'; })
+        .reply(200, sampleApiResponse);
+
+        return preq.get({
+            uri: server.config.bucketURL + '/title/',
+            headers: {
+                'Cookie': 'test=test_cookie'
+            }
+        })
+        .then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
     });
 
     it('should deny access to resources stored in restbase', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiURI;
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
         var title = 'TestingTitle';
         var revision = 12345;
 
-        nock.enableNetConnect();
         var api = nock(apiURI)
         // The first request would return a revision.
         .post('')
@@ -159,11 +189,7 @@ describe('router - security', function() {
             assert.contentType(e, 'application/problem+json');
             assert.deepEqual(e.body.detail.indexOf('read') >= 0, true);
         })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+        .then(function() {api.done(); })
+        .finally(function() { nock.cleanAll();  });
     });
 });

@@ -141,7 +141,7 @@ function buildQueryResponse(res) {
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
     } else if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
-        throw apiError({info: 'Missing query pages from the PHP action API response.'});
+        throw apiError({ info: 'Missing query pages from the PHP action API response.' });
     }
 
     if (res.body.query.pages) {
@@ -160,7 +160,7 @@ function buildQueryResponse(res) {
     } else if (res.body.query.userinfo) {
         return res.body.query.userinfo;
     } else {
-        throw apiError({info: 'Unable to parse PHP action API response.'});
+        throw apiError({ info: 'Unable to parse PHP action API response.' });
     }
 }
 
@@ -190,8 +190,8 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     if (!apiRequest.body.hasOwnProperty('continue')) {
         apiRequest.body.continue = '';
     }
-    req.method = 'post';
-    req = rbUtil.copyForwardedHeaders(restbase, req);
+    apiRequest.headers = apiRequest.headers || {};
+    apiRequest.headers['x-internal-request'] = true;
     return restbase.request(apiRequest).then(cont);
 };
 
