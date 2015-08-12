@@ -258,4 +258,15 @@ describe('router - misc', function() {
         });
         assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3', {}, false));
     });
+
+    it('should truncate body upon HEAD request', function() {
+        return preq.head({
+            uri: server.config.bucketURL + '/html/1912'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-length'], undefined);
+            assert.deepEqual(res.body, '');
+        })
+    })
 });
