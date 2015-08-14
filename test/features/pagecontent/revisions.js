@@ -11,13 +11,12 @@ var pagingToken = '';
 function generateTests(options) {
 
     var apiRequestTemplate = server.config.conf.templates['wmf-sys-1.0.0']
-                .paths['/{module:action}']['x-modules'][0]
-                .options.apiRequest;
+                .paths['/{module:action}']['x-modules'][0]['options']['apiRequest'];
     var prevUri = apiRequestTemplate.uri;
     var prevHost = apiRequestTemplate.headers.host;
 
     before(function () {
-        apiRequestTemplate.uri = 'http://' + options.apiDomain + '/w/api.php';
+        apiRequestTemplate.uri = 'https://' + options.apiDomain + '/w/api.php';
         apiRequestTemplate.headers.host = options.apiDomain;
         return server.start();
     });
