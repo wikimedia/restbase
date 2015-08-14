@@ -44,13 +44,14 @@ config.conf.logging = {
 };
 
 var stop    = function () {};
+var isRunning;
 var options = null;
 var runner = new ServiceRunner();
 
 function start(_options) {
     _options = _options || {};
 
-    if (!assert.isDeepEqual(options, _options)) {
+    if (!assert.isDeepEqual(options, _options) || !isRunning) {
         console.log('server options changed; restarting');
         stop();
         options = _options;
@@ -61,9 +62,11 @@ function start(_options) {
         return runner.run(config.conf)
         .then(function(servers){
             var server = servers[0];
+            isRunning = true;
             stop =
                 function () {
                     console.log('stopping restbase');
+                    isRunning = false;
                     server.close();
                     stop = function () {};
                 };
@@ -76,4 +79,5 @@ function start(_options) {
 
 module.exports.config = config;
 module.exports.start  = start;
+module.exports.stop   = function() { stop() };
 module.exports.loadConfig = loadConfig;
