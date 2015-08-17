@@ -104,23 +104,23 @@ paths:
           if-unmodified-since: '{if-unmodified-since}'
       x-monitor: true
       x-amples:
-        - title: Get rev of by title from MW
-          request:
-            params:
-              title: Foobar
-            headers:
-              cache-control: no-cache
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: application/json
-            body:
-              items:
-                - title: 'Foobar'
-                  rev: /\d+/
-                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-                  comment: /.*/
+        #- title: Get rev of by title from MW
+        #  request:
+        #    params:
+        #      title: Foobar
+        #    headers:
+        #      cache-control: no-cache
+        #  response:
+        #    status: 200
+        #    headers:
+        #      etag: /.+/
+        #      content-type: application/json
+        #    body:
+        #      items:
+        #        - title: 'Foobar'
+        #          rev: /\d+/
+        #          tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+        #          comment: /.*/
         - title: Get rev by title from storage
           request:
             params:
@@ -263,18 +263,22 @@ paths:
           sections: '{sections}'
       x-monitor: true
       x-amples:
-        - title: Get html by title from Parsoid
-          request:
-            params:
-              title: Foobar
-            headers:
-              cache-control: no-cache
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: /^text\/html.+/
-            body: /^<!DOCTYPE html>.*/
+        # FIXME: This depends on our 'no change' detection optimization to
+        # avoid filling up storage with re-renders. We have plenty of data on
+        # Parsoid backend requests, so there shouldn't be a need to test this
+        # per-instance.
+        #- title: Get html by title from Parsoid
+        #  request:
+        #    params:
+        #      title: Foobar
+        #    headers:
+        #      cache-control: no-cache
+        #  response:
+        #    status: 200
+        #    headers:
+        #      etag: /.+/
+        #      content-type: /^text\/html.+/
+        #    body: /^<!DOCTYPE html>.*/
         - title: Get html by title from storage
           request:
             params:
