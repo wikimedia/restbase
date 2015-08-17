@@ -213,8 +213,8 @@ paths:
       tags:
         - Page content
       description: >
-        Retrieve the latest html for a page title. 
-        
+        Retrieve the latest html for a page title.
+
         If you know the revision as well, then please use the
         `{title}/{revision}` end point instead for better performance.
 
@@ -837,8 +837,7 @@ paths:
           required: true
       responses:
         '200':
-          description: The transformed wikitext
-          schema: 'text/plain'
+          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
         '403':
           description: Access to the specific revision is restricted
           schema:
@@ -893,7 +892,7 @@ paths:
           required: false
       responses:
         '200':
-          schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
+          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
         '403':
           description: access to the specific revision is restricted
           schema:
@@ -961,7 +960,7 @@ paths:
           required: false
       responses:
         '200':
-          schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
+          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
         '403':
           description: access to the specific revision is restricted
           schema:
@@ -1011,7 +1010,7 @@ paths:
           required: true
       responses:
         '200':
-          schema: 'https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec'
+          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
         '400':
           description: Illegal JSON provided or section id does not exist
           schema:
@@ -1056,7 +1055,7 @@ definitions:
     properties:
       items:
         type: array
-        properties:
+        items:
           revision:
             type: integer
             format: int32
@@ -1101,7 +1100,7 @@ definitions:
             type: string
           page_id:
             type: integer
-            format: int32            
+            format: int32
           rev:
             type: integer
             format: int32
@@ -1136,5 +1135,4 @@ definitions:
           timestamp:
             type: timestamp
           redirect:
-            type: boolean  
-
+            type: boolean
