@@ -43,6 +43,7 @@ templates:
       - mediawiki/v1/content
       - mediawiki_v1_graphoid
       - mediawiki/v1/mobileapps
+      - mediawiki/v1/mathoid
       - test
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
@@ -114,6 +115,22 @@ templates:
                       - get_from_graphoid:
                           request:
                             uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:mathoid}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/{format}/{formula}/{type}:
+                  get:
+                    backend_request:
+                      method: post
+                      uri: http://mathoid-tester.wmflabs.org/{format}
+                      body:
+                        q: '{$.request.params.formula}'
+                        type: '{$.request.params.type}'
 
       /{module:mobileapps}:
         x-modules:

@@ -1,0 +1,105 @@
+# Mathoid - math formula rendering service
+
+swagger: 2.0
+
+paths:
+  /{module:media}/math/{format}/{formula}:
+    get:
+      tags:
+        - Media
+        - Math
+      description: >
+        Renders a TeX formula into its mathematic representation in the given format.
+        Available formats are svg, json and mml.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/svg+xml
+        - application/mathml+xml
+        - application/json
+      parameters:
+        - name: format
+          in: path
+          description: The output format; can be svg, json or mml
+          type: string
+          required: true
+        - name: formula
+          in: path
+          description: The URI-encoded formula to render
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The rendered formula
+        '400':
+          description: Invalid format or type
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mathoid/v1/{format}/{formula}/tex
+      x-monitor: true
+      x-amples:
+        - title: Mathoid - test formula
+          request:
+            params:
+              format: json
+              formula: E=mc^2
+          response:
+            status: 200
+            headers:
+              content-type: /^application\/json/
+            body:
+              svg: /.+/
+              mml: /.+/
+              success: true
+  /{module:media}/math/{format}/{formula}/{type}:
+    get:
+      tags:
+        - Media
+        - Math
+      description: >
+        Renders a formula into its mathematic representation in the given format.
+        Available formats are svg, json and mml. Accepted values for type include
+        inline-tex, mml and ascii.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/svg+xml
+        - application/mathml+xml
+        - application/json
+      parameters:
+        - name: format
+          in: path
+          description: The output format; can be svg, json or mml
+          type: string
+          required: true
+        - name: formula
+          in: path
+          description: The URI-encoded formula to render
+          type: string
+          required: true
+        - name: type
+          in: path
+          description: >
+            The type to use to interpret the formula;
+            can be tex, inline-tex, mml and ascii
+          type: string
+          required: false
+      responses:
+        '200':
+          description: The rendered formula
+        '400':
+          description: Invalid format or type
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/mathoid/v1/{format}/{formula}/{type}
+      x-monitor: false
