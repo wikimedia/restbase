@@ -1,0 +1,229 @@
+# RESTBase config
+
+info:
+  name: restbase
+
+
+templates:
+
+  wmf-content-1.0.0: &wp/content/1.0.0
+    swagger: '2.0'
+    # swagger options, overriding the shared ones from the merged specs (?)
+    info:
+      version: 1.0.0-beta
+      title: Wikimedia REST API
+      description: >
+          This API aims to provide straightforward and low-latency access to
+          Wikimedia content and services. It is currently in beta testing, so
+          things aren't completely locked down yet. Each entry point has
+          explicit stability markers to inform you about development status
+          and change policy, according to [our API version
+          policy](https://www.mediawiki.org/wiki/API_versioning).
+
+          ### High-volume access
+            - As a general rule, don't perform more than 200 requests/s to
+              this API.
+            - Set a unique `User-Agent` header that allows us to contact you
+              quickly. Email addresses or URLs of contact pages work well.
+            - Consider using our [HTML
+              dumps](https://phabricator.wikimedia.org/T17017) once they
+              become available.
+
+      termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
+      contact:
+        name: the Wikimedia Services team
+        url: http://mediawiki.org/wiki/RESTBase
+      license:
+        name: Apache2
+        url: http://www.apache.org/licenses/LICENSE-2.0
+    security:
+      # ACLs for public *.wikipedia.org wikis
+      - mediaWikiAuth:
+        - user:read
+    x-subspecs:
+      - mediawiki/v1/content
+      - mediawiki_v1_graphoid
+      - mediawiki/v1/mobileapps
+    # - mediawiki/v1/revision-scoring
+
+  wmf-sys-1.0.0: &wp/sys/1.0.0
+    info:
+      title: Default MediaWiki sys API module
+      version: 1.0.0
+    paths:
+      /{module:table}:
+        x-modules:
+          # There can be multiple modules too per stanza, as long as the
+          # exported symbols don't conflict. The operationIds from the spec
+          # will be resolved against all of the modules.
+          - name: restbase-mod-table-cassandra
+            version: 1.0.0
+            type: npm
+            options: # Passed to the module constructor
+              conf:
+                hosts: [localhost]
+                keyspace: system
+                username: cassandra
+                password: cassandra
+                defaultConsistency: one # or 'one' for single-node testing
+                storage_groups:
+                  - name: test.group.local
+                    domains:
+                      - /test\..*\.org$/
+                      - /test\.local$/
+                  - name: default.group.local
+                    domains: /./
+
+      /{module:page_revisions}:
+        x-modules:
+            - name: page_revisions
+              version: 1.0.0
+              type: file
+
+      /{module:key_rev_value}:
+        x-modules:
+          - name: key_rev_value
+            version: 1.0.0
+            type: file
+
+      /{module:parsoid}:
+        x-modules:
+          - name: parsoid
+            version: 1.0.0
+            type: file
+            options:
+              parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+              # For local testing, use:
+              # parsoidHost: http://localhost:8000
+
+      /{module:action}:
+        x-modules:
+          - name: action
+            type: file
+            options:
+              apiRequest:
+                method: post
+                uri: 'http://{domain}/w/api.php'
+                headers:
+                  host: '{$.request.params.domain}'
+                body: '{$.request.body}'
+
+      /{module:graphoid}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/png/{title}/{revision}/{graph_id}:
+                  get:
+                    on_request:
+                      - get_from_graphoid:
+                          request:
+                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:mobileapps}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/html/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+                /v1/sections/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+                /v1/sections-lead/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+                /v1/sections-remaining/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+                /v1/text/{title}:
+                  get:
+                    on_request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+
+      /{module:page_save}:
+        x-modules:
+          - name: page_save
+            type: file
+
+#      /{module:revscore}:
+#        title: Simple revscore service wrapper
+#        x-modules:
+#          # Generic revision service interface; Expects requests of the form
+#          # /{title}/{revision}.
+#          # Specific interface documentation (content types etc) at public
+#          # entry point, although we might also want to enforce them
+#          # internally.
+#          - name: restbase-mod-service
+#            version: 1.0.0 # simple service module, to be shared
+#            options:
+#              storage:
+#                uri: /{domain}/sys/key_rev_value/revscore.scores/{title}/{revision}
+#              service: 
+#                uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
+
+  wp-default-1.0.0: &wp/default/1.0.0
+    x-subspecs:
+      - paths:
+          /{api:v1}:
+            x-subspec: *wp/content/1.0.0
+      - paths:
+          /{api:sys}:
+            x-subspec: *wp/sys/1.0.0
+
+
+spec: &spec
+  title: "The RESTBase root"
+  # Some more general RESTBase info
+  paths:
+    /{domain:en.wikipedia.org}: *wp/default/1.0.0
+#   /{domain:de.wikipedia.org}: *wp/default/1.0.0
+#   /{domain:es.wikipedia.org}: *wp/default/1.0.0
+#   /{domain:nl.wikipedia.org}: *wp/default/1.0.0
+#
+    # test domain
+    /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
+
+
+services:
+  - name: restbase
+    module: ./lib/server
+    conf: 
+      port: 7231
+      spec: *spec
+      salt: secret
+      default_page_size: 250
+      user_agent: RESTBase
+
+logging:
+  name: restbase
+  level: info
+  #streams:
+  ## XXX: Use gelf-stream -> logstash
+  #- type: gelf
+  #  host: <%= @logstash_host %>
+  #  port: <%= @logstash_port %>
+
+metrics:
+  #type: txstatsd
+  #host: localhost
+  #port: 8125
