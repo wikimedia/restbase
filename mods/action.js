@@ -190,8 +190,6 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     if (!apiRequest.body.hasOwnProperty('continue')) {
         apiRequest.body.continue = '';
     }
-    apiRequest.headers = apiRequest.headers || {};
-    apiRequest.headers['x-internal-request'] = true;
     return restbase.request(apiRequest).then(cont);
 };
 

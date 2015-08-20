@@ -245,7 +245,8 @@ templates:
           /{api:v1}:
             x-subspec: *wp/content/1.0.0
             security:
-              - read
+              - mediawiki_auth:
+                - read
       - paths:
           /{api:sys}:
             x-subspec: *wp/sys/1.0.0
@@ -256,6 +257,7 @@ spec: &spec
   paths:
     # test domain
     /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
+    /{domain:fr.wikipedia.test.local}: *wp/default/1.0.0
     /{domain:secure.wikipedia.test.local}: *wp/secure/1.0.0
 
 
@@ -268,7 +270,8 @@ services:
       salt: secret
       default_page_size: 1
       internal_request_whitelist:
-        - /http:\/\/en\.wikipedia\.org\/w\/api\.php/
+        - http://en.wikipedia.org/w/api.php
+        # Left as a regex for test purpose
         - /http:\/\/parsoid\-lb\.eqiad\.wikimedia\.org/
 
 test:

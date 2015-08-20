@@ -38,6 +38,7 @@ describe('router - security', function() {
     };
 
     it('should forward cookies on request to api', function() {
+        nock.enableNetConnect();
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
@@ -62,7 +63,7 @@ describe('router - security', function() {
     });
 
     it('should forward cookies on request to parsoid', function() {
-        var nock   = require('nock');
+        nock.enableNetConnect();
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
@@ -107,6 +108,7 @@ describe('router - security', function() {
     });
 
     it ('should not send cookies to non-restricted domains', function() {
+        nock.enableNetConnect();
         var apiURI = server.config
         .conf.templates['wmf-sys-1.0.0']
         .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
@@ -127,6 +129,7 @@ describe('router - security', function() {
     });
 
     it('should deny access to resources stored in restbase', function() {
+        nock.enableNetConnect();
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;

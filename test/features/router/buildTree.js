@@ -129,6 +129,43 @@ var nestedSecuritySpec = {
     }
 };
 
+var parsoidSpec = {
+    'x-modules': [
+        {
+            name: 'parsoid',
+            version: '1.0.0',
+            type: 'file',
+            options: {
+                parsoidHost: 'http://parsoid-lb.eqiad.wikimedia.org'
+            }
+        }
+    ]
+};
+
+var sameModuleAtDifferentPathsSpec = {
+    paths: {
+        '/{domain:en.wikipedia.org}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/parsoid': parsoidSpec
+                    }
+                }
+            ]
+        },
+        '/{domain:secure.wikipedia.org}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/parsoid': parsoidSpec
+                    }
+                }
+            ],
+            'additions_property': 'test'
+        }
+    }
+};
+
 var fullSpec = loadConfig('config.example.yaml');
 var fullSpec = loadConfig('config.test.yaml');
 
