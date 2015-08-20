@@ -267,6 +267,9 @@ services:
       spec: *spec
       salt: secret
       default_page_size: 1
+      internal_request_whitelist:
+        - /http:\/\/en\.wikipedia\.org\/w\/api\.php/
+        - /http:\/\/parsoid\-lb\.eqiad\.wikimedia\.org/
 
 test:
   content_types:
