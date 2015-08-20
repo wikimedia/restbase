@@ -257,7 +257,6 @@ spec: &spec
   paths:
     # test domain
     /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
-    /{domain:fr.wikipedia.test.local}: *wp/default/1.0.0
     /{domain:secure.wikipedia.test.local}: *wp/secure/1.0.0
 
 

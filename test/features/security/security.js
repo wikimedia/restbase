@@ -108,10 +108,9 @@ describe('router - security', function() {
     });
 
     it ('should not send cookies to non-restricted domains', function() {
-        nock.enableNetConnect();
         var apiURI = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
         var api = nock(apiURI, {
             badheaders: ['cookie']
         })

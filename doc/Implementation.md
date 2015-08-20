@@ -111,8 +111,9 @@ paths:
         - paths:
             /{api:v1}:
               x-subspec: *wp/content/1.0.0
-              security: # list of required permissions
-                - read
+              security: # list of required security requirement objects with permissions
+                - mediawiki_auth
+                    - read
 ```
 
 The effective required capabilities (aka roles|scopes|..) for a given route
