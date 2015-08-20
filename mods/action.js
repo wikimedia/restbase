@@ -210,14 +210,8 @@ ActionService.prototype.edit = function(restbase, req) {
     }, buildEditResponse);
 };
 
-ActionService.prototype.userInfo = function(restbase, req) {
-    return this._doRequest(restbase, req, {
-        action: 'query',
-        format: 'json'
-    }, buildUserInfoResponse);
-};
 
-module.exports = function (options) {
+module.exports = function(options) {
     var actionService = new ActionService(options);
     return {
         spec: {
