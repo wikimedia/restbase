@@ -245,7 +245,7 @@ describe('storage-backed transform api', function() {
             headers: { 'content-type': 'application/json' },
             body: {
                 headers: {
-                  'content-type': 'text/html;profile=mediawiki.org/specs/html/1.0.0'
+                  'content-type': 'text/html;profile="mediawiki.org/specs/html/1.0.0"'
                 },
                 body: '<html>The modified HTML</html>'
             }
@@ -255,7 +255,7 @@ describe('storage-backed transform api', function() {
             assert.deepEqual(res.body, {
                 wikitext: {
                     headers: {
-                        'content-type': 'text/plain;profile=mediawiki.org/specs/wikitext/1.0.0'
+                        'content-type': 'text/plain;profile="mediawiki.org/specs/wikitext/1.0.0"'
                     },
                     body: 'The modified HTML'
                 }

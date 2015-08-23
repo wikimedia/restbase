@@ -18,7 +18,7 @@ Example for a bucket handler:
       default:
         description: Unexpected error
         schema: { $ref: Error }
-    produces: text/html;profile=mw.org/specs/html/1.0
+    produces: text/html;profile="mw.org/specs/html/1.0"
 
     request_handler:
     - if:
@@ -63,8 +63,8 @@ Example for a bucket handler:
         schema: { $ref: Error }
     consumes:
       - text/html
-      - text/html;profile=mediawiki.org/specs/html/1.0
-      - application/json;profile=mediawiki.org/specs/pagebundle/1.0
+      - text/html;profile="mediawiki.org/specs/html/1.0"
+      - application/json;profile="mediawiki.org/specs/pagebundle/1.0"
 
     request_handler:
     - send_request: 
@@ -80,7 +80,7 @@ Example for a bucket handler:
       - if:
           response.status: 200
           response.headers:
-            content-type: application/json;profile=mw.org/spec/requests
+            content-type: application/json;profile="mw.org/spec/requests"
           # The backend service returned a JSON structure containing a request
           # structure (a HTTP transaction). Execute it & return the response.
         then:

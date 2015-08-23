@@ -18,7 +18,7 @@ The collection of requests is encoded as JSON, reusing the request spec above:
     uri: '/v1/en.wikipedia.org/transactions/<timeuuid>',
     headers: {
         'Content-type':
-            'application/json;profile=https://mediawiki.org/schema/transaction',
+            'application/json;profile="https://mediawiki.org/schema/transaction"',
         // Precondition for the entire transaction for idempotency
         // tids older than the normal transaction entry lifetime are rejected
         'If-None-Match': '*'
@@ -41,7 +41,7 @@ The collection of requests is encoded as JSON, reusing the request spec above:
                 headers: {
                     'if-match': '<uuid>',
                     'content-type':
-                      'application/json;profile=https://mediawiki.org/specs/foo'
+                      'application/json;profile="https://mediawiki.org/specs/foo"'
                 },
                 // Objects implicitly serialized to JSON
                 body: {..}
@@ -70,7 +70,7 @@ The response mirrors the structure of the request object:
     status: 200, -- status of primary request
     headers: {
         'Content-Type':
-            'application/json;profile=http://mediawiki.org/schema/transaction_response'
+            'application/json;profile="http://mediawiki.org/schema/transaction_response"'
     },
     body: {
         status: 200,
