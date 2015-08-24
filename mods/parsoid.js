@@ -141,7 +141,7 @@ PSP.pagebundle = function(restbase, req) {
     // TODO: Pass in current or predecessor version data if available
     var newReq = Object.assign({}, req);
     if (!newReq.method) { newReq.method = 'get'; }
-    newReq.uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
+    newReq.uri = this.parsoidHost + '/' + domain + '/v3/page/pagebundle/'
         + encodeURIComponent(rbUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.request(newReq);
 };
@@ -511,11 +511,8 @@ PSP.transformRevision = function(restbase, req, from, to) {
 
 PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
     var rp = req.params;
-    // Parsoid currently spells 'wikitext' as 'wt'
     var parsoidTo = to;
-    if (to === 'wikitext') {
-        parsoidTo = 'wt';
-    } else if (to === 'html') {
+    if (to === 'html') {
         // Retrieve pagebundle whenever we want HTML
         parsoidTo = 'pagebundle';
     }
@@ -532,14 +529,13 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         parsoidExtras.push(rp.revision);
     }
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
-    if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
     var domain = rp.domain;
     // Re-map test domain
     if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     var parsoidReq = {
-        uri: this.parsoidHost + '/v2/' + domain + '/'
-            + parsoidTo + parsoidExtraPath,
+        uri: this.parsoidHost + '/' + domain + '/v3/transform/' +
+			from + '/to/' + parsoidTo + '/' + parsoidExtraPath,
         headers: { 'content-type': 'application/json' },
         body: req.body
     };
@@ -615,10 +611,18 @@ PSP.makeTransform = function(from, to) {
         return transform
         .then(function(res) {
             // Unwrap to the flat response format
-            var innerRes = res.body[to];
+            var innerRes = {};
+            if (to === 'wikitext') {
+                innerRes.body = res.body;
+                innerRes.headers = {
+                    'content-type': res.headers['content-type']
+                };
+            } else {
+                innerRes = res.body[to];
+            }
             innerRes.status = 200;
             // Handle bodyOnly flag
-            if (to === 'html' && req.body.bodyOnly) {
+            if (from === 'sections' && to === 'html' && req.body.bodyOnly) {
                 innerRes.body = cheapBodyInnerHTML(innerRes.body);
             }
             return innerRes;
