@@ -37,13 +37,13 @@ First, let's identify a feature to be developed.  For this example, we'll choose
 >         revid: 12345, // The original revision ID
 >         html: {
 >             headers: {
->                 'content-type': 'text/html;profile=mediawiki.org/specs/html/1.0.0'
+>                 'content-type': 'text/html;profile="mediawiki.org/specs/html/1.0.0"'
 >             },
 >             body: "the original HTML"
 >         }
 >         'data-parsoid': {
 >             headers: {
->                 'content-type': 'application/json;profile=mediawiki.org/specs/data-parsoid/0.0.1'
+>                 'content-type': 'application/json;profile="mediawiki.org/specs/data-parsoid/0.0.1"'
 >             },
 >             body: {}
 >         }
@@ -70,7 +70,7 @@ The user should then expect a response as described above.  Let's [verify the re
 assert.deepEqual(res.status, 200);
 assert.deepEqual(localRequestsOnly(slice), false);
 assert.deepEqual(wentToParsoid(slice), true);
-assert.deepEqual(res.headers['content-type'], 'text/html;profile=mediawiki.org/specs/html/1.0.0');
+assert.deepEqual(res.headers['content-type'], 'text/html;profile="mediawiki.org/specs/html/1.0.0"');
 assert.deepEqual(/^<!DOCTYPE html>/.test(res.body), true);
 assert.deepEqual(/<\/html>$/.test(res.body), true);
 ```

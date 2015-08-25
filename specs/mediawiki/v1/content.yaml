@@ -234,7 +234,7 @@ paths:
           description: Comma-separated list of section IDs
           type: string
       produces:
-        - text/html; profile=mediawiki.org/specs/html/1.1.0
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
       responses:
         '200':
           description: >
@@ -414,7 +414,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       operationId: getFormatRevision
       produces:
-        - text/html; profile=mediawiki.org/specs/html/1.1.0
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
       parameters:
         - name: title
           in: path
@@ -818,7 +818,7 @@ paths:
       consumes:
         - multipart/form-data
       produces:
-        - text/plain; profile=mediawiki.org/specs/wikitext/1.0.0
+        - text/plain; profile="mediawiki.org/specs/wikitext/1.0.0"
       parameters:
         - name: title
           in: path
@@ -868,7 +868,7 @@ paths:
       consumes:
         - multipart/form-data
       produces:
-        - text/html; profile=mediawiki.org/specs/html/1.1.0
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
       parameters:
         - name: title
           in: path
@@ -936,7 +936,7 @@ paths:
       consumes:
         - multipart/form-data
       produces:
-        - text/html; profile=mediawiki.org/specs/html/1.1.0
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
       parameters:
         - name: title
           in: path
@@ -991,7 +991,7 @@ paths:
       consumes:
         - multipart/form-data
       produces:
-        - text/html; profile=mediawiki.org/specs/html/1.1.0
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
       parameters:
         - name: title
           in: path
