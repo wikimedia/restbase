@@ -265,11 +265,37 @@ describe('router - misc', function() {
         });
         var result = requestTemplate.eval({
             request: {
-                method: 'get',
+                method: 'post',
                 body: 'a'
             }
         });
-        assert.deepEqual(result.body, '9637f2a22955c1371a7eec2582e7a3e2f2361076');
+        assert.deepEqual(result.body, '575bd4981fc14132c40646e6a115e80e8fcb9618');
+    });
+
+    it('should remove x-request-id header from hash', function() {
+        var requestTemplate = new Template({
+            body: '{$.request.hash}'
+        });
+        var result1 = requestTemplate.eval({
+            request: {
+                method: 'post',
+                headers: {
+                    'x-request-id': '10'
+                },
+                body: 'a'
+            }
+        });
+        assert.deepEqual(result1.body, '19a5337cc49833b0923ac4b6d72744bf8e915de9');
+        var result2 = requestTemplate.eval({
+            request: {
+                method: 'post',
+                headers: {
+                    'x-request-id': '11'
+                },
+                body: 'a'
+            }
+        });
+        assert.deepEqual(result2.body, '19a5337cc49833b0923ac4b6d72744bf8e915de9');
     });
 
     it('should truncate body upon HEAD request', function() {
