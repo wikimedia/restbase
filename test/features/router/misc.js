@@ -259,6 +259,19 @@ describe('router - misc', function() {
         assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3', {}, false));
     });
 
+    it('should support calculating a hash in template', function() {
+        var requestTemplate = new Template({
+            body: '{$.request.hash}'
+        });
+        var result = requestTemplate.eval({
+            request: {
+                method: 'get',
+                body: 'a'
+            }
+        });
+        assert.deepEqual(result.body, '9637f2a22955c1371a7eec2582e7a3e2f2361076');
+    });
+
     it('should truncate body upon HEAD request', function() {
         return preq.head({
             uri: server.config.bucketURL + '/html/1912'
@@ -268,5 +281,5 @@ describe('router - misc', function() {
             assert.deepEqual(res.headers['content-length'], undefined);
             assert.deepEqual(res.body, '');
         })
-    })
+    });
 });
