@@ -190,6 +190,18 @@ templates:
           /{api:sys}:
             x-subspec: *wp/sys/1.0.0
 
+# Should be used instead of wp-default-1.0.0 for private wiki domains
+  wp-secure-1.0.0: &wp/secure/1.0.0
+    x-subspecs:
+      - paths:
+          /{api:v1}:
+            x-subspec: *wp/content/1.0.0
+            security:
+              - mediawiki_auth:
+                - read
+      - paths:
+          /{api:sys}:
+            x-subspec: *wp/sys/1.0.0
 
 spec: &spec
   title: "The RESTBase root"
@@ -213,6 +225,9 @@ services:
       salt: secret
       default_page_size: 250
       user_agent: RESTBase
+      internal_request_whitelist:
+        - /http:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+        - http://parsoid-lb.eqiad.wikimedia.org
 
 logging:
   name: restbase

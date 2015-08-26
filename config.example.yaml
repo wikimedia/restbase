@@ -194,8 +194,8 @@ services:
       default_page_size: 250
       user_agent: RESTBase
       internal_request_whitelist:
-        - /http:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-        - http://parsoid-lb.eqiad.wikimedia.org
+        - http://localhost/w/api.php
+        - http://localhost:8142
 
 logging:
   name: restbase
