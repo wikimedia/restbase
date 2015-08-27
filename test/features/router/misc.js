@@ -312,6 +312,20 @@ describe('router - misc', function() {
         assert.deepEqual(template.eval({request:request}).uri,
             '/test/912e1d7e5cc235315fe41776a0806fbeaed0a582/test');
     });
+
+    it('supports hash in string templates', function() {
+        var template = new Template('{$.request.hash}');
+        var request = {
+            method: 'post',
+            headers: {
+                'host': 'test'
+            },
+            body: 'a'
+        };
+        assert.deepEqual(template.eval({request:request}),
+            '912e1d7e5cc235315fe41776a0806fbeaed0a582');
+    });
+
     it('should truncate body upon HEAD request', function() {
         return preq.head({
             uri: server.config.bucketURL + '/html/1912'
