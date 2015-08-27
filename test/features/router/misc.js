@@ -259,6 +259,72 @@ describe('router - misc', function() {
         assert.deepEqual(result.uri, new URI('en.wikipedia.org/path1/test1/test2/test3', {}, false));
     });
 
+    it('should support calculating a hash in template', function() {
+        var requestTemplate = new Template({
+            body: '{$.request.hash}'
+        });
+        var result = requestTemplate.eval({
+            request: {
+                method: 'post',
+                body: 'a'
+            }
+        });
+        assert.deepEqual(result.body, '5d177fa925d730c6c0f1d776065193c878d976e0');
+    });
+
+    it('should remove x-request-id header from hash', function() {
+        var requestTemplate = new Template({
+            body: '{$.request.hash}'
+        });
+        var result1 = requestTemplate.eval({
+            request: {
+                method: 'post',
+                headers: {
+                    'x-request-id': '10'
+                },
+                body: 'a'
+            }
+        });
+        var result2 = requestTemplate.eval({
+            request: {
+                method: 'post',
+                headers: {
+                    'x-request-id': '11'
+                },
+                body: 'a'
+            }
+        });
+        assert.deepEqual(result2.body, result1.body);
+    });
+
+    it('should support hash and absolute templates in URI', function() {
+        var template = new Template({
+            uri: '/test/{$.request.hash}/{$.request.headers.host}'
+        });
+        var request = {
+            method: 'post',
+            headers: {
+                'host': 'test'
+            },
+            body: 'a'
+        };
+        assert.deepEqual(template.eval({request:request}).uri,
+            '/test/31ffc8b0fd1f3f4da9f7cb338b513c5f5168fcea/test');
+    });
+
+    it('supports hash in string templates', function() {
+        var template = new Template('{$.request.hash}');
+        var request = {
+            method: 'post',
+            headers: {
+                'host': 'test'
+            },
+            body: 'a'
+        };
+        assert.deepEqual(template.eval({request:request}),
+            '31ffc8b0fd1f3f4da9f7cb338b513c5f5168fcea');
+    });
+
     it('should truncate body upon HEAD request', function() {
         return preq.head({
             uri: server.config.bucketURL + '/html/1912'
@@ -268,5 +334,5 @@ describe('router - misc', function() {
             assert.deepEqual(res.headers['content-length'], undefined);
             assert.deepEqual(res.body, '');
         })
-    })
+    });
 });
