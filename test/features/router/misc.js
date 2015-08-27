@@ -269,7 +269,7 @@ describe('router - misc', function() {
                 body: 'a'
             }
         });
-        assert.deepEqual(result.body, '575bd4981fc14132c40646e6a115e80e8fcb9618');
+        assert.deepEqual(result.body, '5d177fa925d730c6c0f1d776065193c878d976e0');
     });
 
     it('should remove x-request-id header from hash', function() {
@@ -285,7 +285,6 @@ describe('router - misc', function() {
                 body: 'a'
             }
         });
-        assert.deepEqual(result1.body, '19a5337cc49833b0923ac4b6d72744bf8e915de9');
         var result2 = requestTemplate.eval({
             request: {
                 method: 'post',
@@ -295,7 +294,7 @@ describe('router - misc', function() {
                 body: 'a'
             }
         });
-        assert.deepEqual(result2.body, '19a5337cc49833b0923ac4b6d72744bf8e915de9');
+        assert.deepEqual(result2.body, result1.body);
     });
 
     it('should support hash and absolute templates in URI', function() {
@@ -310,7 +309,7 @@ describe('router - misc', function() {
             body: 'a'
         };
         assert.deepEqual(template.eval({request:request}).uri,
-            '/test/912e1d7e5cc235315fe41776a0806fbeaed0a582/test');
+            '/test/31ffc8b0fd1f3f4da9f7cb338b513c5f5168fcea/test');
     });
 
     it('supports hash in string templates', function() {
@@ -323,7 +322,7 @@ describe('router - misc', function() {
             body: 'a'
         };
         assert.deepEqual(template.eval({request:request}),
-            '912e1d7e5cc235315fe41776a0806fbeaed0a582');
+            '31ffc8b0fd1f3f4da9f7cb338b513c5f5168fcea');
     });
 
     it('should truncate body upon HEAD request', function() {
