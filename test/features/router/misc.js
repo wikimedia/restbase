@@ -298,6 +298,20 @@ describe('router - misc', function() {
         assert.deepEqual(result2.body, '19a5337cc49833b0923ac4b6d72744bf8e915de9');
     });
 
+    it('should support hash and absolute templates in URI', function() {
+        var template = new Template({
+            uri: '/test/{$.request.hash}/{$.request.headers.host}'
+        });
+        var request = {
+            method: 'post',
+            headers: {
+                'host': 'test'
+            },
+            body: 'a'
+        };
+        assert.deepEqual(template.eval({request:request}).uri,
+            '/test/912e1d7e5cc235315fe41776a0806fbeaed0a582/test');
+    });
     it('should truncate body upon HEAD request', function() {
         return preq.head({
             uri: server.config.bucketURL + '/html/1912'
