@@ -91,7 +91,6 @@ var PSP = ParsoidService.prototype;
  * @param title updated page title
  */
 PSP.purgeCaches = function(domain, title) {
-    console.log('PURGE!', domain, title);
     this.purger.purge(cacheURIs.map(function(template) {
         return template.eval({
             request: {
