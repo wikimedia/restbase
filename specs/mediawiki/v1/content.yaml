@@ -14,7 +14,6 @@ info:
 x-default-params:
   domain: en.wikipedia.org
 paths:
-
   /{module:page}/:
     get:
       tags:
@@ -1055,12 +1054,7 @@ definitions:
     properties:
       items:
         type: array
-        items:
-          revision:
-            type: integer
-            format: int32
-          tid:
-            type: string
+        $ref: revisionIdentifier
 
   listing:
     description: The result format for listings
@@ -1095,44 +1089,56 @@ definitions:
         format: int32
       items:
         type: array
+        $ref: revisionInfo
+
+  revisionInfo:
+    properties:
+      title:
+        type: string
+      page_id:
+        type: integer
+        format: int32
+      rev:
+        type: integer
+        format: int32
+      tid:
+        type: string
+      latest_rev:
+        type: integer
+        format: int32
+      latest_tid:
+        type: string
+      nextrev_tid:
+        type: string
+      comment:
+        type: string
+      renames:
+        type: array
         items:
-          title:
-            type: string
-          page_id:
-            type: integer
-            format: int32
-          rev:
-            type: integer
-            format: int32
-          tid:
-            type: string
-          latest_rev:
-            type: integer
-            format: int32
-          latest_tid:
-            type: string
-          nextrev_tid:
-            type: string
-          comment:
-            type: string
-          renames:
-            type: array
-            items:
-              type: string
-          restrictions:
-            type: array
-            items:
-              type: string
-          tags:
-            type: array
-            items:
-              type: string
-          user_id:
-            type: integer
-            format: int32
-          user_text:
-            type: string
-          timestamp:
-            type: timestamp
-          redirect:
-            type: boolean
+          type: string
+      restrictions:
+        type: array
+        items:
+          type: string
+      tags:
+        type: array
+        items:
+          type: string
+      user_id:
+        type: integer
+        format: int32
+      user_text:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+      redirect:
+        type: boolean
+
+  revisionIdentifier:
+    properties:
+      revision:
+        type: integer
+        format: int32
+      tid:
+        type: string
