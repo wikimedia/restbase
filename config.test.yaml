@@ -40,6 +40,16 @@ templates:
       - mediawiki_v1_graphoid
       - mediawiki/v1/mobileapps
       - test
+    securityDefinitions:
+      mediawiki_auth:
+        description: Checks permissions using MW api
+        type: apiKey
+        in: header
+        name: cookie
+        x-internal-request-whitelist:
+          - http://en.wikipedia.org/w/api.php
+          # Left as a regex for test purpose
+          - /http:\/\/parsoid\-lb\.eqiad\.wikimedia\.org/
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
     info: 
@@ -268,10 +278,6 @@ services:
       spec: *spec
       salt: secret
       default_page_size: 1
-      internal_request_whitelist:
-        - http://en.wikipedia.org/w/api.php
-        # Left as a regex for test purpose
-        - /http:\/\/parsoid\-lb\.eqiad\.wikimedia\.org/
 
 test:
   content_types:

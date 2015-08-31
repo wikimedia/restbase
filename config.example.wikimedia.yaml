@@ -36,15 +36,21 @@ templates:
       license:
         name: Apache2
         url: http://www.apache.org/licenses/LICENSE-2.0
-    security:
-      # ACLs for public *.wikipedia.org wikis
-      - mediaWikiAuth:
-        - user:read
     x-subspecs:
       - mediawiki/v1/content
       - mediawiki_v1_graphoid
       - mediawiki/v1/mobileapps
     # - mediawiki/v1/revision-scoring
+    securityDefinitions:
+      mediawiki_auth:
+        description: Checks permissions using MW api
+        type: apiKey
+        in: header
+        name: cookie
+        x-internal-request-whitelist:
+          - /http:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+          - http://parsoid-lb.eqiad.wikimedia.org
+
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
     info:
@@ -225,9 +231,6 @@ services:
       salt: secret
       default_page_size: 250
       user_agent: RESTBase
-      internal_request_whitelist:
-        - /http:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-        - http://parsoid-lb.eqiad.wikimedia.org
 
 logging:
   name: restbase
