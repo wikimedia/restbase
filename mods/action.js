@@ -140,21 +140,28 @@ function buildQueryResponse(res) {
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
-    } else if (!res.body.query || !res.body.query.pages) {
+    } else if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
         throw apiError({ info: 'Missing query pages from the PHP action API response.' });
     }
-    // Rewrite res.body
-    // XXX: Rethink!
-    var pages = res.body.query.pages;
-    var newBody = Object.keys(pages).map(function(key) {
-        return pages[key];
-    });
-    // XXX: Clean this up!
-    res.body = {
-        items: newBody,
-        next: res.body.continue
-    };
-    return res;
+
+    if (res.body.query.pages) {
+        // Rewrite res.body
+        // XXX: Rethink!
+        var pages = res.body.query.pages;
+        var newBody = Object.keys(pages).map(function(key) {
+            return pages[key];
+        });
+        // XXX: Clean this up!
+        res.body = {
+            items: newBody,
+            next: res.body.continue
+        };
+        return res;
+    } else if (res.body.query.userinfo) {
+        return res.body.query.userinfo;
+    } else {
+        throw apiError({ info: 'Unable to parse PHP action API response.' });
+    }
 }
 
 function buildEditResponse(res) {

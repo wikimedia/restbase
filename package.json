@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/wikimedia/restbase",
   "dependencies": {
+    "core-js": "^0.9.18",
     "bluebird": "2.8.2",
     "busboy": "^0.2.9",
     "js-yaml": "^3.3.1",
@@ -40,7 +41,7 @@
     "preq": "^0.4.3",
     "restbase-mod-table-cassandra": "^0.7.11",
     "service-runner": "^0.2.0",
-    "swagger-router": "^0.1.0",
+    "swagger-router": "^0.1.1",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "tassembly": "^0.1.4"
   },
@@ -54,7 +55,7 @@
     "mocha-lcov-reporter": "^0.0.2",
     "swagger-test": "0.2.0",
     "url-template": "^2.0.6",
-    "nock": "^2.6.0",
+    "nock": "^2.10.0",
     "restbase-mod-table-sqlite": "^0.1.0",
     "mocha-jscs": "^1.2.0"
   }

@@ -8,6 +8,7 @@ var preq   = require('preq');
 var server = require('../../utils/server.js');
 var Template = require('../../../lib/reqTemplate.js');
 var URI = require('swagger-router').URI;
+var nock   = require('nock');
 
 describe('router - misc', function() {
 
@@ -85,7 +86,6 @@ describe('router - misc', function() {
             });
         });
     });
-
     it('should correctly resolve request templates', function() {
         var requestTemplate = {
             uri: '/{domain}/test',

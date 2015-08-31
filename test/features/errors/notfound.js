@@ -168,7 +168,6 @@ describe('404 handling', function() {
         })
         .finally(function() {
             nock.cleanAll();
-            nock.restore();
         });
     })
 });

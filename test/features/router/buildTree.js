@@ -101,6 +101,72 @@ var overlappingMethodSpec = {
     }
 };
 
+var nestedSecuritySpec = {
+    paths: {
+        '/{domain:en.wikipedia.test.local}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/page': {
+                            'x-subspec': {
+                                paths: {
+                                    '/secure': {
+                                        get: {
+                                            'x-backend-request': {
+                                                uri: '/{domain}/sys/parsoid/html/{title}'
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            security: [ 'second', 'third' ]
+                        }
+                    }
+                }
+            ],
+            security: [ 'first' ]
+        }
+    }
+};
+
+var parsoidSpec = {
+    'x-modules': [
+        {
+            name: 'parsoid',
+            version: '1.0.0',
+            type: 'file',
+            options: {
+                parsoidHost: 'http://parsoid-lb.eqiad.wikimedia.org'
+            }
+        }
+    ]
+};
+
+var sameModuleAtDifferentPathsSpec = {
+    paths: {
+        '/{domain:en.wikipedia.org}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/parsoid': parsoidSpec
+                    }
+                }
+            ]
+        },
+        '/{domain:secure.wikipedia.org}/v1': {
+            'x-subspecs': [
+                {
+                    paths: {
+                        '/parsoid': parsoidSpec
+                    }
+                }
+            ],
+            'additions_property': 'test'
+        }
+    }
+};
+
+var fullSpec = loadConfig('config.example.yaml');
 var fullSpec = loadConfig('config.test.yaml');
 
 describe('tree building', function() {
@@ -163,6 +229,14 @@ describe('tree building', function() {
         function(e) {
             // exception thrown as expected
             return;
+        });
+    });
+
+    it('should parse permission along the path to endpoint', function() {
+        return router.loadSpec(nestedSecuritySpec)
+        .then(function() {
+            var handler = router.route('/en.wikipedia.test.local/v1/page/secure');
+            assert.deepEqual(handler.permissions, ['first', 'second', 'third']);
         });
     });
 });
