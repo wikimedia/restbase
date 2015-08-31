@@ -14,6 +14,7 @@ info:
 x-default-params:
   domain: en.wikipedia.org
 paths:
+
   /{module:page}/:
     get:
       tags:
@@ -1092,6 +1093,7 @@ definitions:
         $ref: revisionInfo
 
   revisionInfo:
+    description: Complete information about the revision
     properties:
       title:
         type: string
@@ -1136,6 +1138,7 @@ definitions:
         type: boolean
 
   revisionIdentifier:
+    description: Unique revision identifier
     properties:
       revision:
         type: integer
