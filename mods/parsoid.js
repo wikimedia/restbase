@@ -20,42 +20,65 @@ var Purger = require('htcp-purge');
 var Template = require('../lib/reqTemplate');
 var cacheURIs = [
     // /page/mobile-html/{title}
-    new Template({uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html/{title}'}),
-    new Template({uri: 'https://{domain}/api/rest_v1/page/mobile-html/{title}'}),
+    new Template({
+        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html/{title}'
+    }),
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html/{title}'
+    }),
     // /page/mobile-html-sections/{title}
-    new Template({uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections/{title}'}),
-    new Template({uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections/{title}'}),
+    new Template({
+        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections/{title}'
+    }),
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections/{title}'
+    }),
     // /page/mobile-html-sections-lead/{title}
-    new Template({uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections-lead/{title}'}),
-    new Template({uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-lead/{title}'}),
+    new Template({
+        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections-lead/{title}'
+    }),
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-lead/{title}'
+    }),
     // /page/mobile-html-sections-remaining/{title}
-    new Template({uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections-remaining/{title}'}),
-    new Template({uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-remaining/{title}'}),
+    new Template({
+        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections-remaining/{title}'
+    }),
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-remaining/{title}'
+    }),
     // /page/mobile-text/{title}
-    new Template({uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-text/{title}'}),
-    new Template({uri: 'https://{domain}/api/rest_v1/page/mobile-text/{title}'})
+    new Template({
+        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-text/{title}'
+    }),
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-text/{title}'
+    })
 
 ];
 
 function ParsoidService(options) {
+    var self = this;
     options = options || {};
     this.log = options.log || function() {};
     this.parsoidHost = options.parsoidHost
         || 'http://parsoid-lb.eqiad.wikimedia.org';
-    // Set up operations
-    var self = this;
 
     // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
     // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
-    self.purger = new Purger({
-        routes: [
-            {
-                host: '239.128.0.112',
-                port: 4827
-            }
-        ]
-    });
+    self.purgeOnUpdate = options.purge_on_update;
+    if (self.purgeOnUpdate) {
+        self.purger = new Purger({
+            routes: [
+                {
+                    host: '239.128.0.112',
+                    port: 4827
+                }
+            ]
+        });
+    }
 
+    // Set up operations
     this.operations = {
         getPageBundle: function(restbase, req) {
             return self.wrapContentReq(restbase, req,
@@ -367,7 +390,9 @@ PSP.getFormat = function(format, restbase, req) {
                 }
             })
             .then(function(res) {
-                self.purgeCaches(rp.domain, rp.title);
+                if (self.purgeOnUpdate) {
+                    self.purgeCaches(rp.domain, rp.title);
+                }
                 return res;
             });
         } else {
