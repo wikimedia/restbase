@@ -1,0 +1,27 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: RESTBase post data storage module
+  description: Revisioned post data storage with HTTP interface, backed by table storage
+paths:
+  /{bucket}:
+    get:
+      operationId: getBucketInfo
+    put:
+      operationId: createBucket
+
+  /{bucket}/:
+    get:
+      operationId: listBucket
+
+  /{bucket}/{key}/:
+    get:
+      operationId: listRevisions
+
+  /{bucket}/{key}{/tid}:
+    get:
+      operationId: getRevision
+
+  /{bucket}/data{/tid}:
+    put:
+      operationId: putRevision

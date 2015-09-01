@@ -34,6 +34,20 @@ paths:
                 headers:
                   content-type: /^text\/html.+/
 
+  /{module:post_data}/storage:
+    post:
+      x-backend-request:
+        method: put
+        uri: /{domain}/sys/post_data_sevice/storage
+        headers: '{$.request.headers}'
+        body: '{$.request.body}'
+      x-monitor: false
+
+  /{module:post_data}/storage/{hash}:
+    get:
+      x-backend-request:
+        uri: /{domain}/sys/post_data_sevice/storage/{hash}
+      x-monitor: false
 
   /{module:page}/wikitext/{title}:
     post:
