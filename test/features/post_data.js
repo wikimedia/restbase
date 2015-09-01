@@ -25,13 +25,11 @@ describe('post_data', function () {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 201);
-            assert.deepEqual(res.body, 'd0d450a2edc686eeb122b5d9192116ed6285cc5c');
             return preq.get({
                 uri: server.config.baseURL + '/post_data/storage/' + res.body
             });
         })
         .then(function(res) {
-            console.log(res);
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.body, { key: 'value' });
             assert.deepEqual(res.body.headers.test, 'test');
