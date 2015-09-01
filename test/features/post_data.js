@@ -31,9 +31,10 @@ describe('post_data', function () {
             });
         })
         .then(function(res) {
+            console.log(res);
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.body.body, { key: 'value' });
-            assert.deepEqual(res.body.body.headers.test, 'test');
+            assert.deepEqual(res.body.body, { key: 'value' });
+            assert.deepEqual(res.body.headers.test, 'test');
         });
     });
 });

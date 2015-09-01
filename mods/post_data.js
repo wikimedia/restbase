@@ -90,7 +90,7 @@ PostDataBucket.prototype.putRevision = function(restbase, req) {
             'content-type': 'application/json',
             'cache-control': req.headers && req.headers['cache-control']
         },
-        body: req
+        body: req.body
     })
     .then(function(res) {
         return {
