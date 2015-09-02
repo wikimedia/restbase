@@ -126,43 +126,6 @@ var nestedSecuritySpec = {
     }
 };
 
-var parsoidSpec = {
-    'x-modules': [
-        {
-            name: 'parsoid',
-            version: '1.0.0',
-            type: 'file',
-            options: {
-                parsoidHost: 'http://parsoid-lb.eqiad.wikimedia.org'
-            }
-        }
-    ]
-};
-
-var sameModuleAtDifferentPathsSpec = {
-    paths: {
-        '/{domain:en.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/parsoid': parsoidSpec
-                    }
-                }
-            ]
-        },
-        '/{domain:secure.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/parsoid': parsoidSpec
-                    }
-                }
-            ],
-            'additions_property': 'test'
-        }
-    }
-};
-
 var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
 describe('tree building', function() {
@@ -228,11 +191,11 @@ describe('tree building', function() {
         },
         function() {
             // exception thrown as expected
-            return;
         });
     });
 
     it('should parse permission along the path to endpoint', function() {
+        var router = new Router();
         return router.loadSpec(nestedSecuritySpec)
         .then(function() {
             var handler = router.route('/en.wikipedia.test.local/v1/page/secure');
