@@ -125,7 +125,7 @@ function generateTests(options) {
         });
     });
 
-    it('should fill latest rev and tid properties', function() {
+    it('should fill latest_rev property', function() {
         return preq.get({
             uri: server.config.bucketURL + '/title/' + options.pageName,
             headers: {
@@ -136,8 +136,6 @@ function generateTests(options) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].latest_rev, options.pageLastRev);
-            assert.deepEqual(!!res.body.items[0].latest_tid, true);
-            assert.deepEqual(res.body.items[0].latest_tid, res.body.items[0].tid)
         });
     });
 

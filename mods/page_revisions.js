@@ -239,7 +239,6 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
 
         if (!rp.revision) {
             storeAttributes.latest_rev = apiRev.revid;
-            storeAttributes.latest_tid = currentTid;
         }
 
         return restbase.put({ // Save / update the revision entry
