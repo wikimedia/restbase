@@ -11,7 +11,7 @@
 var P = require('bluebird');
 var URI = require('swagger-router').URI;
 var rbUtil = require('../lib/rbUtil');
-
+var TimeUuid = require('cassandra-uuid').TimeUuid;
 
 function PageSave(options) {
     var self = this;
@@ -36,11 +36,49 @@ function PageSave(options) {
     };
 }
 
-PageSave.prototype._getRevInfo = function(restbase, req) {
+PageSave.prototype._getStartTimestamp = function(req) {
+    if (req.headers && req.headers['if-match']) {
+        var etag = rbUtil.parseETag(req.headers['if-match']);
+        if (!etag || !TimeUuid.test(etag.tid) || !/^(?:[0-9]+)$/.test(etag.rev)) {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    title: 'Bad ETag in If-Match',
+                    description: 'The supplied baseETag is invalid'
+                }
+            });
+        } else {
+            return TimeUuid.fromString(etag.tid).getDate().toISOString();
+        }
+    }
+    return undefined;
+};
+
+PageSave.prototype._getBaseRevision = function(req) {
+    if (req.body.baseETag) {
+        var etag = rbUtil.parseETag(req.body.baseETag);
+        if (etag) {
+            return etag.rev;
+        } else {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    title: 'Bad baseETag',
+                    description: 'The supplied baseETag is invalid'
+                }
+            });
+        }
+    }
+    return undefined;
+};
+
+PageSave.prototype._getRevInfo = function(restbase, req, revision) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
                          rbUtil.normalizeTitle(rp.title)];
-    if (!/^(?:[0-9]+)$/.test(req.body.revision)) {
+    if (!/^(?:[0-9]+)$/.test(revision)) {
         throw new rbUtil.HTTPError({
             status: 400,
             body: {
@@ -50,7 +88,7 @@ PageSave.prototype._getRevInfo = function(restbase, req) {
             }
         });
     }
-    path.push(req.body.revision);
+    path.push(revision);
     return restbase.get({
         uri: new URI(path)
     })
@@ -83,12 +121,14 @@ PageSave.prototype._checkParams = function(params) {
 };
 
 PageSave.prototype.saveWikitext = function(restbase, req) {
+    var self = this;
     var rp = req.params;
     var title = rbUtil.normalizeTitle(rp.title);
     var promise = P.resolve({});
     this._checkParams(req.body);
-    if (req.body.revision) {
-        promise = this._getRevInfo(restbase, req);
+    var baseRevision = this._getBaseRevision(req);
+    if (baseRevision) {
+        promise = this._getRevInfo(restbase, req, baseRevision);
     }
     return promise.then(function(revInfo) {
         var body = {
@@ -110,6 +150,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             // TODO: remove once the above patch gets merged
             body.basetimestamp = revInfo.timestamp;
         }
+        body.starttimestamp = self._getStartTimestamp(req);
         return restbase.post({
             uri: new URI([rp.domain, 'sys', 'action', 'edit']),
             headers: {
@@ -124,13 +165,16 @@ PageSave.prototype.saveHtml = function(restbase, req) {
     var self = this;
     var rp = req.params;
     var title = rbUtil.normalizeTitle(rp.title);
-    var promise = P.resolve({});
     this._checkParams(req.body);
     // First transform the HTML to wikitext via the parsoid module
+    var path = [rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title];
+    var baseRevision = this._getBaseRevision(req);
+    if (baseRevision) {
+        path.push(baseRevision);
+    }
     return restbase.post({
-        uri: new URI([rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title]),
+        uri: new URI(path),
         body: {
-            revision: req.body.revision,
             html: req.body.html
         }
     }).then(function(res) {

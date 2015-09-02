@@ -11,6 +11,7 @@ describe('page save api', function() {
     var uri = server.config.bucketURL + '/wikitext/User:Mobrovac-WMF%2FRB_Save_Api_Test';
     var htmlUri = server.config.bucketURL + '/html/User:Mobrovac-WMF%2FRB_Save_Api_Test';
     var token = '';
+    var oldETag = '';
     var saveText = "Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
         "API! This page is created by an automated test to make sure RESTBase works " +
         "with the current version of MediaWiki.\n\n" +
@@ -18,6 +19,7 @@ describe('page save api', function() {
         "== Random ==\nHere's a random number: " + Math.floor(Math.random() * 32768);
     var oldRev = 666464140;
     var lastRev = 0;
+    var lastETag = '';
 
     this.timeout(20000);
 
@@ -32,9 +34,16 @@ describe('page save api', function() {
                     formatversion: 2
                 }
             });
-        }).then(function(res) {
+        })
+        .then(function(res) {
             token = res.body.query.tokens.csrftoken;
-        });
+            return preq.get({
+                uri: server.config.bucketURL + '/revision/' + oldRev
+            });
+        })
+        .then(function(res) {
+            oldETag = res.headers.etag;
+        })
     });
 
     it('fail for missing content', function() {
@@ -80,11 +89,97 @@ describe('page save api', function() {
         });
     });
 
+    it('fail for bad baseETag', function() {
+        return preq.post({
+            uri: uri,
+            body: {
+                baseETag: 'this_is_a_bad_ETag',
+                wikitext: 'abcd',
+                token: 'this_is_a_bad_token'
+            }
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 400);
+            assert.deepEqual(err.body.title, 'Bad baseETag');
+        });
+    });
+
+    it('fails for bad baseETag timestamp', function() {
+        return preq.post({
+            uri: uri,
+            body: {
+                baseETag: oldETag + 'this_should_not_be_here',
+                wikitext: 'abcd',
+                token: 'this_is_a_bad_token'
+            }
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 400);
+            assert.deepEqual(err.body.title, 'Bad baseETag');
+        });
+    });
+
+    it('fail for bad if-match etag', function() {
+        return preq.post({
+            uri: uri,
+            body: {
+                wikitext: 'abcd',
+                token: 'this_is_a_bad_token'
+            },
+            headers: {
+                'if-match': 'this_is_a_bad_ETag'
+            }
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 400);
+            assert.deepEqual(err.body.title, 'Bad ETag in If-Match');
+        });
+    });
+
+    it('fail for bad if-match etag timestamp', function() {
+        return preq.post({
+            uri: uri,
+            body: {
+                wikitext: 'abcd',
+                token: 'this_is_a_bad_token'
+            },
+            headers: {
+                'if-match': lastETag + 'this_should_not_be_here'
+            }
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 400);
+            assert.deepEqual(err.body.title, 'Bad ETag in If-Match');
+        });
+    });
+
+    it('fail for bad if-match etag revision', function() {
+        return preq.post({
+            uri: uri,
+            body: {
+                wikitext: 'abcd',
+                token: 'this_is_a_bad_token'
+            },
+            headers: {
+                'if-match': 'this_should_not_be_here' + lastETag
+            }
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 400);
+            assert.deepEqual(err.body.title, 'Bad ETag in If-Match');
+        });
+    });
+
     it('fail for bad revision', function() {
         return preq.post({
             uri: uri,
             body: {
-                revision: '13r25fv31',
+                baseETag: '12sd121s/test_test',
                 wikitext: 'abcd',
                 token: 'this_is_a_bad_token'
             }
@@ -102,10 +197,20 @@ describe('page save api', function() {
             body: {
                 wikitext: saveText,
                 token: token
+            },
+            headers: {
+                'if-match': lastETag
             }
-        }).then(function(res) {
+        })
+        .then(function(res) {
             assert.deepEqual(res.status, 201);
             lastRev = res.body.newrevid;
+            return preq.get({
+                uri: server.config.bucketURL + '/revision/' + lastRev
+            });
+        })
+        .then(function(res) {
+            lastETag = res.headers.etag;
         });
     });
 
@@ -115,6 +220,9 @@ describe('page save api', function() {
             body: {
                 wikitext: saveText,
                 token: token
+            },
+            headers: {
+                'if-match': lastETag
             }
         }).then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -126,9 +234,12 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                revision: oldRev,
+                baseETag: oldETag,
                 wikitext: saveText + "\n\nExtra text",
                 token: token
+            },
+            headers: {
+                'if-match': lastETag
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -138,8 +249,6 @@ describe('page save api', function() {
         });
     });
 
-    /*
-     * TODO: Uncomment once POST /page/html/{title} is publicly available
     it('save HTML', function() {
         return preq.get({
             uri: htmlUri + '/' + lastRev
@@ -149,15 +258,39 @@ describe('page save api', function() {
                 uri: htmlUri,
                 body: {
                     html: res.body.replace(/\<\/body\>/, '<p>Generated via direct HTML save!</p></body>'),
-                    token: token,
-                    revision: lastRev
+                    token: token
+                },
+                headers: {
+                    'if-match': lastETag
                 }
             });
         }).then(function(res) {
             assert.deepEqual(res.status, 201);
         });
     });
-    */
 
+    it('detect conflict on save HTML', function() {
+        return preq.get({
+            uri: htmlUri + '/' + oldRev
+        }).then(function(res) {
+            assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
+            return preq.post({
+                uri: htmlUri,
+                body: {
+                    html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
+                    token: token,
+                    baseETag: oldETag
+                },
+                headers: {
+                    'if-match': lastETag
+                }
+            });
+        }).then(function(res) {
+            throw new Error('Expected an error, but got status: ' + res.status);
+        }, function(err) {
+            assert.deepEqual(err.status, 409);
+            assert.deepEqual(err.body.title, 'editconflict');
+        });
+    });
 });
 

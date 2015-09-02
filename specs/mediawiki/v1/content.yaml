@@ -289,69 +289,75 @@ paths:
               etag: /.+/
               content-type: /^text\/html.+/
             body: /^<!DOCTYPE html>.*/
-#    post:
-#      tags:
-#        - Page content
-#      description: >
-#        Save a new revision of a page given in HTML format
-#
-#        Note that the title must exist. See [the MediaWiki DOM
-#        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
-#        description of the MediaWiki-specific semantic markup needed by this API
-#        end-point.
-#
-#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-#      parameters:
-#        - name: title
-#          in: path
-#          description: The page title.
-#          type: string
-#          required: true
-#        - name: revision
-#          in: formData
-#          description: The revision of the page the edit is based on.
-#          type: string
-#          required: false
-#        - name: html
-#          in: formData
-#          description: The HTML of the page to save
-#          type: string
-#          required: true
-#        - name: token
-#          in: formData
-#          description: The CRSF edit token provided by the MW API
-#          type: string
-#          required: true
-#        - name: comment
-#          in: formData
-#          description: The summary of the change
-#          type: string
-#          required: false
-#        - name: minor
-#          in: formData
-#          description: Whether this represents a minor change
-#          type: boolean
-#          required: false
-#        - name: bot
-#          in: formData
-#          description: Whether the change is being made by a bot
-#          type: boolean
-#          required: false
-#      consumes:
-#        - multipart/form-data
-#      produces:
-#        - application/json
-#      responses:
-#        '200':
-#          description: The existing revision of the page matches the sent text
-#        '201':
-#          description: A new revision of the page has been created
-#        default:
-#          description: Error
-#          schema:
-#            $ref: '#/definitions/problem'
-#      x-backend-request:
-#        uri: /{domain}/sys/page_save/html/{title}
+    post:
+      tags:
+        - Page content
+      description: >
+        Save a new revision of a page given in HTML format
+
+        Note that the title must exist. See [the MediaWiki DOM
+        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+        description of the MediaWiki-specific semantic markup needed by this API
+        end-point.
+
+        The latest page revision ETag header could be provided in the If-Match header
+        to detect edit conflicts.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+        - name: baseETag
+          in: formData
+          description: The ETag header of the revision the edit is based on.
+          type: string
+          required: false
+        - name: html
+          in: formData
+          description: The HTML of the page to save
+          type: string
+          required: true
+        - name: token
+          in: formData
+          description: The CRSF edit token provided by the MW API
+          type: string
+          required: true
+        - name: comment
+          in: formData
+          description: The summary of the change
+          type: string
+          required: false
+        - name: minor
+          in: formData
+          description: Whether this represents a minor change
+          type: boolean
+          required: false
+        - name: bot
+          in: formData
+          description: Whether the change is being made by a bot
+          type: boolean
+          required: false
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The existing revision of the page matches the sent text
+        '201':
+          description: A new revision of the page has been created
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/page_save/html/{title}
+        headers: '{$.request.headers}'
+        body: '{$.request.body}'
+      x-monitor: false
 
   /{module:page}/html/{title}/:
     get:
@@ -743,69 +749,77 @@ paths:
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
-#  /{module:page}/wikitext/{title}:
-#    post:
-#      tags:
-#        - Page content
-#      description: >
-#        Save a new revision of a page
-#
-#        For new pages, the `revision` parameter should be left empty.
-#        For editing existing pages, it should contain the revision ID
-#        the edit is derived from.
-#
-#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-#      parameters:
-#        - name: title
-#          in: path
-#          description: The page title.
-#          type: string
-#          required: true
-#        - name: revision
-#          in: formData
-#          description: The revision of the page the edit is based on.
-#          type: string
-#          required: false
-#        - name: wikitext
-#          in: formData
-#          description: The wikitext source of the page to save
-#          type: string
-#          required: true
-#        - name: token
-#          in: formData
-#          description: The CRSF edit token provided by the MW API
-#          type: string
-#          required: true
-#        - name: comment
-#          in: formData
-#          description: The summary of the change
-#          type: string
-#          required: false
-#        - name: minor
-#          in: formData
-#          description: Whether this represents a minor change
-#          type: boolean
-#          required: false
-#        - name: bot
-#          in: formData
-#          description: Whether the change is being made by a bot
-#          type: boolean
-#          required: false
-#      consumes:
-#        - multipart/form-data
-#      produces:
-#        - application/json
-#      responses:
-#        '200':
-#          description: The existing revision of the page matches the sent text
-#        '201':
-#          description: A new revision of the page has been created
-#        default:
-#          description: Error
-#          schema:
-#            $ref: '#/definitions/problem'
-#      x-backend-request:
-#        uri: /{domain}/sys/page_save/wikitext/{title}
+
+  /{module:page}/wikitext/{title}:
+    post:
+      tags:
+        - Page content
+      description: >
+        Save a new revision of a page
+
+        For new pages, or when editting the latest revision of a page,
+        the `baseETag` parameter should be left empty.
+        For editing existing pages, it should contain the revision ID
+        the edit is derived from.
+
+        The latest page revision ETag header could be provided in the If-Match header
+        to detect edit conflicts.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+        - name: baseETag
+          in: formData
+          description: The ETag header of the revision the edit is based on.
+          type: string
+          required: false
+        - name: wikitext
+          in: formData
+          description: The wikitext source of the page to save
+          type: string
+          required: true
+        - name: token
+          in: formData
+          description: The CRSF edit token provided by the MW API
+          type: string
+          required: true
+        - name: comment
+          in: formData
+          description: The summary of the change
+          type: string
+          required: false
+        - name: minor
+          in: formData
+          description: Whether this represents a minor change
+          type: boolean
+          required: false
+        - name: bot
+          in: formData
+          description: Whether the change is being made by a bot
+          type: boolean
+          required: false
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The existing revision of the page matches the sent text
+        '201':
+          description: A new revision of the page has been created
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        uri: /{domain}/sys/page_save/wikitext/{title}
+        headers: '{$.request.headers}'
+        body: '{$.request.body}'
+      x-monitor: false
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
     post:
