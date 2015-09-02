@@ -22,6 +22,6 @@ paths:
     get:
       operationId: getRevision
 
-  /{bucket}/data{/tid}:
+  /{bucket}/:
     put:
       operationId: putRevision

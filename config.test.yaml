@@ -141,7 +141,7 @@ templates:
                       - put_to_storage:
                           request:
                             method: put
-                            uri: /{domain}/sys/post_data/post.test/data
+                            uri: /{domain}/sys/post_data/post.test/
                             headers: '{$.request.headers}'
                             body: '{$.request}'
                 /storage/{hash}:
