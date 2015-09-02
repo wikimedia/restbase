@@ -21,36 +21,21 @@ var Template = require('../lib/reqTemplate');
 var cacheURIs = [
     // /page/mobile-html/{title}
     new Template({
-        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html/{title}'
-    }),
-    new Template({
         uri: 'https://{domain}/api/rest_v1/page/mobile-html/{title}'
     }),
     // /page/mobile-html-sections/{title}
-    new Template({
-        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections/{title}'
-    }),
     new Template({
         uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections/{title}'
     }),
     // /page/mobile-html-sections-lead/{title}
     new Template({
-        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections-lead/{title}'
-    }),
-    new Template({
         uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-lead/{title}'
     }),
     // /page/mobile-html-sections-remaining/{title}
     new Template({
-        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-html-sections-remaining/{title}'
-    }),
-    new Template({
         uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-remaining/{title}'
     }),
     // /page/mobile-text/{title}
-    new Template({
-        uri: 'https://rest.wikimedia.org/{domain}/v1/page/mobile-text/{title}'
-    }),
     new Template({
         uri: 'https://{domain}/api/rest_v1/page/mobile-text/{title}'
     })
