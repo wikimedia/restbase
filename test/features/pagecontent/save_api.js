@@ -8,8 +8,8 @@ var server = require('../../utils/server.js');
 
 describe('page save api', function() {
 
-    var uri = server.config.bucketURL + '/wikitext/User:Mobrovac-WMF%2FRB_Save_Api_Test';
-    var htmlUri = server.config.bucketURL + '/html/User:Mobrovac-WMF%2FRB_Save_Api_Test';
+    var uri = server.config.labsURL + '/wikitext/Main_Page';
+    var htmlUri = server.config.labsURL + '/html/Save_test';
     var token = '';
     var oldETag = '';
     var saveText = "Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
@@ -17,7 +17,7 @@ describe('page save api', function() {
         "with the current version of MediaWiki.\n\n" +
         "== Date ==\nText generated on " + new Date().toUTCString() + "\n\n" +
         "== Random ==\nHere's a random number: " + Math.floor(Math.random() * 32768);
-    var oldRev = 666464140;
+    var oldRev = 259419;
     var lastRev = 0;
     var lastETag = '';
 
@@ -26,7 +26,7 @@ describe('page save api', function() {
     before(function () {
         return server.start().then(function() {
             return preq.get({
-                uri: 'http://en.wikipedia.org/w/api.php',
+                uri: 'http://en.wikipedia.beta.wmflabs.org/w/api.php',
                 query: {
                     action: 'query',
                     meta: 'tokens',
@@ -38,7 +38,7 @@ describe('page save api', function() {
         .then(function(res) {
             token = res.body.query.tokens.csrftoken;
             return preq.get({
-                uri: server.config.bucketURL + '/revision/' + oldRev
+                uri: server.config.labsURL + '/revision/' + oldRev
             });
         })
         .then(function(res) {
@@ -206,7 +206,7 @@ describe('page save api', function() {
             assert.deepEqual(res.status, 201);
             lastRev = res.body.newrevid;
             return preq.get({
-                uri: server.config.bucketURL + '/revision/' + lastRev
+                uri: server.config.labsURL + '/revision/' + lastRev
             });
         })
         .then(function(res) {

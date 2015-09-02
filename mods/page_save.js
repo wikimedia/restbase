@@ -139,6 +139,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             bot: req.body.bot || false,
             token: req.body.token
         };
+        console.log(body);
         // We need to add each info separately
         // since the presence of an empty value
         // might startle the MW API
