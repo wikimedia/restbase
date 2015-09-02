@@ -759,8 +759,8 @@ paths:
 
         For new pages, or when editting the latest revision of a page,
         the `baseETag` parameter should be left empty.
-        For editing existing pages, it should contain the revision ID
-        the edit is derived from.
+        For editing old revisions, it should contain the ETag header
+        of the revision the edit is derived from.
 
         The latest page revision ETag header could be provided in the If-Match header
         to detect edit conflicts.
