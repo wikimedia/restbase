@@ -181,6 +181,9 @@ function buildEditResponse(res) {
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
+    if (req.params.domain === 'en.wikipedia.test.local') {
+        req.params.domain = 'en.wikipedia.org';
+    }
     var apiRequest = this.apiRequestTemplate.eval({
         request: req
     });

@@ -242,6 +242,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
         parsoidReq = getOrigAndPostToParsoid(rp.revision, 'original', updateMode);
     } else {
         // Plain render
+        console.log(pageBundleUri);
         parsoidReq = restbase.get({ uri: pageBundleUri });
     }
 

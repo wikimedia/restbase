@@ -8,7 +8,7 @@ var server = require('../../utils/server.js');
 
 describe('page save api', function() {
 
-    var uri = server.config.labsURL + '/wikitext/Main_Page';
+    var uri = server.config.labsURL + '/wikitext/Save_test';
     var htmlUri = server.config.labsURL + '/html/Save_test';
     var token = '';
     var oldETag = '';
@@ -272,6 +272,9 @@ describe('page save api', function() {
     it('detect conflict on save HTML', function() {
         return preq.get({
             uri: htmlUri + '/' + oldRev
+        })
+        .catch(function(e) {
+            console.log(e);
         }).then(function(res) {
             assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
             return preq.post({

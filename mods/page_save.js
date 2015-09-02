@@ -139,7 +139,6 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             bot: req.body.bot || false,
             token: req.body.token
         };
-        console.log(body);
         // We need to add each info separately
         // since the presence of an empty value
         // might startle the MW API
@@ -163,6 +162,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
 };
 
 PageSave.prototype.saveHtml = function(restbase, req) {
+    console.log('SAVE HTML')
     var self = this;
     var rp = req.params;
     var title = rbUtil.normalizeTitle(rp.title);
@@ -178,11 +178,15 @@ PageSave.prototype.saveHtml = function(restbase, req) {
         body: {
             html: req.body.html
         }
-    }).then(function(res) {
+    })
+    .then(function(res) {
         // Then send it to the MW API
         req.body.wikitext = res.body;
         delete req.body.html;
         return self.saveWikitext(restbase, req);
+    })
+    .catch(function(e) {
+        console.log(e);
     });
 };
 
