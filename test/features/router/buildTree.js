@@ -3,13 +3,10 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
-var fs = require('fs');
-var yaml = require('js-yaml');
-
 var assert = require('assert');
+var preq   = require('preq');
 var Router = require('../../../lib/router');
-var loadConfig = require('../../utils/server').loadConfig;
-var router = new Router();
+var server = require('../../utils/server');
 
 var rootSpec = {
     paths: {
@@ -129,49 +126,14 @@ var nestedSecuritySpec = {
     }
 };
 
-var parsoidSpec = {
-    'x-modules': [
-        {
-            name: 'parsoid',
-            version: '1.0.0',
-            type: 'file',
-            options: {
-                parsoidHost: 'http://parsoid-lb.eqiad.wikimedia.org'
-            }
-        }
-    ]
-};
-
-var sameModuleAtDifferentPathsSpec = {
-    paths: {
-        '/{domain:en.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/parsoid': parsoidSpec
-                    }
-                }
-            ]
-        },
-        '/{domain:secure.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/parsoid': parsoidSpec
-                    }
-                }
-            ],
-            'additions_property': 'test'
-        }
-    }
-};
-
-var fullSpec = loadConfig('config.example.yaml');
-var fullSpec = loadConfig('config.test.yaml');
+var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
 describe('tree building', function() {
 
+    before(function() { server.start(); });
+
     it('should build a simple spec tree', function() {
+        var router = new Router();
         return router.loadSpec(rootSpec)
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
@@ -184,17 +146,18 @@ describe('tree building', function() {
     });
 
     it('should fail loading a faulty spec', function() {
+        var router = new Router();
         return router.loadSpec(faultySpec)
         .then(function() {
             throw new Error("Should throw an exception!");
         },
-        function(e) {
+        function() {
             // exception thrown as expected
-            return;
         });
     });
 
     it('should build the example config spec tree', function() {
+        var router = new Router();
         var resourceRequests = [];
         return router.loadSpec(fullSpec.spec, {
             request: function(req) {
@@ -202,9 +165,7 @@ describe('tree building', function() {
             }
         })
         .then(function() {
-            //console.log(JSON.stringify(router.tree, null, 2));
             var handler = router.route('/en.wikipedia.test.local/v1/page/html/Foo');
-            //console.log(handler);
             assert.equal(resourceRequests.length > 0, true);
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.test.local');
@@ -213,6 +174,7 @@ describe('tree building', function() {
     });
 
     it('should allow adding methods to existing paths', function() {
+        var router = new Router();
         return router.loadSpec(additionalMethodSpec)
         .then(function() {
             var handler = router.route('/en.wikipedia.test.local/v1/page/Foo/html');
@@ -221,22 +183,32 @@ describe('tree building', function() {
         });
     });
 
-    it('should on overlapping methods on the same path', function() {
-        return router.loadSpec(additionalMethodSpec)
+    it('should error on overlapping methods on the same path', function() {
+        var router = new Router();
+        return router.loadSpec(overlappingMethodSpec)
         .then(function() {
             throw new Error("Should throw an exception!");
         },
-        function(e) {
+        function() {
             // exception thrown as expected
-            return;
         });
     });
 
     it('should parse permission along the path to endpoint', function() {
+        var router = new Router();
         return router.loadSpec(nestedSecuritySpec)
         .then(function() {
             var handler = router.route('/en.wikipedia.test.local/v1/page/secure');
             assert.deepEqual(handler.permissions, ['first', 'second', 'third']);
         });
+    });
+
+    it('should not load root-spec params', function() {
+        return preq.get({
+            uri: server.config.baseURL + '/?spec'
+        })
+        .then(function(res) {
+            assert.equal(res.body.paths[''], undefined);
+        })
     });
 });
