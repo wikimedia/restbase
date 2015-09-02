@@ -125,6 +125,22 @@ function generateTests(options) {
         });
     });
 
+    it('should fill latest rev and tid properties', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/title/' + options.pageName,
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].latest_rev, options.pageLastRev);
+            assert.deepEqual(!!res.body.items[0].latest_tid, true);
+            assert.deepEqual(res.body.items[0].latest_tid, res.body.items[0].tid)
+        });
+    });
+
     after(function() {
         server.stop();
         apiRequestTemplate.uri = prevUri;

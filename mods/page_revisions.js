@@ -218,28 +218,35 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
 
         // Get the redirect property, it's inclusion means true
         var redirect = dataResp.redirect !== undefined;
+        var currentTid = uuid.now().toString();
+        var storeAttributes = {
+            // FIXME: if a title has been given, check it
+            // matches the one returned by the MW API
+            // cf. https://phabricator.wikimedia.org/T87393
+            title: rbUtil.normalizeTitle(dataResp.title),
+            page_id: parseInt(dataResp.pageid),
+            rev: parseInt(apiRev.revid),
+            tid: currentTid,
+            namespace: parseInt(dataResp.ns),
+            user_id: apiRev.userid,
+            user_text: apiRev.user,
+            timestamp: apiRev.timestamp,
+            comment: apiRev.comment,
+            tags: apiRev.tags,
+            restrictions: restrictions,
+            redirect: redirect
+        };
+
+        if (!rp.revision) {
+            storeAttributes.latest_rev = apiRev.revid;
+            storeAttributes.latest_tid = currentTid;
+        }
 
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
-                attributes: {
-                    // FIXME: if a title has been given, check it
-                    // matches the one returned by the MW API
-                    // cf. https://phabricator.wikimedia.org/T87393
-                    title: rbUtil.normalizeTitle(dataResp.title),
-                    page_id: parseInt(dataResp.pageid),
-                    rev: parseInt(apiRev.revid),
-                    tid: uuid.now().toString(),
-                    namespace: parseInt(dataResp.ns),
-                    user_id: apiRev.userid,
-                    user_text: apiRev.user,
-                    timestamp: apiRev.timestamp,
-                    comment: apiRev.comment,
-                    tags: apiRev.tags,
-                    restrictions: restrictions,
-                    redirect: redirect
-                }
+                attributes: storeAttributes
             }
         })
         .then(function() {
