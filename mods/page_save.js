@@ -162,7 +162,6 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
 };
 
 PageSave.prototype.saveHtml = function(restbase, req) {
-    console.log('SAVE HTML')
     var self = this;
     var rp = req.params;
     var title = rbUtil.normalizeTitle(rp.title);
@@ -184,9 +183,6 @@ PageSave.prototype.saveHtml = function(restbase, req) {
         req.body.wikitext = res.body;
         delete req.body.html;
         return self.saveWikitext(restbase, req);
-    })
-    .catch(function(e) {
-        console.log(e);
     });
 };
 

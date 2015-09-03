@@ -181,8 +181,12 @@ function buildEditResponse(res) {
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
-    if (req.params.domain === 'en.wikipedia.test.local') {
-        req.params.domain = 'en.wikipedia.org';
+    if (/\.test\.local$/.test(req.params.domain)) {
+        // Remap test domain
+        var newParams = Object.assign({}, req.params);
+        newParams.domain = 'en.wikipedia.org';
+        req = rbUtil.cloneRequest(req);
+        req.params = newParams;
     }
     var apiRequest = this.apiRequestTemplate.eval({
         request: req
