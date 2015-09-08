@@ -91,6 +91,13 @@ templates:
             version: 1.0.0
             type: file
 
+      /{module:post_data}:
+        x-modules:
+          - name: post_data
+            version: 1.0.0
+            type: file
+
+
       /{module:key_rev_value}:
         x-modules:
           - name: key_rev_value
@@ -120,6 +127,33 @@ templates:
                       - get_from_graphoid:
                           request:
                             uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:post_data_service}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /storage:
+                  put:
+                    on_request:
+                      - put_to_storage:
+                          request:
+                            method: put
+                            uri: /{domain}/sys/post_data/post.test/
+                            headers: '{$.request.headers}'
+                            body: '{$.request.body}'
+                /storage/{hash}:
+                  get:
+                    on_setup:
+                      - init_storage:
+                          uri: /{domain}/sys/post_data/post.test
+                    on_request:
+                      - get_from_storage:
+                          request:
+                            uri: /{domain}/sys/post_data/post.test/{hash}
+
 
       /{module:mobileapps}:
         x-modules:
