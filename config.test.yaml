@@ -128,7 +128,7 @@ templates:
                           request:
                             uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
 
-      /{module:post_data_sevice}:
+      /{module:post_data_service}:
         x-modules:
           - name: simple_service
             version: 1.0.0
