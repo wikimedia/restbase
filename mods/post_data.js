@@ -55,40 +55,23 @@ PostDataBucket.prototype.getRevision = function(restbase, req) {
     });
 };
 
+function prepareStoredReq(req) {
+    var storedReq = {};
+    storedReq.uri = req.body && req.body.uri && req.body.uri.toString();
+    storedReq.body = req.body && req.body.body || {};
+    return storedReq;
+}
 
-PostDataBucket.prototype.listRevisions = function(restbase, req) {
-    var rp = req.params;
-    return restbase.get({
-        uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, ''])
-    });
-};
-
-function calculateHash(req) {
-    // Ensure consistent hashing
-    req.headers = req.headers || {};
-    req.body = req.body || {};
-    req.query = req.query || {};
-    req.params = req.params || {};
-
-    // Need to remove x-request-id header if it's present
-    var reqId = req.headers['x-request-id'];
-    if (reqId) {
-        delete req.headers['x-request-id'];
-    }
-
-    var result = crypto.createHash('sha1')
-                       .update(stringify(req))
-                       .digest('hex');
-
-    if (reqId) {
-        req.headers['x-request-id'] = reqId;
-    }
-    return result;
+function calculateHash(storedData) {
+    return crypto.createHash('sha1')
+                 .update(stringify(storedData))
+                 .digest('hex');
 }
 
 PostDataBucket.prototype.putRevision = function(restbase, req) {
     var rp = req.params;
-    var key = calculateHash(req);
+    var storedReq = prepareStoredReq(req);
+    var key = calculateHash(storedReq);
     req.params.key = key;
     return this.getRevision(restbase, req)
     .then(function() {
@@ -107,7 +90,7 @@ PostDataBucket.prototype.putRevision = function(restbase, req) {
                 headers: {
                     'content-type': 'application/json',
                 },
-                body: req.body
+                body: storedReq
             })
             .then(function(res) {
                 return {
@@ -134,7 +117,6 @@ module.exports = function(options) {
             getBucketInfo: postDataBucket.getBucketInfo.bind(postDataBucket),
             createBucket: postDataBucket.createBucket.bind(postDataBucket),
             listBucket: postDataBucket.listBucket.bind(postDataBucket),
-            listRevisions: postDataBucket.listRevisions.bind(postDataBucket),
             getRevision: postDataBucket.getRevision.bind(postDataBucket),
             putRevision: postDataBucket.putRevision.bind(postDataBucket)
         }

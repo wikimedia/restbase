@@ -18,9 +18,6 @@ describe('post_data', function () {
     it('should store post request by hash', function() {
         return preq.post({
             uri: server.config.baseURL + '/post_data/storage',
-            headers: {
-                test: 'test'
-            },
             body: {
                 key: 'value'
             }
@@ -28,6 +25,7 @@ describe('post_data', function () {
         .then(function(res) {
             hash = res.body;
             assert.deepEqual(res.status, 201);
+            assert.deepEqual(hash, 'da55e962e0a013118a220cccc64ea663d24c3263');
             return preq.get({
                 uri: server.config.baseURL + '/post_data/storage/' + res.body
             });
@@ -35,16 +33,12 @@ describe('post_data', function () {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.body, { key: 'value' });
-            assert.deepEqual(res.body.headers.test, 'test');
         });
     });
 
     it('should not store identical request', function() {
         return preq.post({
             uri: server.config.baseURL + '/post_data/storage',
-            headers: {
-                test: 'test'
-            },
             body: {
                 key: 'value'
             }
