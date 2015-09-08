@@ -45,7 +45,7 @@ PageSave.prototype._getStartTimestamp = function(req) {
                 body: {
                     type: 'invalid_request',
                     title: 'Bad ETag in If-Match',
-                    description: 'The supplied baseETag is invalid'
+                    description: 'The supplied base_etag is invalid'
                 }
             });
         } else {
@@ -56,8 +56,8 @@ PageSave.prototype._getStartTimestamp = function(req) {
 };
 
 PageSave.prototype._getBaseRevision = function(req) {
-    if (req.body.baseETag) {
-        var etag = rbUtil.parseETag(req.body.baseETag);
+    if (req.body.base_etag) {
+        var etag = rbUtil.parseETag(req.body.base_etag);
         if (etag) {
             return etag.rev;
         } else {
@@ -65,8 +65,8 @@ PageSave.prototype._getBaseRevision = function(req) {
                 status: 400,
                 body: {
                     type: 'invalid_request',
-                    title: 'Bad baseETag',
-                    description: 'The supplied baseETag is invalid'
+                    title: 'Bad base_etag',
+                    description: 'The supplied base_etag is invalid'
                 }
             });
         }
@@ -176,6 +176,9 @@ PageSave.prototype.saveHtml = function(restbase, req) {
         uri: new URI(path),
         body: {
             html: req.body.html
+        },
+        headers: {
+            'if-match': req.body.base_etag || req.headers['if-match']
         }
     })
     .then(function(res) {
@@ -194,4 +197,5 @@ module.exports = function(options) {
         operations: ps.operations
     };
 };
+
 

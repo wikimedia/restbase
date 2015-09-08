@@ -124,11 +124,11 @@ describe('page save api', function() {
         });
     });
 
-    it('fail for bad baseETag', function() {
+    it('fail for bad base_etag', function() {
         return preq.post({
             uri: uri,
             body: {
-                baseETag: 'this_is_a_bad_ETag',
+                base_etag: 'this_is_a_bad_ETag',
                 wikitext: 'abcd',
                 token: 'this_is_a_bad_token'
             }
@@ -136,15 +136,15 @@ describe('page save api', function() {
             throw new Error('Expected an error, but got status: ' + res.status);
         }, function(err) {
             assert.deepEqual(err.status, 400);
-            assert.deepEqual(err.body.title, 'Bad baseETag');
+            assert.deepEqual(err.body.title, 'Bad base_etag');
         });
     });
 
-    it('fails for bad baseETag timestamp', function() {
+    it('fails for bad base_etag timestamp', function() {
         return preq.post({
             uri: uri,
             body: {
-                baseETag: oldWikitextETag + 'this_should_not_be_here',
+                base_etag: oldWikitextETag + 'this_should_not_be_here',
                 wikitext: 'abcd',
                 token: 'this_is_a_bad_token'
             }
@@ -152,7 +152,7 @@ describe('page save api', function() {
             throw new Error('Expected an error, but got status: ' + res.status);
         }, function(err) {
             assert.deepEqual(err.status, 400);
-            assert.deepEqual(err.body.title, 'Bad baseETag');
+            assert.deepEqual(err.body.title, 'Bad base_etag');
         });
     });
 
@@ -214,7 +214,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                baseETag: '12sd121s/test_test',
+                base_etag: '12sd121s/test_test',
                 wikitext: 'abcd',
                 token: 'this_is_a_bad_token'
             }
@@ -266,7 +266,7 @@ describe('page save api', function() {
         return preq.post({
             uri: uri,
             body: {
-                baseETag: oldWikitextETag,
+                base_etag: oldWikitextETag,
                 wikitext: saveText + "\n\nExtra text",
                 token: wikitextToken
             },
@@ -311,7 +311,7 @@ describe('page save api', function() {
                 body: {
                     html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
                     token: htmlToken,
-                    baseETag: oldHTMLEtag
+                    base_etag: oldHTMLEtag
                 },
                 headers: {
                     'if-match': lastHTMLETag
