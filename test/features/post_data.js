@@ -25,14 +25,14 @@ describe('post_data', function () {
         .then(function(res) {
             hash = res.body;
             assert.deepEqual(res.status, 201);
-            assert.deepEqual(hash, 'da55e962e0a013118a220cccc64ea663d24c3263');
+            assert.deepEqual(hash, '228458095a9502070fc113d99504226a6ff90a9a');
             return preq.get({
                 uri: server.config.baseURL + '/post_data/storage/' + res.body
             });
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.body, { key: 'value' });
+            assert.deepEqual(res.body, { key: 'value' });
         });
     });
 

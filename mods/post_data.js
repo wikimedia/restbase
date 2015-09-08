@@ -55,13 +55,6 @@ PostDataBucket.prototype.getRevision = function(restbase, req) {
     });
 };
 
-function prepareStoredReq(req) {
-    var storedReq = {};
-    storedReq.uri = req.body && req.body.uri && req.body.uri.toString();
-    storedReq.body = req.body && req.body.body || {};
-    return storedReq;
-}
-
 function calculateHash(storedData) {
     return crypto.createHash('sha1')
                  .update(stringify(storedData))
@@ -70,8 +63,8 @@ function calculateHash(storedData) {
 
 PostDataBucket.prototype.putRevision = function(restbase, req) {
     var rp = req.params;
-    var storedReq = prepareStoredReq(req);
-    var key = calculateHash(storedReq);
+    var storedData = req.body || {};
+    var key = calculateHash(storedData);
     req.params.key = key;
     return this.getRevision(restbase, req)
     .then(function() {
@@ -90,7 +83,7 @@ PostDataBucket.prototype.putRevision = function(restbase, req) {
                 headers: {
                     'content-type': 'application/json',
                 },
-                body: storedReq
+                body: storedData
             })
             .then(function(res) {
                 return {
