@@ -244,6 +244,42 @@ describe('item requests', function() {
             assert.deepEqual(res.body.items, [241155]);
         });
     });
+
+    it('shoudl track page renames', function() {
+        // First load up the original title
+        return preq.get({
+            uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename',
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            var parentRevision = res.body.items[0].rev;
+            // Now load up a renamed title same wat as hook does that
+            return preq.get({
+                uri: server.config.bucketURL + '/html/User:Pchelolo%2fAfter_Rename',
+                headers: {
+                    'cache-control': 'no-cache',
+                    'x-restbase-parentrevision': '' + parentRevision
+                }
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            // Now check that renamed title has a link to old title
+            return preq.get({
+                uri: server.config.bucketURL + '/title/User:Pchelolo%2fAfter_Rename'
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].renamed_from, 'User:Pchelolo/Before_Rename');
+        });
+    });
+
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
     //    this.timeout(20000);
     //    return preq.get({

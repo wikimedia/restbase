@@ -63,12 +63,16 @@ PRS.prototype.getTableSchema = function() {
             user_text: 'string',
             timestamp: 'timestamp',
             comment: 'string',
-            redirect: 'boolean'
+            redirect: 'boolean',
+            // Static link to old title. Statics are per-partition,
+            // so effectively different for each title
+            renamed_from: 'string'
         },
         index: [
             { attribute: 'title', type: 'hash' },
             { attribute: 'rev', type: 'range', order: 'desc' },
             { attribute: 'latest_rev', type: 'static' },
+            { attribute: 'renamed_from', type: 'static' },
             { attribute: 'tid', type: 'range', order: 'desc' }
         ],
         secondaryIndexes: {
@@ -405,6 +409,37 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         }
     } else {
         throw new Error("Invalid revision: " + rp.revision);
+    }
+    var parentRev = parseInt(req.headers['x-restbase-parentrevision']);
+    if (Number.isInteger(parentRev)) {
+        // Also check if the page title was changed and set a renamed_from property
+        revisionRequest = revisionRequest.then(function(res) {
+            if (res.body.items.length > 0) {
+                var parentRevReq = rbUtil.cloneRequest(req);
+                parentRevReq.headers = Object.assign({}, req.headers);
+                parentRevReq.params = Object.assign({}, req.params);
+                delete parentRevReq.headers['x-restbase-parentrevision'];
+                parentRevReq.params.revision = '' + parentRev;
+                return self.getRevision(restbase, parentRevReq)
+                .then(function(parentRes) {
+                    var currentRev = res.body.items[0];
+                    if (parentRes.body.count > 0
+                            && parentRes.body.items[0].title !== currentRev.title) {
+                        currentRev.tid = uuid.now().toString();
+                        currentRev.renamed_from = parentRes.body.items[0].title;
+                        return restbase.put({
+                            uri: self.tableURI(rp.domain),
+                            body: {
+                                table: self.tableName,
+                                attributes: currentRev
+                            }
+                        });
+                    }
+                })
+                .then(function() { return res; });
+            }
+            return res;
+        });
     }
     return revisionRequest
     .then(function(res) {
