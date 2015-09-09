@@ -114,7 +114,7 @@ PageSave.prototype._checkParams = function(params) {
             body: {
                 type: 'invalid_request',
                 title: 'Missing parameters',
-                description: 'The html/wikitext and CSRF token parameters are required'
+                description: 'The html/wikitext and csrf_token parameters are required'
             }
         });
     }
