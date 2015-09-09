@@ -6,15 +6,21 @@ paths:
   /{module:service}/test/{title}{/revision}:
     get:
       x-backend-request:
-        uri: /{domain}/sys/testservice/test/{title}{/revision}
-        headers:
-          cache-control: '{cache-control}'
+        on_request:
+          - get_from_backend:
+              request:
+                uri: /{domain}/sys/testservice/test/{title}{/revision}
+                headers:
+                  cache-control: '{cache-control}'
       x-monitor: false
 
   /{module:service}/test_parallel/{key1}/{key2}:
     get:
       x-backend-request:
-        uri: /{domain}/sys/testservice_parallel/test/{key1}/{key2}
+        on_request:
+          - get_from_backend:
+              request:
+                uri: /{domain}/sys/testservice_parallel/test/{key1}/{key2}
       x-monitor: true
       x-amples:
         - title: Retreives parallel content with simple service
@@ -37,15 +43,93 @@ paths:
   /{module:post_data}/storage:
     post:
       x-backend-request:
-        method: put
-        uri: /{domain}/sys/post_data_service/storage
-        headers: '{$.request.headers}'
-        body: '{$.request.body}'
+        on_request:
+          - put_to_storage:
+              request:
+                method: put
+                uri: /{domain}/sys/post_data/post.test/
+                headers: '{$.request.headers}'
+                body: '{$.request.body}'
       x-monitor: false
 
   /{module:post_data}/storage/{hash}:
     get:
       x-backend-request:
-        uri: /{domain}/sys/post_data_service/storage/{hash}
+        on_setup:
+          - init_storage:
+              uri: /{domain}/sys/post_data/post.test
+        on_request:
+          - get_from_storage:
+              request:
+                uri: /{domain}/sys/post_data/post.test/{hash}
+      x-monitor: false
+
+  /{module:page}/wikitext/{title}:
+    post:
+      tags:
+        - Page content
+      description: >
+        Save a new revision of a page
+
+        For new pages, the `revision` parameter should be left empty.
+        For editing existing pages, it should contain the revision ID
+        the edit is derived from.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+        - name: revision
+          in: formData
+          description: The revision of the page the edit is based on.
+          type: string
+          required: false
+        - name: wikitext
+          in: formData
+          description: The wikitext source of the page to save
+          type: string
+          required: true
+        - name: token
+          in: formData
+          description: The CRSF edit token provided by the MW API
+          type: string
+          required: true
+        - name: comment
+          in: formData
+          description: The summary of the change
+          type: string
+          required: false
+        - name: minor
+          in: formData
+          description: Whether this represents a minor change
+          type: boolean
+          required: false
+        - name: bot
+          in: formData
+          description: Whether the change is being made by a bot
+          type: boolean
+          required: false
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The existing revision of the page matches the sent text
+        '201':
+          description: A new revision of the page has been created
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-backend-request:
+        on_request:
+          - get_from_backend:
+              request:
+                uri: /{domain}/sys/page_save/wikitext/{title}
+                body: '{$.request.body}'
       x-monitor: false
 

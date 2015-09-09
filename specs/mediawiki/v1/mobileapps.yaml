@@ -1,7 +1,8 @@
 # MobileApps page-manipulation service
 
 swagger: 2.0
-
+x-default-params:
+  domain: en.wikipedia.org
 paths:
   /{module:page}/mobile-html/{title}:
     get:
@@ -33,7 +34,10 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/html/{title}
+        on_request:
+          - get_from_backend:
+              request:
+                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
       x-monitor: true
       x-amples:
         - title: Get MobileApps Main Page
@@ -45,6 +49,7 @@ paths:
             headers:
               content-type: /text\/html/
             body: /body/
+
   /{module:page}/mobile-html-sections/{title}:
     get:
       tags:
@@ -75,8 +80,12 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/sections/{title}
+        on_request:
+          - get_from_backend:
+              request:
+                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
       x-monitor: false
+
   /{module:page}/mobile-html-sections-lead/{title}:
     get:
       tags:
@@ -107,8 +116,12 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/sections-lead/{title}
+        on_request:
+          - get_from_backend:
+              request:
+                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
       x-monitor: false
+
   /{module:page}/mobile-html-sections-remaining/{title}:
     get:
       tags:
@@ -140,8 +153,12 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/sections-remaining/{title}
+        on_request:
+          - get_from_backend:
+              request:
+                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
       x-monitor: false
+
   /{module:page}/mobile-text/{title}:
     get:
       tags:
@@ -172,5 +189,8 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        uri: /{domain}/sys/mobileapps/v1/text/{title}
+        on_request:
+          - get_from_backend:
+              request:
+                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
       x-monitor: false

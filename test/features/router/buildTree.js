@@ -17,7 +17,15 @@ var rootSpec = {
                         '/page/{title}/html': {
                             get: {
                                 'x-backend-request': {
-                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                    on_request: [
+                                        {
+                                            backend_req: {
+                                                request: {
+                                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -45,7 +53,15 @@ var additionalMethodSpec = {
                         '/page/{title}/html': {
                             get: {
                                 'x-backend-request': {
-                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                    on_request: [
+                                        {
+                                            backend_req: {
+                                                request: {
+                                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -56,7 +72,15 @@ var additionalMethodSpec = {
                         '/page/{title}/html': {
                             post: {
                                 'x-backend-request': {
-                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                    on_request: [
+                                        {
+                                            backend_req: {
+                                                request: {
+                                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -76,7 +100,15 @@ var overlappingMethodSpec = {
                         '/page/{title}/html': {
                             get: {
                                 'x-backend-request': {
-                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                    on_request: [
+                                        {
+                                            backend_req: {
+                                                request: {
+                                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -87,7 +119,15 @@ var overlappingMethodSpec = {
                         '/page/{title}/html': {
                             get: {
                                 'x-backend-request': {
-                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                    on_request: [
+                                        {
+                                            backend_req: {
+                                                request: {
+                                                    uri: '/{domain}/sys/parsoid/html/{title}'
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -110,7 +150,15 @@ var nestedSecuritySpec = {
                                     '/secure': {
                                         get: {
                                             'x-backend-request': {
-                                                uri: '/{domain}/sys/parsoid/html/{title}'
+                                                on_request: [
+                                                    {
+                                                        backend_req: {
+                                                            request: {
+                                                                uri: '/{domain}/sys/parsoid/html/{title}'
+                                                            }
+                                                        }
+                                                    }
+                                                ]
                                             }
                                         }
                                     }
