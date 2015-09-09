@@ -114,7 +114,7 @@ describe('page save api', function() {
             uri: uri,
             body: {
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -130,7 +130,7 @@ describe('page save api', function() {
             body: {
                 base_etag: 'this_is_a_bad_ETag',
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -146,7 +146,7 @@ describe('page save api', function() {
             body: {
                 base_etag: oldWikitextETag + 'this_should_not_be_here',
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -161,7 +161,7 @@ describe('page save api', function() {
             uri: uri,
             body: {
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             },
             headers: {
                 'if-match': 'this_is_a_bad_ETag'
@@ -179,7 +179,7 @@ describe('page save api', function() {
             uri: uri,
             body: {
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             },
             headers: {
                 'if-match': lastWikitextETag + 'this_should_not_be_here'
@@ -197,7 +197,7 @@ describe('page save api', function() {
             uri: uri,
             body: {
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             },
             headers: {
                 'if-match': 'this_should_not_be_here' + lastWikitextETag
@@ -216,7 +216,7 @@ describe('page save api', function() {
             body: {
                 base_etag: '12sd121s/test_test',
                 wikitext: 'abcd',
-                token: 'this_is_a_bad_token'
+                csrf_token: 'this_is_a_bad_token'
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -231,7 +231,7 @@ describe('page save api', function() {
             uri: uri,
             body: {
                 wikitext: saveText,
-                token: wikitextToken
+                csrf_token: wikitextToken
             }
         })
         .then(function(res) {
@@ -251,7 +251,7 @@ describe('page save api', function() {
             uri: uri,
             body: {
                 wikitext: saveText,
-                token: wikitextToken
+                csrf_token: wikitextToken
             },
             headers: {
                 'if-match': lastWikitextETag
@@ -268,7 +268,7 @@ describe('page save api', function() {
             body: {
                 base_etag: oldWikitextETag,
                 wikitext: saveText + "\n\nExtra text",
-                token: wikitextToken
+                csrf_token: wikitextToken
             },
             headers: {
                 'if-match': lastWikitextETag
@@ -291,7 +291,7 @@ describe('page save api', function() {
                 body: {
                     html: res.body.replace(/\<\/body\>/,
                         '<p>Generated via direct HTML save! Random ' + Math.floor(Math.random() * 32768) + ' </p></body>'),
-                    token: htmlToken
+                    csrf_token: htmlToken
                 }
             });
         }).then(function(res) {
@@ -310,7 +310,7 @@ describe('page save api', function() {
                 uri: htmlUri,
                 body: {
                     html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
-                    token: htmlToken,
+                    csrf_token: htmlToken,
                     base_etag: oldHTMLEtag
                 },
                 headers: {

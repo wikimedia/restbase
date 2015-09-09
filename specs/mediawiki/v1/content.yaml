@@ -293,7 +293,7 @@ paths:
       tags:
         - Page content
       description: >
-        Save a new revision of a page given in HTML format
+        Save a new revision of a page given in HTML format.
 
         See [the MediaWiki DOM spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
         for a description of the MediaWiki-specific semantic markup needed by this API
@@ -320,7 +320,7 @@ paths:
           description: The HTML of the page to save
           type: string
           required: true
-        - name: token
+        - name: csrf_token
           in: formData
           description: The CRSF edit token provided by the MW API
           type: string
@@ -330,12 +330,12 @@ paths:
           description: The summary of the change
           type: string
           required: false
-        - name: minor
+        - name: is_minor
           in: formData
           description: Whether this represents a minor change
           type: boolean
           required: false
-        - name: bot
+        - name: is_bot
           in: formData
           description: Whether the change is being made by a bot
           type: boolean
@@ -755,7 +755,7 @@ paths:
       tags:
         - Page content
       description: >
-        Save a new revision of a page
+        Save a new revision of a page.
 
         For new pages, or when editting the latest revision of a page,
         the `base_etag` parameter should be left empty.
@@ -783,7 +783,7 @@ paths:
           description: The wikitext source of the page to save
           type: string
           required: true
-        - name: token
+        - name: csrf_token
           in: formData
           description: The CRSF edit token provided by the MW API
           type: string
@@ -793,12 +793,12 @@ paths:
           description: The summary of the change
           type: string
           required: false
-        - name: minor
+        - name: is_minor
           in: formData
           description: Whether this represents a minor change
           type: boolean
           required: false
-        - name: bot
+        - name: is_bot
           in: formData
           description: Whether the change is being made by a bot
           type: boolean

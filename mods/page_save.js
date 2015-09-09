@@ -106,7 +106,7 @@ PageSave.prototype._getRevInfo = function(restbase, req, revision) {
 };
 
 PageSave.prototype._checkParams = function(params) {
-    if (!(params && params.token &&
+    if (!(params && params.csrf_token &&
             ((params.wikitext && params.wikitext.trim()) || (params.html && params.html.trim()))
     )) {
         throw new rbUtil.HTTPError({
@@ -114,7 +114,7 @@ PageSave.prototype._checkParams = function(params) {
             body: {
                 type: 'invalid_request',
                 title: 'Missing parameters',
-                description: 'The html/wikitext and token parameters are required'
+                description: 'The html/wikitext and CSRF token parameters are required'
             }
         });
     }
@@ -135,9 +135,9 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             title: title,
             text: req.body.wikitext,
             summary: req.body.comment || 'Change text to: ' + req.body.wikitext.substr(0, 100),
-            minor: req.body.minor || false,
-            bot: req.body.bot || false,
-            token: req.body.token
+            minor: !!req.body.is_minor,
+            bot: !!req.body.is_bot,
+            token: req.body.csrf_token
         };
         // We need to add each info separately
         // since the presence of an empty value
