@@ -135,7 +135,7 @@ describe('item requests', function() {
 
     it('should list APIs using the generic listing handler', function() {
         return preq.get({
-            uri: server.config.hostPort + '/en.wikipedia.test.local/'
+            uri: server.config.hostPort + '/en.wikipedia.org/'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);

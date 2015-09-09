@@ -73,10 +73,6 @@ templates:
                 password: cassandra
                 defaultConsistency: one # or 'one' for single-node testing
                 storage_groups:
-                  - name: test.group.local
-                    domains:
-                      - /test\..*\.org$/
-                      - /test\.local$/
                   - name: default.group.local
                     domains: /./
 
@@ -217,9 +213,6 @@ spec: &spec
 #   /{domain:de.wikipedia.org}: *wp/default/1.0.0
 #   /{domain:es.wikipedia.org}: *wp/default/1.0.0
 #   /{domain:nl.wikipedia.org}: *wp/default/1.0.0
-#
-    # test domain
-    /{domain:en.wikipedia.test.local}: *wp/default/1.0.0
 
 
 services:

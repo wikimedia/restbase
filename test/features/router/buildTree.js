@@ -10,7 +10,7 @@ var server = require('../../utils/server');
 
 var rootSpec = {
     paths: {
-        '/{domain:en.wikipedia.test.local}/v1': {
+        '/{domain:en.wikipedia.org}/v1': {
             'x-subspecs': [
                 {
                     paths: {
@@ -30,7 +30,7 @@ var rootSpec = {
 
 var faultySpec = {
     paths: {
-        '/{domain:en.wikipedia.test.local}': {
+        '/{domain:en.wikipedia.org}': {
             'x-subspecs': ['some/non/existing/spec']
         }
     }
@@ -38,7 +38,7 @@ var faultySpec = {
 
 var additionalMethodSpec = {
     paths: {
-        '/{domain:en.wikipedia.test.local}/v1': {
+        '/{domain:en.wikipedia.org}/v1': {
             'x-subspecs': [
                 {
                     paths: {
@@ -69,7 +69,7 @@ var additionalMethodSpec = {
 
 var overlappingMethodSpec = {
     paths: {
-        '/{domain:en.wikipedia.test.local}/v1': {
+        '/{domain:en.wikipedia.org}/v1': {
             'x-subspecs': [
                 {
                     paths: {
@@ -100,7 +100,7 @@ var overlappingMethodSpec = {
 
 var nestedSecuritySpec = {
     paths: {
-        '/{domain:en.wikipedia.test.local}/v1': {
+        '/{domain:en.wikipedia.org}/v1': {
             'x-subspecs': [
                 {
                     paths: {
@@ -137,10 +137,10 @@ describe('tree building', function() {
         return router.loadSpec(rootSpec)
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
-            var handler = router.route('/en.wikipedia.test.local/v1/page/Foo/html');
+            var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
             //console.log(handler);
             assert.equal(!!handler.value.methods.get, true);
-            assert.equal(handler.params.domain, 'en.wikipedia.test.local');
+            assert.equal(handler.params.domain, 'en.wikipedia.org');
             assert.equal(handler.params.title, 'Foo');
         });
     });
@@ -165,10 +165,10 @@ describe('tree building', function() {
             }
         })
         .then(function() {
-            var handler = router.route('/en.wikipedia.test.local/v1/page/html/Foo');
+            var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
             assert.equal(resourceRequests.length > 0, true);
             assert.equal(!!handler.value.methods.get, true);
-            assert.equal(handler.params.domain, 'en.wikipedia.test.local');
+            assert.equal(handler.params.domain, 'en.wikipedia.org');
             assert.equal(handler.params.title, 'Foo');
         });
     });
@@ -177,7 +177,7 @@ describe('tree building', function() {
         var router = new Router();
         return router.loadSpec(additionalMethodSpec)
         .then(function() {
-            var handler = router.route('/en.wikipedia.test.local/v1/page/Foo/html');
+            var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(!!handler.value.methods.post, true);
         });
@@ -198,7 +198,7 @@ describe('tree building', function() {
         var router = new Router();
         return router.loadSpec(nestedSecuritySpec)
         .then(function() {
-            var handler = router.route('/en.wikipedia.test.local/v1/page/secure');
+            var handler = router.route('/en.wikipedia.org/v1/page/secure');
             assert.deepEqual(handler.permissions, ['first', 'second', 'third']);
         });
     });

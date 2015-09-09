@@ -50,7 +50,7 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.test.local
+                domain: en.wikipedia.org
                 title: Foobar
           response:
             status: 200
@@ -91,7 +91,7 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.test.local
+                domain: en.wikipedia.org
                 title: Foobar
           response:
             status: 200
@@ -141,7 +141,7 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.test.local
+                domain: en.wikipedia.org
                 title: Foobar
                 revision: 624484477
           response:
@@ -192,7 +192,7 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.test.local
+                domain: en.wikipedia.org
                 title: Foobar
                 revision: 624484477
           response:
