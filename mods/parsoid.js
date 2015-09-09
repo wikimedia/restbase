@@ -441,6 +441,16 @@ PSP.transformRevision = function(restbase, req, from, to) {
                                 .exec(req.body.html);
             tid = tidMatch && tidMatch[1];
         }
+        if (!tid) {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    description: 'No or invalid If-Match header supplied, '
+                        + 'or missing mw:TimeUuid meta element in the supplied HTML.',
+                }
+            });
+        }
     }
 
     return this._getOriginalContent(restbase, req, rp.revision, tid)
