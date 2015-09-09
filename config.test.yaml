@@ -297,7 +297,7 @@ spec: &spec
   paths:
     # test domain
     /{domain:en.wikipedia.org}: *wp/default/1.0.0
-    # For security testing we deny on mocks, so it's OK to use French wiki.
+    # For security testing we rely on mocks, so it's OK to use French wiki.
     /{domain:fr.wikipedia.org}: *wp/secure/1.0.0
 
 
