@@ -887,6 +887,11 @@ paths:
           required: true
         - name: bodyOnly
           in: formData
+          description: Deprecated. Use `body_only`
+          type: boolean
+          required: false
+        - name: body_only
+          in: formData
           description: Return only `body.innerHTML`
           type: boolean
           required: false
@@ -910,6 +915,7 @@ paths:
         body:
           wikitext: '{wikitext}'
           bodyOnly: '{bodyOnly}'
+          body_only: '{body_only}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -918,7 +924,7 @@ paths:
               title: Foobar
             body:
               wikitext: == Heading ==
-              bodyOnly: true
+              body_only: true
           response:
             status: 200
             headers:
@@ -955,6 +961,11 @@ paths:
           required: true
         - name: bodyOnly
           in: formData
+          description: Deprecated. Use `body_only`.
+          type: boolean
+          required: false
+        - name: body_only
+          in: formData
           description: Return only `body.innerHTML`
           type: boolean
           required: false
@@ -978,6 +989,7 @@ paths:
         body:
           html: '{html}'
           bodyOnly: '{bodyOnly}'
+          body_only: '{body_only}'
       x-monitor: false
 
   /{module:transform}/sections/to/wikitext/{title}/{revision}:
