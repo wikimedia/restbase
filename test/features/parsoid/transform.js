@@ -53,14 +53,14 @@ describe('transform api', function() {
         });
     });
 
-    it('html2html with bodyOnly', function () {
+    it('html2html with body_only', function () {
         return preq.post({
             uri: server.config.baseURL
                 + '/transform/html/to/html/' + testPage.title
                 + '/' + testPage.revision,
             body: {
                 html: testPage.html,
-                bodyOnly: true
+                body_only: true
             }
         })
         .then(function (res) {
@@ -93,13 +93,13 @@ describe('transform api', function() {
         });
     });
 
-    it('wt2html with bodyOnly', function () {
+    it('wt2html with body_only', function () {
         return preq.post({
             uri: server.config.baseURL
                 + '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
             body: {
                 wikitext: '== Heading ==',
-                bodyOnly: true
+                body_only: true
             }
         })
         .then(function (res) {
