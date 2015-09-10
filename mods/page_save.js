@@ -134,7 +134,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
         var body = {
             title: title,
             text: req.body.wikitext,
-            summary: req.body.comment || 'Change text to: ' + req.body.wikitext.substr(0, 100),
+            summary: req.body.comment || req.body.wikitext.substr(0, 100),
             minor: !!req.body.is_minor,
             bot: !!req.body.is_bot,
             token: req.body.csrf_token
