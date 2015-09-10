@@ -111,46 +111,6 @@ templates:
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
-      /{module:graphoid}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /v1/png/{title}/{revision}/{graph_id}:
-                  get:
-                    on_request:
-                      - get_from_graphoid:
-                          request:
-                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
-
-      /{module:post_data_service}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /storage:
-                  put:
-                    on_request:
-                      - put_to_storage:
-                          request:
-                            method: put
-                            uri: /{domain}/sys/post_data/post.test/
-                            headers: '{$.request.headers}'
-                            body: '{$.request.body}'
-                /storage/{hash}:
-                  get:
-                    on_setup:
-                      - init_storage:
-                          uri: /{domain}/sys/post_data/post.test
-                    on_request:
-                      - get_from_storage:
-                          request:
-                            uri: /{domain}/sys/post_data/post.test/{hash}
-
       /{module:action}:
         x-modules:
           - name: action
@@ -162,69 +122,6 @@ templates:
                 headers:
                   host: '{$.request.params.domain}'
                 body: '{$.request.body}'
-
-      /{module:testservice}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /test/{key}:
-                  get:
-                    on_setup:
-                      - init_storage:
-                          uri: /{domain}/sys/key_value/testservice.test
-                    on_request:
-                      - get_from_storage:
-                          request:
-                            uri: /{domain}/sys/key_value/testservice.test/{key}
-                            headers:
-                              'cache-control': '{cache-control}'
-                          return_if:
-                            status: 200
-                          catch:
-                            status: 404
-                      - get_from_api:
-                          request:
-                            uri: http://{domain}/wiki/{+key}
-                            body: '{$.request.body}'
-                      - store:
-                          request:
-                            method: put
-                            uri: /{domain}/sys/key_value/testservice.test/{key}
-                            headers: '{$.get_from_api.headers}'
-                            body: '{$.get_from_api.body}'
-                      - return_response:
-                          return:
-                            status: '{$.get_from_api.status}'
-                            headers:
-                              'content-type': '{$.get_from_api.headers.content-type}'
-                              'etag': '{$.store.headers.etag}'
-                            body: '{$.get_from_api.body}'
-
-      /{module:testservice_parallel}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /test/{key1}/{key2}:
-                  get:
-                    on_request:
-                      - get_from_api1:
-                          request:
-                            uri: http://{domain}/wiki/{+key1}
-                        get_from_api2:
-                          request:
-                            uri: http://{domain}/wiki/{+key2}
-                      - return_response:
-                          return:
-                            status: 200
-                            body:
-                              first: '{$.get_from_api1}'
-                              second: '{$.get_from_api2}'
 
       /{module:page_save}:
         x-modules:

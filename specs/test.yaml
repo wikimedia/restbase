@@ -6,21 +6,54 @@ paths:
   /{module:service}/test/{title}{/revision}:
     get:
       x-backend-request:
+        on_setup:
+          - init_storage:
+              uri: /{domain}/sys/key_value/testservice.test
         on_request:
-          - get_from_backend:
+          - get_from_storage:
               request:
-                uri: /{domain}/sys/testservice/test/{title}{/revision}
+                uri: /{domain}/sys/key_value/testservice.test/{title}
                 headers:
-                  cache-control: '{cache-control}'
+                  'cache-control': '{cache-control}'
+              return_if:
+                status: 200
+              catch:
+                status: 404
+          - get_from_api:
+              request:
+                uri: http://en.wikipedia.org/wiki/{+title}
+                body: '{$.request.body}'
+          - store:
+              request:
+                method: put
+                uri: /{domain}/sys/key_value/testservice.test/{title}
+                headers: '{$.get_from_api.headers}'
+                body: '{$.get_from_api.body}'
+          - return_response:
+              return:
+                status: '{$.get_from_api.status}'
+                headers:
+                  'content-type': '{$.get_from_api.headers.content-type}'
+                  'etag': '{$.store.headers.etag}'
+                body: '{$.get_from_api.body}'
       x-monitor: false
 
   /{module:service}/test_parallel/{key1}/{key2}:
     get:
       x-backend-request:
         on_request:
-          - get_from_backend:
+          - get_from_api1:
               request:
-                uri: /{domain}/sys/testservice_parallel/test/{key1}/{key2}
+                uri: http://en.wikipedia.org/wiki/{+key1}
+            get_from_api2:
+              request:
+                uri: http://en.wikipedia.org/wiki/{+key2}
+          - return_response:
+              return:
+                status: 200
+                body:
+                  first: '{$.get_from_api1}'
+                  second: '{$.get_from_api2}'
       x-monitor: true
       x-amples:
         - title: Retreives parallel content with simple service
