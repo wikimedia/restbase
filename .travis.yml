@@ -4,7 +4,10 @@ node_js:
     - "0.12"
     - "iojs-v2.5.0"
 
-sudo: false
+sudo: required
+
+before_install:
+  - sudo npm install -g npm
 
 services:
     - cassandra
