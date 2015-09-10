@@ -42,6 +42,7 @@ describe('router - security', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'fr.wikipedia.org');
         var api = nock(apiURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
@@ -67,14 +68,14 @@ describe('router - security', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
-        var title = 'User%3APchelolo%2Fsections_test';
-        var revision = 669458404;
+        var title = 'Test';
+        var revision = 117795883;
         var api = nock(apiURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
             }
         })
-        .get('/v2/secure.wikipedia.test.local/pagebundle/' + title + '/' + revision)
+        .get('/v2/fr.wikipedia.org/pagebundle/' + title + '/' + revision)
         .reply(200, function() {
             return {
                 'html': {
@@ -111,6 +112,7 @@ describe('router - security', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
         var api = nock(apiURI, {
             badheaders: ['cookie']
         })
@@ -132,6 +134,7 @@ describe('router - security', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'fr.wikipedia.org');
         var title = 'TestingTitle';
         var revision = 12345;
 

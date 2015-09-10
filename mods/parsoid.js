@@ -137,7 +137,6 @@ PSP.getBucketURI = function(rp, format, tid) {
 PSP.pagebundle = function(restbase, req) {
     var rp = req.params;
     var domain = rp.domain;
-    if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     // TODO: Pass in current or predecessor version data if available
     var newReq = Object.assign({}, req);
     if (!newReq.method) { newReq.method = 'get'; }
@@ -546,7 +545,6 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
 
     var domain = rp.domain;
     // Re-map test domain
-    if (domain === 'en.wikipedia.test.local') { domain = 'en.wikipedia.org'; }
     var parsoidReq = {
         uri: this.parsoidHost + '/v2/' + domain + '/'
             + parsoidTo + parsoidExtraPath,

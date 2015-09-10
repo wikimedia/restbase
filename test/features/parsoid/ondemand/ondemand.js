@@ -207,7 +207,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             assert.deepEqual(!!res.headers['content-security-policy'], true);
             assert.deepEqual(res.headers['content-security-policy']
-                .indexOf("style-src http://*.wikipedia.test.local https://*.wikipedia.test.local 'unsafe-inline'") > 0, true);
+                .indexOf("style-src http://*.wikipedia.org https://*.wikipedia.org 'unsafe-inline'") > 0, true);
         });
     });
 });
