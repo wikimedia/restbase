@@ -34,10 +34,9 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+        - get_from_backend:
+            request:
+              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
       x-monitor: true
       x-amples:
         - title: Get MobileApps Main Page
@@ -80,10 +79,9 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+        - get_from_backend:
+            request:
+              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
       x-monitor: false
 
   /{module:page}/mobile-html-sections-lead/{title}:
@@ -116,10 +114,9 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+        - get_from_backend:
+            request:
+              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
       x-monitor: false
 
   /{module:page}/mobile-html-sections-remaining/{title}:
@@ -153,10 +150,9 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+        - get_from_backend:
+            request:
+              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
       x-monitor: false
 
   /{module:page}/mobile-text/{title}:
@@ -189,8 +185,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+        - get_from_backend:
+            request:
+              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
       x-monitor: false

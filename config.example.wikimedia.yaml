@@ -110,58 +110,6 @@ templates:
                   host: '{$.request.params.domain}'
                 body: '{$.request.body}'
 
-      /{module:graphoid}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /v1/png/{title}/{revision}/{graph_id}:
-                  get:
-                    on_request:
-                      - get_from_graphoid:
-                          request:
-                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
-
-      /{module:mobileapps}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /v1/html/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
-                /v1/sections/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
-                /v1/sections-lead/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
-                /v1/sections-remaining/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
-                /v1/text/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
-
       /{module:page_save}:
         x-modules:
           - name: page_save

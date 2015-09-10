@@ -5,55 +5,53 @@ swagger: 2.0
 paths:
   /{module:service}/test/{title}{/revision}:
     get:
+      x-backend-setup:
+        - init_storage:
+            uri: /{domain}/sys/key_value/testservice.test
       x-backend-request:
-        on_setup:
-          - init_storage:
-              uri: /{domain}/sys/key_value/testservice.test
-        on_request:
-          - get_from_storage:
-              request:
-                uri: /{domain}/sys/key_value/testservice.test/{title}
-                headers:
-                  'cache-control': '{cache-control}'
-              return_if:
-                status: 200
-              catch:
-                status: 404
-          - get_from_api:
-              request:
-                uri: http://en.wikipedia.org/wiki/{+title}
-                body: '{$.request.body}'
-          - store:
-              request:
-                method: put
-                uri: /{domain}/sys/key_value/testservice.test/{title}
-                headers: '{$.get_from_api.headers}'
-                body: '{$.get_from_api.body}'
-          - return_response:
-              return:
-                status: '{$.get_from_api.status}'
-                headers:
-                  'content-type': '{$.get_from_api.headers.content-type}'
-                  'etag': '{$.store.headers.etag}'
-                body: '{$.get_from_api.body}'
+        - get_from_storage:
+            request:
+              uri: /{domain}/sys/key_value/testservice.test/{title}
+              headers:
+                'cache-control': '{cache-control}'
+            return_if:
+              status: 200
+            catch:
+              status: 404
+        - get_from_api:
+            request:
+              uri: http://en.wikipedia.org/wiki/{+title}
+              body: '{$.request.body}'
+        - store:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/testservice.test/{title}
+              headers: '{$.get_from_api.headers}'
+              body: '{$.get_from_api.body}'
+        - return_response:
+            return:
+              status: '{$.get_from_api.status}'
+              headers:
+                'content-type': '{$.get_from_api.headers.content-type}'
+                'etag': '{$.store.headers.etag}'
+              body: '{$.get_from_api.body}'
       x-monitor: false
 
   /{module:service}/test_parallel/{key1}/{key2}:
     get:
       x-backend-request:
-        on_request:
-          - get_from_api1:
-              request:
-                uri: http://en.wikipedia.org/wiki/{+key1}
-            get_from_api2:
-              request:
-                uri: http://en.wikipedia.org/wiki/{+key2}
-          - return_response:
-              return:
-                status: 200
-                body:
-                  first: '{$.get_from_api1}'
-                  second: '{$.get_from_api2}'
+        - get_from_api1:
+            request:
+              uri: http://en.wikipedia.org/wiki/{+key1}
+          get_from_api2:
+            request:
+              uri: http://en.wikipedia.org/wiki/{+key2}
+        - return_response:
+            return:
+              status: 200
+              body:
+                first: '{$.get_from_api1}'
+                second: '{$.get_from_api2}'
       x-monitor: true
       x-amples:
         - title: Retreives parallel content with simple service
@@ -76,25 +74,23 @@ paths:
   /{module:post_data}/storage:
     post:
       x-backend-request:
-        on_request:
-          - put_to_storage:
-              request:
-                method: put
-                uri: /{domain}/sys/post_data/post.test/
-                headers: '{$.request.headers}'
-                body: '{$.request.body}'
+        - put_to_storage:
+            request:
+              method: put
+              uri: /{domain}/sys/post_data/post.test/
+              headers: '{$.request.headers}'
+              body: '{$.request.body}'
       x-monitor: false
 
   /{module:post_data}/storage/{hash}:
     get:
+      x-backend-setup:
+        - init_storage:
+            uri: /{domain}/sys/post_data/post.test
       x-backend-request:
-        on_setup:
-          - init_storage:
-              uri: /{domain}/sys/post_data/post.test
-        on_request:
-          - get_from_storage:
-              request:
-                uri: /{domain}/sys/post_data/post.test/{hash}
+        - get_from_storage:
+            request:
+              uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
 
   /{module:page}/wikitext/{title}:
@@ -159,10 +155,9 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: /{domain}/sys/page_save/wikitext/{title}
-                body: '{$.request.body}'
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_save/wikitext/{title}
+              body: '{$.request.body}'
       x-monitor: false
 

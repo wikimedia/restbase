@@ -49,12 +49,11 @@ paths:
             $ref: '#/definitions/problem'
 
       x-backend-request:
-        on_request:
-          - get_from_backend:
-              request:
-                uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
-                headers:
-                  cache-control: '{cache-control}'
+        - get_from_backend:
+            request:
+              uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
+              headers:
+                cache-control: '{cache-control}'
 
       x-monitor: true
       x-amples:
