@@ -36,7 +36,7 @@ paths:
       x-backend-request:
         - get_from_backend:
             request:
-              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+              uri: /{domain}/sys/mobileapps/v1/html/{title}
       x-monitor: true
       x-amples:
         - title: Get MobileApps Main Page
@@ -81,7 +81,7 @@ paths:
       x-backend-request:
         - get_from_backend:
             request:
-              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+              uri: /{domain}/sys/mobileapps/v1/sections/{title}
       x-monitor: false
 
   /{module:page}/mobile-html-sections-lead/{title}:
@@ -116,7 +116,7 @@ paths:
       x-backend-request:
         - get_from_backend:
             request:
-              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+              uri: /{domain}/sys/mobileapps/v1/sections-lead/{title}
       x-monitor: false
 
   /{module:page}/mobile-html-sections-remaining/{title}:
@@ -152,7 +152,7 @@ paths:
       x-backend-request:
         - get_from_backend:
             request:
-              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+              uri: /{domain}/sys/mobileapps/v1/sections-remaining/{title}
       x-monitor: false
 
   /{module:page}/mobile-text/{title}:
@@ -187,5 +187,5 @@ paths:
       x-backend-request:
         - get_from_backend:
             request:
-              uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+              uri: /{domain}/sys/mobileapps/v1/text/{title}
       x-monitor: false

@@ -51,7 +51,7 @@ paths:
       x-backend-request:
         - get_from_backend:
             request:
-              uri: http://graphoid.wikimedia.org/en.wikipedia.org/v1/png/{title}/{revision}/{graph_id}
+              uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
               headers:
                 cache-control: '{cache-control}'
 

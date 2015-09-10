@@ -111,6 +111,59 @@ templates:
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
+      /{module:graphoid}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/png/{title}/{revision}/{graph_id}:
+                  get:
+                    x-backend-request:
+                     - get_from_graphoid:
+                          request:
+                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:mobileapps}:
+        x-modules:
+          - name: simple_service
+            version: 1.0.0
+            type: file
+            options:
+              paths:
+                /v1/html/{title}:
+                  get:
+                    x-backend-request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+                /v1/sections/{title}:
+                  get:
+                    x-backend-request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+                /v1/sections-lead/{title}:
+                  get:
+                    x-backend-request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+                /v1/sections-remaining/{title}:
+                  get:
+                    x-backend-request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+                /v1/text/{title}:
+                  get:
+                    x-backend-request:
+                      - get_from_backend:
+                          request:
+                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+
+
       /{module:action}:
         x-modules:
           - name: action

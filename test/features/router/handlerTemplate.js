@@ -90,7 +90,7 @@ describe('handler template', function () {
 
     it('validates config: checks parallel returning requests', function() {
         testValidation(function() {
-            handlerTemplate([{
+            handlerTemplate.createHandler([{
                 get_one: {
                     request: {
                         uri: 'http://en.wikipedia.org/wiki/One'
@@ -109,7 +109,7 @@ describe('handler template', function () {
 
     it('validates config: requires either return or request', function() {
         testValidation(function() {
-            handlerTemplate([{
+            handlerTemplate.createHandler([{
                 get_one: {}
             }]);
         }, /^Invalid spec\. Either request or return must be specified\..*/);
@@ -117,7 +117,7 @@ describe('handler template', function () {
 
     it('validates config: requires request for return_if', function() {
         testValidation(function() {
-            handlerTemplate([{
+            handlerTemplate.createHandler([{
                 get_one: {
                     return_if: {
                         status: '5xx'
@@ -130,7 +130,7 @@ describe('handler template', function () {
 
     it('validates config: requires request for catch', function() {
         testValidation(function() {
-            handlerTemplate([{
+            handlerTemplate.createHandler([{
                 get_one: {
                     catch: {
                         status: '5xx'
