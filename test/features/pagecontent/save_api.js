@@ -118,7 +118,7 @@ describe('page save api', function() {
 
         nock.enableNetConnect();
         var api = nock(apiURI)
-            // The first request should return a page so that we store it.
+        // Mock MW API badtoken response
         .post('')
         .reply(200, {
             "servedby": "nock",
@@ -294,7 +294,7 @@ describe('page save api', function() {
 
         nock.enableNetConnect();
         var api = nock(apiURI)
-            // The first request should return a page so that we store it.
+        // Mock MW API editconflict response
         .post('')
         .reply(200, {
             "servedby": "nock",
@@ -355,7 +355,7 @@ describe('page save api', function() {
 
         nock.enableNetConnect();
         var api = nock(apiURI)
-            // The first request should return a page so that we store it.
+        // Mock MW API editconflict response
         .post('')
         .reply(200, {
             "servedby": "nock",
