@@ -37,8 +37,9 @@ elif [ "$2" = "cassandra" ]; then
     runTest "cassandra" $1
 elif [ "$2" = "all" ]; then
     runTest "sqlite" $1
-    # sleep 1 minute to avoid MW edit endpoint rate limiting
-    sleep 60s
+    # Sleep a delay to avoid 429.
+    # It's random to avoid different jobs running at save_api tests simultaniously
+    sleep $[ ( $RANDOM % 30 ) + 60 ]s
     runTest "cassandra" $1
 else
     echo "Invalid testing mode"
