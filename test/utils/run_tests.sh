@@ -37,6 +37,8 @@ elif [ "$2" = "cassandra" ]; then
     runTest "cassandra" $1
 elif [ "$2" = "all" ]; then
     runTest "sqlite" $1
+    # sleep 1 minute to avoid MW edit endpoint rate limiting
+    sleep 60s
     runTest "cassandra" $1
 else
     echo "Invalid testing mode"
