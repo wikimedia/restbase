@@ -33,7 +33,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/mobileapps/v1/html/{title}
@@ -78,7 +78,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/mobileapps/v1/sections/{title}
@@ -113,7 +113,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/mobileapps/v1/sections-lead/{title}
@@ -149,7 +149,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/mobileapps/v1/sections-remaining/{title}
@@ -184,7 +184,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/mobileapps/v1/text/{title}

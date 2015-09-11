@@ -16,7 +16,7 @@ var rootSpec = {
                     paths: {
                         '/page/{title}/html': {
                             get: {
-                                'x-backend-request': [
+                                'x-request-handler': [
                                     {
                                         backend_req: {
                                             request: {
@@ -50,7 +50,7 @@ var additionalMethodSpec = {
                     paths: {
                         '/page/{title}/html': {
                             get: {
-                                'x-backend-request': [
+                                'x-request-handler': [
                                     {
                                         backend_req: {
                                             request: {
@@ -67,7 +67,7 @@ var additionalMethodSpec = {
                     paths: {
                         '/page/{title}/html': {
                             post: {
-                                'x-backend-request': [
+                                'x-request-handler': [
                                     {
                                         backend_req: {
                                             request: {
@@ -94,7 +94,7 @@ var overlappingMethodSpec = {
                     paths: {
                         '/page/{title}/html': {
                             get: {
-                                'x-backend-request': [
+                                'x-request-handler': [
                                     {
                                         backend_req: {
                                             request: {
@@ -111,7 +111,7 @@ var overlappingMethodSpec = {
                     paths: {
                         '/page/{title}/html': {
                             get: {
-                                'x-backend-request': [
+                                'x-request-handler': [
                                     {
                                         backend_req: {
                                             request: {
@@ -141,7 +141,7 @@ var nestedSecuritySpec = {
                                 paths: {
                                     '/secure': {
                                         get: {
-                                            'x-backend-request': [
+                                            'x-request-handler': [
                                                 {
                                                     backend_req: {
                                                         request: {

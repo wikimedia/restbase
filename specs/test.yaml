@@ -5,10 +5,10 @@ swagger: 2.0
 paths:
   /{module:service}/test/{title}{/revision}:
     get:
-      x-backend-setup:
+      x-setup-handler:
         - init_storage:
             uri: /{domain}/sys/key_value/testservice.test
-      x-backend-request:
+      x-request-handler:
         - get_from_storage:
             request:
               uri: /{domain}/sys/key_value/testservice.test/{title}
@@ -39,7 +39,7 @@ paths:
 
   /{module:service}/test_parallel/{key1}/{key2}:
     get:
-      x-backend-request:
+      x-request-handler:
         - get_from_api1:
             request:
               uri: http://en.wikipedia.org/wiki/{+key1}
@@ -71,9 +71,9 @@ paths:
                 headers:
                   content-type: /^text\/html.+/
 
-  /{module:post_data}/storage:
+  /{module:post_data}/:
     post:
-      x-backend-request:
+      x-request-handler:
         - put_to_storage:
             request:
               method: put
@@ -82,82 +82,13 @@ paths:
               body: '{$.request.body}'
       x-monitor: false
 
-  /{module:post_data}/storage/{hash}:
+  /{module:post_data}/{hash}:
     get:
-      x-backend-setup:
+      x-setup-handler:
         - init_storage:
             uri: /{domain}/sys/post_data/post.test
-      x-backend-request:
+      x-request-handler:
         - get_from_storage:
             request:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
-
-  /{module:page}/wikitext/{title}:
-    post:
-      tags:
-        - Page content
-      description: >
-        Save a new revision of a page
-
-        For new pages, the `revision` parameter should be left empty.
-        For editing existing pages, it should contain the revision ID
-        the edit is derived from.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      parameters:
-        - name: title
-          in: path
-          description: The page title.
-          type: string
-          required: true
-        - name: revision
-          in: formData
-          description: The revision of the page the edit is based on.
-          type: string
-          required: false
-        - name: wikitext
-          in: formData
-          description: The wikitext source of the page to save
-          type: string
-          required: true
-        - name: token
-          in: formData
-          description: The CRSF edit token provided by the MW API
-          type: string
-          required: true
-        - name: comment
-          in: formData
-          description: The summary of the change
-          type: string
-          required: false
-        - name: minor
-          in: formData
-          description: Whether this represents a minor change
-          type: boolean
-          required: false
-        - name: bot
-          in: formData
-          description: Whether the change is being made by a bot
-          type: boolean
-          required: false
-      consumes:
-        - multipart/form-data
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: The existing revision of the page matches the sent text
-        '201':
-          description: A new revision of the page has been created
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-backend-request:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_save/wikitext/{title}
-              body: '{$.request.body}'
-      x-monitor: false
-

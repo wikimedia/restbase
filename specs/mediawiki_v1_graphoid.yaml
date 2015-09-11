@@ -48,7 +48,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
 
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}

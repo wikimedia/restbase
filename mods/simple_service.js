@@ -33,12 +33,12 @@ SimpleService.prototype.processSpec = function(spec) {
         var pathObj = spec.paths[path];
         Object.keys(pathObj).forEach(function(method) {
             var conf = pathObj[method];
-            if (conf['x-backend-setup']) {
+            if (conf['x-setup-handler']) {
                 resources = resources.concat(
-                    handlerTemplate.parseSetupConfig(conf['x-backend-setup']));
+                    handlerTemplate.parseSetupConfig(conf['x-setup-handler']));
             }
             operations[method + '_' + path] =
-                handlerTemplate.createHandler(conf['x-backend-request']);
+                handlerTemplate.createHandler(conf['x-request-handler']);
         });
     });
 

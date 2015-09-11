@@ -14,7 +14,6 @@ info:
 x-default-params:
   domain: en.wikipedia.org
 paths:
-
   /{module:page}/:
     get:
       tags:
@@ -61,7 +60,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/page_revisions/page/
@@ -99,7 +98,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/page_revisions/page/{title}
@@ -174,7 +173,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/page_revisions/page/{title}/
@@ -208,7 +207,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/page_revisions/page/
@@ -256,7 +255,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               # Directly return the latest HTML. Alternatively, we could also try
@@ -375,10 +374,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_save/html/{title}
-        headers: '{$.request.headers}'
-        body: '{$.request.body}'
+      x-request-handler:
+        - post_to_backend:
+            request:
+              uri: /{domain}/sys/page_save/html/{title}
+              headers: '{$.request.headers}'
+              body: '{$.request.body}'
       x-monitor: false
 
   /{module:page}/html/{title}/:
@@ -412,7 +413,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/html/{title}/
@@ -485,7 +486,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
@@ -524,7 +525,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               # Fixme: only list pages that have at least one revision with content
@@ -563,7 +564,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/data-parsoid/{title}
@@ -623,7 +624,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/data-parsoid/{title}/
@@ -683,7 +684,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
@@ -719,7 +720,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/page_revisions/rev/
@@ -764,7 +765,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/page_revisions/rev/{revision}
@@ -862,10 +863,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_save/wikitext/{title}
-        headers: '{$.request.headers}'
-        body: '{$.request.body}'
+      x-request-handler:
+        - post_to_backend:
+            request:
+              uri: /{domain}/sys/page_save/wikitext/{title}
+              headers: '{$.request.headers}'
+              body: '{$.request.body}'
       x-monitor: false
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
@@ -911,7 +914,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
@@ -973,7 +976,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
@@ -1049,7 +1052,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
@@ -1106,7 +1109,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
+      x-request-handler:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}

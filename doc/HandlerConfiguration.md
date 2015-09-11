@@ -1,7 +1,7 @@
 # Declarative request handler definition
 
 ## General madel
-On each endpont there could be two high-level blocks: `x-backend-setup` and `x-backend-request`. 
+On each endpont there could be two high-level blocks: `x-setup-handler` and `x-request-handler`. 
 The former is run during RESTBase start-up and is optional, while the latter is executed on every 
 incoming request and can be made up of multiple requests (further referred to as request blocks).
 
@@ -12,7 +12,7 @@ And example of a setup declaration:
 ```yaml
     /{module:service}/test/{title}{/revision}:
         get:
-            x-backend-setup:
+            x-setup-handler:
                 - init_storage:
                     uri: /{domain}/sys/key_value/testservice.test            
 ```
@@ -25,7 +25,7 @@ By default `PUT` method is used for a request. This example would initialize a `
 Each request block can be a control one, no special naming is used, as everything can be determined by the block's 
 properties. A block's name is remembered and put in the current scope, so that is can be referenced in a later block; 
 its reference is bound to the response returned for it. Therefore, request block names must be unique inside the same 
-`x-backend-request` fragment.
+`x-request-handler` fragment.
 
 A block is allowed to have the following properties:
 - `request`: a request template of the request to issue in the current block
@@ -76,14 +76,14 @@ the chain array.
 Here's the complete outline of the possible blocks/stanzas:
 
 ```yaml
-x-backend-setup:
+x-setup-handler:
   - name1:
       uri: uri1
       method: m1
       headers:
         h1: v1
       body: body1
-x-backend-request:
+x-request-handler:
   - name1:
       request:
         method: m2
@@ -119,11 +119,11 @@ Using this specification, we can define the POST service configuration as follow
 ```yaml
   /posttest/{hash}/png:
     get:
-      x-backend-setup:
+      x-setup-handler:
         - setup_png_storage:
             method: put 
             uri: /{domain}/sys/key_value/postservice.png
-      x-backend-request:
+      x-request-handler:
         - get_from_storage:
             request:
               method: get
@@ -153,11 +153,11 @@ Using this specification, we can define the POST service configuration as follow
 
   /posttest/:
     post:
-      x-backend-setup:
+      x-setup-handler:
         - setup_post_data_bucket:
             method: put
             uri: /{domain}/sys/post_data/postservice
-      x-backend-request:
+      x-request-handler:
         - do_post:
             request:
               method: post
