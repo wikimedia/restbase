@@ -37,6 +37,8 @@ elif [ "$2" = "cassandra" ]; then
     runTest "cassandra" $1
 elif [ "$2" = "all" ]; then
     runTest "sqlite" $1
+    # Sleep a delay to avoid 429.
+    sleep 90s
     runTest "cassandra" $1
 else
     echo "Invalid testing mode"
