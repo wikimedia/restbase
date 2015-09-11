@@ -38,8 +38,7 @@ elif [ "$2" = "cassandra" ]; then
 elif [ "$2" = "all" ]; then
     runTest "sqlite" $1
     # Sleep a delay to avoid 429.
-    # It's random to avoid different jobs running at save_api tests simultaniously
-    sleep $[ ( $RANDOM % 30 ) + 60 ]s
+    sleep 90s
     runTest "cassandra" $1
 else
     echo "Invalid testing mode"
