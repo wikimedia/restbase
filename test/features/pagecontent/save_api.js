@@ -5,6 +5,7 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var P      = require('bluebird');
+var nock   = require('nock');
 
 
 describe('page save api', function() {
@@ -110,6 +111,23 @@ describe('page save api', function() {
     });
 
     it('fail for bad token', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
+
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+            // The first request should return a page so that we store it.
+        .post('')
+        .reply(200, {
+            "servedby": "nock",
+            "error": {
+                "code": "badtoken",
+                "info": "Invalid token"
+            }
+        });
+
         return preq.post({
             uri: uri,
             body: {
@@ -121,7 +139,13 @@ describe('page save api', function() {
         }, function(err) {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'badtoken');
-        });
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+        });;
     });
 
     it('fail for bad base_etag', function() {
@@ -263,6 +287,23 @@ describe('page save api', function() {
     });
 
     it('detect conflict', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
+
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+            // The first request should return a page so that we store it.
+        .post('')
+        .reply(200, {
+            "servedby": "nock",
+            "error": {
+                "code": "editconflict",
+                "info": "Edit conflict detected"
+            }
+        });
+
         return preq.post({
             uri: uri,
             body: {
@@ -278,7 +319,13 @@ describe('page save api', function() {
         }, function(err) {
             assert.deepEqual(err.status, 409);
             assert.deepEqual(err.body.title, 'editconflict');
-        });
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
+        });;
     });
 
     it('save HTML', function() {
@@ -301,6 +348,23 @@ describe('page save api', function() {
     });
 
     it('detect conflict on save HTML', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
+
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+            // The first request should return a page so that we store it.
+        .post('')
+        .reply(200, {
+            "servedby": "nock",
+            "error": {
+                "code": "editconflict",
+                "info": "Edit conflict detected"
+            }
+        });
+
         return preq.get({
             uri: htmlUri + '/' + lastHTMLRev
         })
@@ -322,7 +386,12 @@ describe('page save api', function() {
         }, function(err) {
             assert.deepEqual(err.status, 409);
             assert.deepEqual(err.body.title, 'editconflict');
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
         });
     });
 });
-
