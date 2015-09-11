@@ -39,7 +39,7 @@
     "jsonwebtoken": "^5.0.1",
     "cassandra-uuid": "^0.0.2",
     "preq": "^0.4.3",
-    "restbase-mod-table-cassandra": "^0.7.11",
+    "restbase-mod-table-cassandra": "^0.7.14",
     "service-runner": "^0.2.0",
     "swagger-router": "^0.1.1",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
@@ -57,7 +57,7 @@
     "swagger-test": "0.2.0",
     "url-template": "^2.0.6",
     "nock": "^2.10.0",
-    "restbase-mod-table-sqlite": "^0.1.6",
+    "restbase-mod-table-sqlite": "^0.1.8",
     "mocha-jscs": "^1.2.0"
   }
 }
