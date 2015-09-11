@@ -28,6 +28,12 @@ describe('page save api', function() {
     var lastHTMLRev = 0;
     var lastWikitextETag = '';
     var lastHTMLETag = '';
+    var apiUri = server.config
+        .conf.templates['wmf-sys-1.0.0']
+        .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+
+    var labsApiURI = apiUri.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
+    var prodApiURI = apiUri.replace('{domain}', 'en.wikipedia.org');
 
     this.timeout(20000);
 
@@ -111,13 +117,8 @@ describe('page save api', function() {
     });
 
     it('fail for bad token', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
-
         nock.enableNetConnect();
-        var api = nock(apiURI)
+        var api = nock(labsApiURI)
         // Mock MW API badtoken response
         .post('')
         .reply(200, {
@@ -145,7 +146,7 @@ describe('page save api', function() {
         })
         .finally(function() {
             nock.cleanAll();
-        });;
+        });
     });
 
     it('fail for bad base_etag', function() {
@@ -251,6 +252,7 @@ describe('page save api', function() {
     });
 
     it('save page', function() {
+        // Leave 1 test unmocked for sanity check.
         return preq.post({
             uri: uri,
             body: {
@@ -271,6 +273,20 @@ describe('page save api', function() {
     });
 
     it('no change', function() {
+        nock.enableNetConnect();
+        var api = nock(labsApiURI)
+        // Mock MW API nochange response
+        .post('')
+        .reply(200, {
+            edit: {
+                result: "Success",
+                pageid: 127114,
+                title: "Save test",
+                contentmodel: "wikitext",
+                nochange: true
+            }
+        });
+
         return preq.post({
             uri: uri,
             body: {
@@ -280,20 +296,22 @@ describe('page save api', function() {
             headers: {
                 'if-match': lastWikitextETag
             }
-        }).then(function(res) {
+        })
+        .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.nochange, true);
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
         });
     });
 
     it('detect conflict', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
-
         nock.enableNetConnect();
-        var api = nock(apiURI)
+        var api = nock(labsApiURI)
         // Mock MW API editconflict response
         .post('')
         .reply(200, {
@@ -325,10 +343,26 @@ describe('page save api', function() {
         })
         .finally(function() {
             nock.cleanAll();
-        });;
+        });
     });
 
     it('save HTML', function() {
+        nock.enableNetConnect();
+        var api = nock(prodApiURI)
+        // Mock MW API success response
+        .post('')
+        .reply(200, {
+            edit: {
+                result: "Success",
+                pageid: 46950417,
+                title: "User:Mobrovac-WMF/RB Save Api Test",
+                contentmodel: "wikitext",
+                oldrevid: 680525605,
+                newrevid: 680525800,
+                newtimestamp: new Date().toISOString()
+            }
+        });
+
         return preq.get({
             uri: htmlUri + '/' + lastHTMLRev
         }).then(function(res) {
@@ -344,17 +378,18 @@ describe('page save api', function() {
         }).then(function(res) {
             assert.deepEqual(res.status, 201);
             lastHTMLETag = res.headers.etag;
+        })
+        .then(function() {
+            api.done();
+        })
+        .finally(function() {
+            nock.cleanAll();
         });
     });
 
     it('detect conflict on save HTML', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
-
         nock.enableNetConnect();
-        var api = nock(apiURI)
+        var api = nock(prodApiURI)
         // Mock MW API editconflict response
         .post('')
         .reply(200, {

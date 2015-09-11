@@ -187,7 +187,7 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     apiRequest.body.action = defBody.action;
     apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
     apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
-    if (!apiRequest.body.hasOwnProperty('continue')) {
+    if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
         apiRequest.body.continue = '';
     }
     return restbase.request(apiRequest).then(cont);
