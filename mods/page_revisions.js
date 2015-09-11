@@ -37,7 +37,7 @@ PRS.prototype.tableURI = function(domain) {
 PRS.prototype.getTableSchema = function() {
     return {
         table: this.tableName,
-        version: 2,
+        version: 3,
         attributes: {
             // Listing: /titles.rev/Barack_Obama/master/
             // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
@@ -77,12 +77,6 @@ PRS.prototype.getTableSchema = function() {
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'title', type: 'range', order: 'asc' },
                 { attribute: 'restrictions', type: 'proj' }
-            ],
-            by_ns: [
-                { attribute: 'namespace', type: 'hash' },
-                { attribute: 'title', type: 'range', order: 'asc' },
-                { attribute: 'rev', type: 'range', order: 'desc' },
-                { attribute: 'tid', type: 'range', order: 'desc' }
             ]
         }
     };
