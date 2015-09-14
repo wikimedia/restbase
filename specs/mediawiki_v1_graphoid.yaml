@@ -48,10 +48,12 @@ paths:
           schema:
             $ref: '#/definitions/problem'
 
-      x-backend-request:
-        uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
-        headers:
-          cache-control: '{cache-control}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/graphoid/v1/png/{title}/{revision}/{graph_id}
+              headers:
+                cache-control: '{cache-control}'
 
       x-monitor: true
       x-amples:

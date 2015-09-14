@@ -14,7 +14,6 @@ info:
 x-default-params:
   domain: en.wikipedia.org
 paths:
-
   /{module:page}/:
     get:
       tags:
@@ -61,10 +60,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/page/
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/page/
+              query:
+                page: '{page}'
       x-monitor: false
 
   /{module:page}/title/{title}:
@@ -97,11 +98,13 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/page/{title}
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/page/{title}
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
       x-monitor: true
       x-amples:
         #- title: Get rev of by title from MW
@@ -170,10 +173,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/page/{title}/
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/page/{title}/
+              query:
+                page: '{page}'
       x-monitor: false
 
   /{module:page}/html/:
@@ -202,10 +207,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/page/
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/page/
+              query:
+                page: '{page}'
       x-monitor: false
 
   /{module:page}/html/{title}:
@@ -248,19 +255,21 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        # Directly return the latest HTML. Alternatively, we could also try
-        # relative redirects. A relative location header of 'foo/bar' seems to
-        # work in current Chrome and Firefox.
-        # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
-        uri: /{domain}/sys/parsoid/html/{title}
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
-          x-restbase-mode: '{x-restbase-mode}'
-          x-restbase-parentrevision: '{x-restbase-parentrevision}'
-        query:
-          sections: '{sections}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              # Directly return the latest HTML. Alternatively, we could also try
+              # relative redirects. A relative location header of 'foo/bar' seems to
+              # work in current Chrome and Firefox.
+              # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
+              uri: /{domain}/sys/parsoid/html/{title}
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+              query:
+                sections: '{sections}'
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
@@ -365,10 +374,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_save/html/{title}
-        headers: '{$.request.headers}'
-        body: '{$.request.body}'
+      x-request-handler:
+        - post_to_backend:
+            request:
+              uri: /{domain}/sys/page_save/html/{title}
+              headers: '{$.request.headers}'
+              body: '{$.request.body}'
       x-monitor: false
 
   /{module:page}/html/{title}/:
@@ -402,15 +413,17 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/html/{title}/
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
-          x-restbase-mode: '{x-restbase-mode}'
-          x-restbase-parentrevision: '{x-restbase-parentrevision}'
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/html/{title}/
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+              query:
+                page: '{page}'
       x-monitor: false
 
   /{module:page}/html/{title}/{revision}{/tid}:
@@ -473,15 +486,17 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
-          x-restbase-mode: '{x-restbase-mode}'
-          x-restbase-parentrevision: '{x-restbase-parentrevision}'
-        query:
-          sections: '{sections}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+              query:
+                sections: '{sections}'
       x-monitor: false
 
   /{module:page}/data-parsoid/:
@@ -510,12 +525,14 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        # Fixme: only list pages that have at least one revision with content
-        # model 'wikitext'
-        uri: /{domain}/sys/page_revisions/page/
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              # Fixme: only list pages that have at least one revision with content
+              # model 'wikitext'
+              uri: /{domain}/sys/page_revisions/page/
+              query:
+                page: '{page}'
       x-monitor: false
 
   /{module:page}/data-parsoid/{title}:
@@ -547,13 +564,15 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
-          x-restbase-mode: '{x-restbase-mode}'
-          x-restbase-parentrevision: '{x-restbase-parentrevision}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/data-parsoid/{title}
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
       x-monitor: true
       x-amples:
         - title: Get data-parsoid by title
@@ -605,15 +624,17 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}/
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
-          x-restbase-mode: '{x-restbase-mode}'
-          x-restbase-parentrevision: '{x-restbase-parentrevision}'
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/data-parsoid/{title}/
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+            query:
+              page: '{page}'
       x-monitor: false
 
   /{module:page}/data-parsoid/{title}/{revision}{/tid}:
@@ -663,13 +684,15 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
-        headers:
-          cache-control: '{cache-control}'
-          if-unmodified-since: '{if-unmodified-since}'
-          x-restbase-mode: '{x-restbase-mode}'
-          x-restbase-parentrevision: '{x-restbase-parentrevision}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
       x-monitor: false
 
   /{module:page}/revision/:
@@ -697,10 +720,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/rev/
-        query:
-          page: '{page}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/rev/
+              query:
+                page: '{page}'
       x-monitor: false
 
   /{module:page}/revision/{revision}:
@@ -740,10 +765,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_revisions/rev/{revision}
-        headers:
-          cache-control: '{cache-control}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/rev/{revision}
+              headers:
+                cache-control: '{cache-control}'
       x-monitor: true
       x-amples:
         - title: Get rev by ID
@@ -836,10 +863,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/page_save/wikitext/{title}
-        headers: '{$.request.headers}'
-        body: '{$.request.body}'
+      x-request-handler:
+        - post_to_backend:
+            request:
+              uri: /{domain}/sys/page_save/wikitext/{title}
+              headers: '{$.request.headers}'
+              body: '{$.request.body}'
       x-monitor: false
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
@@ -885,11 +914,13 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
-        body:
-          html: '{html}'
-          scrubWikitext: '{scrubWikitext}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+              body:
+                html: '{html}'
+                scrubWikitext: '{scrubWikitext}'
       x-monitor: false
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
@@ -945,12 +976,14 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
-        body:
-          wikitext: '{wikitext}'
-          bodyOnly: '{bodyOnly}'
-          body_only: '{body_only}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+              body:
+                wikitext: '{wikitext}'
+                bodyOnly: '{bodyOnly}'
+                body_only: '{body_only}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -1019,12 +1052,14 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
-        body:
-          html: '{html}'
-          bodyOnly: '{bodyOnly}'
-          body_only: '{body_only}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+              body:
+                html: '{html}'
+                bodyOnly: '{bodyOnly}'
+                body_only: '{body_only}'
       x-monitor: false
 
   /{module:transform}/sections/to/wikitext/{title}/{revision}:
@@ -1074,10 +1109,12 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      x-backend-request:
-        uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
-        body:
-          sections: '{sections}'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+              body:
+                sections: '{sections}'
       x-monitor: false
 
 definitions:

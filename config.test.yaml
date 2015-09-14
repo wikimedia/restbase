@@ -111,84 +111,43 @@ templates:
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
-      /{module:graphoid}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /v1/png/{title}/{revision}/{graph_id}:
-                  get:
-                    on_request:
-                      - get_from_graphoid:
-                          request:
-                            uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+      /{module:graphoid}/v1/png/{title}/{revision}/{graph_id}:
+        get:
+          x-request-handler:
+            - get_from_graphoid:
+                request:
+                  uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
 
-      /{module:post_data_service}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /storage:
-                  put:
-                    on_request:
-                      - put_to_storage:
-                          request:
-                            method: put
-                            uri: /{domain}/sys/post_data/post.test/
-                            headers: '{$.request.headers}'
-                            body: '{$.request.body}'
-                /storage/{hash}:
-                  get:
-                    on_setup:
-                      - init_storage:
-                          uri: /{domain}/sys/post_data/post.test
-                    on_request:
-                      - get_from_storage:
-                          request:
-                            uri: /{domain}/sys/post_data/post.test/{hash}
-
-
-      /{module:mobileapps}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /v1/html/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
-                /v1/sections/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
-                /v1/sections-lead/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
-                /v1/sections-remaining/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
-                /v1/text/{title}:
-                  get:
-                    on_request:
-                      - get_from_backend:
-                          request:
-                            uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+      /{module:mobileapps}/v1/html/{title}:
+        get:
+          x-request-handler:
+            - get_from_backend:
+                request:
+                  uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+      /{module:mobileapps}/v1/sections/{title}:
+        get:
+          x-request-handler:
+            - get_from_backend:
+                request:
+                  uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+      /{module:mobileapps}/v1/sections-lead/{title}:
+        get:
+          x-request-handler:
+            - get_from_backend:
+                request:
+                  uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+      /{module:mobileapps}/v1/sections-remaining/{title}:
+        get:
+          x-request-handler:
+            - get_from_backend:
+                request:
+                  uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+      /{module:mobileapps}/v1/text/{title}:
+        get:
+          x-request-handler:
+            - get_from_backend:
+                request:
+                  uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
 
       /{module:action}:
         x-modules:
@@ -201,69 +160,6 @@ templates:
                 headers:
                   host: '{$.request.params.domain}'
                 body: '{$.request.body}'
-
-      /{module:testservice}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /test/{key}:
-                  get:
-                    on_setup:
-                      - init_storage:
-                          uri: /{domain}/sys/key_value/testservice.test
-                    on_request:
-                      - get_from_storage:
-                          request:
-                            uri: /{domain}/sys/key_value/testservice.test/{key}
-                            headers:
-                              'cache-control': '{cache-control}'
-                          return_if:
-                            status: 200
-                          catch:
-                            status: 404
-                      - get_from_api:
-                          request:
-                            uri: http://{domain}/wiki/{+key}
-                            body: '{$.request.body}'
-                      - store:
-                          request:
-                            method: put
-                            uri: /{domain}/sys/key_value/testservice.test/{key}
-                            headers: '{$.get_from_api.headers}'
-                            body: '{$.get_from_api.body}'
-                      - return_response:
-                          return:
-                            status: '{$.get_from_api.status}'
-                            headers:
-                              'content-type': '{$.get_from_api.headers.content-type}'
-                              'etag': '{$.store.headers.etag}'
-                            body: '{$.get_from_api.body}'
-
-      /{module:testservice_parallel}:
-        x-modules:
-          - name: simple_service
-            version: 1.0.0
-            type: file
-            options:
-              paths:
-                /test/{key1}/{key2}:
-                  get:
-                    on_request:
-                      - get_from_api1:
-                          request:
-                            uri: http://{domain}/wiki/{+key1}
-                        get_from_api2:
-                          request:
-                            uri: http://{domain}/wiki/{+key2}
-                      - return_response:
-                          return:
-                            status: 200
-                            body:
-                              first: '{$.get_from_api1}'
-                              second: '{$.get_from_api2}'
 
       /{module:page_save}:
         x-modules:

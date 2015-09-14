@@ -1,92 +1,170 @@
-# Declarative proxy handler definition
-- Provide a clear spec of the request flow for a given entry point
-- Abstract common operations
-- Make it easy to port to another environment later
+# Declarative request handler definition
 
-Example for a bucket handler:
+## General madel
+On each endpont there could be two high-level blocks: `x-setup-handler` and `x-request-handler`. 
+The former is run during RESTBase start-up and is optional, while the latter is executed on every 
+incoming request and can be made up of multiple requests (further referred to as request blocks).
+
+## Setup declaration
+The `x-request-setup` stanza could be used to set up storage or do any preparational requests needed on startup.
+And example of a setup declaration:
+
 ```yaml
----
-/v1/{domain}/pages/{title}/html{/revision}:
-
-  GET:
-    # This is a valid Swagger 2.0 spec. Try at
-    # http://editor.swagger.wordnik.com/.
-    summary: Get the HTML for a revision.
-    responses:
-      200:
-        description: The HTML for the given page and revision
-      default:
-        description: Unexpected error
-        schema: { $ref: Error }
-    produces: text/html;profile="mw.org/specs/html/1.0"
-
-    request_handler:
-    - if:
-        request.headers.cache-control:
-            matches: /no-cache/i # regexp match
-      then: &updateHTML # name the HTML update handler, so that we can ref it
-        - send_request:
-            method: GET
-            url: | # Long URLs can be written as multi-line yaml syntax
-                /v1/{request.params.domain}/_/parsoid/
-                {request.params.domain}/{request.params.title}
-            headers: $request.headers
-            query:
-              oldid: $request.params.revision
-          on_response:
-          - if:
-              response.status: 200
-            then: 
-            - send_request:
-                method: PUT
-                headers: $response.headers
-                body: $response.body
-            - return: $response
-          - else:
-            - return: $response
-    - else:
-      - send_request: $request
-        on_response:
-        - if:
-            response.status: 404
-          then: *updateHTML # Call the HTML update handler above
-        - else:
-          - return: $response
-
-  PUT:
-    summary: Save a new version of the HTML page
-    responses:
-      201:
-        description: The new revision was successfully saved.
-      default:
-        description: Unexpected error
-        schema: { $ref: Error }
-    consumes:
-      - text/html
-      - text/html;profile="mediawiki.org/specs/html/1.0"
-      - application/json;profile="mediawiki.org/specs/pagebundle/1.0"
-
-    request_handler:
-    - send_request: 
-        # Sanitize the HTML first, and create derivate content like wikitext
-        method: POST
-        # Forward to internal service for processing
-        url: |
-            /v1/{request.params.domain/_/sanitizer/
-            {request.params.title}{/request.params.revision}
-        headers: $request.headers
-        body: $request.body
-      on_response:
-      - if:
-          response.status: 200
-          response.headers:
-            content-type: application/json;profile="mw.org/spec/requests"
-          # The backend service returned a JSON structure containing a request
-          # structure (a HTTP transaction). Execute it & return the response.
-        then:
-        - send_request: $response.request
-          on_response:
-          - return: $response
-      - else:
-        - return: $response
+    /{module:service}/test/{title}{/revision}:
+        get:
+            x-setup-handler:
+                - init_storage:
+                    uri: /{domain}/sys/key_value/testservice.test            
 ```
+
+By default `PUT` method is used for a request. This example would initialize a `testservice.test` bucket in a 
+`key_value` module.
+
+## Request Block
+
+Each request block can be a control one, no special naming is used, as everything can be determined by the block's 
+properties. A block's name is remembered and put in the current scope, so that is can be referenced in a later block; 
+its reference is bound to the response returned for it. Therefore, request block names must be unique inside the same 
+`x-request-handler` fragment.
+
+A block is allowed to have the following properties:
+- `request`: a request template of the request to issue in the current block
+- `return`: a response template documenting the response to return
+- `return_if`: a conditional stanza specifying the condition to be met for stopping the execution of the sequential chain
+- `catch`: a conditional stanza specifying which error conditions should be ignored
+
+## Execution Flow
+It is mandatory that a block has either a `request`, a `return` stanza or both. When a `return` stanza is specified 
+without a matching `return_if` conditional, the sequence chain is stopped unconditionally and the response is returned. 
+In the presence of a `return_if` stanza, its conditional is evaluated and, if satisfied, the chain is broken; 
+otherwise, the execution flow switches to the next block.
+
+Errors are defined as responses the status code of which is higher than 399. When an error is encountered, 
+the chain is broken, unless there is a `catch` stanza listing that status code, in which case the execution 
+continues with the next block.
+
+## Sequential and Parallel Blocks
+The `on_request` fragment is an array of objects each of which is a named request block. 
+All of the array elements are executed sequentially one by one until either the chain is broken 
+(because of a `return`, `return_if` or an error) or the end of the array has been reached:
+
+Example: 
+```yaml
+    on_request:
+        - req_block1: ...
+        - req_block2: ...
+        - ...
+        - req_blockN: ...
+```
+        
+Should an array element contain more than one request block, they are going to be executed in parallel:
+
+Example:
+```yaml
+on_request:
+  - req_block1: ...
+  - req_block2a: ...
+    req_block2b: ...
+  - ...
+  - req_blockN: ...
+```
+  
+Parallel request blocks cannot have the `return` or the `return_if` stanzas and cannot be the last element of 
+the chain array.
+
+## Outline
+Here's the complete outline of the possible blocks/stanzas:
+
+```yaml
+x-setup-handler:
+  - name1:
+      uri: uri1
+      method: m1
+      headers:
+        h1: v1
+      body: body1
+x-request-handler:
+  - name1:
+      request:
+        method: m2
+        uri: uri2
+        headers:
+          h2: v2
+        body: body2
+      catch:
+        status: [404, '5xx']
+    name2:
+      request:
+        method: m3
+        uri: uri3
+        headers:
+          h3: v3
+        body: body3
+  - name3:
+      request:
+        method: m4
+        uri: uri4
+        headers:
+          h4: v4
+        body: body4
+      return_if:
+        status: ['2xx', 404]
+  - name4:
+      return: '{$.name2}'
+```      
+      
+## POST Service Definition
+Using this specification, we can define the POST service configuration as follows:
+
+```yaml
+  /posttest/{hash}/png:
+    get:
+      x-setup-handler:
+        - setup_png_storage:
+            method: put 
+            uri: /{domain}/sys/key_value/postservice.png
+      x-request-handler:
+        - get_from_storage:
+            request:
+              method: get
+              headers:
+                cache-control: '{cache-control}'
+              uri: /{domain}/sys/key_value/postservice.png/{hash}
+             return_if:
+               status: 200
+             catch:
+               status: 200
+        - get_post:
+            request:
+              uri: /{domain}/sys/post_data/postservice/{hash}
+        - new_png:
+            request:
+              method: post
+              uri: http://some.post.service/png
+              body: '{$.get_post.body}'
+        - save_new_png:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/postservice.png
+              headers: '{$.new_png.headers}'
+              body: '{$.new_png.body}'
+        - return_png:
+            return: '{$.new_png}'
+
+  /posttest/:
+    post:
+      x-setup-handler:
+        - setup_post_data_bucket:
+            method: put
+            uri: /{domain}/sys/post_data/postservice
+      x-request-handler:
+        - do_post:
+            request:
+              method: post
+              uri: /{domain}/sys/post_data/postservice/
+              body: '{$.request.body}'
+```                      
+
+With this configuration, upon a `POST` request, it's stored in the `post_data` module by hash, which is implicitly returned
+to the client. Upon a get request, storage is checked for content. If there's no content in the storage, an original `POST`
+request is loaded and sent to the backend service. The result is stored and returned to the client.
