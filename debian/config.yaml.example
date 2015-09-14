@@ -6,7 +6,6 @@ storage:
     hosts:
       - localhost
     id: <uuid>
-    keyspace: system
     username: test
     password: test
     poolSize: 70
