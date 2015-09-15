@@ -124,7 +124,7 @@ describe('handler template', function () {
                 return_if: {
                     status: '5xx'
                 },
-                return: '$.request'
+                return: '{$.request}'
             }
         }]);
     });
