@@ -115,6 +115,20 @@ describe('handler template', function () {
         }, /^Invalid spec\. Either request or return must be specified\..*/);
     });
 
+    it('validates config: compiles a valid condition function', function() {
+        handlerTemplate.createHandler([{
+            get_one: {
+                request: {
+                    uri: '/my/path'
+                },
+                return_if: {
+                    status: '5xx'
+                },
+                return: '{$.request}'
+            }
+        }]);
+    });
+
     it('validates config: requires request for return_if', function() {
         testValidation(function() {
             handlerTemplate.createHandler([{
