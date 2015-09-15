@@ -284,4 +284,33 @@ describe('router - misc', function() {
         assert.deepEqual(template.eval({request:request}).uri, '/path/test/a');
     });
 
+    it('supports default values in req templates', function() {
+        var template = new Template({
+            uri: '/path/{$.request.body.test || "default"}',
+            body: {
+                complete: '{$.request.body.test || "default"}',
+                partial: '/test/{$.request.body.test || "default"}'
+            }
+        });
+        var evaluatedNoDefaults = template.eval({
+            request: {
+                method: 'get',
+                body: {
+                    test: 'value'
+                }
+            }
+        });
+        assert.deepEqual(evaluatedNoDefaults.uri, '/path/value');
+        assert.deepEqual(evaluatedNoDefaults.body.complete, 'value');
+        assert.deepEqual(evaluatedNoDefaults.body.partial, '/test/value');
+        var evaluatedDefaults = template.eval({
+            request: {
+                method: 'get',
+                body: {}
+            }
+        });
+        assert.deepEqual(evaluatedDefaults.uri, '/path/default');
+        assert.deepEqual(evaluatedDefaults.body.complete, 'default');
+        assert.deepEqual(evaluatedDefaults.body.partial, '/test/default');
+    });
 });
