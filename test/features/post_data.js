@@ -48,4 +48,21 @@ describe('post_data', function () {
             assert.deepEqual(res.body, hash);
         });
     });
+
+    it('should deny access on remote requests', function() {
+        return preq.post({
+            uri: server.config.baseURL + '/post_data/',
+            headers: {
+                'x-forwarded-for': '123.123.123.123'
+            },
+            body: {
+                key: 'value2'
+            }
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 403);
+        });
+    });
 });
