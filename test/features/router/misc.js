@@ -269,4 +269,19 @@ describe('router - misc', function() {
             assert.deepEqual(res.body, '');
         })
     })
+
+    it('absolute templates in URI', function() {
+        var template = new Template({
+            uri: '/path/{$.request.headers.host}/{$.request.body}'
+        });
+        var request = {
+            method: 'post',
+            headers: {
+                'host': 'test'
+            },
+            body: 'a'
+        };
+        assert.deepEqual(template.eval({request:request}).uri, '/path/test/a');
+    });
+
 });
