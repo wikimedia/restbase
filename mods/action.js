@@ -202,7 +202,7 @@ ActionService.prototype.query = function(restbase, req) {
 
 ActionService.prototype.edit = function(restbase, req) {
     // For edit need to copy-over cookies for unrestricted domains too.
-    rbUtil.copyForwardedCookies(restbase, req);
+    rbUtil.copyForwardedHeaders(restbase, req, ['cookie']);
     return this._doRequest(restbase, req, {
         action: 'edit',
         format: 'json',
