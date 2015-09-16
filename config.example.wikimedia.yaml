@@ -65,10 +65,10 @@ templates:
           - name: restbase-mod-table-cassandra
             version: 1.0.0
             type: npm
+            # See: https://github.com/wikimedia/restbase-mod-table-cassandra/blob/master/Readme.md#configuration
             options: # Passed to the module constructor
               conf:
                 hosts: [localhost]
-                keyspace: system
                 username: cassandra
                 password: cassandra
                 defaultConsistency: one # or 'one' for single-node testing
