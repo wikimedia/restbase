@@ -57,9 +57,10 @@ templates:
       title: Default MediaWiki sys API module
       version: 1.0.0
     securityDefinitions:
-      client_ip:
+      header_match:
         description: Checks client ip against one of the predefined whitelists
-        x-client-whitelists:
+        x-error-message: This client is not allowed to use the endpoint
+        x-whitelists:
           internal:
             - /^(?:::ffff:)?(?:10|127)\./
     paths:
@@ -100,8 +101,10 @@ templates:
             version: 1.0.0
             type: file
         security:
-          - client_ip:
-              - internal
+          - header_match:
+              - header: 'x-rb-client-ip'
+                patterns:
+                  - internal
 
       /{module:key_rev_value}:
         x-modules:
