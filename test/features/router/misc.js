@@ -286,10 +286,11 @@ describe('router - misc', function() {
 
     it('supports default values in req templates', function() {
         var template = new Template({
-            uri: '/path/{$.request.body.test || "default"}',
+            uri: '/path/{$$.default($.request.body.test, "default")}',
             body: {
-                complete: '{$.request.body.test || "default"}',
-                partial: '/test/{$.request.body.test || "default"}'
+                complete: '{$$.default($.request.body.test, "default")}',
+                partial: '/test/{$$.default($.request.body.test, "default")}',
+                withObject: '{$$.default($.request.body.test, {temp: "default"})}'
             }
         });
         var evaluatedNoDefaults = template.eval({
@@ -303,6 +304,7 @@ describe('router - misc', function() {
         assert.deepEqual(evaluatedNoDefaults.uri, '/path/value');
         assert.deepEqual(evaluatedNoDefaults.body.complete, 'value');
         assert.deepEqual(evaluatedNoDefaults.body.partial, '/test/value');
+        assert.deepEqual(evaluatedNoDefaults.body.withObject, 'value');
         var evaluatedDefaults = template.eval({
             request: {
                 method: 'get',
@@ -312,5 +314,34 @@ describe('router - misc', function() {
         assert.deepEqual(evaluatedDefaults.uri, '/path/default');
         assert.deepEqual(evaluatedDefaults.body.complete, 'default');
         assert.deepEqual(evaluatedDefaults.body.partial, '/test/default');
+        assert.deepEqual(evaluatedDefaults.body.withObject, {temp: 'default'});
+    });
+
+    it('should support merging objects in templates', function() {
+        var template = new Template({
+            body: {
+                merged: '{$$.merge($.request.body.first, second)}'
+            }
+        });
+        var evaluated = template.eval({
+            request: {
+                method: 'get',
+                body: {
+                    first: {
+                        noOverwrite: 'noOverwrite',
+                        notCopied: 'notCopied'
+                    },
+                    second: {
+                        noOverwrite: 'OVERWRITED!',
+                        extra: 'extra'
+                    }
+                }
+            }
+        });
+        assert.deepEqual(evaluated.body.merged, {
+            noOverwrite: 'noOverwrite',
+            notCopied: 'notCopied',
+            extra: 'extra'
+        });
     });
 });
