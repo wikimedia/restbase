@@ -57,7 +57,7 @@ paths:
         - do_post:
             request:
               method: post
-              uri: /window.wikimedia.org/sys/mathoid/v1/request
+              uri: /wikimedia.org/sys/mathoid/v1/request
               headers:
                 cache-control: '{cache-control}'
               body: '{$.request.body}'
@@ -130,7 +130,7 @@ paths:
         - stored_post:
             request:
               method: get
-              uri: /window.wikimedia.org/sys/mathoid/v1/request/{hash}
+              uri: /wikimedia.org/sys/mathoid/v1/request/{hash}
               headers:
                 cache-control: '{cache-control}'
       x-monitor: false

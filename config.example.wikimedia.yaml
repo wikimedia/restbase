@@ -332,7 +332,7 @@ spec: &spec
 #   /{domain:nl.wikipedia.org}: *wp/default/1.0.0
 
     # global domain
-    /{domain:window.wikimedia.org}: *gb/default/1.0.0
+    /{domain:wikimedia.org}: *gb/default/1.0.0
 
 
 services:
