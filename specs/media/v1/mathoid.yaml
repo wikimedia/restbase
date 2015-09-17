@@ -23,6 +23,10 @@ paths:
           description: The output format; can be svg, json or mml
           type: string
           required: false
+          enum:
+            - svg
+            - json
+            - mml
         - name: q
           in: formData
           description: The formula to render
@@ -33,6 +37,11 @@ paths:
           description: The input type of the given formula; can be tex, inline-tex, mml or ascii
           type: string
           required: false
+          enum:
+            - tex
+            - inline-tex
+            - mml
+            - ascii
       responses:
         '200':
           description: The rendered formula
