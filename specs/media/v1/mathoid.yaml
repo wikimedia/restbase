@@ -1,0 +1,128 @@
+# Mathoid - math formula rendering service
+
+swagger: 2.0
+
+paths:
+  /{module:media}/math:
+    post:
+      tags:
+        - Media
+        - Math
+      description: >
+        Renders a TeX formula into its mathematic representation in the given format.
+        Available formats are svg, json and mml.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/svg+xml
+        - application/mathml+xml
+        - application/json
+      parameters:
+        - name: format
+          in: formData
+          description: The output format; can be svg, json or mml
+          type: string
+          required: false
+        - name: q
+          in: formData
+          description: The formula to render
+          type: string
+          required: true
+        - name: type
+          in: formData
+          description: The input type of the given formula; can be tex, inline-tex, mml or ascii
+          type: string
+          required: false
+      responses:
+        '200':
+          description: The rendered formula
+        '400':
+          description: Invalid format or type
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - do_post:
+            request:
+              method: post
+              uri: /window.wikimedia.org/sys/mathoid/v1/request
+              headers:
+                cache-control: '{cache-control}'
+              body: '{$.request.body}'
+      x-monitor: true
+      x-amples:
+        - title: Mathoid - test formula
+          request:
+            body:
+              format: json
+              q: E=mc^2
+              type: tex
+          response:
+            status: 200
+            headers:
+              content-type: /^application\/json/
+            body:
+              svg: /.+/
+              mml: /.+/
+              success: true
+        - title: Mathoid - test formula from storage
+          request:
+            body:
+              format: json
+              q: E=mc^2
+              type: tex
+          response:
+            status: 200
+            headers:
+              content-type: /^application\/json/
+            body:
+              svg: /.+/
+              mml: /.+/
+              success: true
+
+  /{module:media}/math/{hash}:
+    get:
+      tags:
+        - Media
+        - Math
+      description: >
+        Given a request hash, renders a TeX formula into its mathematic
+        representation in the given format. When a request is issued to the
+        `/media/math` endpoint, the response contains the *x-resource-location*
+        header denoting the hash ID of the POST data. Once obtained, this endpoint
+        may be used to avoid sending the payload.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/svg+xml
+        - application/mathml+xml
+        - application/json
+      parameters:
+        - name: hash
+          in: path
+          description: The hash string of the previous POST data
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The rendered formula
+        '404':
+          description: Unknown hash ID
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - stored_post:
+            request:
+              method: get
+              uri: /window.wikimedia.org/sys/mathoid/v1/request/{hash}
+              headers:
+                cache-control: '{cache-control}'
+      x-monitor: false
+
