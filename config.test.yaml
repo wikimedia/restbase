@@ -118,7 +118,7 @@ templates:
                 request:
                   uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
 
-      /{module:mobileapps}:
+      /{module:mobileapps}/v1:
         x-subspec:
           info:
             title: Mobileapps sys API module
