@@ -175,7 +175,7 @@ describe('router - misc', function() {
                 'string_templated': 'test field_value_with_underscore'
             }
         };
-        var result = new Template(requestTemplate).eval({
+        var result = new Template(requestTemplate).expand({
             request: testRequest,
             additional_context: {
                 field: 'additional_test_value'
@@ -188,7 +188,7 @@ describe('router - misc', function() {
         var requestTemplate = {
             uri: 'http://{domain}/path1/{path2}'
         };
-        var result = new Template(requestTemplate).eval({
+        var result = new Template(requestTemplate).expand({
             request: {
                 params: {
                     domain: 'en.wikipedia.org',
@@ -206,7 +206,7 @@ describe('router - misc', function() {
         var requestTemplate = {
             uri: '/{domain}/path1{/optional}'
         };
-        var resultNoOptional = new Template(requestTemplate).eval({
+        var resultNoOptional = new Template(requestTemplate).expand({
             request: {
                 params: {
                     domain: 'en.wikipedia.org'
@@ -214,7 +214,7 @@ describe('router - misc', function() {
             }
         });
         assert.deepEqual(resultNoOptional.uri, new URI('/en.wikipedia.org/path1{/optional}', {}, true).expand());
-        var resultWithOptional = new Template(requestTemplate).eval({
+        var resultWithOptional = new Template(requestTemplate).expand({
             request: {
                 params: {
                     domain: 'en.wikipedia.org',
@@ -231,7 +231,7 @@ describe('router - misc', function() {
         var requestTemplate = {
             uri: 'http://{domain}/path1/{+path}'
         };
-        var result = new Template(requestTemplate).eval({
+        var result = new Template(requestTemplate).expand({
             request: {
                 params: {
                     domain: 'en.wikipedia.org',
@@ -249,7 +249,7 @@ describe('router - misc', function() {
         var requestTemplate = {
             uri: '{uri}'
         };
-        var result = new Template(requestTemplate).eval({
+        var result = new Template(requestTemplate).expand({
             request: {
                 params: {
                     uri: 'en.wikipedia.org/path1/test1/test2/test3'
@@ -281,7 +281,7 @@ describe('router - misc', function() {
             },
             body: 'a'
         };
-        assert.deepEqual(template.eval({request:request}).uri, '/path/test/a');
+        assert.deepEqual(template.expand({request:request}).uri, '/path/test/a');
     });
 
     it('supports default values in req templates', function() {
@@ -293,7 +293,7 @@ describe('router - misc', function() {
                 withObject: '{$$.default($.request.body.test, {temp: "default"})}'
             }
         });
-        var evaluatedNoDefaults = template.eval({
+        var evaluatedNoDefaults = template.expand({
             request: {
                 method: 'get',
                 body: {
@@ -305,7 +305,7 @@ describe('router - misc', function() {
         assert.deepEqual(evaluatedNoDefaults.body.complete, 'value');
         assert.deepEqual(evaluatedNoDefaults.body.partial, '/test/value');
         assert.deepEqual(evaluatedNoDefaults.body.withObject, 'value');
-        var evaluatedDefaults = template.eval({
+        var evaluatedDefaults = template.expand({
             request: {
                 method: 'get',
                 body: {}
@@ -323,7 +323,7 @@ describe('router - misc', function() {
                 merged: '{$$.merge($.request.body.first, second)}'
             }
         });
-        var evaluated = template.eval({
+        var evaluated = template.expand({
             request: {
                 method: 'get',
                 body: {

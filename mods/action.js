@@ -181,7 +181,7 @@ function buildEditResponse(res) {
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
-    var apiRequest = this.apiRequestTemplate.eval({
+    var apiRequest = this.apiRequestTemplate.expand({
         request: req
     });
     apiRequest.body.action = defBody.action;
