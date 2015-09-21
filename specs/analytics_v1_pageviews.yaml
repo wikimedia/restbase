@@ -11,8 +11,6 @@ info:
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
-x-default-params:
-  domain: analytics.wikimedia.org
 paths:
   /{module:pageviews}/:
     get:
