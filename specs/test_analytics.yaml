@@ -1,0 +1,32 @@
+# Simple test spec for analytics Pageviews API
+
+swagger: 2.0
+
+paths:
+  # These three endpoints are just for fake data insertion:
+  /{module:pageviews}/insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}:
+    get:
+      description: >
+        Insert fake pageviews data for a given article in a project
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      x-backend-request:
+        uri: /{domain}/sys/pageviews/insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}
+      x-monitor: false
+
+  /{module:pageviews}/insert-per-project/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+    get:
+      description: >
+        Insert fake pageviews data for a given project
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      x-backend-request:
+        uri: /{domain}/sys/pageviews/insert-per-project/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}
+      x-monitor: false
+
+  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{rank}/{article}/{views}:
+    get:
+      description: >
+        Insert fake pageviews data for top articles
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      x-backend-request:
+        uri: /{domain}/sys/pageviews/insert-top/{project}/{access}/{year}/{month}/{day}/{rank}/{article}/{views}
+      x-monitor: false

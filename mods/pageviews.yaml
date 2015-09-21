@@ -1,0 +1,27 @@
+paths:
+    /per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}:
+        get:
+          summary: query pageviews per article
+          operationId: pageviewsForArticle
+    /per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}:
+        get:
+          summary: query pageviews per project
+          operationId: pageviewsForProjects
+    /top/{project}/{access}/{year}/{month}/{day}:
+        get:
+          summary: query top pageviews
+          operationId: pageviewsForTops
+
+    # These three endpoints are just for fake data:
+    /insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}:
+        get:
+          summary: insert pageviews test data for per article queries
+          operationId: insertPageviewsForArticleTestData
+    /insert-per-project/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+        get:
+          summary: insert pageviews test data for per project queries
+          operationId: insertPageviewsForProjectTestData
+    /insert-top/{project}/{access}/{year}/{month}/{day}/{rank}/{article}/{views}:
+        get:
+          summary: insert pageviews test data for tops queries
+          operationId: insertPageviewsForTopsTestData
