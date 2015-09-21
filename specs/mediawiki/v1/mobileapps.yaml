@@ -36,7 +36,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/mobileapps/v1/html/{title}
+              uri: /{domain}/sys/mobileapps/html/{title}
       x-monitor: true
       x-amples:
         - title: Get MobileApps Main Page
@@ -81,7 +81,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/mobileapps/v1/sections/{title}
+              uri: /{domain}/sys/mobileapps/sections/{title}
       x-monitor: false
 
   /{module:page}/mobile-html-sections-lead/{title}:
@@ -116,7 +116,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/mobileapps/v1/sections-lead/{title}
+              uri: /{domain}/sys/mobileapps/sections-lead/{title}
       x-monitor: false
 
   /{module:page}/mobile-html-sections-remaining/{title}:
@@ -152,7 +152,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/mobileapps/v1/sections-remaining/{title}
+              uri: /{domain}/sys/mobileapps/sections-remaining/{title}
       x-monitor: false
 
   /{module:page}/mobile-text/{title}:
@@ -187,5 +187,5 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/mobileapps/v1/text/{title}
+              uri: /{domain}/sys/mobileapps/text/{title}
       x-monitor: false
