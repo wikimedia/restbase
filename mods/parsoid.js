@@ -351,10 +351,10 @@ PSP.getFormat = function(format, restbase, req) {
     }
     return contentReq
     .then(function(res) {
-        if (res && res.headers && !/^application\/json/.test(res.headers['content-type'])) {
-            res.headers['Content-Security-Policy'] =
-                rbUtil.constructCSP(rp.domain, { allowInline: true });
-        }
+        rbUtil.addCSPHeaders(res, {
+            domain: rp.domain,
+            allowInline: true,
+        });
         return res;
     });
 };
