@@ -93,7 +93,6 @@ describe('pageviews endpoints', function () {
                 uri: server.config.baseURL + topsEndpoint
             });
         }).then(function(res) {
-            console.log(res.body);
             assert.deepEqual(res.body.items.length, 1);
             var article = JSON.parse(res.body.items[0].articles)[0];
             assert.deepEqual(article.views, 2000);

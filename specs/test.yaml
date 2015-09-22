@@ -135,7 +135,7 @@ paths:
                   views: '{$.request.params.views}'
       x-monitor: false
 
-  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{rank}/{article}/{views}:
+  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{data}:
     post:
       x-request-handler:
         - put_to_storage:
