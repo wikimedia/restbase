@@ -51,13 +51,15 @@ paths:
           required: true
         - name: access
           in: path
-          description: Type of access method [all-access|desktop|mobile-app|mobile-web]
+          description: Type of access method
           type: string
+          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
         - name: agent
           in: path
-          description: Type of user agent [all-agents|user|spider]
+          description: Type of user agent
           type: string
+          enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
         - name: article
           in: path
@@ -90,8 +92,8 @@ paths:
             $ref: '#/definitions/problem'
       x-request-handler:
         - get_from_backend:
-          request:
-            uri: /{domain}/sys/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}
+            request:
+              uri: /{domain}/sys/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}
       x-monitor: false
 
   /{module:pageviews}/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}:
@@ -112,13 +114,15 @@ paths:
           required: true
         - name: access
           in: path
-          description: Type of access method [all-access|desktop|mobile-app|mobile-web]
+          description: Type of access method
           type: string
+          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
         - name: agent
           in: path
-          description: Type of user agent [all-agents|user|spider]
+          description: Type of user agent
           type: string
+          enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
         - name: granularity
           in: path
@@ -146,8 +150,8 @@ paths:
             $ref: '#/definitions/problem'
       x-request-handler:
         - get_from_backend:
-          request:
-            uri: /{domain}/sys/pageviews/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}
+            request:
+              uri: /{domain}/sys/pageviews/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}
       x-monitor: false
 
   /{module:pageviews}/top/{project}/{access}/{year}/{month}/{day}:
@@ -168,8 +172,9 @@ paths:
           required: true
         - name: access
           in: path
-          description: Type of access method [all-access|desktop|mobile-app|mobile-web]
+          description: Type of access method
           type: string
+          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
         - name: year
           in: path
@@ -197,8 +202,8 @@ paths:
             $ref: '#/definitions/problem'
       x-request-handler:
         - get_from_backend:
-          request:
-            uri:  /{domain}/sys/pageviews/top/{project}/{access}/{year}/{month}/{day}
+            request:
+              uri:  /{domain}/sys/pageviews/top/{project}/{access}/{year}/{month}/{day}
       x-monitor: false
 
 
@@ -228,68 +233,65 @@ definitions:
           type: string
 
   article:
-    required:
-      - items
     properties:
       items:
         type: array
-        properties:
-          project:
-            type : string
-          access:
-            type : string
-          article:
-            type: string
-          agent:
-            type: string
-          granularity:
-            type: string
-          timestamp:
-            # the hourly timestamp will be stored as YYYYMMDDHH
-            type: string
-          views:
-            type: integer
-            format: int64
+        items:
+          properties:
+            project:
+              type : string
+            access:
+              type : string
+            article:
+              type: string
+            agent:
+              type: string
+            granularity:
+              type: string
+            timestamp:
+              # the hourly timestamp will be stored as YYYYMMDDHH
+              type: string
+            views:
+              type: integer
+              format: int64
 
   project:
-    required:
-      - items
     properties:
       items:
         type: array
-        properties:
-          project:
-            type : string
-          access:
-            type : string
-          agent:
-            type: string
-          granularity:
-            type: string
-          timestamp:
-            # the hourly timestamp will be stored as YYYYMMDDHH
-            type: string
-          views:
-            type: integer
-            format: int64
+        items:
+          properties:
+            project:
+              type : string
+            access:
+              type : string
+            agent:
+              type: string
+            granularity:
+              type: string
+            timestamp:
+              # the hourly timestamp will be stored as YYYYMMDDHH
+              type: string
+            views:
+              type: integer
+              format: int64
 
   tops:
-    required:
-      - items
     properties:
       items:
         type: array
-        properties:
-          project:
-            type: string
-          access:
-            type : string
-          year:
-            type: string
-          month:
-            type: string
-          day:
-            type: string
-          articles:
-            # format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
-            type: string
+        items:
+          properties:
+            project:
+              type: string
+            access:
+              type : string
+            year:
+              type: string
+            month:
+              type: string
+            day:
+              type: string
+            articles:
+              # format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
+              type: string
