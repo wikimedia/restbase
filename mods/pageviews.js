@@ -25,77 +25,77 @@ function PJVS(options) {
 
 
 var tables = {
-        article: 'pageviews.per.article',
-        project: 'pageviews.per.project',
-        tops: 'top.pageviews',
-    };
+    article: 'pageviews.per.article',
+    project: 'pageviews.per.project',
+    tops: 'top.pageviews',
+};
 var tableURI = function(domain, tableName) {
-        return new URI([domain, 'sys', 'table', tableName, '']);
-    };
+    return new URI([domain, 'sys', 'table', tableName, '']);
+};
 var tableSchemas = {
-        article: {
-            table: tables.article,
-            version: 1,
-            attributes: {
-                project: 'string',
-                article: 'string',
-                access: 'string',
-                agent: 'string',
-                granularity: 'string',
-                // the hourly timestamp will be stored as YYYYMMDDHH
-                timestamp: 'string',
-                views: 'int'
-            },
-            index: [
-                { attribute: 'project', type: 'hash' },
-                { attribute: 'article', type: 'hash' },
-                { attribute: 'access', type: 'hash' },
-                { attribute: 'agent', type: 'hash' },
-                { attribute: 'granularity', type: 'hash' },
-                { attribute: 'timestamp', type: 'range', order: 'asc' },
-            ]
+    article: {
+        table: tables.article,
+        version: 1,
+        attributes: {
+            project: 'string',
+            article: 'string',
+            access: 'string',
+            agent: 'string',
+            granularity: 'string',
+            // the hourly timestamp will be stored as YYYYMMDDHH
+            timestamp: 'string',
+            views: 'int'
         },
-        project: {
-            table: tables.project,
-            version: 1,
-            attributes: {
-                project: 'string',
-                access: 'string',
-                agent: 'string',
-                granularity: 'string',
-                // the hourly timestamp will be stored as YYYYMMDDHH
-                timestamp: 'string',
-                views: 'int'
-            },
-            index: [
-                { attribute: 'project', type: 'hash' },
-                { attribute: 'access', type: 'hash' },
-                { attribute: 'agent', type: 'hash' },
-                { attribute: 'granularity', type: 'hash' },
-                { attribute: 'timestamp', type: 'range', order: 'asc' },
-            ]
+        index: [
+            { attribute: 'project', type: 'hash' },
+            { attribute: 'article', type: 'hash' },
+            { attribute: 'access', type: 'hash' },
+            { attribute: 'agent', type: 'hash' },
+            { attribute: 'granularity', type: 'hash' },
+            { attribute: 'timestamp', type: 'range', order: 'asc' },
+        ]
+    },
+    project: {
+        table: tables.project,
+        version: 1,
+        attributes: {
+            project: 'string',
+            access: 'string',
+            agent: 'string',
+            granularity: 'string',
+            // the hourly timestamp will be stored as YYYYMMDDHH
+            timestamp: 'string',
+            views: 'int'
         },
-        tops: {
-            table: tables.tops,
-            version: 1,
-            attributes: {
-                project: 'string',
-                access: 'string',
-                year: 'string',
-                month: 'string',
-                day: 'string',
-                // format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
-                articles: 'string'
-            },
-            index: [
-                { attribute: 'project', type: 'hash' },
-                { attribute: 'access', type: 'hash' },
-                { attribute: 'year', type: 'hash' },
-                { attribute: 'month', type: 'hash' },
-                { attribute: 'day', type: 'hash' },
-            ]
-        }
-    };
+        index: [
+            { attribute: 'project', type: 'hash' },
+            { attribute: 'access', type: 'hash' },
+            { attribute: 'agent', type: 'hash' },
+            { attribute: 'granularity', type: 'hash' },
+            { attribute: 'timestamp', type: 'range', order: 'asc' },
+        ]
+    },
+    tops: {
+        table: tables.tops,
+        version: 1,
+        attributes: {
+            project: 'string',
+            access: 'string',
+            year: 'string',
+            month: 'string',
+            day: 'string',
+            // format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
+            articles: 'string'
+        },
+        index: [
+            { attribute: 'project', type: 'hash' },
+            { attribute: 'access', type: 'hash' },
+            { attribute: 'year', type: 'hash' },
+            { attribute: 'month', type: 'hash' },
+            { attribute: 'day', type: 'hash' },
+        ]
+    }
+};
 
 /* general handler functions */
 var queryCatcher = function(e) {
