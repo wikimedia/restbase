@@ -14,14 +14,56 @@ var yaml = require('js-yaml');
 var fs = require('fs');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/parsoid.yaml'));
 
+// THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
+// SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
+var Purger = require('htcp-purge');
+var Template = require('../lib/reqTemplate');
+var cacheURIs = [
+    // /page/mobile-html/{title}
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html/{title}'
+    }),
+    // /page/mobile-html-sections/{title}
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections/{title}'
+    }),
+    // /page/mobile-html-sections-lead/{title}
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-lead/{title}'
+    }),
+    // /page/mobile-html-sections-remaining/{title}
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-remaining/{title}'
+    }),
+    // /page/mobile-text/{title}
+    new Template({
+        uri: 'https://{domain}/api/rest_v1/page/mobile-text/{title}'
+    })
+
+];
 
 function ParsoidService(options) {
+    var self = this;
     options = options || {};
     this.log = options.log || function() {};
     this.parsoidHost = options.parsoidHost
         || 'http://parsoid-lb.eqiad.wikimedia.org';
+
+    // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
+    // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
+    self.purgeOnUpdate = !!options.purge;
+    if (self.purgeOnUpdate) {
+        self.purger = new Purger({
+            routes: [
+                {
+                    host: options.purge.host || '239.128.0.112',
+                    port: options.purge.port || 4827
+                }
+            ]
+        });
+    }
+
     // Set up operations
-    var self = this;
     this.operations = {
         getPageBundle: function(restbase, req) {
             return self.wrapContentReq(restbase, req,
@@ -45,6 +87,29 @@ function ParsoidService(options) {
 
 // Short alias
 var PSP = ParsoidService.prototype;
+
+/**
+ * THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
+ * SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
+ *
+ * Sends HTCP purge messages to varnishes to invalidate all cached endpoints
+ * dependent on the update.
+ *
+ * @param domain updated page domain
+ * @param title updated page title
+ */
+PSP.purgeCaches = function(domain, title) {
+    this.purger.purge(cacheURIs.map(function(template) {
+        return template.eval({
+            request: {
+                params: {
+                    domain: domain,
+                    title: title
+                }
+            }
+        }).uri.toString();
+    }));
+};
 
 /**
  * Wraps a request for getting content (the promise) into a
@@ -308,6 +373,12 @@ PSP.getFormat = function(format, restbase, req) {
                 } else {
                     return self.generateAndSave(restbase, req, format, storageRes);
                 }
+            })
+            .then(function(res) {
+                if (self.purgeOnUpdate) {
+                    self.purgeCaches(rp.domain, rp.title);
+                }
+                return res;
             });
         } else {
             // Don't generate content if there's some other error.

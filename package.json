@@ -45,7 +45,8 @@
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "tassembly": "^0.1.4",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
-    "template-expression-compiler": "^0.1.0"
+    "template-expression-compiler": "^0.1.0",
+    "htcp-purge": "^0.1.0"
   },
   "devDependencies": {
     "bunyan": "^1.4.0",
