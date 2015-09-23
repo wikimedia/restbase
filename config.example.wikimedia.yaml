@@ -95,6 +95,11 @@ templates:
             type: file
             options:
               parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+              # To enable mobileApps purging - add these to the config.
+              # (TODO: remove after actual purging is implemented
+              #purge:
+              #  host: '239.128.0.112'
+              #  port: 4827
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 

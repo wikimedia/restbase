@@ -51,13 +51,13 @@ function ParsoidService(options) {
 
     // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
     // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
-    self.purgeOnUpdate = options.purge_on_update;
+    self.purgeOnUpdate = !!options.purge;
     if (self.purgeOnUpdate) {
         self.purger = new Purger({
             routes: [
                 {
-                    host: '239.128.0.112',
-                    port: 4827
+                    host: options.purge.host || '239.128.0.112',
+                    port: options.purge.port || 4827
                 }
             ]
         });
