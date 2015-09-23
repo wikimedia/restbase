@@ -149,7 +149,8 @@ var nestedSecuritySpec = {
                                                         }
                                                     }
                                                 }
-                                            ]
+                                            ],
+                                            security: [ 'forth' ]
                                         }
                                     }
                                 }
@@ -237,7 +238,12 @@ describe('tree building', function() {
         return router.loadSpec(nestedSecuritySpec)
         .then(function() {
             var handler = router.route('/en.wikipedia.org/v1/page/secure');
-            assert.deepEqual(handler.permissions, ['first', 'second', 'third']);
+            assert.deepEqual(handler.permissions, [
+                { value: 'first' },
+                { value: 'second'},
+                { value: 'third' },
+                { value: 'forth', method: 'get' }
+            ]);
         });
     });
 

@@ -49,7 +49,17 @@ describe('post_data', function () {
         });
     });
 
-    it('should deny access on remote requests', function() {
+    it('should allow read on remote request', function() {
+        return preq.get({
+            uri: server.config.baseURL + '/post_data/' + hash
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, { key: 'value' });
+        })
+    });
+
+    it('should deny write on remote requests', function() {
         return preq.post({
             uri: server.config.baseURL + '/post_data/',
             headers: {
