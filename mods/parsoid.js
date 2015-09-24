@@ -362,7 +362,7 @@ PSP.getFormat = function(format, restbase, req) {
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
-            return self.getRevisionInfo(restbase, req)
+            var revInfoPromise = self.getRevisionInfo(restbase, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
                 if (revInfo.title !== rp.title) {
@@ -373,13 +373,14 @@ PSP.getFormat = function(format, restbase, req) {
                 } else {
                     return self.generateAndSave(restbase, req, format, storageRes);
                 }
-            })
-            .then(function(res) {
-                if (self.purgeOnUpdate) {
-                    self.purgeCaches(rp.domain, rp.title);
-                }
-                return res;
             });
+            if (self.purgeOnUpdate) {
+                revInfoPromise = revInfoPromise.then(function(res) {
+                    self.purgeCaches(rp.domain, rp.title);
+                    return res;
+                });
+            }
+            return revInfoPromise;
         } else {
             // Don't generate content if there's some other error.
             throw storageRes;
