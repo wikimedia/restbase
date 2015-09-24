@@ -175,9 +175,9 @@ describe('revision requests with en.wikipedia.org', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             var item = res.body.items[0];
-            assert.deepEqual(item.user_id, null);
-            assert.deepEqual(item.user_text, null);
-            assert.deepEqual(item.comment, null);
+            assert.deepEqual(!!item.user_id, false);
+            assert.deepEqual(!!item.user_text, false);
+            assert.deepEqual(!!item.comment, false);
         })
     })
 });
