@@ -705,18 +705,8 @@ PSP.makeTransform = function(from, to) {
             transform = self.callParsoidTransform(restbase, req, from, to);
         }
         return transform
-        // XXX: This is a temporary catch to aid in
-        // discovering what's going on in T112339
-        // We need to remove it
         .catch(function(e) {
-            if (to === 'wikitext' && e.status && e.status >= 400 && e.status < 500) {
-                self.log('warn/transform', {
-                    message: e.body.description || e.body.message,
-                    req: req,
-                    status: e.status
-                });
-            }
-            // In case the a page was deleted/revision restricted wkile edit was happening,
+            // In case a page was deleted/revision restricted while edit was happening,
             // return 429 Conflict error instead of a general 400
             var pageDeleted = e.status === 404 && e.body
                     && /Page was deleted/.test(e.body.description);
@@ -730,6 +720,19 @@ PSP.makeTransform = function(from, to) {
                         title: 'Conflict detected',
                         description: e.body.description
                     }
+                });
+            }
+            throw e;
+        })
+        // XXX: This is a temporary catch to aid in
+        // discovering what's going on in T112339
+        // We need to remove it
+        .catch(function(e) {
+            if (to === 'wikitext' && e.status && e.status >= 400 && e.status < 500) {
+                self.log('warn/transform', {
+                    message: e.body.description || e.body.message,
+                    req: req,
+                    status: e.status
                 });
             }
             throw e;
