@@ -167,6 +167,19 @@ describe('revision requests with en.wikipedia.org', function() {
             assert.deepEqual(res.status, 403);
         });
     });
+
+    it('should restrict user and comment', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/title/User:Pchelolo%2fRestricted_Rev'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            var item = res.body.items[0];
+            assert.deepEqual(item.user_id, null);
+            assert.deepEqual(item.user_text, null);
+            assert.deepEqual(item.comment, null);
+        })
+    })
 });
 
 describe('revision requests with test2.wikipedia.org', function() {
