@@ -716,6 +716,22 @@ PSP.makeTransform = function(from, to) {
                     status: e.status
                 });
             }
+            // In case the a page was deleted/revision restricted wkile edit was happening,
+            // return 429 Conflict error instead of a general 400
+            var pageDeleted = e.status === 404 && e.body
+                    && /Page was deleted/.test(e.body.description);
+            var revisionRestricted = e.status === 403 && e.body
+                    && /Access is restricted/.test(e.body.description);
+            if (pageDeleted || revisionRestricted) {
+                throw new rbUtil.HTTPError({
+                    status: 429,
+                    body: {
+                        type: 'revision#conflict',
+                        title: 'Conflict detected',
+                        description: e.body.description
+                    }
+                });
+            }
             throw e;
         })
         // XXX: End temp code

@@ -910,6 +910,10 @@ paths:
           description: Unknown page title or revision
           schema:
             $ref: '#/definitions/problem'
+        '429':
+          descripting: Revision was changed or restricted
+          schema:
+            $ref: '#/definitions/problem'
         default:
           description: Error
           schema:
@@ -970,6 +974,10 @@ paths:
             $ref: '#/definitions/problem'
         '404':
           description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        '429':
+          descripting: Revision was changed or restricted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -1048,6 +1056,10 @@ paths:
           description: Unknown page title or revision
           schema:
             $ref: '#/definitions/problem'
+        '429':
+          descripting: Revision was changed or restricted
+          schema:
+            $ref: '#/definitions/problem'
         default:
           description: Error
           schema:
@@ -1103,6 +1115,10 @@ paths:
             $ref: '#/definitions/problem'
         '404':
           description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        '429':
+          descripting: Revision was changed or restricted
           schema:
             $ref: '#/definitions/problem'
         default:

@@ -230,6 +230,25 @@ describe('transform api', function() {
             assert.deepEqual(res.body, '');
         });
     });
+
+    it('returns 429 if revision was restricted while edit happened', function() {
+        var badPageName = 'User_talk:DivineAlpha%2fQ1_2015_discussions';
+        var badRevNumber = 645504917;
+        return preq.post({
+            uri: server.config.baseURL
+                + '/transform/html/to/wikitext/' + badPageName + '/' + badRevNumber,
+            body: {
+                html: '<html><head>' +
+                    '<meta property="mw:TimeUuid" content="71966eaf-62cd-11e5-8a88-952fdaad0387"/>' +
+                    '</head><body></body></html>'
+            }
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 429);
+        })
+    });
 });
 
 
