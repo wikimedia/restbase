@@ -83,20 +83,20 @@ PRS.prototype.getTableSchema = function() {
 };
 
 /**
- * Checks the revision info returned from the storage
- * for restrictions, and if there are any, raises an error
+ * Checks the revision info returned from the storage/MW API
+ * for restrictions, and if there are any, acts appropriately:
+ *  - page_deleted: raise 404 error
+ *  - sha1hidden or texthidden: raise 403 error
+ *  - commenthidden: remove comment field from response
+ *  - userhidden: remove user information from response
  *
- * @param res Object the result as returned from storage
+ * @param item Object the revision item
  * @return true
  * @throws rbUtil.httpError if access to the revision should be denied
  */
-PRS.prototype._checkRevReturn = function(res) {
-    var item = res.body.items.length && res.body.items[0];
-    // If there are any restrictions imposed on this
-    // revision, forbid its retrieval, cf.
-    // https://phabricator.wikimedia.org/T76165#1030962
+PRS.prototype._checkRevReturn = function(item) {
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
-        // There are some restrictions, deny access to the revision
+        // Page was deleted
         if (item.restrictions.indexOf('page_deleted') >= 0) {
             throw new rbUtil.HTTPError({
                 status: 404,
@@ -105,7 +105,10 @@ PRS.prototype._checkRevReturn = function(res) {
                     description: 'Page was deleted'
                 }
             });
-        } else {
+        }
+        // Revision restricted
+        if (item.restrictions.indexOf('sha1hidden') >= 0
+                || item.restrictions.indexOf('texthidden') >= 0) {
             throw new rbUtil.HTTPError({
                 status: 403,
                 body: {
@@ -115,6 +118,14 @@ PRS.prototype._checkRevReturn = function(res) {
                     restrictions: item.restrictions
                 }
             });
+        }
+        // Check if user/comment data should be removed from response
+        if (item.restrictions.indexOf('userhidden') >= 0) {
+            delete item.user_id;
+            delete item.user_text;
+        }
+        if (item.restrictions.indexOf('commenthidden') >= 0) {
+            delete item.comment;
         }
     }
     return true;
@@ -212,45 +223,33 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
 
         // Get the redirect property, it's inclusion means true
         var redirect = dataResp.redirect !== undefined;
+        var revision = {
+            // FIXME: if a title has been given, check it
+            // matches the one returned by the MW API
+            // cf. https://phabricator.wikimedia.org/T87393
+            title: rbUtil.normalizeTitle(dataResp.title),
+            page_id: parseInt(dataResp.pageid),
+            rev: parseInt(apiRev.revid),
+            tid: uuid.now().toString(),
+            namespace: parseInt(dataResp.ns),
+            user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
+            user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
+            timestamp: apiRev.timestamp,
+            comment: restrictions.indexOf('commenthidden') < 0 ? apiRev.comment : null,
+            tags: apiRev.tags,
+            restrictions: restrictions,
+            redirect: redirect
+        };
 
         return restbase.put({ // Save / update the revision entry
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
-                attributes: {
-                    // FIXME: if a title has been given, check it
-                    // matches the one returned by the MW API
-                    // cf. https://phabricator.wikimedia.org/T87393
-                    title: rbUtil.normalizeTitle(dataResp.title),
-                    page_id: parseInt(dataResp.pageid),
-                    rev: parseInt(apiRev.revid),
-                    tid: uuid.now().toString(),
-                    namespace: parseInt(dataResp.ns),
-                    user_id: apiRev.userid,
-                    user_text: apiRev.user,
-                    timestamp: apiRev.timestamp,
-                    comment: apiRev.comment,
-                    tags: apiRev.tags,
-                    restrictions: restrictions,
-                    redirect: redirect
-                }
+                attributes: revision
             }
         })
         .then(function() {
-            // If there are any restrictions imposed on this
-            // revision, forbid its retrieval, cf.
-            // https://phabricator.wikimedia.org/T76165#1030962
-            if (restrictions && restrictions.length > 0) {
-                throw new rbUtil.HTTPError({
-                    status: 403,
-                    body: {
-                        type: 'access_denied#revision',
-                        title: 'Access to resource denied',
-                        description: 'Access is restricted for revision ' + apiRev.revid,
-                        restrictions: restrictions
-                    }
-                });
-            }
+            self._checkRevReturn(revision);
             // No restrictions, continue
             rp.revision = apiRev.revid + '';
             rp.title = dataResp.title;
@@ -352,7 +351,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     return revisionRequest
     .then(function(res) {
         // Check if the revision has any restrictions
-        self._checkRevReturn(res);
+        self._checkRevReturn(res.body.items.length && res.body.items[0]);
 
         // Clear paging info
         delete res.body.next;
@@ -484,7 +483,7 @@ PRS.prototype.getRevision = function(restbase, req) {
     })
     .then(function(res) {
         // Check the return
-        self._checkRevReturn(res);
+        self._checkRevReturn(res.body.items.length && res.body.items[0]);
 
         // Clear paging info
         delete res.body.next;
