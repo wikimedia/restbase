@@ -509,8 +509,8 @@ PSP.transformRevision = function(restbase, req, from, to) {
             tid = rbUtil.parseETag(req.headers['if-match']).tid;
         } else if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
-            var tidMatch = new RegExp('<meta (?:content="([^"]+)" )?' +
-                    'property="mw:TimeUuid"(?: content="([^"]+)")? *\/?>')
+            var tidMatch = new RegExp('<meta\\s(?:content="([^"]+)"\\s)?' +
+                    'property="mw:TimeUuid"(?:\\scontent="([^"]+)")?\\s*\\/?>')
                 .exec(req.body.html);
             tid = tidMatch && (tidMatch[1] || tidMatch[2]);
         }
