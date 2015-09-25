@@ -231,6 +231,28 @@ describe('transform api', function() {
         });
     });
 
+    it('supports reversed order of properties in TimeUuid meta', function() {
+        var newHtml = testPage.html.replace(/<meta property="mw:TimeUuid" content="([^"]+)"\/?>/,
+                '<meta content="cc8ba6b3-636c-11e5-b601-24b4f65ab671" property="mw:TimeUuid" />');
+        return preq.post({
+            uri: server.config.baseURL
+                    + '/transform/html/to/html/' + testPage.title
+                    + '/' + testPage.revision,
+            body: {
+                html: newHtml
+            }
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+            var pattern = /<div id="bar">Selser test<\/div>/;
+            if (!pattern.test(res.body)) {
+                throw new Error('Expected pattern in response: ' + pattern
+                + '\nSaw: ' + JSON.stringify(res, null, 2));
+            }
+            assert.contentType(res, contentTypes.html);
+        });
+    });
+
     it('returns 409 if revision was restricted while edit happened', function() {
         var badPageName = 'User_talk:DivineAlpha%2fQ1_2015_discussions';
         var badRevNumber = 645504917;
