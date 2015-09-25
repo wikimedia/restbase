@@ -15,6 +15,7 @@ var fs = require('fs');
 var yaml = require('js-yaml');
 var path = require('path');
 var spec = yaml.safeLoad(fs.readFileSync(path.join(__dirname, '/pageviews.yaml')));
+var rbUtil = require('../lib/rbUtil');
 
 
 // Pageviews Service
@@ -97,27 +98,91 @@ var tableSchemas = {
     }
 };
 
-/* general handler functions */
-var queryCatcher = function(e) {
-        if (e.status !== 404) {
-            throw e;
-        }
-    };
+/**
+ * general handler functions */
 var queryResponser = function(res) {
-        // always return at least an empty array so that queries for non-existing data don't error
-        res = res || {};
-        res.body = res.body || { items: [] };
-        res.headers = res.headers || {};
-        res.status = res.status || 200;
-        return res;
-    };
+    // always return at least an empty array so that queries for non-existing data don't error
+    res = res || {};
+    res.body = res.body || { items: [] };
+    res.headers = res.headers || {};
+    // NOTE: We decided to let "data not found" be reported as a 404.  We have a work-around if
+    // consumers complain that they prefer a 204 instead:
+    //   We could catch the 404 and run the same query without the date parameters.  If we find
+    //   results (use limit 1 for efficiency), we could then return a 204 because we'd know the
+    //   dates were the part of the query that wasn't found.
+    return res;
+};
 
+/**
+ * Parameter validators
+ */
+var throwIfNeeded = function(errors) {
+    if (errors && errors.length) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalid_request',
+                detail: errors,
+            }
+        });
+    }
+};
+
+/**
+ * Cleans the project parameter so it can be passed in as either en.wikipedia.org or en.wikipedia
+ */
+var stripOrgFromProject = function(rp) {
+    rp.project = rp.project.replace(/^(.*).org$/, '$1');
+};
+
+var validateStartAndEnd = function(rp) {
+    var errors = [];
+
+    stripOrgFromProject(rp);
+
+    if (!/^[0-9]{10}$/.test(rp.start)) {
+        errors.push('start timestamp is invalid');
+    }
+    if (!/^[0-9]{10}$/.test(rp.end)) {
+        errors.push('end timestamp is invalid');
+    }
+
+    throwIfNeeded(errors);
+};
+
+var validateYearMonthDay = function(rp) {
+    var errors = [];
+
+    stripOrgFromProject(rp);
+
+    if (rp.year === 'all-years') {
+        rp.month = 'all-months';
+    }
+    if (rp.month === 'all-months') {
+        rp.day = 'all-days';
+    }
+
+    if (rp.year !== 'all-years' && !/^[0-9]{4}$/.test(rp.year)) {
+        errors.push('year must be "all-years" or a 4 digit number');
+    }
+
+    if (rp.month !== 'all-months' && !/^[0-9]{2}$/.test(rp.month)) {
+        errors.push('month must be "all-months" or a 2 digit number');
+    }
+
+    if (rp.day !== 'all-days' && !/^[0-9]{2}$/.test(rp.day)) {
+        errors.push('day must be "all-days" or a 2 digit number');
+    }
+
+    throwIfNeeded(errors);
+};
 
 PJVS.prototype.pageviewsForArticle = function(restbase, req) {
     var rp = req.params;
-    var dataRequest;
 
-    dataRequest = restbase.get({
+    validateStartAndEnd(rp);
+
+    var dataRequest = restbase.get({
         uri: tableURI(rp.domain, tables.article),
         body: {
             table: tables.article,
@@ -131,16 +196,17 @@ PJVS.prototype.pageviewsForArticle = function(restbase, req) {
             }
         }
 
-    }).catch(queryCatcher);
+    });
 
     return dataRequest.then(queryResponser);
 };
 
 PJVS.prototype.pageviewsForProjects = function(restbase, req) {
     var rp = req.params;
-    var dataRequest;
 
-    dataRequest = restbase.get({
+    validateStartAndEnd(rp);
+
+    var dataRequest = restbase.get({
         uri: tableURI(rp.domain, tables.project),
         body: {
             table: tables.project,
@@ -153,23 +219,17 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
             }
         }
 
-    }).catch(queryCatcher);
+    });
 
     return dataRequest.then(queryResponser);
 };
 
 PJVS.prototype.pageviewsForTops = function(restbase, req) {
     var rp = req.params;
-    var dataRequest;
 
-    if (rp.year === 'all-years') {
-        rp.month = 'all-months';
-    }
-    if (rp.month === 'all-months') {
-        rp.day = 'all-days';
-    }
+    validateYearMonthDay(rp);
 
-    dataRequest = restbase.get({
+    var dataRequest = restbase.get({
         uri: tableURI(rp.domain, tables.tops),
         body: {
             table: tables.tops,
@@ -182,7 +242,7 @@ PJVS.prototype.pageviewsForTops = function(restbase, req) {
             }
         }
 
-    }).catch(queryCatcher);
+    });
 
     return dataRequest.then(queryResponser);
 };

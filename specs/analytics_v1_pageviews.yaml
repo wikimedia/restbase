@@ -68,8 +68,9 @@ paths:
           required: true
         - name: granularity
           in: path
-          description: Time granularity of the response data [hourly|daily]
+          description: Time granularity of the response data
           type: string
+          enum: ['hourly', 'daily']
           required: true
         - name: start
           in: path
@@ -126,8 +127,9 @@ paths:
           required: true
         - name: granularity
           in: path
-          description: Time granularity of the response data [hourly|daily]
+          description: Time granularity of the response data
           type: string
+          enum: ['hourly', 'daily']
           required: true
         - name: start
           in: path

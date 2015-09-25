@@ -25,11 +25,11 @@ describe('pageviews endpoints', function () {
 
     // Test Article Endpoint
 
-    it('should return empty when no per article data is available', function () {
+    it('should return 400 when per article parameters are wrong', function () {
         return preq.get({
-            uri: server.config.baseURL + articleEndpoint
-        }).then(function(res) {
-            assert.deepEqual(res.body.items.length, 0);
+            uri: server.config.baseURL + articleEndpoint.replace('2015070300', '201507a300')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
         });
     });
 
@@ -49,11 +49,11 @@ describe('pageviews endpoints', function () {
 
     // Test Project Endpoint
 
-    it('should return empty when no per project data is available', function () {
+    it('should return 400 when per project parameters are wrong', function () {
         return preq.get({
-            uri: server.config.baseURL + projectEndpoint
-        }).then(function(res) {
-            assert.deepEqual(res.body.items.length, 0);
+            uri: server.config.baseURL + projectEndpoint.replace('2015070100', '20150701000000')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
         });
     });
 
@@ -73,11 +73,11 @@ describe('pageviews endpoints', function () {
 
     // Test Top Endpoint
 
-    it('should return empty when no tops data is available', function () {
+    it('should return 400 when tops parameters are wrong', function () {
         return preq.get({
-            uri: server.config.baseURL + topsEndpoint
-        }).then(function(res) {
-            assert.deepEqual(res.body.items.length, 0);
+            uri: server.config.baseURL + topsEndpoint.replace('all-months', 'all-monthz')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
         });
     });
 
