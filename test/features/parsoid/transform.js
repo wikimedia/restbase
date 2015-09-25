@@ -231,7 +231,7 @@ describe('transform api', function() {
         });
     });
 
-    it('returns 429 if revision was restricted while edit happened', function() {
+    it('returns 409 if revision was restricted while edit happened', function() {
         var badPageName = 'User_talk:DivineAlpha%2fQ1_2015_discussions';
         var badRevNumber = 645504917;
         return preq.post({
@@ -246,7 +246,7 @@ describe('transform api', function() {
         .then(function() {
             throw new Error('Error should be thrown');
         }, function(e) {
-            assert.deepEqual(e.status, 429);
+            assert.deepEqual(e.status, 409);
         })
     });
 });

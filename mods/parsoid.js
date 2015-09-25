@@ -707,14 +707,14 @@ PSP.makeTransform = function(from, to) {
         return transform
         .catch(function(e) {
             // In case a page was deleted/revision restricted while edit was happening,
-            // return 429 Conflict error instead of a general 400
+            // return 410 Gone or 409 Conflict error instead of a general 400
             var pageDeleted = e.status === 404 && e.body
                     && /Page was deleted/.test(e.body.description);
             var revisionRestricted = e.status === 403 && e.body
                     && /Access is restricted/.test(e.body.description);
             if (pageDeleted || revisionRestricted) {
                 throw new rbUtil.HTTPError({
-                    status: 429,
+                    status: pageDeleted ? 410 : 409,
                     body: {
                         type: 'revision#conflict',
                         title: 'Conflict detected',
