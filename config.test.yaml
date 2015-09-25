@@ -37,7 +37,7 @@ templates:
         url: http://www.apache.org/licenses/LICENSE-2.0
     x-subspecs:
       - mediawiki/v1/content
-      - mediawiki_v1_graphoid
+      - mediawiki/v1/graphoid
       - mediawiki/v1/mobileapps
       - test
     securityDefinitions:
