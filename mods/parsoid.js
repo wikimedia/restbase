@@ -705,6 +705,25 @@ PSP.makeTransform = function(from, to) {
             transform = self.callParsoidTransform(restbase, req, from, to);
         }
         return transform
+        .catch(function(e) {
+            // In case a page was deleted/revision restricted while edit was happening,
+            // return 410 Gone or 409 Conflict error instead of a general 400
+            var pageDeleted = e.status === 404 && e.body
+                    && /Page was deleted/.test(e.body.description);
+            var revisionRestricted = e.status === 403 && e.body
+                    && /Access is restricted/.test(e.body.description);
+            if (pageDeleted || revisionRestricted) {
+                throw new rbUtil.HTTPError({
+                    status: pageDeleted ? 410 : 409,
+                    body: {
+                        type: 'revision#conflict',
+                        title: 'Conflict detected',
+                        description: e.body.description
+                    }
+                });
+            }
+            throw e;
+        })
         // XXX: This is a temporary catch to aid in
         // discovering what's going on in T112339
         // We need to remove it
