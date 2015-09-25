@@ -910,8 +910,12 @@ paths:
           description: Unknown page title or revision
           schema:
             $ref: '#/definitions/problem'
-        '429':
-          descripting: Revision was changed or restricted
+        '409':
+          descripting: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          descripting: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -976,8 +980,12 @@ paths:
           description: Unknown page title or revision
           schema:
             $ref: '#/definitions/problem'
-        '429':
-          descripting: Revision was changed or restricted
+        '409':
+          descripting: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          descripting: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -1056,8 +1064,12 @@ paths:
           description: Unknown page title or revision
           schema:
             $ref: '#/definitions/problem'
-        '429':
-          descripting: Revision was changed or restricted
+        '409':
+          descripting: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          descripting: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -1117,8 +1129,12 @@ paths:
           description: Unknown page title or revision
           schema:
             $ref: '#/definitions/problem'
-        '429':
-          descripting: Revision was changed or restricted
+        '409':
+          descripting: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          descripting: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
