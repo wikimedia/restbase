@@ -180,17 +180,17 @@ paths:
           required: true
         - name: year
           in: path
-          description: The year for which to retrieve top articles [all-years|year]
+          description: The year for which to retrieve top articles [all-years|year].  If you pass all-years, we ignore the other parameters and return the top articles over all the data we have.
           type: string
           required: true
         - name: month
           in: path
-          description: The month for which to retrieve top articles [all-months|month]
+          description: The month for which to retrieve top articles [all-months|month].  If you pass all-months, we ignore the day parameter and return the top articles over the year you passed.
           type: string
           required: true
         - name: day
           in: path
-          description: The day for which to retrieve top articles [all-days|day]
+          description: The day for which to retrieve top articles [all-days|day].  If you pass all-days, we just return the top articles over the year and month you passed.
           type: string
           required: true
       responses:
