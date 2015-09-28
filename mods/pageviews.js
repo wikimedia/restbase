@@ -132,7 +132,7 @@ var throwIfNeeded = function(errors) {
  * Cleans the project parameter so it can be passed in as either en.wikipedia.org or en.wikipedia
  */
 var stripOrgFromProject = function(rp) {
-    rp.project = rp.project.replace(/^(.*).org$/, '$1');
+    rp.project = rp.project.replace(/\.org$/, '');
 };
 
 var validateStartAndEnd = function(rp) {
