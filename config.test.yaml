@@ -39,7 +39,7 @@ templates:
       - mediawiki/v1/content
       - mediawiki/v1/graphoid
       - mediawiki/v1/mobileapps
-      - analytics_v1_pageviews
+      - analytics/v1/pageviews
       - test
     securityDefinitions:
       mediawiki_auth:
