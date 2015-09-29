@@ -135,16 +135,41 @@ var stripOrgFromProject = function(rp) {
     rp.project = rp.project.replace(/\.org$/, '');
 };
 
+
+var validateTimestamp = function(timestamp) {
+    if (!/^[0-9]{10}$/.test(timestamp)) {
+        return false;
+    }
+
+    var year = timestamp.substring(0, 4);
+    var month = timestamp.substring(4, 6);
+    var day = timestamp.substring(6, 8);
+    var hour = timestamp.substring(8, 10);
+
+    var dt = new Date([year, month, day].join('-') + ' ' + hour + ':00:00 UTC');
+
+    return dt.toString() !== 'Invalid Date'
+        && dt.getUTCFullYear() === parseInt(year, 10)
+        && dt.getUTCMonth() === (parseInt(month, 10) - 1)
+        && dt.getUTCDate() === parseInt(day, 10)
+        && dt.getUTCHours() === parseInt(hour);
+};
+
+
 var validateStartAndEnd = function(rp) {
     var errors = [];
 
     stripOrgFromProject(rp);
 
-    if (!/^[0-9]{10}$/.test(rp.start)) {
-        errors.push('start timestamp is invalid');
+    if (!validateTimestamp(rp.start)) {
+        errors.push('start timestamp is invalid, must be a valid date in YYYYMMDDHH format');
     }
-    if (!/^[0-9]{10}$/.test(rp.end)) {
-        errors.push('end timestamp is invalid');
+    if (!validateTimestamp(rp.end)) {
+        errors.push('end timestamp is invalid, must be a valid date in YYYYMMDDHH format');
+    }
+
+    if (rp.start > rp.end) {
+        errors.push('start timestamp should be before the end timestamp');
     }
 
     throwIfNeeded(errors);

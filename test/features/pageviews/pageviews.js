@@ -57,6 +57,22 @@ describe('pageviews endpoints', function () {
         });
     });
 
+    it('should return 400 when start is before end', function () {
+        return preq.get({
+            uri: server.config.baseURL + projectEndpoint.replace('2015070100', '2016070100')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
+        });
+    });
+
+    it('should return 400 when timestamp is invalid', function () {
+        return preq.get({
+            uri: server.config.baseURL + projectEndpoint.replace('2015070100', '2015022900')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
+        });
+    });
+
     it('should return the expected per project data after insertion', function () {
         return preq.post({
             uri: server.config.baseURL + insertProjectEndpoint + '/1000'
