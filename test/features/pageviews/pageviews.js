@@ -97,6 +97,22 @@ describe('pageviews endpoints', function () {
         });
     });
 
+    it('should return 400 when tops date is invalid', function () {
+        return preq.get({
+            uri: server.config.baseURL + topsEndpoint.replace('all-months/all-days', '02/29')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
+        });
+    });
+
+    it('should return 400 when tops parameters are using "all-months" wrong', function () {
+        return preq.get({
+            uri: server.config.baseURL + topsEndpoint.replace('all-days', '01')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
+        });
+    });
+
     it('should return the expected tops data after insertion', function () {
         return preq.post({
             uri: server.config.baseURL + insertTopsEndpoint + JSON.stringify([{

@@ -3,14 +3,11 @@
 /**
  * Pageviews API module
  *
- * Main tasks:
- * - TBD
+ * This API serves pre-aggregated pageview statistics from Cassandra
  */
-
 
 var URI = require('swagger-router').URI;
 
-// TODO: move to module
 var fs = require('fs');
 var yaml = require('js-yaml');
 var path = require('path');
@@ -180,23 +177,33 @@ var validateYearMonthDay = function(rp) {
 
     stripOrgFromProject(rp);
 
-    if (rp.year === 'all-years') {
-        rp.month = 'all-months';
+    if (rp.year === 'all-years' && (rp.month !== 'all-months' || rp.day !== 'all-days')) {
+        errors.push(
+            'month must be "all-months" and day must be "all-days" when passing "all-years"'
+        );
     }
-    if (rp.month === 'all-months') {
-        rp.day = 'all-days';
-    }
-
-    if (rp.year !== 'all-years' && !/^[0-9]{4}$/.test(rp.year)) {
-        errors.push('year must be "all-years" or a 4 digit number');
+    if (rp.month === 'all-months' && rp.day !== 'all-days') {
+        errors.push('day must be "all-days" when passing "all-months"');
     }
 
-    if (rp.month !== 'all-months' && !/^[0-9]{2}$/.test(rp.month)) {
-        errors.push('month must be "all-months" or a 2 digit number');
+    // fake a timestamp in the YYYYMMDDHH format so we can reuse the validator
+    var validDate = validateTimestamp(
+        rp.year +
+        ((rp.month === 'all-months') ? '01' : rp.month) +
+        ((rp.day === 'all-days') ? '01' : rp.day) +
+        '00'
+    );
+
+    if (rp.year !== 'all-years' && !validDate) {
+        errors.push('year must be "all-years" or a valid 4-digit year');
     }
 
-    if (rp.day !== 'all-days' && !/^[0-9]{2}$/.test(rp.day)) {
-        errors.push('day must be "all-days" or a 2 digit number');
+    if (rp.month !== 'all-months' && !validDate) {
+        errors.push('month must be "all-months" or a valid 2-digit month');
+    }
+
+    if (rp.day !== 'all-days' && !validDate) {
+        errors.push('day must be "all-days" or a valid 2-digit day');
     }
 
     throwIfNeeded(errors);

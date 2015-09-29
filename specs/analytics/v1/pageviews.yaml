@@ -46,7 +46,7 @@ paths:
       parameters:
         - name: project
           in: path
-          description: Name of the project
+          description: 'Name of the project or "all-projects", as [language code].[project name] (for example: en.wikipedia).  You may pass en.wikipedia.org and the .org will be stripped off.'
           type: string
           required: true
         - name: access
@@ -110,7 +110,7 @@ paths:
       parameters:
         - name: project
           in: path
-          description: Name of the project [all-projects|project-name]
+          description: 'Name of the project or "all-projects", as [language code].[project name] (for example: en.wikipedia).  You may pass en.wikipedia.org and the .org will be stripped off.'
           type: string
           required: true
         - name: access
@@ -162,14 +162,14 @@ paths:
         - Pageviews data
         - Top articles
       description: >
-        List pageviews for a given project, over a given time period.
+        List the 1000 most viewed articles for a given project, for all time, or during a specific year, month, or day.
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: project
           in: path
-          description: Name of the project [all-projects|project-name]
+          description: 'Name of the project or "all-projects", as [language code].[project name] (for example: en.wikipedia).  You may pass en.wikipedia.org and the .org will be stripped off.'
           type: string
           required: true
         - name: access
@@ -180,12 +180,12 @@ paths:
           required: true
         - name: year
           in: path
-          description: The year for which to retrieve top articles [all-years|year].  If you pass all-years, we ignore the other parameters and return the top articles over all the data we have.
+          description: The year for which to retrieve top articles [all-years|year].  If you pass all-years, you must pass all-months and all-days or the input is invalid.
           type: string
           required: true
         - name: month
           in: path
-          description: The month for which to retrieve top articles [all-months|month].  If you pass all-months, we ignore the day parameter and return the top articles over the year you passed.
+          description: The month for which to retrieve top articles [all-months|month].  If you pass all-months, you must pass all-days or the input is invalid.
           type: string
           required: true
         - name: day
