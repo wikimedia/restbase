@@ -186,24 +186,24 @@ var validateYearMonthDay = function(rp) {
         errors.push('day must be "all-days" when passing "all-months"');
     }
 
+    // the errors above are better by themselves, so throw them if they're there
+    throwIfNeeded(errors);
+
     // fake a timestamp in the YYYYMMDDHH format so we can reuse the validator
     var validDate = validateTimestamp(
-        rp.year +
+        ((rp.year === 'all-years') ? '2015' : rp.year) +
         ((rp.month === 'all-months') ? '01' : rp.month) +
         ((rp.day === 'all-days') ? '01' : rp.day) +
         '00'
     );
 
-    if (rp.year !== 'all-years' && !validDate) {
-        errors.push('year must be "all-years" or a valid 4-digit year');
-    }
+    if (!validDate) {
+        var invalidPieces = [];
+        if (rp.year !== 'all-years') { invalidPieces.push('year'); }
+        if (rp.month !== 'all-months') { invalidPieces.push('month'); }
+        if (rp.day !== 'all-days') { invalidPieces.push('day'); }
 
-    if (rp.month !== 'all-months' && !validDate) {
-        errors.push('month must be "all-months" or a valid 2-digit month');
-    }
-
-    if (rp.day !== 'all-days' && !validDate) {
-        errors.push('day must be "all-days" or a valid 2-digit day');
+        errors.push(invalidPieces.join(', ') + (invalidPieces.length > 1 ? ' are' : ' is') + ' invalid');
     }
 
     throwIfNeeded(errors);
