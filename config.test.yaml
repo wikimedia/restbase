@@ -56,6 +56,13 @@ templates:
     info:
       title: Default MediaWiki sys API module
       version: 1.0.0
+    securityDefinitions:
+      header_match: 
+        description: Checks client ip against one of the predefined whitelists
+        x-error-message: This client is not allowed to use the endpoint
+        x-whitelists:
+          internal:
+            - /^(?:::ffff:)?(?:10|127)\./
     paths:
       /{module:table}: &wp/sys/table # Can use this anchor to share the table
         x-modules:
@@ -93,7 +100,6 @@ templates:
           - name: post_data
             version: 1.0.0
             type: file
-
 
       /{module:key_rev_value}:
         x-modules:
