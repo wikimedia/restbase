@@ -203,7 +203,11 @@ var validateYearMonthDay = function(rp) {
         if (rp.month !== 'all-months') { invalidPieces.push('month'); }
         if (rp.day !== 'all-days') { invalidPieces.push('day'); }
 
-        errors.push(invalidPieces.join(', ') + (invalidPieces.length > 1 ? ' are' : ' is') + ' invalid');
+        errors.push(
+            invalidPieces.join(', ') +
+            (invalidPieces.length > 1 ? ' are' : ' is') +
+            ' invalid'
+        );
     }
 
     throwIfNeeded(errors);
