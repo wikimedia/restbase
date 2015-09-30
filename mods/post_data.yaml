@@ -21,8 +21,3 @@ paths:
   /{bucket}/:
     put:
       operationId: putRevision
-      security:
-        - header_match:
-            - header: 'x-rb-client-ip'
-              patterns:
-                - internal
