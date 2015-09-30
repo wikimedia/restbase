@@ -97,7 +97,7 @@ var tableSchemas = {
 
 /**
  * general handler functions */
-var queryResponser = function(res) {
+var normalizeResponse = function(res) {
     // always return at least an empty array so that queries for non-existing data don't error
     res = res || {};
     res.body = res.body || { items: [] };
@@ -234,7 +234,7 @@ PJVS.prototype.pageviewsForArticle = function(restbase, req) {
 
     });
 
-    return dataRequest.then(queryResponser);
+    return dataRequest.then(normalizeResponse);
 };
 
 PJVS.prototype.pageviewsForProjects = function(restbase, req) {
@@ -257,7 +257,7 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
 
     });
 
-    return dataRequest.then(queryResponser);
+    return dataRequest.then(normalizeResponse);
 };
 
 PJVS.prototype.pageviewsForTops = function(restbase, req) {
@@ -280,7 +280,7 @@ PJVS.prototype.pageviewsForTops = function(restbase, req) {
 
     });
 
-    return dataRequest.then(queryResponser);
+    return dataRequest.then(normalizeResponse);
 };
 
 
