@@ -31,6 +31,21 @@ templates:
     x-subspecs:
       # Pull in the default REST content API spec.
       - mediawiki/v1/content
+    securityDefinitions:
+      mediawiki_auth:
+        description: Checks permissions using MW api
+        type: apiKey
+        in: header
+        name: cookie
+        x-internal-request-whitelist:
+          - http://localhost/w/api.php
+          - http://localhost:8142
+      header_match:
+        description: Checks client ip against one of the predefined whitelists
+        x-error-message: This client is not allowed to use the endpoint
+        x-whitelists:
+          internal:
+            - /^(?:localhost)|(?:127\.)/
 
   # The internal storage modules and services under /sys/ are defined here.
   wmf-sys-1.0.0: &wp/sys/1.0.0

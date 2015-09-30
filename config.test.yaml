@@ -51,18 +51,17 @@ templates:
           - http://fr.wikipedia.org/w/api.php
           # Left as a regex for test purpose
           - /http:\/\/parsoid\-lb\.eqiad\.wikimedia\.org/
-
-  wmf-sys-1.0.0: &wp/sys/1.0.0
-    info:
-      title: Default MediaWiki sys API module
-      version: 1.0.0
-    securityDefinitions:
-      header_match: 
+      header_match:
         description: Checks client ip against one of the predefined whitelists
         x-error-message: This client is not allowed to use the endpoint
         x-whitelists:
           internal:
             - /^(?:::ffff:)?(?:10|127)\./
+
+  wmf-sys-1.0.0: &wp/sys/1.0.0
+    info:
+      title: Default MediaWiki sys API module
+      version: 1.0.0
     paths:
       /{module:table}: &wp/sys/table # Can use this anchor to share the table
         x-modules:

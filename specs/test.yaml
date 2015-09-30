@@ -73,6 +73,11 @@ paths:
 
   /{module:post_data}/:
     post:
+      security:
+        - header_match:
+            - header: 'x-rb-client-ip'
+              patterns:
+                - internal
       x-request-handler:
         - put_to_storage:
             request:
