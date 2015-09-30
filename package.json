@@ -51,15 +51,14 @@
   "devDependencies": {
     "bunyan": "^1.4.0",
     "coveralls": "^2.11.2",
-    "heapdump": "^0.3.5",
     "istanbul": "^0.3.15",
     "mocha": "^2.2.5",
+    "mocha-jscs": "^1.2.0",
     "mocha-jshint": "^2.2.3",
     "mocha-lcov-reporter": "^0.0.2",
-    "swagger-test": "0.2.0",
-    "url-template": "^2.0.6",
     "nock": "^2.10.0",
     "restbase-mod-table-sqlite": "^0.1.8",
-    "mocha-jscs": "^1.2.0"
+    "swagger-test": "0.2.0",
+    "url-template": "^2.0.6"
   }
 }
