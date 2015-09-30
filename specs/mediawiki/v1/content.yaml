@@ -374,6 +374,9 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      # RB doesn't check for permissions, just prepares a request correctly
+      security:
+        - mediawiki_auth: []
       x-request-handler:
         - post_to_backend:
             request:
@@ -863,6 +866,9 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      # RB doesn't check for permissions, just prepares a request correctly
+      security:
+        - mediawiki_auth: []
       x-request-handler:
         - post_to_backend:
             request:

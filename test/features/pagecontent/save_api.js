@@ -350,7 +350,8 @@ describe('page save api', function() {
         nock.enableNetConnect();
         var api = nock(prodApiURI, {
             reqheaders: {
-                'x-forwarded-for': '123.123.123.123'
+                'x-forwarded-for': '123.123.123.123',
+                cookie: 'test'
             }
         })
         // Mock MW API success response
@@ -374,7 +375,8 @@ describe('page save api', function() {
             return preq.post({
                 uri: htmlUri,
                 headers: {
-                    'x-forwarded-for': '123.123.123.123'
+                    'x-forwarded-for': '123.123.123.123',
+                    cookie: 'test'
                 },
                 body: {
                     html: res.body.replace(/\<\/body\>/,
