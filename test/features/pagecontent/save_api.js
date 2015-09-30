@@ -348,7 +348,12 @@ describe('page save api', function() {
 
     it('save HTML', function() {
         nock.enableNetConnect();
-        var api = nock(prodApiURI)
+        var api = nock(prodApiURI, {
+            reqheaders: {
+                'x-forwarded-for': '123.123.123.123',
+                cookie: 'test'
+            }
+        })
         // Mock MW API success response
         .post('')
         .reply(200, {
@@ -369,6 +374,10 @@ describe('page save api', function() {
             assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
             return preq.post({
                 uri: htmlUri,
+                headers: {
+                    'x-forwarded-for': '123.123.123.123',
+                    cookie: 'test'
+                },
                 body: {
                     html: res.body.replace(/\<\/body\>/,
                         '<p>Generated via direct HTML save! Random ' + Math.floor(Math.random() * 32768) + ' </p></body>'),
@@ -407,13 +416,13 @@ describe('page save api', function() {
             assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
             return preq.post({
                 uri: htmlUri,
+                headers: {
+                    'if-match': lastHTMLETag
+                },
                 body: {
                     html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
                     csrf_token: htmlToken,
                     base_etag: oldHTMLEtag
-                },
-                headers: {
-                    'if-match': lastHTMLETag
                 }
             });
         }).then(function(res) {
