@@ -40,7 +40,7 @@
     "cassandra-uuid": "^0.0.2",
     "preq": "^0.4.4",
     "restbase-mod-table-cassandra": "^0.8.0",
-    "service-runner": "^0.2.5",
+    "service-runner": "^0.2.8",
     "swagger-router": "^0.1.2",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "tassembly": "^0.1.4",
