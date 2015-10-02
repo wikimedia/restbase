@@ -178,6 +178,12 @@ templates:
                       request:
                         uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
 
+      /{module:pageviews}:
+        x-modules:
+          - name: pageviews
+            version: 1.0.0
+            type: file
+
 
   global-sys: &gb/sys/1.0.0
     info:
@@ -187,7 +193,7 @@ templates:
       /{module:table}: *wp/sys/table
       /{module:key_value}: *wp/sys/key_value
       /{module:post_data}: *wp/sys/post_data
-      /{module:mathoid}/v1/request:
+      /{module:mathoid}/v1/request/{format}:
         post:
           x-request-handler:
             - store:
@@ -197,19 +203,17 @@ templates:
                   body:
                     q: '{$.request.body.q}'
                     type: '{$$.default($.request.body.type, "tex")}'
-                    format: '{$$.default($.request.body.format, "json")}'
             - handle_req:
                 request:
                   method: post
-                  uri: /{domain}/sys/mathoid/v1/handler
+                  uri: /{domain}/sys/mathoid/v1/handler/{format}
                   headers:
                     cache-control: '{cache-control}'
                     x-resource-location: '{$.store.body}'
                   body:
                     q: '{$.request.body.q}'
                     type: '{$$.default($.request.body.type, "tex")}'
-                    format: '{$$.default($.request.body.format, "json")}'
-      /{module:mathoid}/v1/request/{hash}:
+      /{module:mathoid}/v1/request/{format}/{hash}:
         get:
           x-setup-handler:
             - init:
@@ -222,12 +226,12 @@ templates:
             - handle_req:
                 request:
                   method: post
-                  uri: /{domain}/sys/mathoid/v1/handler
+                  uri: /{domain}/sys/mathoid/v1/handler/{format}
                   headers:
                     cache-control: '{cache-control}'
                     x-resource-location: '{$.request.params.hash}'
                   body: '{$.get_from_storage.body}'
-      /{module:mathoid}/v1/handler:
+      /{module:mathoid}/v1/handler/{format}:
         post:
           x-setup-handler:
             - init:
@@ -246,17 +250,14 @@ templates:
                   status: '2xx'
                 return:
                   status: 200
-                  headers: '{$.check_storage.body.headers}'
-                  body: '{$.check_storage.body.data}'
+                  headers: '{$$.merge($.check_storage.body.data[$.request.params.format].headers,$.check_storage.body.headers)}'
+                  body: '{$.check_storage.body.data[$.request.params.format].body}'
                 catch:
                   status: 404
             - mathoid:
                 request:
                   method: post
-                  uri: http://mathoid-tester.wmflabs.org/{$.request.body.format}
-                  # force preq to convert the response into a string
-                  # so that it can be stored properly as a JSON
-                  encoding: utf8
+                  uri: http://mathoid-tester.wmflabs.org/complete
                   body:
                     q: '{$.request.body.q}'
                     type: '{$.request.body.type}'
@@ -271,8 +272,8 @@ templates:
                     data: '{$.mathoid.body}'
                 return:
                   status: 200
-                  headers: '{$$.merge($.mathoid.headers, {"x-resource-location": $.request.headers.x-resource-location})}'
-                  body: '{$.mathoid.body}'
+                  headers: '{$$.merge($.mathoid.body[$.request.params.format].headers,$$.merge($.mathoid.headers, {"x-resource-location": $.request.headers.x-resource-location}))}'
+                  body: '{$.mathoid.body[$.request.params.format].body}'
 
 
       /{module:pageviews}:

@@ -3,14 +3,14 @@
 swagger: 2.0
 
 paths:
-  /{module:media}/math:
+  /{module:media}/math/{format}:
     post:
       tags:
         - Media
         - Math
       description: >
         Renders a TeX formula into its mathematic representation in the given format.
-        Available formats are svg, json and mml.
+        Available formats are svg and mml.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
@@ -19,13 +19,12 @@ paths:
         - application/json
       parameters:
         - name: format
-          in: formData
-          description: The output format; can be svg, json or mml
+          in: path
+          description: The output format; can be svg or mml
           type: string
-          required: false
+          required: true
           enum:
             - svg
-            - json
             - mml
         - name: q
           in: formData
@@ -57,7 +56,7 @@ paths:
         - do_post:
             request:
               method: post
-              uri: /wikimedia.org/sys/mathoid/v1/request
+              uri: /wikimedia.org/sys/mathoid/v1/request/{format}
               headers:
                 cache-control: '{cache-control}'
               body: '{$.request.body}'
@@ -65,34 +64,30 @@ paths:
       x-amples:
         - title: Mathoid - test formula
           request:
+            params:
+              format: svg
             body:
-              format: json
               q: E=mc^2
               type: tex
           response:
             status: 200
             headers:
-              content-type: /^application\/json/
-            body:
-              svg: /.+/
-              mml: /.+/
-              success: true
+              content-type: /^image\/svg/
+            body: /.+/
         - title: Mathoid - test formula from storage
           request:
+            params:
+              format: mml
             body:
-              format: json
               q: E=mc^2
               type: tex
           response:
             status: 200
             headers:
-              content-type: /^application\/json/
-            body:
-              svg: /.+/
-              mml: /.+/
-              success: true
+              content-type: /^application\/mathml/
+            body: /.+/
 
-  /{module:media}/math/{hash}:
+  /{module:media}/math/{format}/{hash}:
     get:
       tags:
         - Media
@@ -100,7 +95,7 @@ paths:
       description: >
         Given a request hash, renders a TeX formula into its mathematic
         representation in the given format. When a request is issued to the
-        `/media/math` endpoint, the response contains the *x-resource-location*
+        `/media/math/{format}` endpoint, the response contains the *x-resource-location*
         header denoting the hash ID of the POST data. Once obtained, this endpoint
         may be used to avoid sending the payload.
 
@@ -110,6 +105,14 @@ paths:
         - application/mathml+xml
         - application/json
       parameters:
+        - name: format
+          in: path
+          description: The output format; can be svg or mml
+          type: string
+          required: true
+          enum:
+            - svg
+            - mml
         - name: hash
           in: path
           description: The hash string of the previous POST data
@@ -130,7 +133,7 @@ paths:
         - stored_post:
             request:
               method: get
-              uri: /wikimedia.org/sys/mathoid/v1/request/{hash}
+              uri: /wikimedia.org/sys/mathoid/v1/request/{format}/{hash}
               headers:
                 cache-control: '{cache-control}'
       x-monitor: false
