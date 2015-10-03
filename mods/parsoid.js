@@ -746,6 +746,10 @@ PSP.makeTransform = function(from, to) {
             // Handle body_only flag.
             // bodyOnly is deprecated and will be removed at some point
             if (to === 'html' && (req.body.body_only || req.body.bodyOnly)) {
+                // Log remaining bodyOnly uses / users
+                if (req.body.bodyOnly) {
+                    self.log('warn/parsoid/bodyonly', req.headers);
+                }
                 innerRes.body = cheapBodyInnerHTML(innerRes.body);
             }
             return innerRes;
