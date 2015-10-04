@@ -822,6 +822,37 @@ module.exports = function(options) {
                 body: {
                     valueType: 'json'
                 }
+            },
+            // stashing resources for HTML, wikitext and data-parsoid
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'blob',
+                    version: 1
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
+                body: {
+                    valueType: 'blob'
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'json',
+                    version: 1
+                }
             }
         ]
     };
