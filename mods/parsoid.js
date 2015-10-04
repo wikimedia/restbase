@@ -574,6 +574,10 @@ PSP.transformRevision = function(restbase, req, from, to) {
         if (req.body.scrubWikitext || req.body.scrub_wikitext) {
             body2.scrubWikitext = true;
         }
+        // Let the stash flag through as well
+        if (req.body.stash) {
+            body2.stash = true;
+        }
 
         var path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
         if (rp.title) {
@@ -597,6 +601,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
 };
 
 PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
+    var self = this;
     var rp = req.params;
     // Parsoid currently spells 'wikitext' as 'wt'
     var parsoidTo = to;
@@ -606,7 +611,6 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         // Retrieve pagebundle whenever we want HTML
         parsoidTo = 'pagebundle';
     }
-
 
     var parsoidExtras = [];
     if (rp.title) {
@@ -621,10 +625,8 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
-    var domain = rp.domain;
-    // Re-map test domain
     var parsoidReq = {
-        uri: this.parsoidHost + '/v2/' + domain + '/'
+        uri: this.parsoidHost + '/v2/' + rp.domain + '/'
             + parsoidTo + parsoidExtraPath,
         headers: {
             'content-type': 'application/json',
@@ -632,7 +634,48 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         },
         body: req.body
     };
-    return restbase.post(parsoidReq);
+
+    var transformPromise = restbase.post(parsoidReq);
+    if (from === 'wikitext' && to === 'html' && req.body.stash) {
+        // A stash has been requested. We need to store the wikitext sent by
+        // the client together with the page bundle returned by Parsoid, so it
+        // can be later reused when transforming back from HTML to wikitext
+        // cf https://phabricator.wikimedia.org/T114548
+        var tid = uuid.now().toString();
+        var wtType = req.original && req.original.headers['content-type'] || 'text/plain';
+        transformPromise = transformPromise.then(function(original) {
+            // Save the returned data-parsoid for the transform and
+            // the wikitext sent by the client
+            return P.all([
+                restbase.put({
+                    uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
+                    headers: original.body['data-parsoid'].headers,
+                    body: original.body['data-parsoid'].body
+                }),
+                restbase.put({
+                    uri: self.getBucketURI(rp, 'stash.wikitext', tid),
+                    headers: { 'content-type': wtType },
+                    body: req.body.wikitext
+                })
+            ])
+            // Save HTML last, so that any error in metadata storage suppresses
+            // HTML.
+            .then(function() {
+                return restbase.put({
+                    uri: self.getBucketURI(rp, 'stash.html', tid),
+                    headers: original.body.html.headers,
+                    body: original.body.html.body
+                });
+            // Add the ETag to the original response so it can be propagated
+            // back to the client
+            }).then(function() {
+                original.body.html.headers.etag = rbUtil.makeETag(rp.revision, tid, 'stash');
+                return original;
+            });
+        });
+    }
+    return transformPromise;
+
 };
 
 /**
