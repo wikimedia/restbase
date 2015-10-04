@@ -570,7 +570,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
         // For now, simply pass this through.
         // See https://phabricator.wikimedia.org/T106909 for the discussion
         // about the longer term plan.
-        if (req.body.scrubWikitext) {
+        if (req.body.scrubWikitext || req.body.scrub_wikitext) {
             body2.scrubWikitext = true;
         }
 
