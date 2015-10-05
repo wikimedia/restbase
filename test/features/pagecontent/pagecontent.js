@@ -245,7 +245,8 @@ describe('item requests', function() {
         });
     });
 
-    it('shoudl track page renames', function() {
+    it('should track page renames and restrict access to latest data by old title', function() {
+        var parentRevision;
         // First load up the original title
         return preq.get({
             uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename',
@@ -256,7 +257,13 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
-            var parentRevision = res.body.items[0].rev;
+            parentRevision = res.body.items[0].rev;
+            return preq.get({
+                uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename'
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
             // Now load up a renamed title same wat as hook does that
             return preq.get({
                 uri: server.config.bucketURL + '/html/User:Pchelolo%2fAfter_Rename',
@@ -268,16 +275,34 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            // Now check that renamed title has a link to old title
+            // Now check that `latest` page data is not available for old title
             return preq.get({
-                uri: server.config.bucketURL + '/title/User:Pchelolo%2fAfter_Rename'
+                uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename'
+            });
+        })
+        .then(function() {
+            throw new Error('Should throw 404')
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
+            assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
+            // Check the same for latest html endpoint
+            return preq.get({
+                uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename'
+            });
+        })
+        .then(function() {
+            throw new Error('Should throw 404')
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
+            assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
+            // However HTML for historic revision should still be available
+            return preq.get({
+                uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename/' + parentRevision
             });
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.items.length, 1);
-            assert.deepEqual(res.body.items[0].renamed_from, 'User:Pchelolo/Before_Rename');
-        });
+        })
     });
 
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
