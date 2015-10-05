@@ -545,7 +545,8 @@ PRS.prototype._checkRename = function(restbase, req, parentRevNumber) {
 
             return self.getRevision(restbase, parentRevReq)
             .then(function(parentRes) {
-                if (parentRes.body.count > 0
+                if (parentRes.body.items
+                        && parentRes.body.items.length
                         && parentRes.body.items[0].title !== currentRev.title) {
                     var parentRev = parentRes.body.items[0];
                     // The page was renamed - note it in the page table
