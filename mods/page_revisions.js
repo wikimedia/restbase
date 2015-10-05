@@ -189,7 +189,6 @@ PRS.prototype._checkPageDeletion = function(restbase, req, res) {
                     description: 'Page was deleted'
                 }
             });
-
         }
     }
 };
@@ -553,35 +552,35 @@ PRS.prototype._checkRename = function(restbase, req, parentRevNumber) {
                     if (currentPageData
                             && currentPageData.body.items
                             && currentPageData.body.items.length) {
-                        var lastEvent = res.body.items[0];
+                        var lastEvent = currentPageData.body.items[0];
                         if (lastEvent.event_type === 'rename_from'
                                 && lastEvent.event_data === parentRev.title) {
                             return;
                         }
-                        var now = uuid.now().toString();
-                        return P.all([
-                            {
-                                title: parentRev.title,
-                                tid: now,
-                                event_type: 'rename_to',
-                                event_data: currentRev.title
-                            },
-                            {
-                                title: currentRev.title,
-                                tid: now,
-                                event_type: 'rename_from',
-                                event_data: parentRev.title
-                            }
-                        ].map(function(item) {
-                            return restbase.put({
-                                uri: self.pageTableURI(rp.domain),
-                                body: {
-                                    table: self.pageTableName,
-                                    attributes: item
-                                }
-                            });
-                        }));
                     }
+                    var now = uuid.now().toString();
+                    return P.all([
+                        {
+                            title: parentRev.title,
+                            tid: now,
+                            event_type: 'rename_to',
+                            event_data: currentRev.title
+                        },
+                        {
+                            title: currentRev.title,
+                            tid: now,
+                            event_type: 'rename_from',
+                            event_data: parentRev.title
+                        }
+                    ].map(function(item) {
+                        return restbase.put({
+                            uri: self.pageTableURI(rp.domain),
+                            body: {
+                                table: self.pageTableName,
+                                attributes: item
+                            }
+                        });
+                    }));
                 }
             })
             .then(function() { return res; });
@@ -709,16 +708,13 @@ PRS.prototype.getRevision = function(restbase, req) {
     .then(function(res) {
         // Check the return
         self._checkRevReturn(res.body.items.length && res.body.items[0]);
-        return self._checkPageDeletion(restbase, req, res)
-        .then(function() {
-            // Clear paging info
-            delete res.body.next;
+        // Clear paging info
+        delete res.body.next;
 
-            // And get the revision info for the
-            // page now that we have the title
-            rp.title = res.body.items[0].title;
-            return self.getTitleRevision(restbase, req);
-        });
+        // And get the revision info for the
+        // page now that we have the title
+        rp.title = res.body.items[0].title;
+        return self.getTitleRevision(restbase, req);
     })
     .catch(function(e) {
         if (e.status !== 404) {
