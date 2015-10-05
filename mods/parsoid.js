@@ -744,7 +744,9 @@ PSP.makeTransform = function(from, to) {
             var innerRes = res.body[to];
             innerRes.status = 200;
             // Handle body_only flag.
-            // bodyOnly is deprecated and will be removed at some point
+            // bodyOnly is deprecated and will be removed at some point.
+            // XXX: Remove bodyOnly support after end of November 2015 (see
+            // https://phabricator.wikimedia.org/T114185).
             if (to === 'html' && (req.body.body_only || req.body.bodyOnly)) {
                 // Log remaining bodyOnly uses / users
                 if (req.body.bodyOnly) {
