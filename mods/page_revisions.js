@@ -174,42 +174,23 @@ PRS.prototype._signalPageDeleted = function(restbase, req) {
 };
 
 PRS.prototype._checkPageDeletion = function(restbase, req, res) {
-    var self = this;
-    var rp = req.params;
-    var item = res.body.items.length && res.body.items[0];
-    if (item) {
-        return restbase.get({
-            uri: self.pageTableURI(rp.domain),
-            body: {
-                table: self.pageTableName,
-                attributes: {
-                    title: item.title
+    var revInfo = res.revisionInfo;
+    var pageData = res.pageData;
+    var item = revInfo.body.items.length && revInfo.body.items[0];
+    var latestPageEvent = pageData && pageData.body.items;
+    if (item && latestPageEvent && latestPageEvent.length) {
+        var deleteTid = pageData.body.items[0].good_after;
+        if (deleteTid && uuid.fromString(deleteTid).getDate()
+                >= uuid.fromString(item.tid).getDate()) {
+            throw new rbUtil.HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page was deleted'
                 }
-            }
-        })
-        .catch(function(e) {
-            if (e.status !== 404) {
-                throw e;
-            }
-        })
-        .then(function(pageData) {
-            if (pageData && pageData.body.items.length > 0) {
-                var deleteTid = pageData.body.items[0].good_after;
-                if (deleteTid && uuid.fromString(deleteTid).getDate()
-                        >= uuid.fromString(item.tid).getDate()) {
-                    throw new rbUtil.HTTPError({
-                        status: 404,
-                        body: {
-                            type: 'not_found#page_revisions',
-                            description: 'Page was deleted'
-                        }
-                    });
+            });
 
-                }
-            }
-        });
-    } else {
-        return P.resolve();
+        }
     }
 };
 
@@ -417,94 +398,105 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
 PRS.prototype.getTitleRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
+    var title = rbUtil.normalizeTitle(rp.title);
     var revisionRequest;
+    var latestPageDataRequest = restbase.get({
+        uri: self.pageTableURI(rp.domain),
+        body: {
+            table: self.pageTableName,
+            attributes: {
+                title: title
+            },
+            limit: 1
+        }
+    })
+    .catch(function(e) {
+        // Ignore lack of page_data
+        if (e.status !== 404) {
+            throw e;
+        }
+    });
+
     function getLatestTitleRevision() {
-        var title = rbUtil.normalizeTitle(rp.title);
-        return P.props({
-            result: restbase.get({
-                uri: self.tableURI(rp.domain),
-                body: {
-                    table: self.tableName,
-                    attributes: {
-                        title: title
-                    },
-                    limit: 1
-                }
-            }),
-            page_data: restbase.get({
-                uri: self.pageTableURI(rp.domain),
-                body: {
-                    table: self.pageTableName,
-                    attributes: {
-                        title: title
-                    },
-                    limit: 1
-                }
-            })
-            .catch(function(e) {
-                // Ignore lack of page_data
-                if (e.status !== 404) {
-                    throw e;
-                }
-            })
-        })
-        .then(function(res) {
-            if (res.page_data
-                    && res.page_data.body.items
-                    && res.page_data.body.items.length) {
-                var latestEvent = res.page_data.body.items[0];
-                if (latestEvent.event_type === 'rename_to') {
-                    throw new rbUtil.HTTPError({
-                        status: 404,
-                        body: {
-                            type: 'not_found#page_revisions',
-                            description: 'Page was renamed to ' + latestEvent.event_data
-                        }
-                    });
-                }
+        return restbase.get({
+            uri: self.tableURI(rp.domain),
+            body: {
+                table: self.tableName,
+                attributes: {
+                    title: title
+                },
+                limit: 1
             }
-            return res.result;
         });
     }
 
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
-        revisionRequest = restbase.get({
-            uri: this.tableURI(rp.domain),
-            body: {
-                table: this.tableName,
-                attributes: {
-                    title: rbUtil.normalizeTitle(rp.title),
-                    rev: parseInt(rp.revision)
-                },
-                limit: 1
-            }
-        })
-        .catch(function(e) {
-            if (e.status !== 404) {
-                throw e;
-            }
-            return self.fetchAndStoreMWRevision(restbase, req);
-        });
-    } else if (!rp.revision) {
-        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
-            revisionRequest = self.fetchAndStoreMWRevision(restbase, req)
+        revisionRequest = P.props({
+            revisionInfo: restbase.get({
+                uri: this.tableURI(rp.domain),
+                body: {
+                    table: this.tableName,
+                    attributes: {
+                        title: title,
+                        rev: parseInt(rp.revision)
+                    },
+                    limit: 1
+                }
+            })
             .catch(function(e) {
                 if (e.status !== 404) {
                     throw e;
                 }
-                return self._signalPageDeleted(restbase, req)
-                .then(function() {
-                    throw e;
-                });
+                return self.fetchAndStoreMWRevision(restbase, req);
+            }),
+            pageData: latestPageDataRequest
+        });
+    } else if (!rp.revision) {
+        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+            revisionRequest = P.props({
+                revisionInfo: self.fetchAndStoreMWRevision(restbase, req)
+                .catch(function(e) {
+                    if (e.status !== 404) {
+                        throw e;
+                    }
+                    return self._signalPageDeleted(restbase, req)
+                    .then(function() {
+                        throw e;
+                    });
+                }),
+                pageData: latestPageDataRequest
             });
         } else {
-            revisionRequest = getLatestTitleRevision()
+            revisionRequest = P.props({
+                revisionInfo: getLatestTitleRevision(),
+                pageData: latestPageDataRequest
+            })
+            .then(function(res) {
+                if (res.pageData
+                        && res.pageData.body.items
+                        && res.pageData.body.items.length) {
+                    var latestEvent = res.pageData.body.items[0];
+                    if (latestEvent.event_type === 'rename_to') {
+                        throw new rbUtil.HTTPError({
+                            status: 404,
+                            body: {
+                                type: 'not_found#page_revisions',
+                                description: 'Page was renamed to ' + latestEvent.event_data
+                            }
+                        });
+                    }
+                }
+                return res;
+            })
             .catch(function(e) {
                 if (e.status !== 404 || /^Page was renamed/.test(e.body.description)) {
                     throw e;
                 }
-                return self.fetchAndStoreMWRevision(restbase, req);
+                return P.props({
+                    revisionInfo: self.fetchAndStoreMWRevision(restbase, req),
+                    pageData: latestPageDataRequest
+                });
             });
         }
     } else {
@@ -519,20 +511,20 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     }
     return revisionRequest
     .then(function(res) {
+        self._checkPageDeletion(restbase, req, res);
+        res = res.revisionInfo;
         // Check if the revision has any restrictions
-        self._checkRevReturn(res.body.items.length && res.body.items[0]);
-        return self._checkPageDeletion(restbase, req, res)
-        .then(function() {
-            // Clear paging info
-            delete res.body.next;
+        self._checkRevReturn(res.body.items.length
+                && res.body.items[0]);
+        // Clear paging info
+        delete res.body.next;
 
-            if (!res.headers) {
-                res.headers = {};
-            }
-            var info = res.body.items[0];
-            res.headers.etag = rbUtil.makeETag(info.rev, info.tid);
-            return res;
-        });
+        if (!res.headers) {
+            res.headers = {};
+        }
+        var info = res.body.items[0];
+        res.headers.etag = rbUtil.makeETag(info.rev, info.tid);
+        return res;
     });
     // TODO: handle other revision formats (tid)
 };
@@ -547,41 +539,26 @@ PRS.prototype._checkRename = function(restbase, req, parentRevNumber) {
     parentRevReq.params.revision = '' + parentRevNumber;
 
     return function(res) {
-        if (res.body.items.length > 0) {
+        var revInfo = res.revisionInfo;
+        var currentPageData = res.pageData;
+        if (revInfo.body.items.length > 0) {
+            var currentRev = revInfo.body.items[0];
+
             return self.getRevision(restbase, parentRevReq)
             .then(function(parentRes) {
-                var currentRev = res.body.items[0];
                 if (parentRes.body.count > 0
                         && parentRes.body.items[0].title !== currentRev.title) {
-                    // The page was renamed - note it in the page table
-                    var now = uuid.now().toString();
                     var parentRev = parentRes.body.items[0];
-                    return restbase.get({
-                        // Check if this rename was already stored
-                        uri: self.pageTableURI(rp.domain),
-                        body: {
-                            table: self.pageTableName,
-                            attributes: {
-                                title: parentRev.title
-                            },
-                            limit: 1
+                    // The page was renamed - note it in the page table
+                    if (currentPageData
+                            && currentPageData.body.items
+                            && currentPageData.body.items.length) {
+                        var lastEvent = res.body.items[0];
+                        if (lastEvent.event_type === 'rename_from'
+                                && lastEvent.event_data === parentRev.title) {
+                            return;
                         }
-                    })
-                    .then(function(res) {
-                        if (res && res.body.items
-                                && res.body.items.length) {
-                            var lastEvent = res.body.items[0];
-                            if (lastEvent.event_type === 'rename_to'
-                                    && lastEvent.event_data === currentRev.title) {
-                                return;
-                            }
-                        }
-                        throw new rbUtil.HTTPError({ status: 404 });
-                    })
-                    .catch(function(e) {
-                        if (e.status !== 404) {
-                            throw e;
-                        }
+                        var now = uuid.now().toString();
                         return P.all([
                             {
                                 title: parentRev.title,
@@ -604,7 +581,7 @@ PRS.prototype._checkRename = function(restbase, req, parentRevNumber) {
                                 }
                             });
                         }));
-                    });
+                    }
                 }
             })
             .then(function() { return res; });
