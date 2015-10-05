@@ -210,4 +210,50 @@ describe('on-demand generation of html and data-parsoid', function() {
                 .indexOf("style-src http://*.wikipedia.org https://*.wikipedia.org 'unsafe-inline'") > 0, true);
         });
     });
+
+    it('should honor no-cache on /html/{title} endpoint', function() {
+        var testPage = "User:Pchelolo%2fRev_Test";
+        var firstRev = 682093020;
+        // 1. Pull in a non-final revision of a title
+        return preq.get({
+            uri: pageUrl + '/html/' + testPage + '/' + firstRev
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(/First revision/.test(res.body), true);
+            return preq.get({
+                uri: pageUrl + '/html/' + testPage,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(/Second Revision/.test(res.body), true);
+        })
+    });
+
+    it('should honor no-cache on /html/{title} endpoint with sections', function() {
+        var testPage = "User:Pchelolo%2fRev_Section_Test";
+        var firstRev = 682100867;
+        // 1. Pull in a non-final revision of a title
+        return preq.get({
+            uri: pageUrl + '/html/' + testPage + '/' + firstRev
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(/First Revision/.test(res.body), true);
+            return preq.get({
+                uri: pageUrl + '/html/' + testPage + '?sections=mwAQ',
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(/Second Revision/.test(res.body.mwAQ), true);
+        })
+    });
 });

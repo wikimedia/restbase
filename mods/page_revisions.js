@@ -178,6 +178,20 @@ PRS.prototype.listTitles = function(restbase, req, options) {
     });
 };
 
+/**
+ * Checks if two revisions are the same, ignoring different tid values.
+ * @private
+ */
+PRS.prototype._checkSameRev = function(firstRev, secondRev) {
+    return !Object.keys(firstRev).some(function(attrName) {
+        // We don't really care if an empty value is null, or undefined, or other falsy
+        if (attrName === 'tid' || !firstRev[attrName] || !secondRev[attrName]) {
+            return false;
+        }
+        return firstRev[attrName] !== secondRev[attrName];
+    });
+};
+
 PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
@@ -241,11 +255,36 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
             redirect: redirect
         };
 
-        return restbase.put({ // Save / update the revision entry
+        // Check if the same revision is already in storage
+        return restbase.get({
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
-                attributes: revision
+                attributes: {
+                    title: rbUtil.normalizeTitle(dataResp.title),
+                    rev: parseInt(apiRev.revid)
+                }
+            }
+        })
+        .then(function(res) {
+            var sameRev = res && res.body.items
+                    && res.body.items.length > 0
+                    && self._checkSameRev(revision, res.body.items[0]);
+            if (!sameRev) {
+                throw new rbUtil.HTTPError({ status: 404 });
+            }
+        })
+        .catch(function(e) {
+            if (e.status === 404) {
+                return restbase.put({ // Save / update the revision entry
+                    uri: self.tableURI(rp.domain),
+                    body: {
+                        table: self.tableName,
+                        attributes: revision
+                    }
+                });
+            } else {
+                throw e;
             }
         })
         .then(function() {

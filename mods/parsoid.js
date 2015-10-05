@@ -349,7 +349,10 @@ PSP.getRevisionInfo = function(restbase, req) {
     }
 
     return restbase.get({
-        uri: new URI(path)
+        uri: new URI(path),
+        headers: {
+            'cache-control': req.headers && req.headers['cache-control']
+        }
     })
     .then(function(res) {
         return res.body.items[0];
@@ -392,8 +395,7 @@ PSP.getFormat = function(format, restbase, req) {
         uri: self.getBucketURI(rp, format, rp.tid)
     });
 
-    if (req.headers && /no-cache/i.test(req.headers['cache-control'])
-            && rp.revision) {
+    if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
