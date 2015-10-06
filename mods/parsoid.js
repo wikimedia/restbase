@@ -886,7 +886,13 @@ module.exports = function(options) {
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
                 body: {
-                    valueType: 'blob'
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'blob',
+                    version: 1
                 }
             },
             {
