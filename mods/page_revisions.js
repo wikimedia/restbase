@@ -173,6 +173,46 @@ PRS.prototype._signalPageDeleted = function(restbase, req) {
     });
 };
 
+PRS.prototype._signalPageUndeleted = function(restbase, req, res) {
+    var self = this;
+    var pageData = res.pageData;
+    var rp = req.params;
+
+    function findDeleteEvent() {
+        var prevDeletedEvent;
+        for (var idx = 0; idx < pageData.body.items.length; idx ++) {
+            var event = pageData.body.items[idx];
+            if (event.event_type === 'delete') {
+                if (prevDeletedEvent) {
+                    return event;
+                }
+                prevDeletedEvent = event;
+            }
+        }
+    }
+
+    if (pageData
+            && pageData.body.items
+            && pageData.body.items.length) {
+        var prevDeletedEvent = findDeleteEvent();
+        var newGoodAfter = prevDeletedEvent && prevDeletedEvent.tid || null;
+        return restbase.put({
+            uri: self.pageTableURI(rp.domain),
+            body: {
+                table: self.pageTableName,
+                attributes: {
+                    title: rbUtil.normalizeTitle(rp.title),
+                    tid: uuid.now().toString(),
+                    event_type: 'undelete',
+                    good_after: newGoodAfter
+                }
+            }
+        });
+    } else {
+        return P.resolve();
+    }
+};
+
 PRS.prototype._checkPageDeletion = function(restbase, req, res) {
     var revInfo = res.revisionInfo;
     var pageData = res.pageData;
@@ -399,14 +439,13 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     var rp = req.params;
     var title = rbUtil.normalizeTitle(rp.title);
     var revisionRequest;
-    var latestPageDataRequest = restbase.get({
+    var pageDataRequest = restbase.get({
         uri: self.pageTableURI(rp.domain),
         body: {
             table: self.pageTableName,
             attributes: {
                 title: title
-            },
-            limit: 1
+            }
         }
     })
     .catch(function(e) {
@@ -449,27 +488,39 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 }
                 return self.fetchAndStoreMWRevision(restbase, req);
             }),
-            pageData: latestPageDataRequest
+            pageData: pageDataRequest
         });
     } else if (!rp.revision) {
         if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
             revisionRequest = P.props({
-                revisionInfo: self.fetchAndStoreMWRevision(restbase, req)
-                .catch(function(e) {
-                    if (e.status !== 404) {
-                        throw e;
-                    }
-                    return self._signalPageDeleted(restbase, req)
-                    .then(function() {
-                        throw e;
-                    });
-                }),
-                pageData: latestPageDataRequest
+                revisionInfo: self.fetchAndStoreMWRevision(restbase, req),
+                pageData: pageDataRequest
+            })
+            .then(function(res) {
+                if (res.pageData
+                        && res.pageData.body.items
+                        && res.pageData.body.items.length
+                        && res.pageData.body.items[0].event_type === 'delete') {
+                    // The page was deleted, this indicates it's an undelete
+                    return self._signalPageUndeleted(restbase, req, res)
+                    .then(function() { return res; });
+                }
+                return res;
+            })
+            .catch(function(e) {
+                if (e.status !== 404) {
+                    throw e;
+                }
+                // Page data request never returns 404, so it's from MW API => page was deleted
+                return self._signalPageDeleted(restbase, req)
+                .then(function() {
+                    throw e;
+                });
             });
         } else {
             revisionRequest = P.props({
                 revisionInfo: getLatestTitleRevision(),
-                pageData: latestPageDataRequest
+                pageData: pageDataRequest
             })
             .then(function(res) {
                 if (res.pageData
@@ -494,7 +545,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 }
                 return P.props({
                     revisionInfo: self.fetchAndStoreMWRevision(restbase, req),
-                    pageData: latestPageDataRequest
+                    pageData: pageDataRequest
                 });
             });
         }
@@ -718,7 +769,7 @@ PRS.prototype.getRevision = function(restbase, req) {
         return self.getTitleRevision(restbase, req);
     })
     .catch(function(e) {
-        if (e.status !== 404) {
+        if (e.status !== 404 || /^Page was deleted/.test(e.body.description)) {
             throw e;
         }
         return self.fetchAndStoreMWRevision(restbase, req);
