@@ -600,8 +600,47 @@ PSP.transformRevision = function(restbase, req, from, to) {
 
 };
 
-PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
+PSP.stashTranform = function(restbase, req, transformPromise) {
+    // A stash has been requested. We need to store the wikitext sent by
+    // the client together with the page bundle returned by Parsoid, so it
+    // can be later reused when transforming back from HTML to wikitext
+    // cf https://phabricator.wikimedia.org/T114548
     var self = this;
+    var tid = uuid.now().toString();
+    var wtType = req.original && req.original.headers['content-type'] || 'text/plain';
+    return transformPromise.then(function(original) {
+        // Save the returned data-parsoid for the transform and
+        // the wikitext sent by the client
+        return P.all([
+            restbase.put({
+                uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
+                headers: original.body['data-parsoid'].headers,
+                body: original.body['data-parsoid'].body
+            }),
+            restbase.put({
+                uri: self.getBucketURI(rp, 'stash.wikitext', tid),
+                headers: { 'content-type': wtType },
+                body: req.body.wikitext
+            })
+        ])
+        // Save HTML last, so that any error in metadata storage suppresses
+        // HTML.
+        .then(function() {
+            return restbase.put({
+                uri: self.getBucketURI(rp, 'stash.html', tid),
+                headers: original.body.html.headers,
+                body: original.body.html.body
+            });
+        // Add the ETag to the original response so it can be propagated
+        // back to the client
+        }).then(function() {
+            original.body.html.headers.etag = rbUtil.makeETag(rp.revision, tid, 'stash');
+            return original;
+        });
+    });
+};
+
+PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
     var rp = req.params;
     // Parsoid currently spells 'wikitext' as 'wt'
     var parsoidTo = to;
@@ -636,43 +675,8 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     };
 
     var transformPromise = restbase.post(parsoidReq);
-    if (from === 'wikitext' && to === 'html' && req.body.stash) {
-        // A stash has been requested. We need to store the wikitext sent by
-        // the client together with the page bundle returned by Parsoid, so it
-        // can be later reused when transforming back from HTML to wikitext
-        // cf https://phabricator.wikimedia.org/T114548
-        var tid = uuid.now().toString();
-        var wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        transformPromise = transformPromise.then(function(original) {
-            // Save the returned data-parsoid for the transform and
-            // the wikitext sent by the client
-            return P.all([
-                restbase.put({
-                    uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
-                    headers: original.body['data-parsoid'].headers,
-                    body: original.body['data-parsoid'].body
-                }),
-                restbase.put({
-                    uri: self.getBucketURI(rp, 'stash.wikitext', tid),
-                    headers: { 'content-type': wtType },
-                    body: req.body.wikitext
-                })
-            ])
-            // Save HTML last, so that any error in metadata storage suppresses
-            // HTML.
-            .then(function() {
-                return restbase.put({
-                    uri: self.getBucketURI(rp, 'stash.html', tid),
-                    headers: original.body.html.headers,
-                    body: original.body.html.body
-                });
-            // Add the ETag to the original response so it can be propagated
-            // back to the client
-            }).then(function() {
-                original.body.html.headers.etag = rbUtil.makeETag(rp.revision, tid, 'stash');
-                return original;
-            });
-        });
+    if (req.body.stash && from === 'wikitext' && to === 'html') {
+        return this.stashTranform(restbase, req, transformPromise);
     }
     return transformPromise;
 

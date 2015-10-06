@@ -988,7 +988,7 @@ paths:
           required: false
         - name: stash
           in: formData
-          description: Whether to stash temporarily the result of the transformation
+          description: Whether to temporarily stash the result of the transformation
           type: boolean
           required: false
       responses:
