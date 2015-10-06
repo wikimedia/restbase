@@ -284,7 +284,8 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
             return restbase.post({
                 uri: pageBundleUri,
                 headers: {
-                    'content-type': 'application/json'
+                    'content-type': 'application/json',
+                    'user-agent': req.headers['user-agent'],
                 },
                 body: body
             });
@@ -584,7 +585,10 @@ PSP.transformRevision = function(restbase, req, from, to) {
         var newReq = {
             uri: new URI(path),
             params: req.params,
-            headers: { 'content-type': 'application/json' },
+            headers: {
+                'content-type': 'application/json',
+                'user-agent': req['user-agent'],
+            },
             body: body2
         };
         return self.callParsoidTransform(restbase, newReq, from, to);
@@ -622,7 +626,10 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     var parsoidReq = {
         uri: this.parsoidHost + '/v2/' + domain + '/'
             + parsoidTo + parsoidExtraPath,
-        headers: { 'content-type': 'application/json' },
+        headers: {
+            'content-type': 'application/json',
+            'user-agent': req['user-agent'],
+        },
         body: req.body
     };
     return restbase.post(parsoidReq);
