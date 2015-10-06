@@ -173,7 +173,7 @@ PRS.prototype._signalPageDeleted = function(restbase, req) {
     });
 };
 
-PRS.prototype._signalPageUndeleted = function(restbase, req, res) {
+PRS.prototype._checkPageUndeleted = function(restbase, req, res) {
     var self = this;
     var pageData = res.pageData;
     var rp = req.params;
@@ -193,7 +193,8 @@ PRS.prototype._signalPageUndeleted = function(restbase, req, res) {
 
     if (pageData
             && pageData.body.items
-            && pageData.body.items.length) {
+            && pageData.body.items.length
+            && res.pageData.body.items[0].event_type === 'delete') {
         var prevDeletedEvent = findDeleteEvent();
         var newGoodAfter = prevDeletedEvent && prevDeletedEvent.tid || null;
         return restbase.put({
@@ -207,9 +208,10 @@ PRS.prototype._signalPageUndeleted = function(restbase, req, res) {
                     good_after: newGoodAfter
                 }
             }
-        });
+        })
+        .then(function() { return res; });
     } else {
-        return P.resolve();
+        return P.resolve(res);
     }
 };
 
@@ -497,15 +499,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 pageData: pageDataRequest
             })
             .then(function(res) {
-                if (res.pageData
-                        && res.pageData.body.items
-                        && res.pageData.body.items.length
-                        && res.pageData.body.items[0].event_type === 'delete') {
-                    // The page was deleted, this indicates it's an undelete
-                    return self._signalPageUndeleted(restbase, req, res)
-                    .then(function() { return res; });
-                }
-                return res;
+                return self._checkPageUndeleted(restbase, req, res);
             })
             .catch(function(e) {
                 if (e.status !== 404) {
