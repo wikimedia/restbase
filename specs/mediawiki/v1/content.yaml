@@ -942,6 +942,8 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+              headers:
+                if-match: '{if-match}'
               body:
                 html: '{html}'
                 scrubWikitext: '{scrubWikitext}'
@@ -1103,6 +1105,8 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+              headers:
+                if-match: '{if-match}'
               body:
                 html: '{html}'
                 bodyOnly: '{bodyOnly}'

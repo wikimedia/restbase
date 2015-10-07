@@ -765,7 +765,7 @@ PSP.makeTransform = function(from, to) {
 
     return function(restbase, req) {
         var rp = req.params;
-        if (!req.body[from]) {
+        if (!req.body || !req.body[from]) {
             // XXX: This is a temporary log line to aid in
             // discovering what's going on in T112339
             // We need to remove it
