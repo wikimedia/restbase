@@ -498,16 +498,42 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 
 };
 
+PSP._getStashedContent = function(restbase, req, etag) {
+    var self = this;
+    var rp = req.params;
+    function getStash(format) {
+        return restbase.get({
+            uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
+        }).then(function(fRes) {
+            if (fRes.body && Buffer.isBuffer(fRes.body)) {
+                fRes.body = fRes.body.toString();
+            }
+            return fRes;
+        });
+    }
+
+    return P.props({
+        html: getStash('html'),
+        'data-parsoid': getStash('data-parsoid'),
+        wikitext: getStash('wikitext')
+    })
+    .then(function(res) {
+        res.revid = rp.revision;
+        return res;
+    });
+
+};
+
 PSP.transformRevision = function(restbase, req, from, to) {
     var self = this;
     var rp = req.params;
 
+    var etag = req.headers && rbUtil.parseETag(req.headers['if-match']);
     var tid;
     if (from === 'html') {
-        if (req.headers && req.headers['if-match']
-                && rbUtil.parseETag(req.headers['if-match'])) {
+        if (etag) {
             // Prefer the If-Match header
-            tid = rbUtil.parseETag(req.headers['if-match']).tid;
+            tid = etag.tid;
         } else if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
             var tidMatch = new RegExp('<meta\\s+(?:content="([^"]+)"\\s+)?' +
@@ -527,8 +553,13 @@ PSP.transformRevision = function(restbase, req, from, to) {
         }
     }
 
-    return this._getOriginalContent(restbase, req, rp.revision, tid)
-    .then(function(original) {
+    var contentPromise;
+    if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
+        contentPromise = this._getStashedContent(restbase, req, etag);
+    } else {
+        contentPromise = this._getOriginalContent(restbase, req, rp.revision, tid);
+    }
+    return contentPromise.then(function(original) {
         // Check if parsoid metadata is present as it's required by parsoid.
         if (!original['data-parsoid'].body
                 || original['data-parsoid'].body.constructor !== Object
@@ -574,6 +605,10 @@ PSP.transformRevision = function(restbase, req, from, to) {
         if (req.body.scrubWikitext || req.body.scrub_wikitext) {
             body2.scrubWikitext = true;
         }
+        // Let the stash flag through as well
+        if (req.body.stash) {
+            body2.stash = true;
+        }
 
         var path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
         if (rp.title) {
@@ -596,6 +631,47 @@ PSP.transformRevision = function(restbase, req, from, to) {
 
 };
 
+PSP.stashTransform = function(restbase, req, transformPromise) {
+    // A stash has been requested. We need to store the wikitext sent by
+    // the client together with the page bundle returned by Parsoid, so it
+    // can be later reused when transforming back from HTML to wikitext
+    // cf https://phabricator.wikimedia.org/T114548
+    var self = this;
+    var rp = req.params;
+    var tid = uuid.now().toString();
+    var wtType = req.original && req.original.headers['content-type'] || 'text/plain';
+    return transformPromise.then(function(original) {
+        // Save the returned data-parsoid for the transform and
+        // the wikitext sent by the client
+        return P.all([
+            restbase.put({
+                uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
+                headers: original.body['data-parsoid'].headers,
+                body: original.body['data-parsoid'].body
+            }),
+            restbase.put({
+                uri: self.getBucketURI(rp, 'stash.wikitext', tid),
+                headers: { 'content-type': wtType },
+                body: req.body.wikitext
+            })
+        ])
+        // Save HTML last, so that any error in metadata storage suppresses
+        // HTML.
+        .then(function() {
+            return restbase.put({
+                uri: self.getBucketURI(rp, 'stash.html', tid),
+                headers: original.body.html.headers,
+                body: original.body.html.body
+            });
+        // Add the ETag to the original response so it can be propagated
+        // back to the client
+        }).then(function() {
+            original.body.html.headers.etag = rbUtil.makeETag(rp.revision, tid, 'stash');
+            return original;
+        });
+    });
+};
+
 PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
     var rp = req.params;
     // Parsoid currently spells 'wikitext' as 'wt'
@@ -606,7 +682,6 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         // Retrieve pagebundle whenever we want HTML
         parsoidTo = 'pagebundle';
     }
-
 
     var parsoidExtras = [];
     if (rp.title) {
@@ -621,10 +696,8 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
-    var domain = rp.domain;
-    // Re-map test domain
     var parsoidReq = {
-        uri: this.parsoidHost + '/v2/' + domain + '/'
+        uri: this.parsoidHost + '/v2/' + rp.domain + '/'
             + parsoidTo + parsoidExtraPath,
         headers: {
             'content-type': 'application/json',
@@ -632,7 +705,13 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         },
         body: req.body
     };
-    return restbase.post(parsoidReq);
+
+    var transformPromise = restbase.post(parsoidReq);
+    if (req.body.stash && from === 'wikitext' && to === 'html') {
+        return this.stashTransform(restbase, req, transformPromise);
+    }
+    return transformPromise;
+
 };
 
 /**
@@ -686,7 +765,7 @@ PSP.makeTransform = function(from, to) {
 
     return function(restbase, req) {
         var rp = req.params;
-        if (!req.body[from]) {
+        if (!req.body || !req.body[from]) {
             // XXX: This is a temporary log line to aid in
             // discovering what's going on in T112339
             // We need to remove it
@@ -821,6 +900,40 @@ module.exports = function(options) {
                 uri: '/{domain}/sys/key_rev_value/parsoid.data-mw',
                 body: {
                     valueType: 'json'
+                }
+            },
+            // stashing resources for HTML, wikitext and data-parsoid
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
+                    valueType: 'blob',
+                    version: 1
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
+                    valueType: 'blob',
+                    version: 1
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
+                    valueType: 'json',
+                    version: 1
                 }
             }
         ]

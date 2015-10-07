@@ -942,6 +942,8 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+              headers:
+                if-match: '{if-match}'
               body:
                 html: '{html}'
                 scrubWikitext: '{scrubWikitext}'
@@ -986,6 +988,11 @@ paths:
           description: Return only `body.innerHTML`
           type: boolean
           required: false
+        - name: stash
+          in: formData
+          description: Whether to temporarily stash the result of the transformation
+          type: boolean
+          required: false
       responses:
         '200':
           description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
@@ -1017,6 +1024,7 @@ paths:
                 wikitext: '{wikitext}'
                 bodyOnly: '{bodyOnly}'
                 body_only: '{body_only}'
+                stash: '{stash}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -1097,6 +1105,8 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+              headers:
+                if-match: '{if-match}'
               body:
                 html: '{html}'
                 bodyOnly: '{bodyOnly}'
