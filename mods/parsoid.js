@@ -631,7 +631,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
 
 };
 
-PSP.stashTranform = function(restbase, req, transformPromise) {
+PSP.stashTransform = function(restbase, req, transformPromise) {
     // A stash has been requested. We need to store the wikitext sent by
     // the client together with the page bundle returned by Parsoid, so it
     // can be later reused when transforming back from HTML to wikitext
@@ -708,7 +708,7 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
 
     var transformPromise = restbase.post(parsoidReq);
     if (req.body.stash && from === 'wikitext' && to === 'html') {
-        return this.stashTranform(restbase, req, transformPromise);
+        return this.stashTransform(restbase, req, transformPromise);
     }
     return transformPromise;
 
