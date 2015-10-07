@@ -907,9 +907,8 @@ module.exports = function(options) {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
                 body: {
                     revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 0,
-                        grace_ttl: 86400
+                        type: 'ttl',
+                        ttl: 86400
                     },
                     valueType: 'blob',
                     version: 1
@@ -919,9 +918,8 @@ module.exports = function(options) {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
                 body: {
                     revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 0,
-                        grace_ttl: 86400
+                        type: 'ttl',
+                        ttl: 86400
                     },
                     valueType: 'blob',
                     version: 1
@@ -931,9 +929,8 @@ module.exports = function(options) {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 0,
-                        grace_ttl: 86400
+                        type: 'ttl',
+                        ttl: 86400
                     },
                     valueType: 'json',
                     version: 1
