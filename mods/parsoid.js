@@ -498,16 +498,42 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 
 };
 
+PSP._getStashedContent = function(restbase, req, etag) {
+    var self = this;
+    var rp = req.params;
+    function getStash(format) {
+        return restbase.get({
+            uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
+        }).then(function(fRes) {
+            if (fRes.body && Buffer.isBuffer(fRes.body)) {
+                fRes.body = fRes.body.toString();
+            }
+            return fRes;
+        });
+    }
+
+    return P.props({
+        html: getStash('html'),
+        'data-parsoid': getStash('data-parsoid'),
+        wikitext: getStash('wikitext')
+    })
+    .then(function(res) {
+        res.revid = rp.revision;
+        return res;
+    });
+
+};
+
 PSP.transformRevision = function(restbase, req, from, to) {
     var self = this;
     var rp = req.params;
 
+    var etag = req.headers && rbUtil.parseETag(req.headers['if-match']);
     var tid;
     if (from === 'html') {
-        if (req.headers && req.headers['if-match']
-                && rbUtil.parseETag(req.headers['if-match'])) {
+        if (etag) {
             // Prefer the If-Match header
-            tid = rbUtil.parseETag(req.headers['if-match']).tid;
+            tid = etag.tid;
         } else if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
             var tidMatch = new RegExp('<meta\\s+(?:content="([^"]+)"\\s+)?' +
@@ -527,8 +553,13 @@ PSP.transformRevision = function(restbase, req, from, to) {
         }
     }
 
-    return this._getOriginalContent(restbase, req, rp.revision, tid)
-    .then(function(original) {
+    var contentPromise;
+    if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
+        contentPromise = this._getStashedContent(restbase, req, etag);
+    } else {
+        contentPromise = this._getOriginalContent(restbase, req, rp.revision, tid);
+    }
+    return contentPromise.then(function(original) {
         // Check if parsoid metadata is present as it's required by parsoid.
         if (!original['data-parsoid'].body
                 || original['data-parsoid'].body.constructor !== Object
@@ -606,6 +637,7 @@ PSP.stashTranform = function(restbase, req, transformPromise) {
     // can be later reused when transforming back from HTML to wikitext
     // cf https://phabricator.wikimedia.org/T114548
     var self = this;
+    var rp = req.params;
     var tid = uuid.now().toString();
     var wtType = req.original && req.original.headers['content-type'] || 'text/plain';
     return transformPromise.then(function(original) {
@@ -876,7 +908,7 @@ module.exports = function(options) {
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
-                        count: 1,
+                        count: 0,
                         grace_ttl: 86400
                     },
                     valueType: 'blob',
@@ -888,7 +920,7 @@ module.exports = function(options) {
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
-                        count: 1,
+                        count: 0,
                         grace_ttl: 86400
                     },
                     valueType: 'blob',
@@ -900,7 +932,7 @@ module.exports = function(options) {
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
-                        count: 1,
+                        count: 0,
                         grace_ttl: 86400
                     },
                     valueType: 'json',
