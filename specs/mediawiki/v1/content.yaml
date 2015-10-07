@@ -905,6 +905,16 @@ paths:
           description: The HTML to transform
           type: string
           required: true
+        - name: scrub_wikitext
+          in: formData
+          description: Normalise the DOM to yield cleaner wikitext?
+          type: boolean
+          required: false
+        - name: scrubWikitext
+          in: formData
+          description: Deprecated, use `scrub_wikitext` instead.
+          type: boolean
+          required: false
       responses:
         '200':
           description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
@@ -935,6 +945,7 @@ paths:
               body:
                 html: '{html}'
                 scrubWikitext: '{scrubWikitext}'
+                scrub_wikitext: '{scrub_wikitext}'
       x-monitor: false
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
