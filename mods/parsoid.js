@@ -280,18 +280,21 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
-    function getOrigAndPostToParsoid(revision, contentName, updateMode) {
-        return self._getOriginalContent(restbase, req, revision)
+    function getOrigAndPostToParsoid(options) {
+        return self._getOriginalContent(restbase, req, {
+            title: options.title,
+            revision: options.revision
+        })
         .then(function(res) {
             var body = {
-                update: updateMode
+                update: options.updateMode
             };
-            body[contentName] = res;
+            body[options.contentName] = res;
             return restbase.post({
                 uri: pageBundleUri,
                 headers: {
                     'content-type': 'application/json',
-                    'user-agent': req.headers['user-agent'],
+                    'user-agent': req.headers['user-agent']
                 },
                 body: body
             });
@@ -302,16 +305,25 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     }
 
     var parentRev = parseInt(req.headers['x-restbase-parentrevision']);
+    var parentTitle = req.headers['x-restbase-parenttitle'];
     var updateMode = req.headers['x-restbase-mode'];
     var parsoidReq;
     if (parentRev) {
         // OnEdit job update: pass along the predecessor version
-        parsoidReq = getOrigAndPostToParsoid(parentRev + '', 'previous');
+        parsoidReq = getOrigAndPostToParsoid({
+            revision: parentRev + '',
+            title: parentTitle,
+            contentName: 'previous'
+        });
     } else if (updateMode) {
         // Template or image updates. Similar to html2wt, pass:
         // - current data-parsoid and html
         // - the edit mode
-        parsoidReq = getOrigAndPostToParsoid(rp.revision, 'original', updateMode);
+        parsoidReq = getOrigAndPostToParsoid({
+            revision: rp.revision,
+            contentName: 'original',
+            updateMode: updateMode
+        });
     } else {
         // Plain render
         parsoidReq = restbase.get({ uri: pageBundleUri });
@@ -372,6 +384,7 @@ PSP.getRevisionInfo = function(restbase, req) {
     return restbase.get({
         uri: new URI(path),
         headers: {
+            'x-restbase-parenttitle': req.headers && req.headers['x-restbase-parenttitle'],
             'cache-control': req.headers && req.headers['cache-control']
         }
     })
@@ -485,14 +498,15 @@ PSP.listRevisions = function(format, restbase, req) {
     });
 };
 
-PSP._getOriginalContent = function(restbase, req, revision, tid) {
+PSP._getOriginalContent = function(restbase, req, options) {
     var rp = req.params;
 
     function get(format) {
-        var path = [rp.domain, 'sys', 'parsoid', format,
-                     rbUtil.normalizeTitle(rp.title), revision];
-        if (tid) {
-            path.push(tid);
+        var title = (options.title && rbUtil.normalizeTitle(options.title))
+                        || rbUtil.normalizeTitle(rp.title);
+        var path = [rp.domain, 'sys', 'parsoid', format, title, options.revision];
+        if (options.tid) {
+            path.push(options.tid);
         }
 
         return restbase.get({
@@ -516,7 +530,7 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
         'data-parsoid': get('data-parsoid')
     })
     .then(function(res) {
-        res.revid = revision;
+        res.revid = options.revision;
         return res;
     });
 
@@ -592,7 +606,10 @@ PSP.transformRevision = function(restbase, req, from, to) {
     if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
         contentPromise = this._getStashedContent(restbase, req, etag);
     } else {
-        contentPromise = this._getOriginalContent(restbase, req, rp.revision, tid);
+        contentPromise = this._getOriginalContent(restbase, req, {
+            revision: rp.revision,
+            tid: tid
+        });
     }
     return contentPromise.then(function(original) {
         // Check if parsoid metadata is present as it's required by parsoid.

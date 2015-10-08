@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var nock   = require('nock');
 var pagingToken = '';
 
 describe('item requests', function() {
@@ -245,63 +246,87 @@ describe('item requests', function() {
         });
     });
 
-    it('should track page renames and restrict access to latest data by old title', function() {
-        var parentRevision;
-        // First load up the original title
+    function responseWithTitleRevision(title, revision) {
+        return {
+            'batchcomplete': '',
+            'query': {
+                'pages': {
+                    '11089416': {
+                        'pageid': 11089416,
+                        'ns': 0,
+                        'title': title,
+                        'contentmodel': 'wikitext',
+                        'pagelanguage': 'en',
+                        'touched': '2015-05-22T08:49:39Z',
+                        'lastrevid': 653508365,
+                        'length': 2941,
+                        'revisions': [{
+                            'revid': revision,
+                            'user': 'Chuck Norris',
+                            'userid': 3606755,
+                            'timestamp': '2015-03-25T20:29:50Z',
+                            'size': 2941,
+                            'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
+                            'contentmodel': 'wikitext',
+                            'comment': 'Test',
+                            'tags': []
+                        }]
+                    }
+                }
+            }
+        };
+    }
+
+    it('should not store duplicated revison on rename', function() {
+        var apiURI = server.config
+        .conf.templates['wmf-sys-1.0.0']
+        .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 679398266))
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/After_Rename', 679398351));
         return preq.get({
-            uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename',
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename/679398266',
             headers: {
                 'cache-control': 'no-cache'
             }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.items.length, 1);
-            parentRevision = res.body.items[0].rev;
             return preq.get({
-                uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename'
-            });
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            // Now load up a renamed title same wat as hook does that
-            return preq.get({
-                uri: server.config.bucketURL + '/html/User:Pchelolo%2fAfter_Rename',
+                uri: server.config.bucketURL + '/html/User:Pchelolo%2fAfter_Rename/679398351',
                 headers: {
                     'cache-control': 'no-cache',
-                    'x-restbase-parentrevision': '' + parentRevision
+                    'x-restbase-parentrevision': 679398266,
+                    'x-restbase-parenttitle': 'User:Pchelolo/Before_Rename'
                 }
             });
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            // Now check that `latest` page data is not available for old title
             return preq.get({
-                uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename'
-            });
-        })
-        .then(function() {
-            throw new Error('Should throw 404')
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
-            // Check the same for latest html endpoint
-            return preq.get({
-                uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename'
-            });
-        })
-        .then(function() {
-            throw new Error('Should throw 404')
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
-            // However HTML for historic revision should still be available
-            return preq.get({
-                uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename/' + parentRevision
-            });
+                uri: server.config.bucketURL + '/title/User:Pchelolo%2fAfter_Rename/'
+            })
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0], 679398351);
+        })
+        .then(function() { api.done(); })
+        .finally(function() {nock.cleanAll()});
+    });
+
+    it('should track renames and restric access to older content', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename'
+        })
+        .then(function() {
+            throw new Error('Should track renames');
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
+            assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
         })
     });
 
