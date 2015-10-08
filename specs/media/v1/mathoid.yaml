@@ -9,11 +9,12 @@ paths:
         - Media
         - Math
       description: >
-        Renders a TeX formula into its mathematic representation in the given format.
-        Available formats are svg and mml. The response contains the `x-resource-location`
-        header which can be used to retrieve the same formula in a different formula. Just
-        append the value of the header to `/media/math/{format}/` and perform a GET request
-        against that URL.
+        Renders a TeX formula into its mathematic representation in the given
+        format. Available formats are svg and mml. The response contains the
+        `x-resource-location` header which can be used to retrieve the same
+        formula in a different render format. Just append the value of the
+        header to `/media/math/{format}/` and perform a GET request against
+        that URL.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
@@ -103,9 +104,9 @@ paths:
       description: >
         Given a request hash, renders a TeX formula into its mathematic
         representation in the given format. When a request is issued to the
-        `/media/math/{format}` endpoint, the response contains the *x-resource-location*
-        header denoting the hash ID of the POST data. Once obtained, this endpoint
-        may be used to avoid sending the payload.
+        `/media/math/{format}` POST endpoint, the response contains the
+        `x-resource-location` header denoting the hash ID of the POST data. Once
+        obtained, this endpoint may be used to avoid sending the payload.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
