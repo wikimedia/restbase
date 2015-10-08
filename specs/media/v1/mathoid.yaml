@@ -83,9 +83,10 @@ paths:
             headers:
               content-type: /^image\/svg/
             body: /.+/
-        - title: Mathoid - test formula from storage
+        - title: Mathoid - test formula from storage (global domain)
           request:
             params:
+              domain: wikimedia.org
               format: mml
             body:
               q: E=mc^2
