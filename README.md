@@ -4,7 +4,7 @@
 RESTBase was built to provide a [low-latency & high-throughput API for
 Wikipedia / Wikimedia
 content](http://rest.wikimedia.org/en.wikipedia.org/v1/?doc). It is basically
-a storing proxy, which presents a coherent API powered by Swagger specs to the
+a storage proxy, which presents a coherent API powered by Swagger specs to the
 outside, and backs up many of these entry points with storage.  The default
 **table storage** backend is based on Cassandra, which helps it to perform
 well at Wikimedia's scale without placing undue burden on operations.
@@ -12,7 +12,7 @@ well at Wikimedia's scale without placing undue burden on operations.
 As a proxy, RESTBase does not perform any significant content processing
 itself. Instead, it requests content transformations from backend services
 when needed, and typically (depending on configuration) stores it back for
-later retrieval. For high-volume static end points most requests will be
+later retrieval. For high-volume static end points, most requests will be
 satisfied directly from storage.
 
 The *table storage* backends conform to a RESTful [table storage
@@ -25,9 +25,9 @@ maintained secondary indexes and some lightweight transaction support. A
 under development.
 
 RESTBase systematically emits statsd metrics about storage and backend
-requests. Especially the systematic metric production for backend services
-provides a good baseline level of performance and error instrumentation in a
-micro-service architecture.
+requests. Specifically, the systematic metric production for backend services
+provides a good baseline level of instrumentation for tracking performance
+and errors in a micro-service architecture.
 
 ## Issue tracking
 
