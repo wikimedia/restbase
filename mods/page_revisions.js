@@ -524,7 +524,13 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             });
         } else {
             revisionRequest = P.props({
-                revisionInfo: getLatestTitleRevision(),
+                revisionInfo: getLatestTitleRevision()
+                .catch(function(e) {
+                    if (e.status !== 404) {
+                        throw e;
+                    }
+                    return self.fetchAndStoreMWRevision(restbase, req);
+                }),
                 pageData: pageDataRequest
             })
             .then(function(res) {
@@ -543,15 +549,6 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                     }
                 }
                 return res;
-            })
-            .catch(function(e) {
-                if (e.status !== 404 || /^Page was renamed/.test(e.body.description)) {
-                    throw e;
-                }
-                return P.props({
-                    revisionInfo: self.fetchAndStoreMWRevision(restbase, req),
-                    pageData: pageDataRequest
-                });
             });
         }
     } else {
