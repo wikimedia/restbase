@@ -10,7 +10,10 @@ paths:
         - Math
       description: >
         Renders a TeX formula into its mathematic representation in the given format.
-        Available formats are svg and mml.
+        Available formats are svg and mml. The response contains the `x-resource-location`
+        header which can be used to retrieve the same formula in a different formula. Just
+        append the value of the header to `/media/math/{format}/` and perform a GET request
+        against that URL.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
