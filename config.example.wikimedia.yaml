@@ -41,7 +41,7 @@ templates:
       - mediawiki/v1/mobileapps
       - media/v1/mathoid
     # - mediawiki/v1/revision-scoring
-    securityDefinitions:
+    securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
         description: Checks permissions using MW api
         type: apiKey
@@ -201,6 +201,7 @@ templates:
   global-content: &gb/content/1.0.0
     swagger: '2.0'
     info: *wp/content-info/1.0.0
+    securityDefinitions: *wp/content-security/1.0.0
     x-subspecs:
       - media/v1/mathoid
 

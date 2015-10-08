@@ -42,7 +42,7 @@ templates:
       - media/v1/mathoid
       - analytics/v1/pageviews
       - test
-    securityDefinitions:
+    securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
         description: Checks permissions using MW api
         type: apiKey
@@ -77,6 +77,7 @@ templates:
             options: # Passed to the module constructor
               conf:
                 hosts: [localhost]
+                keyspace: system
                 username: cassandra
                 password: cassandra
                 defaultConsistency: one # or 'one' for single-node testing
@@ -188,6 +189,7 @@ templates:
   global-content: &gb/content/1.0.0
     swagger: '2.0'
     info: *wp/content-info/1.0.0
+    securityDefinitions: *wp/content-security/1.0.0
     x-subspecs:
       - media/v1/mathoid
 
