@@ -9,7 +9,7 @@ templates:
   wmf-content-1.0.0: &wp/content/1.0.0
     swagger: '2.0'
     # swagger options, overriding the shared ones from the merged specs (?)
-    info:
+    info: &wp/content-info/1.0.0
       version: 1.0.0-beta
       title: Wikimedia REST API
       description: >
@@ -74,6 +74,7 @@ templates:
             options: # Passed to the module constructor
               conf:
                 hosts: [localhost]
+                keyspace: system
                 username: cassandra
                 password: cassandra
                 defaultConsistency: one # or 'one' for single-node testing
@@ -196,6 +197,14 @@ templates:
 #              service: 
 #                uri: http://revscore.wikimedia.org/{domain}/{title}/{revision}
 
+
+  global-content: &gb/content/1.0.0
+    swagger: '2.0'
+    info: *wp/content-info/1.0.0
+    x-subspecs:
+      - media/v1/mathoid
+
+
   global-sys: &gb/sys/1.0.0
     info:
       title: global domain sys API module
@@ -309,10 +318,12 @@ templates:
           /{api:sys}:
             x-subspec: *wp/sys/1.0.0
 
-  gb-default-1.0.0: &gb/default/1.0.0
+  global-default-1.0.0: &gb/default/1.0.0
     x-subspecs:
       - paths:
-          # NOTE: no public API endpoints for now
+          /{api:v1}:
+            x-subspec: *gb/content/1.0.0
+      - paths:
           /{api:sys}:
             x-subspec: *gb/sys/1.0.0
 
