@@ -1,0 +1,150 @@
+# Mathoid - math formula rendering service
+
+swagger: 2.0
+
+paths:
+  /{module:media}/math/{format}:
+    post:
+      tags:
+        - Media
+        - Math
+      description: >
+        Renders a TeX formula into its mathematic representation in the given
+        format. Available formats are svg and mml. The response contains the
+        `x-resource-location` header which can be used to retrieve the same
+        formula in a different render format. Just append the value of the
+        header to `/media/math/{format}/` and perform a GET request against
+        that URL.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/svg+xml
+        - application/mathml+xml
+        - application/json
+      parameters:
+        - name: format
+          in: path
+          description: The output format; can be svg or mml
+          type: string
+          required: true
+          enum:
+            - svg
+            - mml
+        - name: q
+          in: formData
+          description: The formula to render
+          type: string
+          required: true
+        - name: type
+          in: formData
+          description: The input type of the given formula; can be tex, inline-tex, mml or ascii
+          type: string
+          required: false
+          enum:
+            - tex
+            - inline-tex
+            - mml
+            - ascii
+      responses:
+        '200':
+          description: The rendered formula
+        '400':
+          description: Invalid format or type
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      security:
+        - header_match:
+            - header: 'x-rb-client-ip'
+              patterns:
+                - internal
+      x-request-handler:
+        - do_post:
+            request:
+              method: post
+              uri: /wikimedia.org/sys/mathoid/v1/request/{format}
+              headers:
+                cache-control: '{cache-control}'
+              body: '{$.request.body}'
+      x-monitor: true
+      x-amples:
+        - title: Mathoid - test formula
+          request:
+            params:
+              format: svg
+            body:
+              q: E=mc^2
+              type: tex
+          response:
+            status: 200
+            headers:
+              content-type: /^image\/svg/
+            body: /.+/
+        - title: Mathoid - test formula from storage (global domain)
+          request:
+            params:
+              domain: wikimedia.org
+              format: mml
+            body:
+              q: E=mc^2
+              type: tex
+          response:
+            status: 200
+            headers:
+              content-type: /^application\/mathml/
+            body: /.+/
+
+  /{module:media}/math/{format}/{hash}:
+    get:
+      tags:
+        - Media
+        - Math
+      description: >
+        Given a request hash, renders a TeX formula into its mathematic
+        representation in the given format. When a request is issued to the
+        `/media/math/{format}` POST endpoint, the response contains the
+        `x-resource-location` header denoting the hash ID of the POST data. Once
+        obtained, this endpoint may be used to avoid sending the payload.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/svg+xml
+        - application/mathml+xml
+        - application/json
+      parameters:
+        - name: format
+          in: path
+          description: The output format; can be svg or mml
+          type: string
+          required: true
+          enum:
+            - svg
+            - mml
+        - name: hash
+          in: path
+          description: The hash string of the previous POST data
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The rendered formula
+        '404':
+          description: Unknown hash ID
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - stored_post:
+            request:
+              method: get
+              uri: /wikimedia.org/sys/mathoid/v1/request/{format}/{hash}
+              headers:
+                cache-control: '{cache-control}'
+      x-monitor: false
+
