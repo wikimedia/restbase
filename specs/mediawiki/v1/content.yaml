@@ -955,7 +955,8 @@ paths:
       tags:
         - Transforms
       description: >
-        Transform wikitext to HTML
+        Transform wikitext to HTML. Note that if set `stash: true`, you need to
+        supply both the title and the revision ID.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
