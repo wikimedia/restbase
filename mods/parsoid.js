@@ -501,6 +501,17 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 PSP._getStashedContent = function(restbase, req, etag) {
     var self = this;
     var rp = req.params;
+    if (!rp.title || !rp.revision) {
+        throw new rbUtil.HTTPError({
+            status: 400,
+            body: {
+                type: 'invalid_request',
+                description: 'Stashed data can be retrieved only for a specific' +
+                        ' title/revision combination'
+            }
+        });
+    }
+    rp.title = rbUtil.normalizeTitle(rp.title);
     function getStash(format) {
         return restbase.get({
             uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
@@ -782,6 +793,17 @@ PSP.makeTransform = function(from, to) {
                 body: {
                     type: 'invalid_request',
                     description: 'Missing request parameter: ' + from
+                }
+            });
+        }
+        // check if we have all the info for stashing
+        if (req.body.stash && !(rp.title && rp.revision)) {
+            throw new rbUtil.HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    description: 'Data can be stashed only for a specific' +
+                            ' title/revision combination'
                 }
             });
         }
