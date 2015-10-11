@@ -22,6 +22,7 @@ describe('item requests', function() {
             assert.deepEqual(res.headers['access-control-allow-origin'], '*');
             assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
             assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type');
+            assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
         });
     });
     it('should transparently create a new HTML revision for Main_Page', function() {
