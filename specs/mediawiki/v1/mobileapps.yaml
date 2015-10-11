@@ -36,13 +36,27 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
+              method: get
               uri: /{domain}/sys/mobileapps/html/{title}
+              headers:
+                cache-control: '{cache-control}'
       x-monitor: true
       x-amples:
         - title: Get MobileApps Main Page
           request:
             params:
               domain: en.wikipedia.org
+              title: Main_Page
+            headers:
+              cache-control: no-cache
+          response:
+            status: 200
+            headers:
+              content-type: /text\/html/
+            body: /body/
+        - title: Get MobileApps Main Page from RB storage
+          request:
+            params:
               title: Main_Page
           response:
             status: 200
@@ -82,7 +96,10 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
+              method: get
               uri: /{domain}/sys/mobileapps/sections/{title}
+              headers:
+                cache-control: '{cache-control}'
       x-monitor: false
 
   /{module:page}/mobile-html-sections-lead/{title}:
@@ -117,7 +134,10 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
+              method: get
               uri: /{domain}/sys/mobileapps/sections-lead/{title}
+              headers:
+                cache-control: '{cache-control}'
       x-monitor: false
 
   /{module:page}/mobile-html-sections-remaining/{title}:
@@ -153,7 +173,10 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
+              method: get
               uri: /{domain}/sys/mobileapps/sections-remaining/{title}
+              headers:
+                cache-control: '{cache-control}'
       x-monitor: false
 
   /{module:page}/mobile-text/{title}:
@@ -188,5 +211,8 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
+              method: get
               uri: /{domain}/sys/mobileapps/text/{title}
+              headers:
+                cache-control: '{cache-control}'
       x-monitor: false

@@ -152,34 +152,144 @@ templates:
           paths:
             /html/{title}:
               get:
+                x-setup-handler:
+                  - init:
+                      method: put
+                      uri: /{domain}/sys/key_rev_value/mobileapps.mobile-html
+                      body:
+                        revisionRetentionPolicy:
+                          type: 'latest'
+                          count: 1
+                          grace_ttl: 86400
+                        valueType: 'json'
+                        version: 1
                 x-request-handler:
-                  - get_from_backend:
+                  - handle_req:
                       request:
-                        uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html/{title}
+                        method: get
+                        uri: /{domain}/sys/mobileapps/handling/mobile-html/{title}
+                        headers:
+                          cache-control: '{cache-control}'
             /sections/{title}:
               get:
+                x-setup-handler:
+                  - init:
+                      method: put
+                      uri: /{domain}/sys/key_rev_value/mobileapps.mobile-html-sections
+                      body:
+                        revisionRetentionPolicy:
+                          type: 'latest'
+                          count: 1
+                          grace_ttl: 86400
+                        valueType: 'json'
+                        version: 1
                 x-request-handler:
-                  - get_from_backend:
+                  - handle_req:
                       request:
-                        uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections/{title}
+                        method: get
+                        uri: /{domain}/sys/mobileapps/handling/mobile-html-sections/{title}
+                        headers:
+                          cache-control: '{cache-control}'
             /sections-lead/{title}:
               get:
+                x-setup-handler:
+                  - init:
+                      method: put
+                      uri: /{domain}/sys/key_rev_value/mobileapps.mobile-html-sections-lead
+                      body:
+                        revisionRetentionPolicy:
+                          type: 'latest'
+                          count: 1
+                          grace_ttl: 86400
+                        valueType: 'json'
+                        version: 1
                 x-request-handler:
-                  - get_from_backend:
+                  - handle_req:
                       request:
-                        uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-lead/{title}
+                        method: get
+                        uri: /{domain}/sys/mobileapps/handling/mobile-html-sections-lead/{title}
+                        headers:
+                          cache-control: '{cache-control}'
             /sections-remaining/{title}:
               get:
+                x-setup-handler:
+                  - init:
+                      method: put
+                      uri: /{domain}/sys/key_rev_value/mobileapps.mobile-html-sections-remaining
+                      body:
+                        revisionRetentionPolicy:
+                          type: 'latest'
+                          count: 1
+                          grace_ttl: 86400
+                        valueType: 'json'
+                        version: 1
                 x-request-handler:
-                  - get_from_backend:
+                  - handle_req:
                       request:
-                        uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-html-sections-remaining/{title}
+                        method: get
+                        uri: /{domain}/sys/mobileapps/handling/mobile-html-sections-remaining/{title}
+                        headers:
+                          cache-control: '{cache-control}'
             /text/{title}:
               get:
+                x-setup-handler:
+                  - init:
+                      method: put
+                      uri: /{domain}/sys/key_rev_value/mobileapps.mobile-text
+                      body:
+                        revisionRetentionPolicy:
+                          type: 'latest'
+                          count: 1
+                          grace_ttl: 86400
+                        valueType: 'json'
+                        version: 1
                 x-request-handler:
-                  - get_from_backend:
+                  - handle_req:
                       request:
-                        uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
+                        method: get
+                        uri: /{domain}/sys/mobileapps/handling/mobile-text/{title}
+                        headers:
+                          cache-control: '{cache-control}'
+            /handling/{route}/{title}:
+              get:
+                x-request-handler:
+                  - get_rev:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/page_revisions/page/{title}
+                        headers:
+                          cache-control: '{cache-control}'
+                  - check_storage:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/key_rev_value/mobileapps.{$.request.params.route}/{$.request.params.title}/{$.get_rev.body.items[0].rev}/{$.get_rev.body.items[0].tid}
+                      return_if:
+                        status: '2xx'
+                      return:
+                        status: 200
+                        headers: '{$.check_storage.body.headers}'
+                        body: '{$.check_storage.body.body}'
+                      catch:
+                        status: 404
+                  - get_mobileapps:
+                      request:
+                        method: get
+                        uri: http://appservice.wmflabs.org/{domain}/v1/page/{$.request.params.route}/{$.request.params.title}
+                        headers:
+                          x-restbase-etag: '{$.get_rev.body.items[0].rev}/{$.get_rev.body.items[0].tid}'
+                  - store:
+                      request:
+                        method: put
+                        uri: /{domain}/sys/key_rev_value/mobileapps.{$.request.params.route}/{$.request.params.title}/{$.get_rev.body.items[0].rev}/{$.get_rev.body.items[0].tid}
+                        headers:
+                          content-type: application/json
+                        body:
+                          headers: '{$.get_mobileapps.headers}'
+                          body: '{$.get_mobileapps.body}'
+                      return:
+                        status: 200
+                        headers: '{$.get_mobileapps.headers}'
+                        body: '{$.get_mobileapps.body}'
 
 #      /{module:revscore}:
 #        title: Simple revscore service wrapper
