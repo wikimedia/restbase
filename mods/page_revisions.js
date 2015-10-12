@@ -392,8 +392,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
         })
         .then(function(res) {
             var sameRev = res && res.body.items
-            && res.body.items.length > 0
-            && self._checkSameRev(revision, res.body.items[0]);
+                && res.body.items.length > 0
+                && self._checkSameRev(revision, res.body.items[0]);
             if (!sameRev) {
                 throw new rbUtil.HTTPError({ status: 404 });
             }
@@ -532,39 +532,9 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                     return self.fetchAndStoreMWRevision(restbase, req);
                 }),
                 pageData: pageDataRequest
-            })
-            .then(function(res) {
-                if (res.pageData
-                        && res.pageData.body.items
-                        && res.pageData.body.items.length) {
-                    var latestEvent = res.pageData.body.items[0];
-                    var latestRev = res.revisionInfo.body.items[0];
-                    if (latestEvent.event_type === 'rename_to'
-                            && uuid.fromString(latestEvent.tid).getDate()
-                                >= uuid.fromString(latestRev.tid).getDate()) {
-                        return self._getLatestPageTitle(restbase, req, latestEvent)
-                        .then(function(latestTitle) {
-                            var rootPath = restbase._rootReq.uri.path;
-                            var newPath = [];
-                            rootPath.forEach(function(pathElement) {
-                                if (pathElement === rp.title) {
-                                    newPath.push(encodeURIComponent(latestTitle));
-                                } else {
-                                    newPath.push(pathElement);
-                                }
-                            });
-                            throw new rbUtil.HTTPRedirect({
-                                status: 301,
-                                headers: {
-                                    location: '/' + newPath.join('/')
-                                }
-                            });
-                        });
-                    }
-                }
-                return res;
             });
         }
+        revisionRequest = revisionRequest.then(self._createRenameChecker(restbase, req));
     } else {
         throw new Error("Invalid revision: " + rp.revision);
     }
@@ -586,6 +556,42 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         return res;
     });
     // TODO: handle other revision formats (tid)
+};
+
+PRS.prototype._createRenameChecker = function(restbase, req) {
+    var self = this;
+    var rp = req.params;
+    return function(res) {
+        if (res.pageData
+                && res.pageData.body.items
+                && res.pageData.body.items.length) {
+            var latestEvent = res.pageData.body.items[0];
+            var latestRev = res.revisionInfo.body.items[0];
+            if (latestEvent.event_type === 'rename_to'
+                    && uuid.fromString(latestEvent.tid).getDate()
+                        >= uuid.fromString(latestRev.tid).getDate()) {
+                return self._getLatestPageTitle(restbase, req, latestEvent)
+                .then(function(latestTitle) {
+                    var rootPath = restbase._rootReq.uri.path;
+                    var newPath = [];
+                    rootPath.forEach(function(pathElement) {
+                        if (pathElement === rp.title) {
+                            newPath.push(encodeURIComponent(latestTitle));
+                        } else {
+                            newPath.push(pathElement);
+                        }
+                    });
+                    throw new rbUtil.HTTPRedirect({
+                        status: 301,
+                        headers: {
+                            location: '/' + newPath.join('/')
+                        }
+                    });
+                });
+            }
+        }
+        return res;
+    };
 };
 
 PRS.prototype._getLatestPageTitle = function(restbase, req, renameEvent) {

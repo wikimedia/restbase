@@ -333,7 +333,27 @@ describe('item requests', function() {
         .finally(function() {nock.cleanAll()});
     });
 
-    it('should track renames and restric access to older content', function() {
+    it('should track renames and restrict access to older content', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+            server.config.bucketURL + '/html/User%3APchelolo%2FAfter_Rename');
+        });
+    });
+
+
+    it('should track renames and restrict access to older content (no-cache)', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 679398266))
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/After_Rename', 679398351));
         return preq.get({
             uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename',
             headers: {
@@ -344,7 +364,9 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-location'],
                 server.config.bucketURL + '/html/User%3APchelolo%2FAfter_Rename');
-        });
+        })
+        .then(function() { api.done(); })
+        .finally(function() {nock.cleanAll()});
     });
 
     it('should allow creating new pages instead of renamed', function() {

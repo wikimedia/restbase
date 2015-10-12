@@ -157,7 +157,7 @@ describe('Delete/undelete handling', function() {
         // After the previous test the page in storage is marked as deleted, so if MW API returns a response,
         // we need to understand that the page was undeleted and update a good_after
         var api = nock(apiURI)
-        .post('').reply(200, getApiResponse(title, 12346));
+        .post('').reply(200, getApiResponse(title, 12347));
         // Verify that it's deleted
         return preq.get({
             uri: server.config.bucketURL + '/title/' + title
@@ -168,7 +168,7 @@ describe('Delete/undelete handling', function() {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         })
-        .then(function() { return sendUndeleteSignal(title, 12346); })
+        .then(function() { return sendUndeleteSignal(title, 12347); })
         .then(function() { return preq.get({uri: server.config.bucketURL + '/revision/' + 12345}); })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -218,18 +218,18 @@ describe('Delete/undelete handling', function() {
         .post('').reply(200, getEmptyResponse(12345))
         .post('').reply(200, getApiResponse(title, 12346))
         .post('').reply(200, getEmptyResponse(12346))
-        .post('').reply(200, getApiResponse(title, 12346));
+        .post('').reply(200, getApiResponse(title, 12347));
         // Fetch the page
         return fetchPage(title, 12345)
         .then(function() { return sendDeleteSignal(title); })
         .then(function() { return signalPageEdit(title, 12346); })
         .then(function() { return sendDeleteSignal(title); })
-        .then(function() { return sendUndeleteSignal(title, 12346); })
-        .then(function() { return preq.get({uri: server.config.bucketURL + '/revision/' + 12346}); })
+        .then(function() { return sendUndeleteSignal(title, 12347); })
+        .then(function() { return preq.get({uri: server.config.bucketURL + '/revision/' + 12347}); })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
-            assert.deepEqual(res.body.items[0].rev, 12346);
+            assert.deepEqual(res.body.items[0].rev, 12347);
         })
         .then(function() { return assertRevisionDeleted(12345); })
         .then(function() { api.done(); })
