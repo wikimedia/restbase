@@ -544,11 +544,19 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                                 >= uuid.fromString(latestRev.tid).getDate()) {
                         return self._getLatestPageTitle(restbase, req, latestEvent)
                         .then(function(latestTitle) {
-                            throw new rbUtil.HTTPError({
-                                status: 404,
-                                body: {
-                                    type: 'not_found#page_revisions',
-                                    description: 'Page was renamed to ' + latestTitle
+                            var rootPath = restbase._rootReq.uri.path;
+                            var newPath = [];
+                            rootPath.forEach(function(pathElement) {
+                                if (pathElement === rp.title) {
+                                    newPath.push(encodeURIComponent(latestTitle));
+                                } else {
+                                    newPath.push(pathElement);
+                                }
+                            });
+                            throw new rbUtil.HTTPRedirect({
+                                status: 301,
+                                headers: {
+                                    location: '/' + newPath.join('/')
                                 }
                             });
                         });

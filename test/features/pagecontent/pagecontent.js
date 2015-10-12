@@ -340,12 +340,11 @@ describe('item requests', function() {
                 'cache-control': 'no-cache'
             }
         })
-        .then(function() {
-            throw new Error('Should track renames');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-            assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
-        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                server.config.bucketURL + '/html/User%3APchelolo%2FAfter_Rename');
+        });
     });
 
     it('should allow creating new pages instead of renamed', function() {
@@ -413,11 +412,12 @@ describe('item requests', function() {
             return preq.get({
                 uri: server.config.bucketURL + '/title/User:Pchelolo%2fRenames1'
             })
-            .then(function() {
-                throw new Error('Should track renames');
-            }, function(e) {
-                assert.deepEqual(e.status, 404);
-                assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/Renames3');
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body.items[0].title, 'User:Pchelolo/Renames3');
+                assert.deepEqual(res.body.items[0].rev, 685357639);
+                assert.deepEqual(res.headers['content-location'],
+                    server.config.bucketURL + '/title/User%3APchelolo%2FRenames3');
             });
         })
         .then(function() { api.done(); })
