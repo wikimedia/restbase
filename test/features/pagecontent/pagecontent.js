@@ -279,8 +279,8 @@ describe('item requests', function() {
 
     it('should not store duplicated revison on rename', function() {
         var apiURI = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
         nock.enableNetConnect();
         var api = nock(apiURI)
@@ -320,7 +320,10 @@ describe('item requests', function() {
 
     it('should track renames and restric access to older content', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename'
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename',
+            headers: {
+                'cache-control': 'no-cache'
+            }
         })
         .then(function() {
             throw new Error('Should track renames');
@@ -328,6 +331,27 @@ describe('item requests', function() {
             assert.deepEqual(e.status, 404);
             assert.deepEqual(e.body.detail, 'Page was renamed to User:Pchelolo/After_Rename');
         })
+    });
+
+    it('should allow creating new pages instead of renamed', function() {
+        // A 'redirect' page was created for this page, need to be able to add it too
+        return preq.get({
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2fBefore_Rename/679398352',
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            return preq.get({
+                uri: server.config.bucketURL + '/title/User:Pchelolo%2fBefore_Rename'
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].rev, 679398352);
+        });
     });
 
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {

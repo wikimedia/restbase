@@ -85,7 +85,7 @@ PRS.prototype.getTableSchema = function() {
 
 PRS.prototype.pageTableName = 'page_data';
 PRS.prototype.pageTableURI = function(domain) {
-    return new URI([domain, 'sys', 'table', this.tableName, '']);
+    return new URI([domain, 'sys', 'table', this.pageTableName, '']);
 };
 PRS.prototype.getPageTableSchema = function() {
     return {
@@ -538,7 +538,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                         && res.pageData.body.items
                         && res.pageData.body.items.length) {
                     var latestEvent = res.pageData.body.items[0];
-                    if (latestEvent.event_type === 'rename_to') {
+                    var latestRev = res.revisionInfo.body.items[0];
+                    if (latestEvent.event_type === 'rename_to'
+                            && uuid.fromString(latestEvent.tid).getDate()
+                                >= uuid.fromString(latestRev.tid).getDate()) {
                         throw new rbUtil.HTTPError({
                             status: 404,
                             body: {
