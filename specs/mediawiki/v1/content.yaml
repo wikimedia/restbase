@@ -220,10 +220,13 @@ paths:
       tags:
         - Page content
       description: >
-        Retrieve the latest html for a page title.
+        Retrieve the latest html for a page title available in storage.
 
         If you know the revision as well, then please use the
         `{title}/{revision}` end point instead for better performance.
+
+        Supply the `Cache-Control: no-cache` header to force a fetch
+        of the most recent version.
 
         See [the MediaWiki DOM
         spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
