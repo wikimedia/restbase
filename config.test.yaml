@@ -165,7 +165,7 @@ templates:
                   - handle_req:
                       request:
                         method: get
-                        uri: /{domain}/sys/mobileapps/handling/mobile-html/{title}
+                        uri: /{domain}/sys/mobileapps/handling/rev/mobile-html/{title}
                         headers:
                           cache-control: '{cache-control}'
             /sections/{title}:
@@ -185,7 +185,7 @@ templates:
                   - handle_req:
                       request:
                         method: get
-                        uri: /{domain}/sys/mobileapps/handling/mobile-html-sections/{title}
+                        uri: /{domain}/sys/mobileapps/handling/rev/mobile-html-sections/{title}
                         headers:
                           cache-control: '{cache-control}'
             /sections-lead/{title}:
@@ -205,7 +205,7 @@ templates:
                   - handle_req:
                       request:
                         method: get
-                        uri: /{domain}/sys/mobileapps/handling/mobile-html-sections-lead/{title}
+                        uri: /{domain}/sys/mobileapps/handling/rev/mobile-html-sections-lead/{title}
                         headers:
                           cache-control: '{cache-control}'
             /sections-remaining/{title}:
@@ -225,7 +225,7 @@ templates:
                   - handle_req:
                       request:
                         method: get
-                        uri: /{domain}/sys/mobileapps/handling/mobile-html-sections-remaining/{title}
+                        uri: /{domain}/sys/mobileapps/handling/rev/mobile-html-sections-remaining/{title}
                         headers:
                           cache-control: '{cache-control}'
             /text/{title}:
@@ -245,10 +245,10 @@ templates:
                   - handle_req:
                       request:
                         method: get
-                        uri: /{domain}/sys/mobileapps/handling/mobile-text/{title}
+                        uri: /{domain}/sys/mobileapps/handling/rev/mobile-text/{title}
                         headers:
                           cache-control: '{cache-control}'
-            /handling/{route}/{title}:
+            /handling/rev/{route}/{title}:
               get:
                 x-request-handler:
                   - get_rev:
@@ -257,28 +257,24 @@ templates:
                         uri: /{domain}/sys/page_revisions/page/{title}
                         headers:
                           cache-control: '{cache-control}'
-                  - check_storage:
+                  - cache_branch:
                       request:
-                        method: get
-                        uri: /{domain}/sys/key_rev_value/mobileapps.{$.request.params.route}/{$.request.params.title}/{$.get_rev.body.items[0].rev}/{$.get_rev.body.items[0].tid}
-                      return_if:
-                        status: '2xx'
-                      return:
-                        status: 200
-                        headers: '{$.check_storage.body.headers}'
-                        body: '{$.check_storage.body.body}'
-                      catch:
-                        status: 404
+                        method: post
+                        uri: /{domain}/sys/mobileapps/handling/content/{$$.default($.request.headers.cache-control, 'none-given')}/{route}/{title}
+                        body: '{$.get_rev.body}'
+            /handling/content/no-cache/{route}/{title}:
+              post:
+                x-request-handler:
                   - get_mobileapps:
                       request:
                         method: get
-                        uri: http://appservice.wmflabs.org/{domain}/v1/page/{$.request.params.route}/{$.request.params.title}
+                        uri: http://appservice.wmflabs.org/{domain}/v1/page/{route}/{title}
                         headers:
-                          x-restbase-etag: '{$.get_rev.body.items[0].rev}/{$.get_rev.body.items[0].tid}'
+                          x-restbase-etag: '{$.request.body.items[0].rev}/{$.request.body.items[0].tid}'
                   - store:
                       request:
                         method: put
-                        uri: /{domain}/sys/key_rev_value/mobileapps.{$.request.params.route}/{$.request.params.title}/{$.get_rev.body.items[0].rev}/{$.get_rev.body.items[0].tid}
+                        uri: /{domain}/sys/key_rev_value/mobileapps.{route}/{title}/{$.request.body.items[0].rev}/{$.request.body.items[0].tid}
                         headers:
                           content-type: application/json
                         body:
@@ -288,6 +284,26 @@ templates:
                         status: 200
                         headers: '{$.get_mobileapps.headers}'
                         body: '{$.get_mobileapps.body}'
+            /handling/content/{cache-default}/{route}/{title}:
+              post:
+                x-request-handler:
+                  - check_storage:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/key_rev_value/mobileapps.{route}/{title}/{$.request.body.items[0].rev}/{$.request.body.items[0].tid}
+                      return_if:
+                        status: '2xx'
+                      return:
+                        status: 200
+                        headers: '{$.check_storage.body.headers}'
+                        body: '{$.check_storage.body.body}'
+                      catch:
+                        status: 404
+                  - render:
+                      request:
+                        method: post
+                        uri: /{domain}/sys/mobileapps/handling/content/no-cache/{route}/{title}
+                        body: '{$.request.body}'
 
   global-content: &gb/content/1.0.0
     swagger: '2.0'
