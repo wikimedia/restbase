@@ -75,7 +75,7 @@ paths:
     post:
       security:
         - header_match:
-            - header: 'x-rb-client-ip'
+            - header: 'x-client-ip'
               patterns:
                 - internal
       x-request-handler:

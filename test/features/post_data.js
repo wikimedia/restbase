@@ -63,7 +63,7 @@ describe('post_data', function () {
         return preq.post({
             uri: server.config.baseURL + '/post_data/',
             headers: {
-                'x-forwarded-for': '123.123.123.123'
+                'x-client-ip': '123.123.123.123'
             },
             body: {
                 key: 'value2'
