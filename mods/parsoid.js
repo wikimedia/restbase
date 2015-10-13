@@ -17,7 +17,7 @@ var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/parsoid.yaml'));
 // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
 // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
 var Purger = require('htcp-purge');
-var Template = require('../lib/reqTemplate');
+var Template = require('swagger-router').Template;
 var cacheURIs = [
     // /page/mobile-html/{title}
     new Template({

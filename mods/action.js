@@ -5,7 +5,7 @@
  */
 
 var rbUtil = require('../lib/rbUtil');
-var Template = require('../lib/reqTemplate');
+var Template = require('swagger-router').Template;
 /**
  * Error translation
  */
