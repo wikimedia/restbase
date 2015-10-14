@@ -132,7 +132,7 @@ templates:
             version: 1.0.0
             type: file
             options:
-              parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+              parsoidHost:  http://parsoid-beta.wmflabs.org
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 

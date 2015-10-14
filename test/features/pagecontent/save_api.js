@@ -12,7 +12,7 @@ var NOCK_TESTS = true;
 describe('page save api', function() {
 
     var htmlTitle = 'User:Mobrovac-WMF%2FRB_Save_Api_Test';
-    var uri = server.config.labsURL + '/wikitext/Save_test';
+    var uri = server.config.labsBucketURL + '/wikitext/Save_test';
     var htmlUri = server.config.bucketURL + '/html/' + htmlTitle;
     var wikitextToken = '';
     var htmlToken = '';
@@ -67,7 +67,7 @@ describe('page save api', function() {
                 }),
 
                 preq.get({
-                    uri: server.config.labsURL + '/revision/' + oldWikitextRev
+                    uri: server.config.labsBucketURL + '/revision/' + oldWikitextRev
                 })
                 .then(function(res) {
                     oldWikitextETag = res.headers.etag;
@@ -268,7 +268,7 @@ describe('page save api', function() {
                 assert.deepEqual(res.status, 201);
                 lastWikitextRev = res.body.newrevid;
                 return preq.get({
-                    uri: server.config.labsURL + '/revision/' + lastWikitextRev
+                    uri: server.config.labsBucketURL + '/revision/' + lastWikitextRev
                 });
             })
             .then(function(res) {

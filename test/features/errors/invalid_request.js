@@ -41,9 +41,9 @@ describe('400 handling', function() {
 
     it('Should return 400 on invalid JSON sections', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 669458404;
+        var pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
@@ -62,9 +62,9 @@ describe('400 handling', function() {
 
     it('Should return 400 if non-existent section id provided', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 669458404;
+        var pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,

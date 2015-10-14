@@ -14,7 +14,8 @@ var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/en.wikipedia.org/v1';
 var bucketURL = baseURL + '/page';
 var secureURL = hostPort + '/fr.wikipedia.org/v1/page';
-var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1/page';
+var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
+var labsBucketURL = labsURL + '/page';
 
 function loadConfig(path) {
     var confString = fs.readFileSync(path).toString();
@@ -36,6 +37,7 @@ var config = {
     bucketURL: bucketURL,
     secureURL: secureURL,
     labsURL: labsURL,
+    labsBucketURL: labsBucketURL,
     logStream: logStream(),
     conf: loadConfig(__dirname + '/../../config.test.yaml')
 };
