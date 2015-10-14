@@ -417,7 +417,6 @@ describe('page save api', function() {
                 return preq.post({
                     uri: htmlUri,
                     headers: {
-                        'x-forwarded-for': '123.123.123.123',
                         'x-client-ip': '123.123.123.123',
                         cookie: 'test'
                     },
@@ -437,6 +436,7 @@ describe('page save api', function() {
             var api = nock(prodApiURI, {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
+                    'x-forwarded-for': '123.123.123.123',
                     cookie: 'test'
                 }
             })
