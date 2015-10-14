@@ -782,6 +782,7 @@ paths:
         - title: Get rev by ID
           request:
             params:
+              domain: en.wikipedia.org
               revision: 642497713
           response:
             status: 200
