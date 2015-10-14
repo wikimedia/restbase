@@ -7,6 +7,7 @@ var server = require('../../utils/server.js');
 var P      = require('bluebird');
 var nock   = require('nock');
 
+var NOCK_TESTS = true;
 
 describe('page save api', function() {
 
@@ -117,36 +118,39 @@ describe('page save api', function() {
     });
 
     it('fail for bad token', function() {
-        nock.enableNetConnect();
-        var api = nock(labsApiURI)
-        // Mock MW API badtoken response
-        .post('')
-        .reply(200, {
-            "servedby": "nock",
-            "error": {
-                "code": "badtoken",
-                "info": "Invalid token"
-            }
-        });
+        function test() {
+            return preq.post({
+                uri: uri,
+                body: {
+                    wikitext: 'abcd',
+                    csrf_token: 'this_is_a_bad_token'
+                }
+            }).then(function(res) {
+                throw new Error('Expected an error, but got status: ' + res.status);
+            }, function(err) {
+                assert.deepEqual(err.status, 400);
+                assert.deepEqual(err.body.title, 'badtoken');
+            });
+        }
 
-        return preq.post({
-            uri: uri,
-            body: {
-                wikitext: 'abcd',
-                csrf_token: 'this_is_a_bad_token'
-            }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
-            assert.deepEqual(err.status, 400);
-            assert.deepEqual(err.body.title, 'badtoken');
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+        if (NOCK_TESTS) {
+            var api = nock(labsApiURI)
+                // Mock MW API badtoken response
+            .post('')
+            .reply(200, {
+                "servedby": "nock",
+                "error": {
+                    "code": "badtoken",
+                    "info": "Invalid token"
+                }
+            });
+
+            return test()
+            .then(function() { api.done(); })
+            .finally(function() { nock.cleanAll(); });
+        } else {
+            return test();
+        }
     });
 
     it('fail for bad base_etag', function() {
@@ -252,190 +256,252 @@ describe('page save api', function() {
     });
 
     it('save page', function() {
-        // Leave 1 test unmocked for sanity check.
-        return preq.post({
-            uri: uri,
-            body: {
-                wikitext: saveText,
-                csrf_token: wikitextToken
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 201);
-            lastWikitextRev = res.body.newrevid;
-            return preq.get({
-                uri: server.config.labsURL + '/revision/' + lastWikitextRev
+        function test() {
+            return preq.post({
+                uri: uri,
+                body: {
+                    wikitext: saveText,
+                    csrf_token: wikitextToken
+                }
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 201);
+                lastWikitextRev = res.body.newrevid;
+                return preq.get({
+                    uri: server.config.labsURL + '/revision/' + lastWikitextRev
+                });
+            })
+            .then(function(res) {
+                lastWikitextETag = res.headers.etag;
             });
-        })
-        .then(function(res) {
-            lastWikitextETag = res.headers.etag;
-        });
+        }
+
+        if (NOCK_TESTS) {
+            var now = new Date().toISOString();
+            var api = nock(labsApiURI)
+            .post('')
+            .reply(200, {
+                edit: {
+                    result: "Success",
+                    pageid: 127114,
+                    title: "Save test",
+                    contentmodel: "wikitext",
+                    oldrevid: 275830,
+                    newrevid: 275831,
+                    newtimestamp: now
+                }
+            })
+            .post('')
+            .reply(200, {
+                'batchcomplete': '',
+                'query': {
+                    'pages': {
+                        '127114': {
+                            'pageid': 127114,
+                            'ns': 0,
+                            'title': 'Save test',
+                            'contentmodel': 'wikitext',
+                            'pagelanguage': 'en',
+                            'touched': now,
+                            'lastrevid': 275831,
+                            'length': 2941,
+                            'revisions': [{
+                                'revid': 275831,
+                                'user': 'Chuck Norris',
+                                'userid': 3606755,
+                                'timestamp': now,
+                                'size': 2941,
+                                'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
+                                'contentmodel': 'wikitext',
+                                'comment': 'Test',
+                                'tags': []
+                            }]
+                        }
+                    }
+                }
+            });
+            return test()
+            .then(function() { api.done(); })
+            .finally(function() { nock.cleanAll(); });
+        } else {
+            return test();
+        }
     });
 
     it('no change', function() {
-        nock.enableNetConnect();
-        var api = nock(labsApiURI)
-        // Mock MW API nochange response
-        .post('')
-        .reply(200, {
-            edit: {
-                result: "Success",
-                pageid: 127114,
-                title: "Save test",
-                contentmodel: "wikitext",
-                nochange: true
-            }
-        });
+        function test() {
+            return preq.post({
+                uri: uri,
+                body: {
+                    wikitext: saveText,
+                    csrf_token: wikitextToken
+                },
+                headers: {
+                    'if-match': lastWikitextETag
+                }
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body.nochange, true);
+            });
+        }
 
-        return preq.post({
-            uri: uri,
-            body: {
-                wikitext: saveText,
-                csrf_token: wikitextToken
-            },
-            headers: {
-                'if-match': lastWikitextETag
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.nochange, true);
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+        if (NOCK_TESTS) {
+            var api = nock(labsApiURI)
+                // Mock MW API nochange response
+            .post('')
+            .reply(200, {
+                edit: {
+                    result: "Success",
+                    pageid: 127114,
+                    title: "Save test",
+                    contentmodel: "wikitext",
+                    nochange: true
+                }
+            });
+
+            return test()
+            .then(function() { api.done(); })
+            .finally(function() { nock.cleanAll(); });
+        } else {
+            return test();
+        }
     });
 
     it('detect conflict', function() {
-        nock.enableNetConnect();
-        var api = nock(labsApiURI)
-        // Mock MW API editconflict response
-        .post('')
-        .reply(200, {
-            "servedby": "nock",
-            "error": {
-                "code": "editconflict",
-                "info": "Edit conflict detected"
-            }
-        });
+        function test() {
+            return preq.post({
+                uri: uri,
+                body: {
+                    base_etag: oldWikitextETag,
+                    wikitext: saveText + "\n\nExtra text",
+                    csrf_token: wikitextToken
+                },
+                headers: {
+                    'if-match': lastWikitextETag
+                }
+            }).then(function(res) {
+                throw new Error('Expected an error, but got status: ' + res.status);
+            }, function(err) {
+                assert.deepEqual(err.status, 409);
+                assert.deepEqual(err.body.title, 'editconflict');
+            });
+        }
 
-        return preq.post({
-            uri: uri,
-            body: {
-                base_etag: oldWikitextETag,
-                wikitext: saveText + "\n\nExtra text",
-                csrf_token: wikitextToken
-            },
-            headers: {
-                'if-match': lastWikitextETag
-            }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
-            assert.deepEqual(err.status, 409);
-            assert.deepEqual(err.body.title, 'editconflict');
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+        if (NOCK_TESTS) {
+            var api = nock(labsApiURI)
+                // Mock MW API editconflict response
+            .post('')
+            .reply(200, {
+                "servedby": "nock",
+                "error": {
+                    "code": "editconflict",
+                    "info": "Edit conflict detected"
+                }
+            });
+
+            return test()
+            .then(function() { api.done(); })
+            .finally(function() { nock.cleanAll(); });
+        } else {
+            return test();
+        }
     });
 
     it('save HTML', function() {
-        nock.enableNetConnect();
-        var api = nock(prodApiURI, {
-            reqheaders: {
-                'x-forwarded-for': '123.123.123.123',
-                cookie: 'test'
-            }
-        })
-        // Mock MW API success response
-        .post('')
-        .reply(200, {
-            edit: {
-                result: "Success",
-                pageid: 46950417,
-                title: "User:Mobrovac-WMF/RB Save Api Test",
-                contentmodel: "wikitext",
-                oldrevid: 680525605,
-                newrevid: 680525800,
-                newtimestamp: new Date().toISOString()
-            }
-        });
+        function test() {
+            return preq.get({
+                uri: htmlUri + '/' + lastHTMLRev
+            }).then(function(res) {
+                assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
+                return preq.post({
+                    uri: htmlUri,
+                    headers: {
+                        'x-forwarded-for': '123.123.123.123',
+                        cookie: 'test'
+                    },
+                    body: {
+                        html: res.body.replace(/\<\/body\>/,
+                        '<p>Generated via direct HTML save! Random ' + Math.floor(Math.random() * 32768) + ' </p></body>'),
+                        csrf_token: htmlToken
+                    }
+                });
+            }).then(function(res) {
+                assert.deepEqual(res.status, 201);
+                lastHTMLETag = res.headers.etag;
+            });
+        }
 
-        return preq.get({
-            uri: htmlUri + '/' + lastHTMLRev
-        }).then(function(res) {
-            assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
-            return preq.post({
-                uri: htmlUri,
-                headers: {
+        if (NOCK_TESTS) {
+            var api = nock(prodApiURI, {
+                reqheaders: {
                     'x-forwarded-for': '123.123.123.123',
                     cookie: 'test'
-                },
-                body: {
-                    html: res.body.replace(/\<\/body\>/,
-                        '<p>Generated via direct HTML save! Random ' + Math.floor(Math.random() * 32768) + ' </p></body>'),
-                    csrf_token: htmlToken
+                }
+            })
+                // Mock MW API success response
+            .post('')
+            .reply(200, {
+                edit: {
+                    result: "Success",
+                    pageid: 46950417,
+                    title: "User:Mobrovac-WMF/RB Save Api Test",
+                    contentmodel: "wikitext",
+                    oldrevid: 680525605,
+                    newrevid: 680525800,
+                    newtimestamp: new Date().toISOString()
                 }
             });
-        }).then(function(res) {
-            assert.deepEqual(res.status, 201);
-            lastHTMLETag = res.headers.etag;
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+
+            return test()
+            .then(function() { api.done(); })
+            .finally(function() { nock.cleanAll(); });
+        } else {
+            return test();
+        }
     });
 
     it('detect conflict on save HTML', function() {
-        nock.enableNetConnect();
-        var api = nock(prodApiURI)
-        // Mock MW API editconflict response
-        .post('')
-        .reply(200, {
-            "servedby": "nock",
-            "error": {
-                "code": "editconflict",
-                "info": "Edit conflict detected"
-            }
-        });
+        function test() {
+            return preq.get({
+                uri: htmlUri + '/' + lastHTMLRev
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
+                return preq.post({
+                    uri: htmlUri,
+                    headers: {
+                        'if-match': lastHTMLETag
+                    },
+                    body: {
+                        html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
+                        csrf_token: htmlToken,
+                        base_etag: oldHTMLEtag
+                    }
+                });
+            }).then(function(res) {
+                throw new Error('Expected an error, but got status: ' + res.status);
+            }, function(err) {
+                assert.deepEqual(err.status, 409);
+                assert.deepEqual(err.body.title, 'editconflict');
+            });
+        }
 
-        return preq.get({
-            uri: htmlUri + '/' + lastHTMLRev
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
-            return preq.post({
-                uri: htmlUri,
-                headers: {
-                    'if-match': lastHTMLETag
-                },
-                body: {
-                    html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
-                    csrf_token: htmlToken,
-                    base_etag: oldHTMLEtag
+        if (NOCK_TESTS) {
+            var api = nock(prodApiURI)
+            .post('')
+            .reply(200, {
+                "servedby": "nock",
+                "error": {
+                    "code": "editconflict",
+                    "info": "Edit conflict detected"
                 }
             });
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
-            assert.deepEqual(err.status, 409);
-            assert.deepEqual(err.body.title, 'editconflict');
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
+            return test()
+            .then(function() { api.done(); })
+            .finally(function() { nock.cleanAll(); });
+        } else {
+            return test();
+        }
     });
 });
