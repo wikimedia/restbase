@@ -11,30 +11,22 @@ var NOCK_TESTS = true;
 
 describe('page save api', function() {
 
-    var htmlTitle = 'User:Mobrovac-WMF%2FRB_Save_Api_Test';
-    var uri = server.config.labsBucketURL + '/wikitext/Save_test';
-    var htmlUri = server.config.bucketURL + '/html/' + htmlTitle;
-    var wikitextToken = '';
-    var htmlToken = '';
-    var oldWikitextETag = '';
-    var oldHTMLEtag = '';
+    var wikitextUri = server.config.labsBucketURL + '/wikitext/Save_test';
+    var htmlUri = server.config.labsBucketURL + '/html/Save_test';
+    var token = '';
+    var oldETag = '';
     var saveText = "Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
         "API! This page is created by an automated test to make sure RESTBase works " +
         "with the current version of MediaWiki.\n\n" +
         "== Date ==\nText generated on " + new Date().toUTCString() + "\n\n" +
         "== Random ==\nHere's a random number: " + Math.floor(Math.random() * 32768);
-    var oldWikitextRev = 259419;
-    var oldHTMLRev = 666464140;
-    var lastWikitextRev = 0;
-    var lastHTMLRev = 0;
-    var lastWikitextETag = '';
-    var lastHTMLETag = '';
+    var oldRev = 259419;
+    var lastRev = 0;
+    var lastETag = '';
     var apiUri = server.config
         .conf.templates['wmf-sys-1.0.0']
         .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
-
     var labsApiURI = apiUri.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
-    var prodApiURI = apiUri.replace('{domain}', 'en.wikipedia.org');
 
     this.timeout(20000);
 
@@ -51,39 +43,14 @@ describe('page save api', function() {
                     }
                 })
                 .then(function(res) {
-                    wikitextToken = res.body.query.tokens.csrftoken;
-                }),
-                preq.get({
-                    uri: 'http://en.wikipedia.org/w/api.php',
-                    query: {
-                        action: 'query',
-                        meta: 'tokens',
-                        format: 'json',
-                        formatversion: 2
-                    }
-                })
-                .then(function(res) {
-                    htmlToken = res.body.query.tokens.csrftoken;
+                    token = res.body.query.tokens.csrftoken;
                 }),
 
                 preq.get({
-                    uri: server.config.labsBucketURL + '/revision/' + oldWikitextRev
+                    uri: server.config.labsBucketURL + '/revision/' + oldRev
                 })
                 .then(function(res) {
-                    oldWikitextETag = res.headers.etag;
-                }),
-                preq.get({
-                    uri: server.config.bucketURL + '/revision/' + oldHTMLRev
-                })
-                .then(function(res) {
-                    oldHTMLEtag = res.headers.etag;
-                }),
-
-                preq.get({
-                    uri: server.config.bucketURL + '/title/' + htmlTitle
-                })
-                .then(function(res) {
-                    lastHTMLRev = res.body.items[0].rev;
+                    oldETag = res.headers.etag;
                 })
             ]);
         });
@@ -91,7 +58,7 @@ describe('page save api', function() {
 
     it('fail for missing content', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 wikitext: ''
             }
@@ -105,7 +72,7 @@ describe('page save api', function() {
 
     it('fail for missing token', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 wikitext: 'abcd'
             }
@@ -120,7 +87,7 @@ describe('page save api', function() {
     it('fail for bad token', function() {
         function test() {
             return preq.post({
-                uri: uri,
+                uri: wikitextUri,
                 body: {
                     wikitext: 'abcd',
                     csrf_token: 'this_is_a_bad_token'
@@ -155,7 +122,7 @@ describe('page save api', function() {
 
     it('fail for bad base_etag', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 base_etag: 'this_is_a_bad_ETag',
                 wikitext: 'abcd',
@@ -171,9 +138,9 @@ describe('page save api', function() {
 
     it('fails for bad base_etag timestamp', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
-                base_etag: oldWikitextETag + 'this_should_not_be_here',
+                base_etag: oldETag + 'this_should_not_be_here',
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
             }
@@ -187,7 +154,7 @@ describe('page save api', function() {
 
     it('fail for bad if-match etag', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
@@ -205,13 +172,13 @@ describe('page save api', function() {
 
     it('fail for bad if-match etag timestamp', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
             },
             headers: {
-                'if-match': lastWikitextETag + 'this_should_not_be_here'
+                'if-match': lastETag + 'this_should_not_be_here'
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -223,13 +190,13 @@ describe('page save api', function() {
 
     it('fail for bad if-match etag revision', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
             },
             headers: {
-                'if-match': 'this_should_not_be_here' + lastWikitextETag
+                'if-match': 'this_should_not_be_here' + lastETag
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -241,7 +208,7 @@ describe('page save api', function() {
 
     it('fail for bad revision', function() {
         return preq.post({
-            uri: uri,
+            uri: wikitextUri,
             body: {
                 base_etag: '12sd121s/test_test',
                 wikitext: 'abcd',
@@ -258,21 +225,21 @@ describe('page save api', function() {
     it('save page', function() {
         function test() {
             return preq.post({
-                uri: uri,
+                uri: wikitextUri,
                 body: {
                     wikitext: saveText,
-                    csrf_token: wikitextToken
+                    csrf_token: token
                 }
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 201);
-                lastWikitextRev = res.body.newrevid;
+                lastRev = res.body.newrevid;
                 return preq.get({
-                    uri: server.config.labsBucketURL + '/revision/' + lastWikitextRev
+                    uri: server.config.labsBucketURL + '/revision/' + lastRev
                 });
             })
             .then(function(res) {
-                lastWikitextETag = res.headers.etag;
+                lastETag = res.headers.etag;
             });
         }
 
@@ -331,13 +298,13 @@ describe('page save api', function() {
     it('no change', function() {
         function test() {
             return preq.post({
-                uri: uri,
+                uri: wikitextUri,
                 body: {
                     wikitext: saveText,
-                    csrf_token: wikitextToken
+                    csrf_token: token
                 },
                 headers: {
-                    'if-match': lastWikitextETag
+                    'if-match': lastETag
                 }
             })
             .then(function(res) {
@@ -371,14 +338,14 @@ describe('page save api', function() {
     it('detect conflict', function() {
         function test() {
             return preq.post({
-                uri: uri,
+                uri: wikitextUri,
                 body: {
-                    base_etag: oldWikitextETag,
+                    base_etag: oldETag,
                     wikitext: saveText + "\n\nExtra text",
-                    csrf_token: wikitextToken
+                    csrf_token: token
                 },
                 headers: {
-                    'if-match': lastWikitextETag
+                    'if-match': lastETag
                 }
             }).then(function(res) {
                 throw new Error('Expected an error, but got status: ' + res.status);
@@ -411,7 +378,7 @@ describe('page save api', function() {
     it('save HTML', function() {
         function test() {
             return preq.get({
-                uri: htmlUri + '/' + lastHTMLRev
+                uri: htmlUri + '/' + lastRev
             }).then(function(res) {
                 assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
                 return preq.post({
@@ -423,24 +390,23 @@ describe('page save api', function() {
                     body: {
                         html: res.body.replace(/\<\/body\>/,
                         '<p>Generated via direct HTML save! Random ' + Math.floor(Math.random() * 32768) + ' </p></body>'),
-                        csrf_token: htmlToken
+                        csrf_token: token
                     }
                 });
             }).then(function(res) {
                 assert.deepEqual(res.status, 201);
-                lastHTMLETag = res.headers.etag;
+                lastETag = res.headers.etag;
             });
         }
 
         if (NOCK_TESTS) {
-            var api = nock(prodApiURI, {
+            var api = nock(labsApiURI, {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
                     'x-forwarded-for': '123.123.123.123',
                     cookie: 'test'
                 }
             })
-                // Mock MW API success response
             .post('')
             .reply(200, {
                 edit: {
@@ -465,19 +431,19 @@ describe('page save api', function() {
     it('detect conflict on save HTML', function() {
         function test() {
             return preq.get({
-                uri: htmlUri + '/' + lastHTMLRev
+                uri: htmlUri + '/' + lastRev
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
                 return preq.post({
                     uri: htmlUri,
                     headers: {
-                        'if-match': lastHTMLETag
+                        'if-match': lastETag
                     },
                     body: {
                         html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
-                        csrf_token: htmlToken,
-                        base_etag: oldHTMLEtag
+                        csrf_token: token,
+                        base_etag: oldETag
                     }
                 });
             }).then(function(res) {
@@ -489,7 +455,7 @@ describe('page save api', function() {
         }
 
         if (NOCK_TESTS) {
-            var api = nock(prodApiURI)
+            var api = nock(labsApiURI)
             .post('')
             .reply(200, {
                 "servedby": "nock",

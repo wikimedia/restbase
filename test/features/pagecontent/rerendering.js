@@ -19,8 +19,8 @@ describe('page re-rendering', function () {
 
     // A test page that includes the current date, so that it changes if
     // re-rendered more than a second apart.
-    var dynamic1 = '/html/User:GWicke%2fDate/653530930';
-    var dynamic2 = '/html/User:GWicke%2fDate/653529842';
+    var dynamic1 = '/html/User:Pchelolo%2fDate/275850';
+    var dynamic2 = '/html/User:Pchelolo%2fDate/275851';
 
     function hasTextContentType(res) {
         assert.contentType(res, 'text/html');
@@ -31,7 +31,7 @@ describe('page re-rendering', function () {
         var r1etag2;
         var r2etag1;
         return preq.get({
-            uri: server.config.bucketURL + dynamic1
+            uri: server.config.labsBucketURL + dynamic1
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
@@ -42,7 +42,7 @@ describe('page re-rendering', function () {
             return P.delay(1500)
             .then(function() {
                 return preq.get({
-                    uri: server.config.bucketURL + dynamic1,
+                    uri: server.config.labsBucketURL + dynamic1,
                     headers: { 'cache-control': 'no-cache' }
                 });
             });
@@ -56,7 +56,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic1 + '/' + getTid(r1etag1)
+                uri: server.config.labsBucketURL + dynamic1 + '/' + getTid(r1etag1)
             });
         })
         .then(function (res) {
@@ -64,7 +64,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic1
+                uri: server.config.labsBucketURL + dynamic1
             });
         })
         .then(function (res) {
@@ -72,7 +72,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic1 + '/' + getTid(r1etag2)
+                uri: server.config.labsBucketURL + dynamic1 + '/' + getTid(r1etag2)
             });
         })
         .then(function (res) {
@@ -80,7 +80,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic2
+                uri: server.config.labsBucketURL + dynamic2
             });
         })
         .then(function (res) {
@@ -89,7 +89,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic2 + '/' + getTid(r2etag1)
+                uri: server.config.labsBucketURL + dynamic2 + '/' + getTid(r2etag1)
             });
         })
         .then(function (res) {
@@ -97,7 +97,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + dynamic1
+                uri: server.config.labsBucketURL + dynamic1
             });
         })
         .then(function (res) {
@@ -108,7 +108,7 @@ describe('page re-rendering', function () {
 
     it('should render & re-render independent revisions, if-unmodified-since support', function () {
         return preq.get({
-            uri: server.config.bucketURL + dynamic1,
+            uri: server.config.labsBucketURL + dynamic1,
             headers: {
                 'cache-control': 'no-cache',
                 'if-unmodified-since': 'Wed, 11 Dec 2013 16:00:00 GMT',
@@ -123,8 +123,8 @@ describe('page re-rendering', function () {
     });
 
     // A static test page
-    var static1 = '/html/User:GWicke%2fStatic/653529880';
-    var static2 = '/html/User:GWicke%2fStatic/653529961';
+    var static1 = '/html/User:Pchelolo%2fStatic/275852';
+    var static2 = '/html/User:Pchelolo%2fStatic/275853';
 
     it('should render & re-render independent revisions, but not update unchanged content', function () {
         var r1etag1;
@@ -132,7 +132,7 @@ describe('page re-rendering', function () {
         var r2etag1;
         var tid;
         return preq.get({
-            uri: server.config.bucketURL + static1
+            uri: server.config.labsBucketURL + static1
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
@@ -140,7 +140,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1,
+                uri: server.config.labsBucketURL + static1,
                 headers: { 'cache-control': 'no-cache' }
             });
         })
@@ -153,7 +153,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1 + '/' + getTid(r1etag1)
+                uri: server.config.labsBucketURL + static1 + '/' + getTid(r1etag1)
             });
         })
         .then(function (res) {
@@ -161,7 +161,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1
+                uri: server.config.labsBucketURL + static1
             });
         })
         .then(function (res) {
@@ -169,7 +169,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1 + '/' + getTid(r1etag2)
+                uri: server.config.labsBucketURL + static1 + '/' + getTid(r1etag2)
             });
         })
         .then(function (res) {
@@ -177,7 +177,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static2
+                uri: server.config.labsBucketURL + static2
             });
         })
         .then(function (res) {
@@ -186,7 +186,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static2 + '/' + getTid(r2etag1)
+                uri: server.config.labsBucketURL + static2 + '/' + getTid(r2etag1)
             });
         })
         .then(function (res) {
@@ -194,7 +194,7 @@ describe('page re-rendering', function () {
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.bucketURL + static1
+                uri: server.config.labsBucketURL + static1
             });
         })
         .then(function (res) {

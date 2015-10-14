@@ -30,7 +30,7 @@ paths:
           description: The domain under which the data resides
           type: string
           required: true
-          default: en.wikipedia.org
+          default: en.wikipedia.beta.wmflabs.org
         - name: title
           in: path
           description: The title of page content
@@ -50,7 +50,7 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.org
+                domain: en.wikipedia.beta.wmflabs.org
                 title: Foobar
           response:
             status: 200
@@ -71,7 +71,7 @@ paths:
           description: The domain under which the data resides
           type: string
           required: true
-          default: en.wikipedia.org
+          default: domain:en.wikipedia.beta.wmflabs.org
         - name: title
           in: path
           description: The title of page content
@@ -91,7 +91,7 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.org
+                domain: en.wikipedia.beta.wmflabs.org
                 title: Foobar
           response:
             status: 200
@@ -112,7 +112,7 @@ paths:
           description: The domain under which the data resides'
           type: string
           required: true
-          default: en.wikipedia.org
+          default: en.wikipedia.beta.wmflabs.org
         - name: title
           in: path
           description: The title of page content
@@ -141,9 +141,9 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.org
+                domain: en.wikipedia.beta.wmflabs.org
                 title: Foobar
-                revision: 624484477
+                revision: 252937
           response:
             status: 200
             headers:
@@ -163,7 +163,7 @@ paths:
           description: The domain under which the data resides'
           type: string
           required: true
-          default: en.wikipedia.org
+          default: en.wikipedia.beta.wmflabs.org
         - name: title
           in: path
           description: The title of page content
@@ -192,9 +192,9 @@ paths:
       x-amples:
         - request:
             params:
-                domain: en.wikipedia.org
+                domain: en.wikipedia.beta.wmflabs.org
                 title: Foobar
-                revision: 624484477
+                revision: 252937
           response:
             status: 200
             headers:

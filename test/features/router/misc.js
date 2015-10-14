@@ -24,7 +24,7 @@ describe('router - misc', function() {
     it('should set a request ID for each sub-request and return it', function() {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: server.config.bucketURL + '/html/Foobar',
+            uri: server.config.labsBucketURL + '/html/Foobar',
             headers: {
                 'Cache-Control': 'no-cache'
             }
@@ -45,7 +45,7 @@ describe('router - misc', function() {
         var reqId = 'b6c17ea83d634b31bb28d60aae1caaac';
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: server.config.bucketURL + '/html/Foobar',
+            uri: server.config.labsBucketURL + '/html/Foobar',
             headers: {
                 'X-Request-Id': reqId
             }
@@ -65,7 +65,7 @@ describe('router - misc', function() {
         var reqId = '9c54ff673d634b31bb28d60aae1cb43c';
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: server.config.bucketURL + '/foo-bucket/Foobar',
+            uri: server.config.labsBucketURL + '/foo-bucket/Foobar',
             headers: {
                 'X-Request-Id': reqId
             }
@@ -86,7 +86,7 @@ describe('router - misc', function() {
 
     it('should truncate body upon HEAD request', function() {
         return preq.head({
-            uri: server.config.bucketURL + '/html/1912'
+            uri: server.config.labsBucketURL + '/html/Foobar'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);

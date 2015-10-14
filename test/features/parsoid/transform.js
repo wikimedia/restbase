@@ -8,8 +8,8 @@ var server = require('../../utils/server.js');
 var preq   = require('preq');
 
 var testPage = {
-    title: 'User:GWicke%2F_restbase_test',
-    revision: '646859921',
+    title: 'User:Pchelolo%2fRestbase_Test',
+    revision: '275854',
     wikitext: '<div id=bar>Selser test'
     // html is fetched dynamically
 };
@@ -21,9 +21,9 @@ describe('transform api', function() {
         return server.start()
         .then(function() {
             return preq.get({
-                uri: server.config.baseURL
-                    + '/page/html/' + testPage.title
-                    + '/' + testPage.revision,
+                uri: server.config.labsBucketURL
+                    + '/html/' + testPage.title
+                    + '/' + testPage.revision
             });
         })
         .then(function (res) {
@@ -35,7 +35,7 @@ describe('transform api', function() {
 
     it('html2html', function () {
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/html/to/html/' + testPage.title
                 + '/' + testPage.revision,
             body: {
@@ -55,7 +55,7 @@ describe('transform api', function() {
 
     it('html2html with body_only', function () {
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/html/to/html/' + testPage.title
                 + '/' + testPage.revision,
             body: {
@@ -76,7 +76,7 @@ describe('transform api', function() {
 
     it('wt2html', function () {
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
             body: {
                 wikitext: '== Heading =='
@@ -95,7 +95,7 @@ describe('transform api', function() {
 
     it('wt2html with body_only', function () {
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
             body: {
                 wikitext: '== Heading ==',
@@ -116,7 +116,7 @@ describe('transform api', function() {
 
     it('html2wt, no-selser', function () {
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/html/to/wikitext/User:GWicke%2F_restbase_test',
             body: {
                 html: '<body>The modified HTML</body>'
@@ -131,7 +131,7 @@ describe('transform api', function() {
 
     it('html2wt, selser', function () {
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/html/to/wikitext/' + testPage.title
                 + '/' + testPage.revision,
             body: {
@@ -147,7 +147,7 @@ describe('transform api', function() {
 
     it('html2wt with scrub_wikitext', function() {
         return preq.post({
-            uri: server.config.baseURL + '/transform/html/to/wikitext',
+            uri: server.config.labsURL + '/transform/html/to/wikitext',
             body: {
                 html: '<h2></h2>',
                 scrub_wikitext: 1
@@ -161,9 +161,9 @@ describe('transform api', function() {
 
     it('sections2wt, replace', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 669458404;
+        var pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
@@ -184,9 +184,9 @@ describe('transform api', function() {
 
     it('sections2wt, append', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 669458404;
+        var pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
@@ -206,9 +206,9 @@ describe('transform api', function() {
 
     it('sections2wt, append, application/json', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 669458404;
+        var pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
@@ -235,7 +235,7 @@ describe('transform api', function() {
         var newHtml = testPage.html.replace(/<meta property="mw:TimeUuid" content="([^"]+)"\/?>/,
                 '<meta content="cc8ba6b3-636c-11e5-b601-24b4f65ab671" property="mw:TimeUuid" />');
         return preq.post({
-            uri: server.config.baseURL
+            uri: server.config.labsURL
                     + '/transform/html/to/html/' + testPage.title
                     + '/' + testPage.revision,
             body: {
