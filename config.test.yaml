@@ -50,7 +50,7 @@ templates:
         x-internal-request-whitelist:
           - http://en.wikipedia.org/w/api.php
           - http://fr.wikipedia.org/w/api.php
-          - http://en.wikipedia.beta.wmflabs.org
+          - http://en.wikipedia.beta.wmflabs.org/w/api.php
           # Left as a regex for test purpose
           - /http:\/\/parsoid\-beta\.wmflabs\.org/
       header_match:

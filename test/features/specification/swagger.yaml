@@ -71,7 +71,7 @@ paths:
           description: The domain under which the data resides
           type: string
           required: true
-          default: domain:en.wikipedia.beta.wmflabs.org
+          default: en.wikipedia.beta.wmflabs.org
         - name: title
           in: path
           description: The title of page content
