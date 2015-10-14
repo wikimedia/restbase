@@ -779,17 +779,6 @@ PSP.makeTransform = function(from, to) {
     return function(restbase, req) {
         var rp = req.params;
         if (!req.body || !req.body[from]) {
-            // XXX: This is a temporary log line to aid in
-            // discovering what's going on in T112339
-            // We need to remove it
-            if (to === 'wikitext') {
-                self.log('warn/transform', {
-                    message: 'Missing request parameter: ' + from,
-                    req: req,
-                    status: 400
-                });
-            }
-            // XXX: End temp code
             throw new rbUtil.HTTPError({
                 status: 400,
                 body: {
@@ -835,20 +824,6 @@ PSP.makeTransform = function(from, to) {
             }
             throw e;
         })
-        // XXX: This is a temporary catch to aid in
-        // discovering what's going on in T112339
-        // We need to remove it
-        .catch(function(e) {
-            if (to === 'wikitext' && e.status && e.status >= 400 && e.status < 500) {
-                self.log('warn/transform', {
-                    message: e.body.description || e.body.message,
-                    req: req,
-                    status: e.status
-                });
-            }
-            throw e;
-        })
-        // XXX: End temp code
         .then(function(res) {
             // Unwrap to the flat response format
             var innerRes = res.body[to];
