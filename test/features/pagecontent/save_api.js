@@ -418,6 +418,7 @@ describe('page save api', function() {
                     uri: htmlUri,
                     headers: {
                         'x-forwarded-for': '123.123.123.123',
+                        'x-client-ip': '123.123.123.123',
                         cookie: 'test'
                     },
                     body: {
@@ -435,7 +436,7 @@ describe('page save api', function() {
         if (NOCK_TESTS) {
             var api = nock(prodApiURI, {
                 reqheaders: {
-                    'x-forwarded-for': '123.123.123.123',
+                    'x-client-ip': '123.123.123.123',
                     cookie: 'test'
                 }
             })
