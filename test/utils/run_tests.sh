@@ -36,8 +36,11 @@ elif [ "$2" = "sqlite" ]; then
 elif [ "$2" = "cassandra" ]; then
     runTest "cassandra" $1
 elif [ "$2" = "all" ]; then
-    runTest "sqlite" $1
     runTest "cassandra" $1
+    cassandra_result=$?
+    runTest "sqlite" $1
+    sqlite_result=$?
+    exit $(($cassandra_result + $sqlite_result))
 else
     echo "Invalid testing mode"
     exit 1
