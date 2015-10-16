@@ -158,11 +158,11 @@ paths:
           request:
             params:
               project: en.wikipedia
-              access: mobile-app
-              agent: spider
+              access: all-access
+              agent: all-agents
               granularity: hourly
-              start: 2015070100
-              end: 2015070102
+              start: 1970010100
+              end: 1970010100
           response:
             status: 200
             headers:
@@ -170,11 +170,11 @@ paths:
             body:
               items:
                 - project: en.wikipedia
-                  access: mobile-app
-                  agent: spider
+                  access: all-access
+                  agent: all-agents
                   granularity: hourly
-                  timestamp: 2015070101
-                  views: 1000
+                  timestamp: 1970010100
+                  views: 0
 
   /{module:pageviews}/top/{project}/{access}/{year}/{month}/{day}:
     get:
