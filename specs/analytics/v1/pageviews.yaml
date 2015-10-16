@@ -168,7 +168,6 @@ paths:
             headers:
               content-type: application/json
             body:
-              count: 1
               items:
                 - project: en.wikipedia
                   access: mobile-app
