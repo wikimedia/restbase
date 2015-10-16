@@ -4,6 +4,7 @@ var preq   = require('preq');
 var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
 var URI    = require('swagger-router').URI;
+var P      = require('bluebird');
 
 function constructTestCase(title, path, method, request, response) {
     return {
@@ -137,24 +138,34 @@ describe('Monitoring tests', function() {
     });
 
     it('should get the spec', function() {
-        return preq.get(server.config.baseURL + '/?spec')
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.notDeepEqual(res.body, undefined, 'No body received!');
-            return res.body;
-        })
-        .then(function(spec) {
-            describe('Monitoring routes', function() {
-                var defaults = spec['x-default-params'] || {};
-                defaults.domain = 'en.wikipedia.beta.wmflabs.org';
-                constructTests(spec, spec['x-default-params'] || {}).forEach(function(testCase) {
-                    it(testCase.title, function() {
-                        return preq(testCase.request)
-                        .then(function(res) {
-                            validateTestResponse(testCase, res);
-                        }, function(err) {
-                            validateTestResponse(testCase, err);
+        return P.each([{
+                domain: 'en.wikipedia.org',
+                specURI: server.config.baseURL + '/?spec'
+            },
+            {
+                domain: 'wikimedia.org',
+                specURI: server.config.globalURL + '/?spec'
+            }],
+        function(options) {
+            return preq.get(options.specURI)
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.notDeepEqual(res.body, undefined, 'No body received!');
+                return res.body;
+            })
+            .then(function(spec) {
+                describe('Monitoring routes, ' + options.domain + ' domain', function() {
+                    var defaults = spec['x-default-params'] || {};
+                    defaults.domain = options.domain;
+                    constructTests(spec, defaults).forEach(function(testCase) {
+                        it(testCase.title, function() {
+                            return preq(testCase.request)
+                            .then(function(res) {
+                                validateTestResponse(testCase, res);
+                            }, function(err) {
+                                validateTestResponse(testCase, err);
+                            });
                         });
                     });
                 });

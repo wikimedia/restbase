@@ -117,7 +117,7 @@ paths:
                   views: '{$.request.params.views}'
       x-monitor: false
 
-  /{module:pageviews}/insert-per-project/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+  /{module:pageviews}/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
         - put_to_storage:

@@ -39,7 +39,6 @@ templates:
       - mediawiki/v1/graphoid
       - mediawiki/v1/mobileapps
       - media/v1/mathoid
-      - analytics/v1/pageviews
       - test
     securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
@@ -179,19 +178,14 @@ templates:
                       request:
                         uri: http://appservice.wmflabs.org/{domain}/v1/page/mobile-text/{title}
 
-      /{module:pageviews}:
-        x-modules:
-          - name: pageviews
-            version: 1.0.0
-            type: file
-
-
   global-content: &gb/content/1.0.0
     swagger: '2.0'
     info: *wp/content-info/1.0.0
     securityDefinitions: *wp/content-security/1.0.0
     x-subspecs:
       - media/v1/mathoid
+      - analytics/v1/pageviews
+      - test
 
 
   global-sys: &gb/sys/1.0.0
@@ -283,7 +277,11 @@ templates:
                   status: 200
                   headers: '{$$.merge($.mathoid.body[$.request.params.format].headers,$$.merge($.mathoid.headers, {"x-resource-location": $.request.headers.x-resource-location}))}'
                   body: '{$.mathoid.body[$.request.params.format].body}'
-
+      /{module:pageviews}:
+        x-modules:
+          - name: pageviews
+            version: 1.0.0
+            type: file
 
   wp-default-1.0.0: &wp/default/1.0.0
     x-subspecs:
