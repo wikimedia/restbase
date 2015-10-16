@@ -3,7 +3,6 @@
 info:
   name: restbase
 
-
 templates:
 
   wmf-content-1.0.0: &wp/content/1.0.0
@@ -51,8 +50,9 @@ templates:
         x-internal-request-whitelist:
           - http://en.wikipedia.org/w/api.php
           - http://fr.wikipedia.org/w/api.php
+          - http://en.wikipedia.beta.wmflabs.org/w/api.php
           # Left as a regex for test purpose
-          - /http:\/\/parsoid\-lb\.eqiad\.wikimedia\.org/
+          - /http:\/\/parsoid\-beta\.wmflabs\.org/
       header_match:
         description: Checks client ip against one of the predefined whitelists
         x-error-message: This client is not allowed to use the endpoint
@@ -132,7 +132,7 @@ templates:
             version: 1.0.0
             type: file
             options:
-              parsoidHost: http://parsoid-lb.eqiad.wikimedia.org
+              parsoidHost: http://parsoid-beta.wmflabs.org
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 

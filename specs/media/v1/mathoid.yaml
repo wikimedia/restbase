@@ -74,6 +74,7 @@ paths:
         - title: Mathoid - test formula
           request:
             params:
+              domain: en.wikipedia.org
               format: svg
             body:
               q: E=mc^2

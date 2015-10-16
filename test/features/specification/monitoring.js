@@ -9,7 +9,7 @@ function constructTestCase(title, path, method, request, response) {
     return {
         title: title,
         request: {
-            uri: server.config.baseURL + '/' + (path[0] === '/' ? path.substr(1) : path),
+            uri: path,
             method: method,
             headers: request.headers || {},
             query: request.query,
@@ -45,7 +45,7 @@ function constructTests(spec, defParams) {
         })
         .forEach(function(method) {
             var p = paths[pathStr][method];
-            var uri = new URI(pathStr, {}, true);
+            var uri = new URI(server.config.hostPort + '/{domain}/v1' + pathStr, {}, true);
             if (!p['x-amples']) {
                 throw new Error('Method without examples should decalre x-monitor: false.'
                     + ' Path: ' + pathStr + ' Method: ' + method);
@@ -146,6 +146,8 @@ describe('Monitoring tests', function() {
         })
         .then(function(spec) {
             describe('Monitoring routes', function() {
+                var defaults = spec['x-default-params'] || {};
+                defaults.domain = 'en.wikipedia.beta.wmflabs.org';
                 constructTests(spec, spec['x-default-params'] || {}).forEach(function(testCase) {
                     it(testCase.title, function() {
                         return preq(testCase.request)

@@ -12,8 +12,8 @@ var server = require('../../utils/server.js');
     var prereqs = [
         { // transparently create HTML revision id 624484477
             method: 'get',
-            uri: server.config.bucketURL + '/html/Foobar/624484477',
-            body: 'Hello there, this is revision 624484477!'
+            uri: server.config.labsBucketURL + '/html/Foobar/252937',
+            body: 'Hello there, this is revision 252937!'
         }
     ];
 

@@ -42,6 +42,7 @@ paths:
         - title: Get MobileApps Main Page
           request:
             params:
+              domain: en.wikipedia.org
               title: Main_Page
           response:
             status: 200

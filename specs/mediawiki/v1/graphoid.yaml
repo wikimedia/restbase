@@ -60,6 +60,7 @@ paths:
         - title: Get a graph from Graphoid
           request:
             params:
+              domain: en.wikipedia.org
               title: User:Pchelolo/Graph
               revision: 670213569
               graph_id: 1533aaad45c733dcc7e07614b54cbae4119a6747.png

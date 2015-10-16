@@ -9,13 +9,12 @@
 var assert = require('../../../utils/assert.js');
 var server = require('../../../utils/server.js');
 var preq   = require('preq');
-var fs     = require('fs');
 
-var revA = '45451075';
-var revB = '623616192';
-var revC = '645915794';
-var title = 'LCX';
-var pageUrl = server.config.bucketURL;
+var revA = '275843';
+var revB = '275844';
+var revC = '275845';
+var title = 'User:Pchelolo%2fOnDemand_Test';
+var pageUrl = server.config.labsBucketURL;
 
 describe('on-demand generation of html and data-parsoid', function() {
     this.timeout(20000);
@@ -207,20 +206,20 @@ describe('on-demand generation of html and data-parsoid', function() {
         .then(function (res) {
             assert.deepEqual(!!res.headers['content-security-policy'], true);
             assert.deepEqual(res.headers['content-security-policy']
-                .indexOf("style-src http://*.wikipedia.org https://*.wikipedia.org 'unsafe-inline'") > 0, true);
+                .indexOf("style-src http://*.wikipedia.beta.wmflabs.org https://*.wikipedia.beta.wmflabs.org 'unsafe-inline'") > 0, true);
         });
     });
 
     it('should honor no-cache on /html/{title} endpoint', function() {
         var testPage = "User:Pchelolo%2fRev_Test";
-        var firstRev = 682093020;
+        var firstRev = 275846;
         // 1. Pull in a non-final revision of a title
         return preq.get({
             uri: pageUrl + '/html/' + testPage + '/' + firstRev
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(/First revision/.test(res.body), true);
+            assert.deepEqual(/First Revision/.test(res.body), true);
             return preq.get({
                 uri: pageUrl + '/html/' + testPage,
                 headers: {
@@ -236,7 +235,7 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     it('should honor no-cache on /html/{title} endpoint with sections', function() {
         var testPage = "User:Pchelolo%2fRev_Section_Test";
-        var firstRev = 682100867;
+        var firstRev = 275848;
         // 1. Pull in a non-final revision of a title
         return preq.get({
             uri: pageUrl + '/html/' + testPage + '/' + firstRev

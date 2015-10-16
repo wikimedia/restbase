@@ -27,12 +27,12 @@ describe('item requests', function() {
     });
     it('should transparently create a new HTML revision for Main_Page', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Main_Page',
+            uri: server.config.labsBucketURL + '/html/Main_Page',
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             return preq.get({
-                uri: server.config.bucketURL + '/html/Main_Page/'
+                uri: server.config.labsBucketURL + '/html/Main_Page/'
             });
         })
         .then(function(res) {
@@ -41,34 +41,34 @@ describe('item requests', function() {
             }
         });
     });
-    it('should transparently create a new HTML revision with id 624484477', function() {
+    it('should transparently create a new HTML revision with id 252937', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Foobar/624484477',
+            uri: server.config.labsBucketURL + '/html/Foobar/252937',
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
         });
     });
-    it('should transparently create data-parsoid with id 624165266, rev 2', function() {
+    it('should transparently create data-parsoid with id 241155, rev 2', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Foobar/624165266'
+            uri: server.config.labsBucketURL + '/html/Foobar/241155'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
         });
     });
-    it('should return HTML just created by revision 624165266', function() {
+    it('should return HTML just created by revision 241155', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Foobar/624165266'
+            uri: server.config.labsBucketURL + '/html/Foobar/241155'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
         });
     });
-    it('should return data-parsoid just created by revision 624165266, rev 2', function() {
+    it('should return data-parsoid just created by revision 241155, rev 2', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/data-parsoid/Foobar/624165266'
+            uri: server.config.labsBucketURL + '/data-parsoid/Foobar/241155'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -76,9 +76,9 @@ describe('item requests', function() {
         });
     });
 
-    it('should return data-parsoid just created with revision 624484477, rev 2', function() {
+    it('should return data-parsoid just created with revision 252937, rev 2', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/data-parsoid/Foobar/624484477'
+            uri: server.config.labsBucketURL + '/data-parsoid/Foobar/252937'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -88,25 +88,25 @@ describe('item requests', function() {
 
     it('should return sections of Main_Page', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Main_Page/664887982',
+            uri: server.config.labsBucketURL + '/html/Main_Page/262492',
             query: {
-                sections: 'mp-topbanner,mp-upper'
+                sections: 'mp-sister,mp-lang'
             },
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             var body = res.body;
-            if (!body['mp-topbanner'] || typeof body['mp-topbanner'] !== 'string'
-                    || !body['mp-upper']) {
+            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
+                    || !body['mp-lang']) {
                 throw new Error('Missing section content!');
             }
         })
         .then(function() {
             return preq.get({
-                uri: server.config.bucketURL + '/html/Main_Page',
+                uri: server.config.labsBucketURL + '/html/Main_Page',
                 query: {
-                    sections: 'mp-topbanner'
+                    sections: 'mp-sister'
                 },
             });
         })
@@ -114,7 +114,7 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             var body = res.body;
-            if (!body['mp-topbanner'] || typeof body['mp-topbanner'] !== 'string') {
+            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string') {
                 throw new Error('Missing section content!');
             }
         });
@@ -122,7 +122,7 @@ describe('item requests', function() {
 
     it('section retrieval: error handling', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Main_Page/664887982',
+            uri: server.config.labsBucketURL + '/html/Main_Page/262492',
             query: {
                 sections: 'somethingThatDoesNotExist'
             },
@@ -202,24 +202,24 @@ describe('item requests', function() {
 
     it('should list revisions for a title', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/title/Foobar/'
+            uri: server.config.labsBucketURL + '/title/Foobar/'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [624484477]);
+            assert.deepEqual(res.body.items, [252937]);
             pagingToken = res.body._links.next.href;
         });
     });
 
     it('should list next set of revisions for a title using pagination', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/title/Foobar/' + pagingToken
+            uri: server.config.labsBucketURL + '/title/Foobar/' + pagingToken
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [624165266]);
+            assert.deepEqual(res.body.items, [241155]);
         });
     });
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
