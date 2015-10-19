@@ -157,7 +157,11 @@ describe('Monitoring tests', function() {
             .then(function(spec) {
                 describe('Monitoring routes, ' + options.domain + ' domain', function() {
                     var defaults = spec['x-default-params'] || {};
-                    defaults.domain = options.domain;
+                    if (options.domain === 'en.wikipedia.org') {
+                        defaults.domain = 'en.wikipedia.beta.wmflabs.org';
+                    } else {
+                        defaults.domain = options.domain;
+                    }
                     constructTests(spec, defaults).forEach(function(testCase) {
                         it(testCase.title, function() {
                             return preq(testCase.request)
