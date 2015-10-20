@@ -304,19 +304,19 @@ templates:
           x-request-handler:
             - get_from_backend:
                 request:
-                  uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{rest}
+                  uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{+rest}
       /{module:pageviews}/per-project/{+rest}:
         get:
           x-request-handler:
             - get_from_backend:
                 request:
-                  uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/aggregate/{rest}
+                  uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/aggregate/{+rest}
       /{module:pageviews}/top/{+rest}:
         get:
           x-request-handler:
             - get_from_backend:
                 request:
-                  uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/top/{rest}
+                  uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/top/{+rest}
 
   wp-default-1.0.0: &wp/default/1.0.0
     x-subspecs:
