@@ -37,7 +37,6 @@ paths:
     get:
       tags:
         - Pageviews data
-        - per-article
       description: >
         List pageviews for a given article in a project, over a given time period.
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
@@ -97,11 +96,10 @@ paths:
               uri: /{domain}/sys/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}
       x-monitor: false
 
-  /{module:pageviews}/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}:
+  /{module:pageviews}/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}:
     get:
       tags:
         - Pageviews data
-        - per-project
       description: >
         List pageviews for a given project, over a given time period.
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
@@ -154,13 +152,34 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/pageviews/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}
-      x-monitor: false
+      x-monitor: true
+      x-amples:
+        - title: Get aggregate page views
+          request:
+            params:
+              project: en.wikipedia
+              access: all-access
+              agent: all-agents
+              granularity: hourly
+              start: 1970010100
+              end: 1970010100
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              items:
+                - project: en.wikipedia
+                  access: all-access
+                  agent: all-agents
+                  granularity: hourly
+                  timestamp: 1970010100
+                  views: 0
 
   /{module:pageviews}/top/{project}/{access}/{year}/{month}/{day}:
     get:
       tags:
         - Pageviews data
-        - Top articles
       description: >
         List the 1000 most viewed articles for a given project, for all time, or during a specific year, month, or day.
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
@@ -207,7 +226,6 @@ paths:
             request:
               uri:  /{domain}/sys/pageviews/top/{project}/{access}/{year}/{month}/{day}
       x-monitor: false
-
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
