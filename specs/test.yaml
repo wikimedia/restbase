@@ -98,6 +98,7 @@ paths:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
 
+  # TODO: remove this endpoint when we switch to the flat table
   /{module:pageviews}/insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
@@ -115,6 +116,38 @@ paths:
                   granularity: '{$.request.params.granularity}'
                   timestamp: '{$.request.params.timestamp}'
                   views: '{$.request.params.views}'
+      x-monitor: false
+
+  /{module:pageviews}/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
+    post:
+      x-request-handler:
+        - put_to_storage:
+            request:
+              method: 'put'
+              uri: '/{domain}/sys/table/pageviews.per.article.flat/'
+              body:
+                table: 'pageviews.per.article.flat'
+                attributes:
+                  project: '{$.request.params.project}'
+                  article: '{$.request.params.article}'
+                  granularity: '{$.request.params.granularity}'
+                  timestamp: '{$.request.params.timestamp}'
+                  views_all_access_all_agents:  '{$.request.params.views}1'
+                  views_all_access_bot:         '{$.request.params.views}2'
+                  views_all_access_spider:      '{$.request.params.views}3'
+                  views_all_access_user:        '{$.request.params.views}4'
+                  views_desktop_all_agents:     '{$.request.params.views}5'
+                  views_desktop_bot:            '{$.request.params.views}6'
+                  views_desktop_spider:         '{$.request.params.views}7'
+                  views_desktop_user:           '{$.request.params.views}8'
+                  views_mobile_app_all_agents:  '{$.request.params.views}9'
+                  views_mobile_app_bot:         '{$.request.params.views}10'
+                  views_mobile_app_spider:      '{$.request.params.views}11'
+                  views_mobile_app_user:        '{$.request.params.views}12'
+                  views_mobile_web_all_agents:  '{$.request.params.views}13'
+                  views_mobile_web_bot:         '{$.request.params.views}14'
+                  views_mobile_web_spider:      '{$.request.params.views}15'
+                  views_mobile_web_user:        '{$.request.params.views}16'
       x-monitor: false
 
   /{module:pageviews}/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:

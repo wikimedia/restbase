@@ -10,3 +10,6 @@ npm-debug.log
 
 # vim temp files
 *swp
+
+# Dockerfile (used for deploy)
+Dockerfile
