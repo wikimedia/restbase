@@ -57,6 +57,7 @@ paths:
         - title: Get MobileApps Main Page from RB storage
           request:
             params:
+              domain: en.wikipedia.org
               title: Main_Page
           response:
             status: 200
