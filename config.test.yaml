@@ -75,6 +75,7 @@ templates:
             # See: https://github.com/wikimedia/restbase-mod-table-cassandra/blob/master/Readme.md#configuration
             options: # Passed to the module constructor
               conf:
+                dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
                 hosts: [localhost]
                 keyspace: system
                 username: cassandra

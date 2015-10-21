@@ -8,7 +8,7 @@ runTest ( ) {
     if [ "$1" = "sqlite" ]; then
         echo "Running with SQLite backend"
         export RB_TEST_BACKEND=sqlite
-        rm -f restbase
+        rm -f test.db.sqlite3
     else
         echo "Running with Cassandra backend"
         export RB_TEST_BACKEND=cassandra
