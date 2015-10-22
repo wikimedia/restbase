@@ -98,6 +98,7 @@ paths:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
 
+  # TODO: remove this endpoint when we switch to the flat table
   /{module:pageviews}/insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
@@ -115,6 +116,38 @@ paths:
                   granularity: '{$.request.params.granularity}'
                   timestamp: '{$.request.params.timestamp}'
                   views: '{$.request.params.views}'
+      x-monitor: false
+
+  /{module:pageviews}/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
+    post:
+      x-request-handler:
+        - put_to_storage:
+            request:
+              method: 'put'
+              uri: '/{domain}/sys/table/pageviews.per.article.flat/'
+              body:
+                table: 'pageviews.per.article.flat'
+                attributes:
+                  project: '{$.request.params.project}'
+                  article: '{$.request.params.article}'
+                  granularity: '{$.request.params.granularity}'
+                  timestamp: '{$.request.params.timestamp}'
+                  aa:  '{$.request.params.views}1'
+                  ab:  '{$.request.params.views}2'
+                  as:  '{$.request.params.views}3'
+                  au:  '{$.request.params.views}4'
+                  da:  '{$.request.params.views}5'
+                  db:  '{$.request.params.views}6'
+                  ds:  '{$.request.params.views}7'
+                  du:  '{$.request.params.views}8'
+                  maa: '{$.request.params.views}9'
+                  mab: '{$.request.params.views}10'
+                  mas: '{$.request.params.views}11'
+                  mau: '{$.request.params.views}12'
+                  mwa: '{$.request.params.views}13'
+                  mwb: '{$.request.params.views}14'
+                  mws: '{$.request.params.views}15'
+                  mwu: '{$.request.params.views}16'
       x-monitor: false
 
   /{module:pageviews}/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:

@@ -10,3 +10,9 @@ npm-debug.log
 
 # vim temp files
 *swp
+
+# Dockerfile (used for deploy)
+Dockerfile
+
+# sqlite file (used in testing)
+test.db.sqlite3

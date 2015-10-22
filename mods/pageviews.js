@@ -24,6 +24,7 @@ function PJVS(options) {
 
 var tables = {
     article: 'pageviews.per.article',
+    articleFlat: 'pageviews.per.article.flat',
     project: 'pageviews.per.project',
     tops: 'top.pageviews',
 };
@@ -49,6 +50,25 @@ var tableSchemas = {
             { attribute: 'article', type: 'hash' },
             { attribute: 'access', type: 'hash' },
             { attribute: 'agent', type: 'hash' },
+            { attribute: 'granularity', type: 'hash' },
+            { attribute: 'timestamp', type: 'range', order: 'asc' },
+        ]
+    },
+    articleFlat: {
+        table: tables.articleFlat,
+        version: 1,
+        attributes: {
+            project: 'string',
+            article: 'string',
+            granularity: 'string',
+            // the hourly timestamp will be stored as YYYYMMDDHH
+            timestamp: 'string'
+
+            // The various integer columns that hold view counts are added below
+        },
+        index: [
+            { attribute: 'project', type: 'hash' },
+            { attribute: 'article', type: 'hash' },
             { attribute: 'granularity', type: 'hash' },
             { attribute: 'timestamp', type: 'range', order: 'asc' },
         ]
@@ -94,6 +114,37 @@ var tableSchemas = {
         ]
     }
 };
+
+
+var viewCountColumnsForArticleFlat = {
+    views_all_access_all_agents: 'aa', // views for all-access, all-agents
+    views_all_access_bot: 'ab',        // views for all-access, bot
+    views_all_access_spider: 'as',     // views for all-access, spider
+    views_all_access_user: 'au',       // views for all-access, user
+
+    views_desktop_all_agents: 'da',    // views for desktop, all-agents
+    views_desktop_bot: 'db',           // views for desktop, bot
+    views_desktop_spider: 'ds',        // views for desktop, spider
+    views_desktop_user: 'du',          // views for desktop, user
+
+    views_mobile_app_all_agents: 'maa', // views for mobile-app, all-agents
+    views_mobile_app_bot: 'mab',        // views for mobile-app, bot
+    views_mobile_app_spider: 'mas',     // views for mobile-app, spider
+    views_mobile_app_user: 'mau',       // views for mobile-app, user
+
+    views_mobile_web_all_agents: 'mwa', // views for mobile-web, all-agents
+    views_mobile_web_bot: 'mwb',        // views for mobile-web, bot
+    views_mobile_web_spider: 'mws',     // views for mobile-web, spider
+    views_mobile_web_user: 'mwu'        // views for mobile-web, user
+};
+
+// in the pageviews.per.article.flat table, make an integer column for each
+// view count column in the dictionary above, using its short name.
+// The short name saves space because cassandra stores the column name with
+// each record.
+Object.keys(viewCountColumnsForArticleFlat).forEach(function(k) {
+    tableSchemas.articleFlat.attributes[viewCountColumnsForArticleFlat[k]] = 'int';
+});
 
 /**
  * general handler functions */
@@ -237,6 +288,50 @@ PJVS.prototype.pageviewsForArticle = function(restbase, req) {
     return dataRequest.then(normalizeResponse);
 };
 
+PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
+    var rp = req.params;
+
+    validateStartAndEnd(rp);
+
+    var dataRequest = restbase.get({
+        uri: tableURI(rp.domain, tables.articleFlat),
+        body: {
+            table: tables.articleFlat,
+            attributes: {
+                project: rp.project,
+                article: rp.article,
+                granularity: rp.granularity,
+                timestamp: { between: [rp.start, rp.end] },
+            }
+        }
+
+    });
+
+    function viewKey(access, agent) {
+        var ret = ['views', access, agent].join('_');
+        return viewCountColumnsForArticleFlat[ret.replace(/-/g, '_')];
+    }
+
+    function removeDenormalizedColumns(item) {
+        Object.keys(viewCountColumnsForArticleFlat).forEach(function(k) {
+            delete item[viewCountColumnsForArticleFlat[k]];
+        });
+    }
+
+    return dataRequest.then(normalizeResponse).then(function(res) {
+        if (res.body.items) {
+            res.body.items.forEach(function(item) {
+                item.access = rp.access;
+                item.agent = rp.agent;
+                item.views = item[viewKey(rp.access, rp.agent)];
+                removeDenormalizedColumns(item);
+            });
+        }
+
+        return res;
+    });
+};
+
 PJVS.prototype.pageviewsForProjects = function(restbase, req) {
     var rp = req.params;
 
@@ -290,6 +385,8 @@ module.exports = function(options) {
     return {
         spec: spec,
         operations: {
+            // TODO: switch to this handler once flat table is loaded
+            // pageviewsForArticle: pjvs.pageviewsForArticleFlat.bind(pjvs),
             pageviewsForArticle: pjvs.pageviewsForArticle.bind(pjvs),
             pageviewsForProjects: pjvs.pageviewsForProjects.bind(pjvs),
             pageviewsForTops: pjvs.pageviewsForTops.bind(pjvs),
@@ -297,8 +394,13 @@ module.exports = function(options) {
         resources: [
             {
                 // pageviews per article table
+                // TODO: remove once we are using the pageviewsForArticleFlat handler
                 uri: '/{domain}/sys/table/' + tables.article,
                 body: tableSchemas.article,
+            }, {
+                // new pageviews per article table (needed to load flattened data for space reasons)
+                uri: '/{domain}/sys/table/' + tables.articleFlat,
+                body: tableSchemas.articleFlat,
             }, {
                 // pageviews per project table
                 uri: '/{domain}/sys/table/' + tables.project,
