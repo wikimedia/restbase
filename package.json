@@ -46,7 +46,8 @@
     "tassembly": "^0.2.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "template-expression-compiler": "^0.1.0",
-    "htcp-purge": "^0.1.0"
+    "htcp-purge": "^0.1.0",
+    "ajv": "^1.4.5"
   },
   "devDependencies": {
     "bunyan": "^1.4.0",

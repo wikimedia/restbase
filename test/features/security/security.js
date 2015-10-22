@@ -139,7 +139,16 @@ describe('router - security', function() {
         var revision = 12345;
 
         var api = nock(apiURI)
-        // The first request would return a revision.
+        .post('')
+        .reply(200, {
+            'query': {
+                'userinfo': {
+                    'id': 1,
+                    'name': 'test',
+                    'rights': ['som right', 'some other right']
+                }
+            }
+        })
         .post('')
         .reply(200, {
             'batchcomplete': '',
@@ -166,17 +175,6 @@ describe('router - security', function() {
                             'tags': []
                         }]
                     }
-                }
-            }
-        })
-        // The second request would return userInfo without read access
-        .post('')
-        .reply(200, {
-            'query': {
-                'userinfo': {
-                    'id': 1,
-                    'name': 'test',
-                    'rights': ['som right', 'some other right']
                 }
             }
         });

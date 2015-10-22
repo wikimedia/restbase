@@ -60,7 +60,8 @@ describe('page save api', function() {
         return preq.post({
             uri: wikitextUri,
             body: {
-                wikitext: ''
+                wikitext: '',
+                csrf_token: token
             }
         }).then(function(res) {
             throw new Error('Expected an error, but got status: ' + res.status);
@@ -80,7 +81,7 @@ describe('page save api', function() {
             throw new Error('Expected an error, but got status: ' + res.status);
         }, function(err) {
             assert.deepEqual(err.status, 400);
-            assert.deepEqual(err.body.title, 'Missing parameters');
+            assert.deepEqual(err.body.title, 'data.body.csrf_token is a required property');
         });
     });
 

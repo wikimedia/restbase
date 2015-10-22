@@ -662,7 +662,7 @@ paths:
         - name: revision
           in: path
           description: The revision
-          type: string
+          type: integer
           required: true
         - name: tid
           in: path
@@ -748,7 +748,7 @@ paths:
         - name: revision
           in: path
           description: The revision id
-          type: string
+          type: integer
           required: true
       responses:
         '200':
