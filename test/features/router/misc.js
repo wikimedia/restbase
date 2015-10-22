@@ -114,4 +114,10 @@ describe('router - misc', function() {
             assert.deepEqual(e.body.title, 'data.body.testParam is a required property');
         }
     });
+    it('Should compile validator with no required fields', function() {
+        new Validator([{
+            name: 'testParam',
+            in: 'formData'
+        }]);
+    });
 });
