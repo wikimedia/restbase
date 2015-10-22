@@ -13,3 +13,6 @@ npm-debug.log
 
 # Dockerfile (used for deploy)
 Dockerfile
+
+# sqlite file (used in testing)
+test.db.sqlite3

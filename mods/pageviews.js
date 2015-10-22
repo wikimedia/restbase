@@ -62,29 +62,9 @@ var tableSchemas = {
             article: 'string',
             granularity: 'string',
             // the hourly timestamp will be stored as YYYYMMDDHH
-            timestamp: 'string',
+            timestamp: 'string'
 
-            // we are collapsing two of our dimensions because we were taking up a LOT
-            // of storage space with the previous schema
-            views_all_access_all_agents: 'int', // views for all-access, all-agents
-            views_all_access_bot: 'int',        // views for all-access, bot
-            views_all_access_spider: 'int',     // views for all-access, spider
-            views_all_access_user: 'int',       // views for all-access, user
-
-            views_desktop_all_agents: 'int',    // views for desktop, all-agents
-            views_desktop_bot: 'int',           // views for desktop, bot
-            views_desktop_spider: 'int',        // views for desktop, spider
-            views_desktop_user: 'int',          // views for desktop, user
-
-            views_mobile_app_all_agents: 'int', // views for mobile-app, all-agents
-            views_mobile_app_bot: 'int',        // views for mobile-app, bot
-            views_mobile_app_spider: 'int',     // views for mobile-app, spider
-            views_mobile_app_user: 'int',       // views for mobile-app, user
-
-            views_mobile_web_all_agents: 'int', // views for mobile-web, all-agents
-            views_mobile_web_bot: 'int',        // views for mobile-web, bot
-            views_mobile_web_spider: 'int',     // views for mobile-web, spider
-            views_mobile_web_user: 'int'        // views for mobile-web, user
+            // The various integer columns that hold view counts are added below
         },
         index: [
             { attribute: 'project', type: 'hash' },
@@ -134,6 +114,37 @@ var tableSchemas = {
         ]
     }
 };
+
+
+var viewCountColumnsForArticleFlat = {
+    views_all_access_all_agents: 'aa', // views for all-access, all-agents
+    views_all_access_bot: 'ab',        // views for all-access, bot
+    views_all_access_spider: 'as',     // views for all-access, spider
+    views_all_access_user: 'au',       // views for all-access, user
+
+    views_desktop_all_agents: 'da',    // views for desktop, all-agents
+    views_desktop_bot: 'db',           // views for desktop, bot
+    views_desktop_spider: 'ds',        // views for desktop, spider
+    views_desktop_user: 'du',          // views for desktop, user
+
+    views_mobile_app_all_agents: 'maa', // views for mobile-app, all-agents
+    views_mobile_app_bot: 'mab',        // views for mobile-app, bot
+    views_mobile_app_spider: 'mas',     // views for mobile-app, spider
+    views_mobile_app_user: 'mau',       // views for mobile-app, user
+
+    views_mobile_web_all_agents: 'mwa', // views for mobile-web, all-agents
+    views_mobile_web_bot: 'mwb',        // views for mobile-web, bot
+    views_mobile_web_spider: 'mws',     // views for mobile-web, spider
+    views_mobile_web_user: 'mwu'        // views for mobile-web, user
+};
+
+// in the pageviews.per.article.flat table, make an integer column for each
+// view count column in the dictionary above, using its short name.
+// The short name saves space because cassandra stores the column name with
+// each record.
+Object.keys(viewCountColumnsForArticleFlat).forEach(function(k) {
+    tableSchemas.articleFlat.attributes[viewCountColumnsForArticleFlat[k]] = 'int';
+});
 
 /**
  * general handler functions */
@@ -298,14 +309,12 @@ PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
 
     function viewKey(access, agent) {
         var ret = ['views', access, agent].join('_');
-        return ret.replace(/-/g, '_');
+        return viewCountColumnsForArticleFlat[ret.replace(/-/g, '_')];
     }
 
     function removeDenormalizedColumns(item) {
-        ['all-access', 'desktop', 'mobile-app', 'mobile-web'].forEach(function(access) {
-            ['all-agents', 'bot', 'spider', 'user'].forEach(function(agent) {
-                delete item[viewKey(access, agent)];
-            });
+        Object.keys(viewCountColumnsForArticleFlat).forEach(function(k) {
+            delete item[viewCountColumnsForArticleFlat[k]];
         });
     }
 
