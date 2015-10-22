@@ -6,6 +6,8 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var Validator = require('../../../lib/validator');
+var HTTPError = require('../../../lib/rbUtil').HTTPError;
 
 describe('router - misc', function() {
 
@@ -93,5 +95,29 @@ describe('router - misc', function() {
             assert.deepEqual(res.headers['content-length'], undefined);
             assert.deepEqual(res.body, '');
         });
+    });
+    it('Should validate request for required fields', function() {
+        var validator = new Validator([{
+            name: 'testParam',
+            in: 'formData',
+            required: true
+        }]);
+        try {
+            validator.validate({
+                body: {
+                    otherParam: 'test'
+                }
+            });
+            throw new Error('Error should be thrown');
+        } catch(e) {
+            assert.deepEqual(e.constructor.name, 'HTTPError');
+            assert.deepEqual(e.body.title, 'data.body.testParam is a required property');
+        }
+    });
+    it('Should compile validator with no required fields', function() {
+        new Validator([{
+            name: 'testParam',
+            in: 'formData'
+        }]);
     });
 });
