@@ -264,30 +264,6 @@ var validateYearMonthDay = function(rp) {
     throwIfNeeded(errors);
 };
 
-PJVS.prototype.pageviewsForArticle = function(restbase, req) {
-    var rp = req.params;
-
-    validateStartAndEnd(rp);
-
-    var dataRequest = restbase.get({
-        uri: tableURI(rp.domain, tables.article),
-        body: {
-            table: tables.article,
-            attributes: {
-                project: rp.project,
-                access: rp.access,
-                agent: rp.agent,
-                article: rp.article,
-                granularity: rp.granularity,
-                timestamp: { between: [rp.start, rp.end] },
-            }
-        }
-
-    });
-
-    return dataRequest.then(normalizeResponse);
-};
-
 PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
     var rp = req.params;
 
@@ -385,20 +361,12 @@ module.exports = function(options) {
     return {
         spec: spec,
         operations: {
-            // TODO: switch to this handler once flat table is loaded
-            // pageviewsForArticle: pjvs.pageviewsForArticleFlat.bind(pjvs),
-            pageviewsForArticle: pjvs.pageviewsForArticle.bind(pjvs),
+            pageviewsForArticle: pjvs.pageviewsForArticleFlat.bind(pjvs),
             pageviewsForProjects: pjvs.pageviewsForProjects.bind(pjvs),
             pageviewsForTops: pjvs.pageviewsForTops.bind(pjvs),
         },
         resources: [
             {
-                // pageviews per article table
-                // TODO: remove once we are using the pageviewsForArticleFlat handler
-                uri: '/{domain}/sys/table/' + tables.article,
-                body: tableSchemas.article,
-            }, {
-                // new pageviews per article table (needed to load flattened data for space reasons)
                 uri: '/{domain}/sys/table/' + tables.articleFlat,
                 body: tableSchemas.articleFlat,
             }, {

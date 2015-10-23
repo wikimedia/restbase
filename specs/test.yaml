@@ -98,26 +98,6 @@ paths:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
 
-  # TODO: remove this endpoint when we switch to the flat table
-  /{module:pageviews}/insert-per-article/{project}/{access}/{agent}/{article}/{granularity}/{timestamp}/{views}:
-    post:
-      x-request-handler:
-        - put_to_storage:
-            request:
-              method: 'put'
-              uri: '/{domain}/sys/table/pageviews.per.article/'
-              body:
-                table: 'pageviews.per.article'
-                attributes:
-                  project: '{$.request.params.project}'
-                  access: '{$.request.params.access}'
-                  agent: '{$.request.params.agent}'
-                  article: '{$.request.params.article}'
-                  granularity: '{$.request.params.granularity}'
-                  timestamp: '{$.request.params.timestamp}'
-                  views: '{$.request.params.views}'
-      x-monitor: false
-
   /{module:pageviews}/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
