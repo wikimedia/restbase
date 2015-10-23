@@ -98,7 +98,16 @@ PostDataBucket.prototype.putRevision = function(restbase, req) {
             throw e;
         }
     });
+};
 
+PostDataBucket.prototype.calculateHash = function(restbase, req) {
+    return {
+        status: 200,
+        headers: {
+            'content-type': 'text/plain'
+        },
+        body: calculateHash(req.body || {})
+    };
 };
 
 module.exports = function(options) {
@@ -111,7 +120,8 @@ module.exports = function(options) {
             createBucket: postDataBucket.createBucket.bind(postDataBucket),
             listBucket: postDataBucket.listBucket.bind(postDataBucket),
             getRevision: postDataBucket.getRevision.bind(postDataBucket),
-            putRevision: postDataBucket.putRevision.bind(postDataBucket)
+            putRevision: postDataBucket.putRevision.bind(postDataBucket),
+            calculateHash: postDataBucket.calculateHash.bind(postDataBucket)
         }
     };
 };

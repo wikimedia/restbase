@@ -1,0 +1,108 @@
+# Graphoid graph render service
+
+swagger: 2.0
+
+paths:
+  /{module:media}/graph/{format}:
+    post:
+      tags:
+        - Media
+        - Graph
+      description: >
+        Renders a graph definition into an image in a given format. Obly currently
+        available format is png. The response contains the `x-resource-location`
+        header which can be used to retrieve the graph image. Just append the value of the
+        header to `/media/graph/{format}/` and perform a GET request against that URL.
+
+        A `preview` query parameter could be used to avoid storage of the content.
+        Note, that in non-preview mode this endpoint is available only for internal clients.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - image/png
+      parameters:
+        - name: format
+          in: path
+          description: The format of the output image
+          type: string
+          enum:
+            - png
+          required: true
+        - name: mode
+          in: query
+          description: If `preview`, view the rendering result without storing content. Default is `store`
+          type: string
+          enum:
+            - preview
+            - store
+        - name: content
+          in: body
+          description: Graph definition
+          required: true
+      responses:
+        '200':
+          description: The PNG render of the requested graph.
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-request-handler:
+        - post_to_backend:
+            request:
+              method: post
+              uri: /wikimedia.org/sys/graphoid/v1/{$$.default($.request.query.preview, "store")}/{format}
+              body: '{$.request.body}'
+      x-monitor: false
+
+  /{module:media}/graph/{format}/{hash}:
+    get:
+      tags:
+        - Media
+        - Graph
+      description: >
+        Given a request hash, renders a graph definition into an image
+        in the given format. When a request is issued to the `/media/graph/{format}`
+        POST endpoint, the response contains the `x-resource-location` header
+        denoting the hash ID of the POST data. Once obtained, this endpoint may be
+        used to avoid sending the payload.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/png
+      parameters:
+        - name: format
+          in: path
+          description: The format of the output image
+          type: string
+          required: true
+          enum:
+            - png
+        - name: hash
+          in: path
+          description: The hash string of the previous POST data
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The rendered graph
+        '404':
+          description: Unknown hash ID
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - stored_post:
+            request:
+              method: get
+              uri: /wikimedia.org/sys/graphoid/v1/request/{format}/{hash}
+              headers:
+                cache-control: '{cache-control}'
+      x-monitor: false
