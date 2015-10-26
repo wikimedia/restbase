@@ -25,12 +25,16 @@ PostDataBucket.prototype.getBucketInfo = function(restbase, req) {
 
 PostDataBucket.prototype.createBucket = function(restbase, req) {
     var rp = req.params;
+    var body = {
+        keyType: 'string',
+        valueType: 'json'
+    };
+    if (req.body) {
+        body = Object.assign(body, req.body);
+    }
     return restbase.put({
         uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket]),
-        body: {
-            keyType: 'string',
-            valueType: 'json'
-        }
+        body: body
     });
 };
 
