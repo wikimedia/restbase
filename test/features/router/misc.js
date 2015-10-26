@@ -169,4 +169,26 @@ describe('router - misc', function() {
             assert.deepEqual(e.body.title, 'data.body.field2 is a required property');
         }
     });
+    it('Should allow floats in number validator', function() {
+        var validator = new Validator([
+            {
+                name: 'testParam1',
+                in: 'query',
+                type: 'number',
+                required: true
+            },
+            {
+                name: 'testParam2',
+                in: 'query',
+                type: 'number',
+                required: true
+            }
+        ]);
+        validator.validate({
+            query: {
+                testParam1: '27.5',
+                testParam2: '27,5'
+            }
+        });
+    });
 });
