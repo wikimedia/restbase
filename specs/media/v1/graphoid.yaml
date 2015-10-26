@@ -15,11 +15,17 @@ paths:
         header to `/media/graph/{format}/` and perform a GET request against that URL.
 
         A `preview` query parameter could be used to avoid storage of the content.
-        Note, that in non-preview mode this endpoint is available only for internal clients.
+        Note, that this endpoint is available only for internal clients.
+
+        Provide a `cache-control: no-cache` header if the content should be rerendered even
+        if the result is in storage.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - application/json
       produces:
         - image/png
+        - image/svg
       parameters:
         - name: format
           in: path
@@ -27,10 +33,11 @@ paths:
           type: string
           enum:
             - png
+            - svg
           required: true
         - name: mode
           in: query
-          description: If `preview`, view the rendering result without storing content. Default is `store`
+          description: If `preview`, store content temporary. Default is `store`
           type: string
           enum:
             - preview
@@ -43,19 +50,20 @@ paths:
         '200':
           description: The PNG render of the requested graph.
         '403':
-          description: access to the specific revision is restricted
+          description: Access to the endpoint is restricted
           schema:
             $ref: '#/definitions/problem'
         default:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-
       x-request-handler:
         - post_to_backend:
             request:
               method: post
-              uri: /wikimedia.org/sys/graphoid/v1/{$$.default($.request.query.preview, "store")}/{format}
+              uri: /wikimedia.org/sys/graphoid/v1/{$$.default($.request.query.mode, "store")}/{format}
+              headers:
+                cache-control: '{cache-control}'
               body: '{$.request.body}'
       x-monitor: false
 
@@ -71,9 +79,13 @@ paths:
         denoting the hash ID of the POST data. Once obtained, this endpoint may be
         used to avoid sending the payload.
 
+        Provide a `cache-control: no-cache` header if the content should be rerendered with
+        a graph definition from the storage.
+
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
         - image/png
+        - image/svg
       parameters:
         - name: format
           in: path
@@ -82,6 +94,7 @@ paths:
           required: true
           enum:
             - png
+            - svg
         - name: hash
           in: path
           description: The hash string of the previous POST data

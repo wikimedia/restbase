@@ -59,7 +59,7 @@ PostDataBucket.prototype.getRevision = function(restbase, req) {
     });
 };
 
-function calculateHash(storedData) {
+function calculateHash(storedData, req) {
     return crypto.createHash('sha1')
                  .update(stringify(storedData))
                  .digest('hex');
