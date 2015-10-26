@@ -1127,6 +1127,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
+        - application/json
         - multipart/form-data
       produces:
         - text/html; profile="mediawiki.org/specs/html/1.1.0"
@@ -1142,10 +1143,17 @@ paths:
           type: integer
           required: true
         - name: sections
-          in: formData
+          in: body
           description: Sections to transform
           type: string
           required: true
+          schema:
+            type: 'object'
+            properties:
+              sections:
+                example: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
+            required:
+              - sections
       responses:
         '200':
           description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec

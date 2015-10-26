@@ -120,4 +120,53 @@ describe('router - misc', function() {
             in: 'formData'
         }]);
     });
+    it('Should validate integers', function() {
+        var validator = new Validator([{
+            name: 'testParam',
+            in: 'query',
+            type: 'integer',
+            required: true
+        }]);
+        try {
+            validator.validate({
+                query: {
+                    testParam: 'not_an_integer'
+                }
+            });
+            throw new Error('Error should be thrown');
+        } catch(e) {
+            assert.deepEqual(e.constructor.name, 'HTTPError');
+            assert.deepEqual(e.body.title, 'data.query.testParam should match pattern');
+        }
+    });
+    it('Should validate object schemas', function() {
+        var validator = new Validator([{
+            name: 'testParam',
+            in: 'body',
+            schema: {
+                type: 'object',
+                properties: {
+                    field1: {
+                        type: 'string'
+                    },
+                    field2: {
+                        type: 'string'
+                    }
+                },
+                required: ['field1', 'field2']
+            },
+            required: true
+        }]);
+        try {
+            validator.validate({
+                body: {
+                    field1: 'some string'
+                }
+            });
+            throw new Error('Error should be thrown');
+        } catch(e) {
+            assert.deepEqual(e.constructor.name, 'HTTPError');
+            assert.deepEqual(e.body.title, 'data.body.field2 is a required property');
+        }
+    });
 });
