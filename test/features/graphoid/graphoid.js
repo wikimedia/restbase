@@ -162,10 +162,9 @@ describe('Graphoid tests:', function() {
             assert.deepEqual(!!res.body, true);
             assert.notDeepEqual(pngRender, res.body);
             assert.deepEqual(res.headers['content-type'], 'image/png');
-            resource_location = res.headers['x-resource-location'];
             pngRender = res.body;
             return preq.get({
-                uri: server.config.baseURL + '/media/graph/png/' + resource_location
+                uri: server.config.baseURL + '/media/graph/svg/' + resource_location
             });
         })
         .then(function() {

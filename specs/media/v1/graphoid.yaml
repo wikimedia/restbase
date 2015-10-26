@@ -57,6 +57,11 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      security:
+        - header_match:
+            - header: 'x-client-ip'
+              patterns:
+                - internal
       x-request-handler:
         - post_to_backend:
             request:
@@ -65,6 +70,7 @@ paths:
               headers:
                 cache-control: '{cache-control}'
               body: '{$.request.body}'
+
       x-monitor: false
 
   /{module:media}/graph/{format}/{hash}:
