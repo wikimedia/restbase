@@ -19,8 +19,7 @@ describe('pageviews endpoints', function () {
     var topsEndpoint = '/pageviews/top/en.wikipedia/mobile-web/2015/all-months/all-days';
 
     // Fake data insertion endpoints
-    // TODO: replace the following line with this after we switch to the flat table: var insertArticleEndpoint = '/pageviews/insert-per-article-flat/en.wikipedia/one/daily/2015070200';
-    var insertArticleEndpoint = '/pageviews/insert-per-article/en.wikipedia/desktop/spider/one/daily/2015070200';
+    var insertArticleEndpoint = '/pageviews/insert-per-article-flat/en.wikipedia/one/daily/2015070200';
     var insertProjectEndpoint = '/pageviews/insert-aggregate/en.wikipedia/all-access/all-agents/hourly/1970010100';
     var insertTopsEndpoint = '/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days/';
 
@@ -34,8 +33,6 @@ describe('pageviews endpoints', function () {
         });
     });
 
-    /*
-     * TODO: Replace the following test with this one when we switch to the flat table
     it('should return the expected per article data after insertion', function () {
         return preq.post({
             // the way we have configured the test insert-per-article endpoint
@@ -48,20 +45,6 @@ describe('pageviews endpoints', function () {
         }).then(function(res) {
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].views, 1007);
-        });
-    });
-    */
-
-    it('should return the expected per article data after insertion', function () {
-        return preq.post({
-            uri: server.config.globalURL + insertArticleEndpoint + '/100'
-        }).then(function() {
-            return preq.get({
-                uri: server.config.globalURL + articleEndpoint
-            });
-        }).then(function(res) {
-            assert.deepEqual(res.body.items.length, 1);
-            assert.deepEqual(res.body.items[0].views, 100);
         });
     });
 
