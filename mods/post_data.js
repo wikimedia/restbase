@@ -25,16 +25,12 @@ PostDataBucket.prototype.getBucketInfo = function(restbase, req) {
 
 PostDataBucket.prototype.createBucket = function(restbase, req) {
     var rp = req.params;
-    var body = {
-        keyType: 'string',
-        valueType: 'json'
-    };
-    if (req.body) {
-        body = Object.assign(body, req.body);
-    }
     return restbase.put({
         uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket]),
-        body: body
+        body: {
+            keyType: 'string',
+            valueType: 'json'
+        }
     });
 };
 
@@ -59,7 +55,7 @@ PostDataBucket.prototype.getRevision = function(restbase, req) {
     });
 };
 
-function calculateHash(storedData, req) {
+function calculateHash(storedData) {
     return crypto.createHash('sha1')
                  .update(stringify(storedData))
                  .digest('hex');
