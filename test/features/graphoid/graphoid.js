@@ -9,8 +9,11 @@ var server = require('../../utils/server.js');
 var fs = require('fs');
 
 describe('Graphoid tests:', function() {
-    var graph_definition = JSON.parse(fs.readFileSync(__dirname + '/graph.json'));
+    var random_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/random_graph.json'));
     var invalid_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/invalid_graph.json'));
+    var static_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/static_graph.json'));
+    var png_render_result = fs.readFileSync(__dirname + '/render_result.png');
+    var svg_render_result = fs.readFileSync(__dirname + '/render_result.svg');
     var resource_location;
     var svgRender;
     var pngRender;
@@ -23,7 +26,7 @@ describe('Graphoid tests:', function() {
             headers: {
                 'content-type': 'application/json'
             },
-            body: graph_definition
+            body: random_graph_definition
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -53,13 +56,23 @@ describe('Graphoid tests:', function() {
         });
     });
 
+    it('Should expose original graph definition', function() {
+        return preq.get({
+            uri: server.config.baseURL + '/media/graph/json/' + resource_location
+        }).then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'application/json');
+            assert.deepEqual(res.body, random_graph_definition);
+        });
+    });
+
     it('Should not rerender same requests', function() {
         return preq.post({
             uri: server.config.baseURL + '/media/graph/svg',
             headers: {
                 'content-type': 'application/json'
             },
-            body: graph_definition
+            body: random_graph_definition
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -70,7 +83,7 @@ describe('Graphoid tests:', function() {
                 headers: {
                     'content-type': 'application/json'
                 },
-                body: graph_definition
+                body: random_graph_definition
             });
         })
         .then(function(res) {
@@ -113,7 +126,7 @@ describe('Graphoid tests:', function() {
                 'cache-control': 'no-cache',
                 'content-type': 'application/json'
             },
-            body: graph_definition
+            body: random_graph_definition
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -126,7 +139,7 @@ describe('Graphoid tests:', function() {
                 headers: {
                     'content-type': 'application/json'
                 },
-                body: graph_definition
+                body: random_graph_definition
             });
         })
         .then(function(res) {
@@ -144,14 +157,13 @@ describe('Graphoid tests:', function() {
             headers: {
                 'content-type': 'application/json'
             },
-            body: graph_definition
+            body: random_graph_definition
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(!!res.body, true);
             assert.notDeepEqual(pngRender, res.body);
             resource_location = res.headers['x-resource-location'];
-            pngRender = res.body;
             assert.deepEqual(res.headers['content-type'], 'image/png');
             return preq.get({
                 uri: server.config.baseURL + '/media/graph/png/' + resource_location
@@ -167,14 +179,11 @@ describe('Graphoid tests:', function() {
                 uri: server.config.baseURL + '/media/graph/svg/' + resource_location
             });
         })
-        .then(function() {
-            throw new Error('Should not find the resource');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-        })
         // Now wait a bit to let content expire
         .delay(5000)
-        .then(function() {
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(!!res.body, true);
             return preq.get({
                 uri: server.config.baseURL + '/media/graph/png/' + resource_location
             });
@@ -198,6 +207,66 @@ describe('Graphoid tests:', function() {
             throw new Error('Error should be thrown');
         }, function(e) {
             assert.deepEqual(e.status, 400);
+        });
+    });
+
+    it('Should render correct result', function() {
+        return preq.post({
+            uri: server.config.baseURL + '/media/graph/png',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: static_graph_definition
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, png_render_result);
+            return preq.get({
+                uri: server.config.baseURL + '/media/graph/png/' + res.headers['x-resource-location']
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, png_render_result);
+            return preq.get({
+                uri: server.config.baseURL + '/media/graph/svg/' + res.headers['x-resource-location']
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, svg_render_result);
+        });
+    });
+
+    it('Should render correct result in preview mode', function() {
+        return preq.post({
+            uri: server.config.baseURL + '/media/graph/png?mode=preview',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: static_graph_definition
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, png_render_result);
+            return preq.get({
+                uri: server.config.baseURL + '/media/graph/png/' + res.headers['x-resource-location']
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, png_render_result);
+            return preq.post({
+                uri: server.config.baseURL + '/media/graph/svg?mode=preview',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: static_graph_definition
+            })
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, svg_render_result);
         });
     });
 });

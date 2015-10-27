@@ -38,7 +38,7 @@
     "js-yaml": "^3.4.3",
     "jsonwebtoken": "^5.4.0",
     "cassandra-uuid": "^0.0.2",
-    "preq": "^0.4.4",
+    "preq": "^0.4.5",
     "restbase-mod-table-cassandra": "^0.8.7",
     "service-runner": "^0.3.0",
     "swagger-router": "^0.3.1",

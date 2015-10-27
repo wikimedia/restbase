@@ -101,6 +101,7 @@ paths:
           enum:
             - png
             - svg
+            - json
         - name: hash
           in: path
           description: The hash string of the previous POST data

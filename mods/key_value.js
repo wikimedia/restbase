@@ -54,7 +54,8 @@ KVBucket.prototype.makeSchema = function(opts) {
         index: [
             { attribute: 'key', type: 'hash' },
             { attribute: 'tid', type: 'range', order: 'desc' }
-        ]
+        ],
+        revisionRetentionPolicy: opts.revisionRetentionPolicy
     };
 };
 
