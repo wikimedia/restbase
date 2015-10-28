@@ -18,7 +18,7 @@ describe('Delete/undelete handling', function() {
     var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
-    apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
+    apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
 
     function getEmptyResponse(revid) {
         return {'batchcomplete':'','query':{'badrevids':{'12345' :{'revid':'' + revid}}}};
@@ -56,7 +56,7 @@ describe('Delete/undelete handling', function() {
 
     function fetchPage(title, revision) {
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + title,
+            uri: server.config.labsBucketURL + '/title/' + title,
             headers: {
                 'cache-control': 'no-cache'
             }
@@ -71,7 +71,7 @@ describe('Delete/undelete handling', function() {
     function sendDeleteSignal(title) {
         // Now fetch info that it's deleted
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + title,
+            uri: server.config.labsBucketURL + '/title/' + title,
             headers: {
                 'cache-control': 'no-cache'
             }
@@ -87,7 +87,7 @@ describe('Delete/undelete handling', function() {
     function sendUndeleteSignal(title, revision) {
         // Now fetch info that it's deleted
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + title,
+            uri: server.config.labsBucketURL + '/title/' + title,
             headers: {
                 'cache-control': 'no-cache'
             }
@@ -100,7 +100,7 @@ describe('Delete/undelete handling', function() {
     }
 
     function assertRevisionDeleted(revision) {
-        return preq.get({uri: server.config.bucketURL + '/revision/' + revision})
+        return preq.get({uri: server.config.labsBucketURL + '/revision/' + revision})
         .then(function() {
             throw new Error('404 should have been returned for a deleted page');
         }, function(e) {
@@ -111,7 +111,7 @@ describe('Delete/undelete handling', function() {
 
     function signalPageEdit(title, revision) {
         return preq.get({
-            uri: server.config.bucketURL + '/html/' + title + '/' + revision,
+            uri: server.config.labsBucketURL + '/html/' + title + '/' + revision,
             headers: {
                 'cache-control': 'no-cache',
                 'If-Unmodified-Since': new Date().toString
@@ -160,7 +160,7 @@ describe('Delete/undelete handling', function() {
         .post('').reply(200, getApiResponse(title, 12346, 12345));
         // Verify that it's deleted
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + title
+            uri: server.config.labsBucketURL + '/title/' + title
         })
         .then(function() {
             throw new Error('Should throw 404');
@@ -169,7 +169,7 @@ describe('Delete/undelete handling', function() {
             assert.contentType(e, 'application/problem+json');
         })
         .then(function() { return sendUndeleteSignal(title, 12346); })
-        .then(function() { return preq.get({uri: server.config.bucketURL + '/revision/' + 12346}); })
+        .then(function() { return preq.get({uri: server.config.labsBucketURL + '/revision/' + 12346}); })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
@@ -197,7 +197,7 @@ describe('Delete/undelete handling', function() {
         .then(function() { return fetchPage(title, 12346) })
         .then(function() { return sendDeleteSignal(title); })
         .then(function() { return signalPageEdit(title, 12347); })
-        .then(function() { return preq.get({uri: server.config.bucketURL + '/revision/' + 12347}); })
+        .then(function() { return preq.get({uri: server.config.labsBucketURL + '/revision/' + 12347}); })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
@@ -225,7 +225,7 @@ describe('Delete/undelete handling', function() {
         .then(function() { return signalPageEdit(title, 12346); })
         .then(function() { return sendDeleteSignal(title); })
         .then(function() { return sendUndeleteSignal(title, 12346); })
-        .then(function() { return preq.get({uri: server.config.bucketURL + '/revision/' + 12346}); })
+        .then(function() { return preq.get({uri: server.config.labsBucketURL + '/revision/' + 12346}); })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
