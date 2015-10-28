@@ -42,18 +42,6 @@ paths:
                 cache-control: '{cache-control}'
       x-monitor: true
       x-amples:
-        - title: Get MobileApps Main Page
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Main_Page
-            headers:
-              cache-control: no-cache
-          response:
-            status: 200
-            headers:
-              content-type: /text\/html/
-            body: /body/
         - title: Get MobileApps Main Page from RB storage
           request:
             params:
