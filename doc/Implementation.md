@@ -129,6 +129,14 @@ wikis.
 
 TODO: Actually think this through more thoroughly.
 
+### Request validation
+Swagger spec could contain a specification of request parameters in `parameters` section.
+The list of options is described in 
+[Swagger Specification](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#parameterObject)
+On spec loading, `parameters` sections for each endpoint is picked up and compiled into a
+request validator function, that it called before each request. If the some parameter didn't
+match the specification, HTTP 400 error is returned without execution of a request handler.
+
 ## Internal request & response objects
 ### Request
 ```javascript
