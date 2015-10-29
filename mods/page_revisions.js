@@ -379,38 +379,38 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
         };
 
         var actions = [
-        // Check if the same revision is already in storage
-        restbase.get({
-            uri: self.tableURI(rp.domain),
-            body: {
-                table: self.tableName,
-                attributes: {
-                    title: rbUtil.normalizeTitle(dataResp.title),
-                    rev: parseInt(apiRev.revid)
-                }
-            }
-        })
-        .then(function(res) {
-            var sameRev = res && res.body.items
-                && res.body.items.length > 0
-                && self._checkSameRev(revision, res.body.items[0]);
-            if (!sameRev) {
-                throw new rbUtil.HTTPError({ status: 404 });
-            }
-        })
-        .catch(function(e) {
-            if (e.status === 404) {
-                return restbase.put({ // Save / update the revision entry
-                    uri: self.tableURI(rp.domain),
-                    body: {
-                        table: self.tableName,
-                        attributes: revision
+            // Check if the same revision is already in storage
+            restbase.get({
+                uri: self.tableURI(rp.domain),
+                body: {
+                    table: self.tableName,
+                    attributes: {
+                        title: rbUtil.normalizeTitle(dataResp.title),
+                        rev: parseInt(apiRev.revid)
                     }
-                });
-            } else {
-                throw e;
-            }
-        })
+                }
+            })
+            .then(function(res) {
+                var sameRev = res && res.body.items
+                        && res.body.items.length > 0
+                        && self._checkSameRev(revision, res.body.items[0]);
+                if (!sameRev) {
+                    throw new rbUtil.HTTPError({ status: 404 });
+                }
+            })
+            .catch(function(e) {
+                if (e.status === 404) {
+                    return restbase.put({ // Save / update the revision entry
+                        uri: self.tableURI(rp.domain),
+                        body: {
+                            table: self.tableName,
+                            attributes: revision
+                        }
+                    });
+                } else {
+                    throw e;
+                }
+            })
         ];
         // Also check if the page title was changed and set a log rename history
         var parentTitle = req.headers['x-restbase-parenttitle'];
