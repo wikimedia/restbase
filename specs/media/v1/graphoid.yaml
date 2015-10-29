@@ -37,7 +37,7 @@ paths:
           required: true
         - name: mode
           in: query
-          description: If `preview`, store content temporary. Default is `store`
+          description: If `preview`, store content temporarily. Default is `store`
           type: string
           enum:
             - preview
@@ -48,7 +48,7 @@ paths:
           required: true
       responses:
         '200':
-          description: The PNG render of the requested graph.
+          description: The render of the given graph in the requested format
         '403':
           description: Access to the endpoint is restricted
           schema:
@@ -70,8 +70,21 @@ paths:
               headers:
                 cache-control: '{cache-control}'
               body: '{$.request.body}'
-
-      x-monitor: false
+      x-monitor: true
+      x-amples:
+        - title: Graphoid - test graph
+          request:
+            params:
+              domain: en.wikipedia.org
+              format: svg
+            body:
+              q: E=mc^2
+              type: tex
+          response:
+            status: 200
+            headers:
+              content-type: /^image\/svg/
+            body: /.+/
 
   /{module:media}/graph/{format}/{hash}:
     get:
