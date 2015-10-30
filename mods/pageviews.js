@@ -228,11 +228,6 @@ var validateYearMonthDay = function(rp) {
 
     stripOrgFromProject(rp);
 
-    if (rp.year === 'all-years' && (rp.month !== 'all-months' || rp.day !== 'all-days')) {
-        errors.push(
-            'month must be "all-months" and day must be "all-days" when passing "all-years"'
-        );
-    }
     if (rp.month === 'all-months' && rp.day !== 'all-days') {
         errors.push('day must be "all-days" when passing "all-months"');
     }
@@ -242,7 +237,7 @@ var validateYearMonthDay = function(rp) {
 
     // fake a timestamp in the YYYYMMDDHH format so we can reuse the validator
     var validDate = validateTimestamp(
-        ((rp.year === 'all-years') ? '2015' : rp.year) +
+        rp.year +
         ((rp.month === 'all-months') ? '01' : rp.month) +
         ((rp.day === 'all-days') ? '01' : rp.day) +
         '00'
@@ -250,7 +245,6 @@ var validateYearMonthDay = function(rp) {
 
     if (!validDate) {
         var invalidPieces = [];
-        if (rp.year !== 'all-years') { invalidPieces.push('year'); }
         if (rp.month !== 'all-months') { invalidPieces.push('month'); }
         if (rp.day !== 'all-days') { invalidPieces.push('day'); }
 
