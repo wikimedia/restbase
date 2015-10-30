@@ -237,7 +237,10 @@ var validateYearMonthDay = function(rp) {
 
     // fake a timestamp in the YYYYMMDDHH format so we can reuse the validator
     var validDate = validateTimestamp(
+<<<<<<< HEAD
         rp.year +
+=======
+>>>>>>> 220b21ac9d9805ed4cd02b7969eb3e7030c1cd96
         ((rp.month === 'all-months') ? '01' : rp.month) +
         ((rp.day === 'all-days') ? '01' : rp.day) +
         '00'
