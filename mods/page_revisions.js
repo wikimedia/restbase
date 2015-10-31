@@ -184,11 +184,29 @@ PRS.prototype.listTitles = function(restbase, req, options) {
  */
 PRS.prototype._checkSameRev = function(firstRev, secondRev) {
     return !Object.keys(firstRev).some(function(attrName) {
+        var firstVal = firstRev[attrName];
+        var secondVal = secondRev[attrName];
         // We don't really care if an empty value is null, or undefined, or other falsy
-        if (attrName === 'tid' || !firstRev[attrName] || !secondRev[attrName]) {
+        if (!firstVal || !secondVal || attrName === 'tid') {
+            return false;
+        } else if (attrName === 'timestamp') {
+            // 'timestamp' fields need to be parsed because Cassandra
+            // returns a ISO8601 ts which includes milliseconds, while
+            // the ts returned by MW API does not
+            return Date.parse(firstVal) !== Date.parse(secondVal);
+        } else if (Array.isArray(firstVal) || Array.isArray(secondVal)) {
+            // we need a special case for arrays (the 'restrictions' attribute)
+            if (Array.isArray(firstVal) && Array.isArray(secondVal)
+                    && firstVal.length === secondVal.length) {
+                for (var idx = 0; idx < firstVal.length; idx++) {
+                    if (firstVal[idx] !== secondVal[idx]) {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
-        return firstRev[attrName] !== secondRev[attrName];
+        return firstVal !== secondVal;
     });
 };
 
