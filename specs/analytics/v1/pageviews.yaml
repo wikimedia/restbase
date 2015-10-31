@@ -199,7 +199,7 @@ paths:
           required: true
         - name: year
           in: path
-          description: The year for which to retrieve top articles [all-years|year].  If you pass all-years, you must pass all-months and all-days or the input is invalid.
+          description: The year for which to retrieve top articles.
           type: string
           required: true
         - name: month

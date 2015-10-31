@@ -99,6 +99,14 @@ describe('pageviews endpoints', function () {
         });
     });
 
+    it('Should return 400 when all-year is used for the year parameter', function () {
+        return preq.get({
+            uri: server.config.globalURL + topsEndpoint.replace('2015', 'all-years')
+        }).catch(function(res) {
+            assert.deepEqual(res.status, 400);
+        });
+    });
+
     it('should return 400 when tops date is invalid', function () {
         return preq.get({
             uri: server.config.globalURL + topsEndpoint.replace('all-months/all-days', '02/29')
