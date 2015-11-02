@@ -466,9 +466,9 @@ services:
 
 test:
   content_types:
-    html: text/html;profile="mediawiki.org/specs/html/1.1.0";charset=utf-8
-    data-parsoid: application/json;profile="mediawiki.org/specs/data-parsoid/0.0.1"
-    wikitext: text/plain;profile="mediawiki.org/specs/wikitext/1.0.0";charset=utf-8
+    html: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
+    data-parsoid: application/json; profile="mediawiki.org/specs/data-parsoid/0.0.1"
+    wikitext: text/plain; charset=utf-8; profile="mediawiki.org/specs/wikitext/1.0.0"
 
 logging:
   name: restbase

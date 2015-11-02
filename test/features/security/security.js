@@ -75,7 +75,7 @@ describe('router - security', function() {
                 cookie: 'test=test_cookie'
             }
         })
-        .get('/v2/fr.wikipedia.org/pagebundle/' + title + '/' + revision)
+        .get('/fr.wikipedia.org/v3/page/pagebundle/' + title + '/' + revision)
         .reply(200, function() {
             return {
                 'html': {

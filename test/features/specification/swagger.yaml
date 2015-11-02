@@ -96,7 +96,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: text/html;profile="mediawiki.org/specs/html/1.1.0"
+                content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
 
   /{domain}/v1/page/html/{title}/{revision}:
     get:
@@ -147,7 +147,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: text/html;profile="mediawiki.org/specs/html/1.1.0"
+                content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
 
   /{domain}/v1/page/data-parsoid/{title}/{revision}:
     get:
@@ -198,7 +198,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: application/json;profile="mediawiki.org/specs/data-parsoid/0.0.1"
+                content-type: application/json; profile="mediawiki.org/specs/data-parsoid/0.0.1"
 definitions:
   defaultError:
     required:
