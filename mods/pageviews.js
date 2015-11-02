@@ -61,7 +61,9 @@ var tableSchemas = {
             // the hourly timestamp will be stored as YYYYMMDDHH
             timestamp: 'string',
             views: 'int',
-            v: 'long'
+            // store this as a string because it's too big for an int
+            // and long/bigint are not supported in RESTBase at this time
+            v: 'string'
         },
         index: [
             { attribute: 'project', type: 'hash' },
@@ -315,8 +317,14 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
     return dataRequest.then(normalizeResponse).then(function(res) {
         if (res.body.items) {
             res.body.items.forEach(function(item) {
-                // prefer the long column if it's loaded
-                item.views = item.v || item.views;
+                // prefer the v column if it's loaded
+                if (item.v && item.v !== '') {
+                    try {
+                        item.views = parseInt(item.v);
+                    } catch (e) {
+                        item.views = null;
+                    }
+                }
                 delete item.v;
             });
         }

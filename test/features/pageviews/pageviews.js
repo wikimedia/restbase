@@ -23,6 +23,7 @@ describe('pageviews endpoints', function () {
     var insertProjectEndpoint = '/pageviews/insert-aggregate/en.wikipedia/all-access/all-agents/hourly/1970010100';
     var insertTopsEndpoint = '/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days/';
 
+    function fix(b, s, u) { return b.replace(s, s + u); }
     // Test Article Endpoint
 
     it('should return 400 when per article parameters are wrong', function () {
@@ -77,14 +78,49 @@ describe('pageviews endpoints', function () {
 
     it('should return the expected aggregate data after insertion', function () {
         return preq.post({
-            uri: server.config.globalURL + insertProjectEndpoint + '/0'
+            uri: server.config.globalURL +
+                 fix(insertProjectEndpoint, 'en.wikipedia', '1') +
+                 '/0'
         }).then(function() {
             return preq.get({
-                uri: server.config.globalURL + projectEndpoint
+                uri: server.config.globalURL +
+                     fix(projectEndpoint, 'en.wikipedia', '1')
             });
         }).then(function(res) {
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].views, 0);
+        });
+    });
+
+    it('should not die on bad data in the v column', function () {
+        return preq.post({
+            uri: server.config.globalURL +
+                 fix(insertProjectEndpoint, 'en.wikipedia', '2') +
+                 '/catch'
+        }).then(function() {
+            return preq.get({
+                uri: server.config.globalURL +
+                     fix(projectEndpoint, 'en.wikipedia', '2')
+            });
+        }).then(function(res) {
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].views, null);
+        });
+    });
+
+    it('should parse the v column string into an int', function () {
+        return preq.post({
+            uri: server.config.globalURL +
+                 fix(insertProjectEndpoint, 'en.wikipedia', '3') +
+                 '/9007199254740991'
+        }).then(function() {
+            return preq.get({
+                uri: server.config.globalURL +
+                     fix(projectEndpoint, 'en.wikipedia', '3')
+            });
+        }).then(function(res) {
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].views, 9007199254740991);
         });
     });
 

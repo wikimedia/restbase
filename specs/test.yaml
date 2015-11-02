@@ -146,6 +146,7 @@ paths:
                   granularity: '{$.request.params.granularity}'
                   timestamp: '{$.request.params.timestamp}'
                   views: '{$.request.params.views}'
+                  v: '{$.request.params.views}'
       x-monitor: false
 
   /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{data}:
