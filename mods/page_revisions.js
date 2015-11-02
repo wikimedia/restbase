@@ -203,8 +203,9 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
                         return true;
                     }
                 }
+                return false;
             }
-            return false;
+            return true;
         }
         return firstVal !== secondVal;
     });
