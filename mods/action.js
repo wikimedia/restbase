@@ -105,28 +105,7 @@ function apiError(apiErr) {
  * Action module code
  */
 function ActionService(options) {
-    // Be backwards-compatible with apiURI-style configs
-    if (!options.apiRequest && options.apiURI) {
-        // Log a deprecation warning
-        options.log('warn/actionService',
-            'The config options for this module have changed. ' +
-            'Please use the apiRequest template stanza');
-        options.apiRequest = {
-            method: 'post',
-            // TODO: assume the URI is in the form https?://{domain}/w/api.php
-            // as we cannot currently template the host in swagger-router
-            uri: options.apiURI,
-            headers: { host: '{$.request.params.domain}' },
-            body: '{$.request.body}'
-        };
-        // Now check if there's really a param in the host of the URI
-        if (!/^(:?https?:\/\/){[^\s}]+}\//.test(options.apiURI)) {
-            // No host templating, use the string provided by the config
-            options.apiRequest.uri = options.apiURI;
-        }
-        // TODO: decide what to do when apiURI has got a host param, but
-        // the rest isn't /w/api.php
-    } else if (!options.apiRequest) {
+    if (!options.apiRequest) {
         throw new Error('The action module needs the apiRequest templating stanza to exist!');
     }
     this.apiRequestTemplate = new Template(options.apiRequest);
