@@ -63,7 +63,7 @@ var tableSchemas = {
             views: 'int',
             // store this as a string because it's too big for an int
             // and long/bigint are not supported in RESTBase at this time
-            v: 'string'
+            v: 'long'
         },
         index: [
             { attribute: 'project', type: 'hash' },
@@ -128,17 +128,12 @@ Object.keys(viewCountColumnsForArticleFlat).forEach(function(k) {
 
 var notFoundCatcher = function(e) {
     if (e.status === 404) {
-        throw new rbUtil.HTTPError({
-            status: 404,
-            body: {
-                type: 'error',
-                description: 'The date(s) you used are valid, but we either do ' +
+        e.body.description = 'The date(s) you used are valid, but we either do ' +
                              'not have data for those date(s), or the project ' +
                              'you asked for is not loaded yet.  Please check ' +
                              'https://wikimedia.org/api/rest_v1/?doc for more ' +
-                             'information.'
-            }
-        });
+                             'information.';
+        e.body.type = 'not_found';
     }
     throw e;
 };
@@ -318,9 +313,9 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
         if (res.body.items) {
             res.body.items.forEach(function(item) {
                 // prefer the v column if it's loaded
-                if (item.v && item.v !== '') {
+                if (item.hasOwnProperty('v') && item.v !== null) {
                     try {
-                        item.views = parseInt(item.v);
+                        item.views = parseInt(item.v, 10);
                     } catch (e) {
                         item.views = null;
                     }

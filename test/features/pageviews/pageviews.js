@@ -21,6 +21,7 @@ describe('pageviews endpoints', function () {
     // Fake data insertion endpoints
     var insertArticleEndpoint = '/pageviews/insert-per-article-flat/en.wikipedia/one/daily/2015070200';
     var insertProjectEndpoint = '/pageviews/insert-aggregate/en.wikipedia/all-access/all-agents/hourly/1970010100';
+    var insertProjectEndpointLong = '/pageviews/insert-aggregate-long/en.wikipedia/all-access/all-agents/hourly/1970010100';
     var insertTopsEndpoint = '/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days/';
 
     function fix(b, s, u) { return b.replace(s, s + u); }
@@ -76,10 +77,25 @@ describe('pageviews endpoints', function () {
         });
     });
 
+    // WARNING: the data created in this test is used exactly as created
+    // by the monitoring tests.
     it('should return the expected aggregate data after insertion', function () {
         return preq.post({
+            uri: server.config.globalURL + insertProjectEndpoint + '/0'
+        }).then(function() {
+            return preq.get({
+                uri: server.config.globalURL + projectEndpoint
+            });
+        }).then(function(res) {
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].views, 0);
+        });
+    });
+
+    it('should return the expected aggregate data after long insertion', function () {
+        return preq.post({
             uri: server.config.globalURL +
-                 fix(insertProjectEndpoint, 'en.wikipedia', '1') +
+                 fix(insertProjectEndpointLong, 'en.wikipedia', '1') +
                  '/0'
         }).then(function() {
             return preq.get({
@@ -95,7 +111,7 @@ describe('pageviews endpoints', function () {
     it('should not die on bad data in the v column', function () {
         return preq.post({
             uri: server.config.globalURL +
-                 fix(insertProjectEndpoint, 'en.wikipedia', '2') +
+                 fix(insertProjectEndpointLong, 'en.wikipedia', '2') +
                  '/catch'
         }).then(function() {
             return preq.get({
@@ -111,7 +127,7 @@ describe('pageviews endpoints', function () {
     it('should parse the v column string into an int', function () {
         return preq.post({
             uri: server.config.globalURL +
-                 fix(insertProjectEndpoint, 'en.wikipedia', '3') +
+                 fix(insertProjectEndpointLong, 'en.wikipedia', '3') +
                  '/9007199254740991'
         }).then(function() {
             return preq.get({
