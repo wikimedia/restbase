@@ -61,8 +61,6 @@ var tableSchemas = {
             // the hourly timestamp will be stored as YYYYMMDDHH
             timestamp: 'string',
             views: 'int',
-            // store this as a string because it's too big for an int
-            // and long/bigint are not supported in RESTBase at this time
             v: 'long'
         },
         index: [
