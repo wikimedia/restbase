@@ -108,22 +108,6 @@ describe('pageviews endpoints', function () {
         });
     });
 
-    it('should not die on bad data in the v column', function () {
-        return preq.post({
-            uri: server.config.globalURL +
-                 fix(insertProjectEndpointLong, 'en.wikipedia', '2') +
-                 '/catch'
-        }).then(function() {
-            return preq.get({
-                uri: server.config.globalURL +
-                     fix(projectEndpoint, 'en.wikipedia', '2')
-            });
-        }).then(function(res) {
-            assert.deepEqual(res.body.items.length, 1);
-            assert.deepEqual(res.body.items[0].views, null);
-        });
-    });
-
     it('should parse the v column string into an int', function () {
         return preq.post({
             uri: server.config.globalURL +
