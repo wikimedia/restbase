@@ -1,0 +1,9 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: RESTBase request post-processor module
+  description: A collection of response processors/validators
+paths:
+  /mime:
+    post:
+      operationId: validateMimeType

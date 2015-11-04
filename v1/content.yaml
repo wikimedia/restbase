@@ -273,6 +273,10 @@ paths:
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'
               query:
                 sections: '{sections}'
+      x-response-handler:
+        - validate_mime_type:
+            request:
+              uri: /{domain}/sys/post_processor/mime
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
