@@ -92,6 +92,9 @@ describe('item requests', function() {
             query: {
                 sections: 'mp-sister,mp-lang'
             },
+            headers: {
+                'cache-control': 'no-cache'
+            }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -101,8 +104,6 @@ describe('item requests', function() {
                     || !body['mp-lang']) {
                 throw new Error('Missing section content!');
             }
-        })
-        .then(function() {
             return preq.get({
                 uri: server.config.labsBucketURL + '/html/Main_Page',
                 query: {
@@ -115,6 +116,27 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string') {
+                throw new Error('Missing section content!');
+            }
+        });
+    });
+
+    it('should get sections of Main_Page with no-cache and unchanged render', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/Main_Page',
+            query: {
+                sections: 'mp-sister,mp-lang'
+            },
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'application/json');
+            var body = res.body;
+            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
+            || !body['mp-lang']) {
                 throw new Error('Missing section content!');
             }
         });

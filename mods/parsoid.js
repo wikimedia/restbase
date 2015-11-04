@@ -118,10 +118,13 @@ PSP.purgeCaches = function(domain, title) {
  * the revision should be denied
  *
  * @param restbase RESTBase the Restbase router object
- * @param req Object the user request
- * @param promise Promise the promise object to wrap
+ * @param {Object} req the user request
+ * @param {Object} promise the promise object to wrap
+ * @param {String} format the requested format
+ * @param {String} tid time ID of the requested render
+ * @param {Boolean} skipAccessCheck whether to skip revision access check
  */
-PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
+PSP.wrapContentReq = function(restbase, req, promise, format, tid, skipAccessCheck) {
     var rp = req.params;
     function ensureCharsetInContentType(res) {
         var cType = res.headers['content-type'];
@@ -136,9 +139,11 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
         content: promise
     };
 
-    // Bundle the promise together with a call to getRevisionInfo(). A
-    // failure in getRevisionInfo will abort the entire request.
-    reqs.revisionInfo = this.getRevisionInfo(restbase, req);
+    if (!skipAccessCheck) {
+        // Bundle the promise together with a call to getRevisionInfo(). A
+        // failure in getRevisionInfo will abort the entire request.
+        reqs.revisionInfo = this.getRevisionInfo(restbase, req);
+    }
 
     // If the format is HTML and sections were requested, also request section
     // offsets
@@ -328,9 +333,10 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
             // it.
             restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
 
-            // No need for wrapping here, as we rely on the pagebundle request
+            // No need to check access again here, as we rely on the pagebundle request
             // being wrapped & throwing an error if access is denied
-            return currentContentRes;
+            return self.wrapContentReq(restbase, req,
+                P.resolve(currentContentRes), format, rp.tid, true);
         } else {
             return self.saveParsoidResult(restbase, req, format, tid, res);
         }
