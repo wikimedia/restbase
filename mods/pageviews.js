@@ -23,7 +23,6 @@ function PJVS(options) {
 
 
 var tables = {
-    article: 'pageviews.per.article',
     articleFlat: 'pageviews.per.article.flat',
     project: 'pageviews.per.project',
     tops: 'top.pageviews',
@@ -32,28 +31,6 @@ var tableURI = function(domain, tableName) {
     return new URI([domain, 'sys', 'table', tableName, '']);
 };
 var tableSchemas = {
-    article: {
-        table: tables.article,
-        version: 1,
-        attributes: {
-            project: 'string',
-            article: 'string',
-            access: 'string',
-            agent: 'string',
-            granularity: 'string',
-            // the hourly timestamp will be stored as YYYYMMDDHH
-            timestamp: 'string',
-            views: 'int'
-        },
-        index: [
-            { attribute: 'project', type: 'hash' },
-            { attribute: 'article', type: 'hash' },
-            { attribute: 'access', type: 'hash' },
-            { attribute: 'agent', type: 'hash' },
-            { attribute: 'granularity', type: 'hash' },
-            { attribute: 'timestamp', type: 'range', order: 'asc' },
-        ]
-    },
     articleFlat: {
         table: tables.articleFlat,
         version: 1,
@@ -64,7 +41,7 @@ var tableSchemas = {
             // the hourly timestamp will be stored as YYYYMMDDHH
             timestamp: 'string'
 
-            // The various integer columns that hold view counts are added below
+            // The various int columns that hold view counts are added below
         },
         index: [
             { attribute: 'project', type: 'hash' },
@@ -75,7 +52,7 @@ var tableSchemas = {
     },
     project: {
         table: tables.project,
-        version: 1,
+        version: 2,
         attributes: {
             project: 'string',
             access: 'string',
@@ -83,7 +60,8 @@ var tableSchemas = {
             granularity: 'string',
             // the hourly timestamp will be stored as YYYYMMDDHH
             timestamp: 'string',
-            views: 'int'
+            views: 'int',
+            v: 'long'
         },
         index: [
             { attribute: 'project', type: 'hash' },
@@ -146,6 +124,18 @@ Object.keys(viewCountColumnsForArticleFlat).forEach(function(k) {
     tableSchemas.articleFlat.attributes[viewCountColumnsForArticleFlat[k]] = 'int';
 });
 
+var notFoundCatcher = function(e) {
+    if (e.status === 404) {
+        e.body.description = 'The date(s) you used are valid, but we either do ' +
+                             'not have data for those date(s), or the project ' +
+                             'you asked for is not loaded yet.  Please check ' +
+                             'https://wikimedia.org/api/rest_v1/?doc for more ' +
+                             'information.';
+        e.body.type = 'not_found';
+    }
+    throw e;
+};
+
 /**
  * general handler functions */
 var normalizeResponse = function(res) {
@@ -153,11 +143,6 @@ var normalizeResponse = function(res) {
     res = res || {};
     res.body = res.body || { items: [] };
     res.headers = res.headers || {};
-    // NOTE: We decided to let "data not found" be reported as a 404.  We have a work-around if
-    // consumers complain that they prefer a 204 instead:
-    //   We could catch the 404 and run the same query without the date parameters.  If we find
-    //   results (use limit 1 for efficiency), we could then return a 204 because we'd know the
-    //   dates were the part of the query that wasn't found.
     return res;
 };
 
@@ -275,7 +260,7 @@ PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
             }
         }
 
-    });
+    }).catch(notFoundCatcher);
 
     function viewKey(access, agent) {
         var ret = ['views', access, agent].join('_');
@@ -320,9 +305,25 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
             }
         }
 
-    });
+    }).catch(notFoundCatcher);
 
-    return dataRequest.then(normalizeResponse);
+    return dataRequest.then(normalizeResponse).then(function(res) {
+        if (res.body.items) {
+            res.body.items.forEach(function(item) {
+                // prefer the v column if it's loaded
+                if (item.v !== null) {
+                    try {
+                        item.views = parseInt(item.v, 10);
+                    } catch (e) {
+                        item.views = null;
+                    }
+                }
+                delete item.v;
+            });
+        }
+
+        return res;
+    });
 };
 
 PJVS.prototype.pageviewsForTops = function(restbase, req) {
@@ -343,7 +344,7 @@ PJVS.prototype.pageviewsForTops = function(restbase, req) {
             }
         }
 
-    });
+    }).catch(notFoundCatcher);
 
     return dataRequest.then(normalizeResponse);
 };

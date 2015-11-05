@@ -148,6 +148,24 @@ paths:
                   views: '{$.request.params.views}'
       x-monitor: false
 
+  /{module:pageviews}/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
+    post:
+      x-request-handler:
+        - put_to_storage:
+            request:
+              method: 'put'
+              uri: '/{domain}/sys/table/pageviews.per.project/'
+              body:
+                table: 'pageviews.per.project'
+                attributes:
+                  project: '{$.request.params.project}'
+                  access: '{$.request.params.access}'
+                  agent: '{$.request.params.agent}'
+                  granularity: '{$.request.params.granularity}'
+                  timestamp: '{$.request.params.timestamp}'
+                  v: '{$.request.params.v}'
+      x-monitor: false
+
   /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{data}:
     post:
       x-request-handler:
