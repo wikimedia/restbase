@@ -74,7 +74,9 @@ describe('router - security', function() {
         .reply(200, function() {
             return {
                 'html': {
-                    'headers': {},
+                    'headers': {
+                        'content-type': 'text/html;profile="mediawiki.org/specs/html/1.1.0";charset=utf-8'
+                    },
                     'body': '<html></html>'
                 },
                 'data-parsoid': {
