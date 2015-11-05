@@ -266,6 +266,13 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             }
         }
     };
+    if (req.headers && req.headers['max-age']) {
+        var ttl = parseInt(req.headers['max-age']);
+        if (ttl) {
+            storeReq.body.attributes._ttl = ttl;
+        }
+        delete req.headers['max-age'];
+    }
     return restbase.put(storeReq)
     .then(function(res) {
         if (res.status === 201) {

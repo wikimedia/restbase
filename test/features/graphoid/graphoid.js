@@ -12,7 +12,6 @@ describe('Graphoid tests:', function() {
     var random_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/random_graph.json'));
     var invalid_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/invalid_graph.json'));
     var static_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/static_graph.json'));
-    var png_render_result = fs.readFileSync(__dirname + '/render_result.png');
     var svg_render_result = fs.readFileSync(__dirname + '/render_result.svg');
     var resource_location;
     var svgRender;
@@ -179,9 +178,8 @@ describe('Graphoid tests:', function() {
             return preq.get({
                 uri: server.config.baseURL + '/media/graph/svg/' + resource_location
             });
-        });
-        // TODO: uncomment when support for TTL in key_value is added
-      /*  // Now wait a bit to let content expire
+        })
+        // Now wait a bit to let content expire
         .delay(5000)
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -194,7 +192,7 @@ describe('Graphoid tests:', function() {
             throw new Error('Should not find the resource');
         }, function(e) {
             assert.deepEqual(e.status, 404);
-        });*/
+        });
     });
 
     it('Should propagate errors for invalid graph', function() {
@@ -208,13 +206,14 @@ describe('Graphoid tests:', function() {
         .then(function() {
             throw new Error('Error should be thrown');
         }, function(e) {
-            assert.deepEqual(e.status, 400);
+            // It depends on Graphoid which error to send, just verify it's an error
+            assert.deepEqual(e.status > 400, true);
         });
     });
 
     it('Should render correct result', function() {
         return preq.post({
-            uri: server.config.baseURL + '/media/graph/png',
+            uri: server.config.baseURL + '/media/graph/svg',
             headers: {
                 'content-type': 'application/json'
             },
@@ -222,14 +221,7 @@ describe('Graphoid tests:', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, png_render_result);
-            return preq.get({
-                uri: server.config.baseURL + '/media/graph/png/' + res.headers['x-resource-location']
-            });
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, png_render_result);
+            assert.deepEqual(res.body, svg_render_result);
             return preq.get({
                 uri: server.config.baseURL + '/media/graph/svg/' + res.headers['x-resource-location']
             });
@@ -242,7 +234,7 @@ describe('Graphoid tests:', function() {
 
     it('Should render correct result in preview mode', function() {
         return preq.post({
-            uri: server.config.baseURL + '/media/graph/png?mode=preview',
+            uri: server.config.baseURL + '/media/graph/svg?mode=preview',
             headers: {
                 'content-type': 'application/json'
             },
@@ -250,21 +242,10 @@ describe('Graphoid tests:', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, png_render_result);
+            assert.deepEqual(res.body, svg_render_result);
             return preq.get({
-                uri: server.config.baseURL + '/media/graph/png/' + res.headers['x-resource-location']
+                uri: server.config.baseURL + '/media/graph/svg/' + res.headers['x-resource-location']
             });
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, png_render_result);
-            return preq.post({
-                uri: server.config.baseURL + '/media/graph/svg?mode=preview',
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: static_graph_definition
-            })
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
