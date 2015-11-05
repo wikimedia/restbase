@@ -311,7 +311,7 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
         if (res.body.items) {
             res.body.items.forEach(function(item) {
                 // prefer the v column if it's loaded
-                if (item.hasOwnProperty('v') && item.v !== null) {
+                if (item.v !== null) {
                     try {
                         item.views = parseInt(item.v, 10);
                     } catch (e) {
