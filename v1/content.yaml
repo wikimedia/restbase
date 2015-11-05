@@ -245,6 +245,7 @@ paths:
           type: string
       produces:
         - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - application/json
       responses:
         '200':
           description: >
@@ -273,10 +274,17 @@ paths:
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'
               query:
                 sections: '{sections}'
-      x-response-handler:
-        - validate_mime_type:
+      x-invalid-response-handler:
+        - repeat_request:
             request:
-              uri: /{domain}/sys/post_processor/mime
+              uri: /{domain}/sys/parsoid/html/{title}
+              headers:
+                cache-control: 'no-cache'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+              query:
+                sections: '{sections}'
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
