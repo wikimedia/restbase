@@ -33,7 +33,7 @@ var tableURI = function(domain, tableName) {
 var tableSchemas = {
     articleFlat: {
         table: tables.articleFlat,
-        version: 1,
+        version: 2,
         attributes: {
             project: 'string',
             article: 'string',
@@ -48,7 +48,12 @@ var tableSchemas = {
             { attribute: 'article', type: 'hash' },
             { attribute: 'granularity', type: 'hash' },
             { attribute: 'timestamp', type: 'range', order: 'asc' },
-        ]
+        ],
+        options: {
+            updates: {
+                pattern: 'timeseries'
+            }
+        }
     },
     project: {
         table: tables.project,
