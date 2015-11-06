@@ -31,8 +31,9 @@ KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KVBucket.prototype.makeSchema = function(opts) {
-    opts.schemaVersion = 1;
+    opts.schemaVersion = 2;
     return {
+        version: opts.schemaVersion,
         options: {
             compression: [
                 {
@@ -50,7 +51,8 @@ KVBucket.prototype.makeSchema = function(opts) {
             'content-sha256': 'blob',
             // Redirect
             'content-location': 'string',
-            tags: 'set<string>'
+            tags: 'set<string>',
+            headers: 'json'
         },
         index: [
             { attribute: 'key', type: 'hash' },
@@ -126,6 +128,9 @@ function returnRevision(req) {
                 etag: rbUtil.makeETag(row.rev, row.tid),
                 'content-type': row['content-type']
             };
+            if (row.headers) {
+                headers = Object.assign(headers, row.headers);
+            }
             return {
                 status: 200,
                 headers: headers,
@@ -250,7 +255,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
                 key: rp.key,
                 tid: tid,
                 value: req.body,
-                'content-type': req.headers['content-type']
+                headers: req.headers
                 // TODO: include other data!
             }
         }
