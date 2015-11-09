@@ -709,7 +709,7 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         // Fake title to avoid Parsoid error: <400/No title or wikitext was provided>
         parsoidExtras.push('Main_Page');
     }
-    if (rp.revision) {
+    if (rp.revision && rp.revision !== '0') {
         parsoidExtras.push(rp.revision);
     }
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
@@ -784,7 +784,8 @@ PSP.makeTransform = function(from, to) {
 
     return function(restbase, req) {
         var rp = req.params;
-        if (!req.body || !req.body[from]) {
+        if ((!req.body && req.body !== '')
+                || (!req.body[from] && req.body[from] !== '')) {
             throw new rbUtil.HTTPError({
                 status: 400,
                 body: {
@@ -794,18 +795,24 @@ PSP.makeTransform = function(from, to) {
             });
         }
         // check if we have all the info for stashing
-        if (req.body.stash && !(rp.title && rp.revision)) {
-            throw new rbUtil.HTTPError({
-                status: 400,
-                body: {
-                    type: 'invalid_request',
-                    description: 'Data can be stashed only for a specific' +
-                            ' title/revision combination'
-                }
-            });
+        if (req.body.stash) {
+            if (!rp.title) {
+                throw new rbUtil.HTTPError({
+                    status: 400,
+                    body: {
+                        type: 'invalid_request',
+                        description: 'Data can be stashed only for a specific' +
+                                ' title.'
+                    }
+                });
+            }
+            if (!rp.revision) {
+                rp.revision = '0';
+            }
         }
+
         var transform;
-        if (rp.revision) {
+        if (rp.revision && rp.revision !== '0') {
             transform = self.transformRevision(restbase, req, from, to);
         } else {
             transform = self.callParsoidTransform(restbase, req, from, to);
