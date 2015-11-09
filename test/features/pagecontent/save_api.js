@@ -429,6 +429,14 @@ describe('page save api', function() {
         }
     });
 
+    /*
+     // The summary endpoint gets rerendered on this test. As it's done asyncronously, without waiting
+     // for a rerender to happen, there's no way to predict an order of the API calls, se we
+     // cannot set up NOCK for this test. When we switch to controlling rerenders with a change propagation
+     // system, this test should be uncommented back.
+     //
+     // TODO: uncomment when explicit `summary` invalidation from parsoid is replaced by change propagation
+
     it('detect conflict on save HTML', function() {
         function test() {
             return preq.get({
@@ -472,4 +480,5 @@ describe('page save api', function() {
             return test();
         }
     });
+    */
 });
