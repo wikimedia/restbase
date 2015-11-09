@@ -1,13 +1,21 @@
+group: dev
 language: node_js
 node_js:
     - "0.10"
     - "0.12"
     - "4.2"
 
-sudo: false
+sudo: required
 
-services:
-    - cassandra
+before_install:
+  - sudo sh -c "echo 'JVM_OPTS=\"\${JVM_OPTS} -Djava.net.preferIPv4Stack=false\"' >> /usr/local/cassandra/conf/cassandra-env.sh"
+  - sudo service cassandra start
+
+before_script:
+  - while [ `nc localhost 9042 < /dev/null; echo $?` != 0 ] ; do
+      echo 'waiting for cassandra...' ;
+      sleep 1 ;
+    done
 
 notifications:
   email:
