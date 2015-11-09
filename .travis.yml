@@ -4,10 +4,20 @@ node_js:
     - "0.12"
     - "4.2"
 
-sudo: false
+sudo: required
 
-services:
-    - cassandra
+before_install:
+  - sudo rm -rf /var/lib/cassandra/*
+  - sudo mkdir /var/lib/cassandra-code
+  - sudo wget -O /var/lib/cassandra-code/cassandra.tar.gz https://archive.apache.org/dist/cassandra/2.1.8/apache-cassandra-2.1.8-bin.tar.gz
+  - sudo tar -xzf /var/lib/cassandra-code/cassandra.tar.gz -C /var/lib/cassandra-code/ --strip-components 1
+  - sudo sh /var/lib/cassandra-code/bin/cassandra > /dev/null
+
+before_script:
+  - while [ `nc localhost 9042 < /dev/null; echo $?` != 0 ] ; do
+      echo 'waiting for cassandra...' ;
+      sleep 1 ;
+    done
 
 notifications:
   email:
