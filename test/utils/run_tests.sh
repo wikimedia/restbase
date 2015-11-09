@@ -11,6 +11,7 @@ runTest ( ) {
         rm -f test.db.sqlite3
     else
         echo "Running with Cassandra backend"
+        echo "Cassandra version: `cassandra -v`"
         export RB_TEST_BACKEND=cassandra
         sh ./test/utils/cleandb.sh
     fi
