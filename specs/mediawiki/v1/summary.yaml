@@ -86,19 +86,25 @@ definitions:
     properties:
       title:
         type: string
+        description: The page title
       timestamp:
         type: string
         format: date-time
+        description: The ISO timestamp of a page revision
       extract:
         type: string
+        description: First several sentences of an article in plain text
       thumbnail:
         type: object
         properties:
           source:
             type: string
+            description: Thumbnail image URI
           width:
             type: integer
+            description: Thumbnail width
           height:
             type: integer
+            description: Thumnail height
         required: ['source', 'width', 'height']
     required: ['title', 'timestamp', 'extract']
