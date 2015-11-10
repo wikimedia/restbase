@@ -279,7 +279,7 @@ describe('item requests', function() {
 
     // Nock is needed here, because the page are already renamed in MW API,
     // but we need to pretend it's happening while renaming.
-    it('should not store duplicated revison on rename', function() {
+    it('should not store duplicated revision on rename', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;

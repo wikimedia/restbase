@@ -83,7 +83,7 @@ PRS.prototype.getTableSchema = function() {
     };
 };
 
-PRS.prototype.pageTableName = 'page_data';
+PRS.prototype.pageTableName = 'page';
 PRS.prototype.pageTableURI = function(domain) {
     return new URI([domain, 'sys', 'table', this.pageTableName, '']);
 };
@@ -460,7 +460,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         }
     })
     .catch(function(e) {
-        // Ignore lack of page_data
+        // Ignore lack of page data
         if (e.status !== 404) {
             throw e;
         }
@@ -574,17 +574,22 @@ PRS.prototype._createRenameChecker = function(restbase, req) {
                 .then(function(latestTitle) {
                     var rootPath = restbase._rootReq.uri.path;
                     var newPath = [];
+                    var titleSeen = false;
                     rootPath.forEach(function(pathElement) {
-                        if (pathElement === rp.title) {
-                            newPath.push(encodeURIComponent(latestTitle));
+                        if (pathElement !== rp.title) {
+                            if (titleSeen) {
+                                newPath.push(pathElement);
+                                newPath = ['..'].concat(newPath);
+                            }
                         } else {
-                            newPath.push(pathElement);
+                            newPath.push(encodeURIComponent(latestTitle));
+                            titleSeen = true;
                         }
                     });
                     throw new rbUtil.HTTPRedirect({
                         status: 301,
                         headers: {
-                            location: '/' + newPath.join('/')
+                            location: newPath.join('/')
                         }
                     });
                 });
