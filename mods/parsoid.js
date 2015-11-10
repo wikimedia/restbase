@@ -211,7 +211,7 @@ PSP.pagebundle = function(restbase, req) {
     // TODO: Pass in current or predecessor version data if available
     var newReq = Object.assign({}, req);
     if (!newReq.method) { newReq.method = 'get'; }
-    newReq.uri = this.parsoidHost + '/v2/' + domain + '/pagebundle/'
+    newReq.uri = this.parsoidHost + '/' + domain + '/v3/page/pagebundle/'
         + encodeURIComponent(rbUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.request(newReq);
 };
@@ -433,6 +433,7 @@ PSP.getFormat = function(format, restbase, req) {
     }
     return contentReq
     .then(function(res) {
+        rbUtil.normalizeContentType(res);
         rbUtil.addCSPHeaders(res, {
             domain: rp.domain,
             allowInline: true,
@@ -624,6 +625,11 @@ PSP.transformRevision = function(restbase, req, from, to) {
         if (req.body.scrubWikitext || req.body.scrub_wikitext) {
             body2.scrubWikitext = true;
         }
+
+        if (req.body.bodyOnly || req.body.body_only) {
+            body2.body_only = true;
+        }
+
         // Let the stash flag through as well
         if (req.body.stash) {
             body2.stash = true;
@@ -695,9 +701,7 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     var rp = req.params;
     // Parsoid currently spells 'wikitext' as 'wt'
     var parsoidTo = to;
-    if (to === 'wikitext') {
-        parsoidTo = 'wt';
-    } else if (to === 'html') {
+    if (to === 'html') {
         // Retrieve pagebundle whenever we want HTML
         parsoidTo = 'pagebundle';
     }
@@ -716,8 +720,8 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
     var parsoidReq = {
-        uri: this.parsoidHost + '/v2/' + rp.domain + '/'
-            + parsoidTo + parsoidExtraPath,
+        uri: this.parsoidHost + '/' + rp.domain + '/v3/transform/'
+            + from + '/to/' + parsoidTo + parsoidExtraPath,
         headers: {
             'content-type': 'application/json',
             'user-agent': req['user-agent'],
@@ -831,9 +835,12 @@ PSP.makeTransform = function(from, to) {
             throw e;
         })
         .then(function(res) {
-            // Unwrap to the flat response format
-            var innerRes = res.body[to];
-            innerRes.status = 200;
+            if (to !== 'wikitext') {
+                // Unwrap to the flat response format
+                res = res.body[to];
+                res.status = 200;
+            }
+            rbUtil.normalizeContentType(res);
             // Handle body_only flag.
             // bodyOnly is deprecated and will be removed at some point.
             // XXX: Remove bodyOnly support after end of November 2015 (see
@@ -843,9 +850,8 @@ PSP.makeTransform = function(from, to) {
                 if (req.body.bodyOnly) {
                     self.log('warn/parsoid/bodyonly', req.headers);
                 }
-                innerRes.body = cheapBodyInnerHTML(innerRes.body);
             }
-            return innerRes;
+            return res;
         });
     };
 };

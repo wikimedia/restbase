@@ -65,7 +65,7 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            var pattern = /<div id="bar">Selser test<\/div>/;
+            var pattern = /^<div id="bar">Selser test<\/div>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + JSON.stringify(res, null, 2));
