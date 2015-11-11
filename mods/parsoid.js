@@ -211,7 +211,8 @@ PSP.pagebundle = function(restbase, req) {
     // TODO: Pass in current or predecessor version data if available
     var newReq = Object.assign({}, req);
     if (!newReq.method) { newReq.method = 'get'; }
-    newReq.uri = this.parsoidHost + '/' + domain + '/v3/page/pagebundle/'
+    var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
+    newReq.uri = this.parsoidHost + '/' + domain + '/v3/' + path + '/pagebundle/'
         + encodeURIComponent(rbUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.request(newReq);
 };
