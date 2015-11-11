@@ -125,7 +125,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
             var headers = {
-                etag: rbUtil.makeETag(row.rev, row.tid),
+                etag: rbUtil.makeETag('0', row.tid),
                 'content-type': row['content-type']
             };
             if (row.headers) {
@@ -272,11 +272,11 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: rbUtil.makeETag(rp.revision, tid)
+                    etag: rbUtil.makeETag('0', tid)
                 },
                 body: {
                     message: "Created.",
-                    tid: rp.revision
+                    tid: tid
                 }
             };
         } else {
