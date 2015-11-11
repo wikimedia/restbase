@@ -295,8 +295,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                 },
                 body: body
             });
-        })
-        .catch(function(e) {
+        }, function(e) {
             // Fall back to plain GET
             return restbase.get({ uri: pageBundleUri });
         });
