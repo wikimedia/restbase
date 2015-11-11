@@ -48,7 +48,7 @@
     "template-expression-compiler": "^0.1.2",
     "htcp-purge": "^0.1.1",
     "ajv": "^1.4.5",
-    "content-type": "^1.0.1"
+    "content-type": "git+https://github.com/wikimedia/content-type#master"
   },
   "devDependencies": {
     "bunyan": "^1.5.1",
