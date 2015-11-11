@@ -245,7 +245,12 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
 KVBucket.prototype.putRevision = function(restbase, req) {
     // TODO: support other formats! See cassandra backend getRevision impl.
     var rp = req.params;
-    var tid = uuid.now().toString();
+    var tid = rp.tid && coerceTid(rp.tid);
+
+    if (!tid) {
+        tid = (rbUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
+        tid = tid || uuid.now().toString();
+    }
 
     var storeReq = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -255,7 +260,8 @@ KVBucket.prototype.putRevision = function(restbase, req) {
                 key: rp.key,
                 tid: tid,
                 value: req.body,
-                headers: req.headers
+                headers: req.headers,
+                'content-type': req.headers && req.headers['content-type']
                 // TODO: include other data!
             }
         }
