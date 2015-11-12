@@ -31,7 +31,7 @@ KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KVBucket.prototype.makeSchema = function(opts) {
-    opts.schemaVersion = 2;
+    opts.schemaVersion = 3;
     return {
         version: opts.schemaVersion,
         options: {
@@ -42,6 +42,7 @@ KVBucket.prototype.makeSchema = function(opts) {
                 }
             ]
         },
+        revisionRetentionPolicy: opts.retention_policy,
         attributes: {
             key: opts.keyType || 'string',
             tid: 'timeuuid',
@@ -66,6 +67,11 @@ KVBucket.prototype.createBucket = function(restbase, req) {
     if (!opts.keyType) { opts.keyType = 'string'; }
     if (!opts.valueType) { opts.valueType = 'blob'; }
     if (!opts.revisioned) { opts.revisioned = true; } // No choice..
+    opts.retention_policy = opts.retention_policy || {
+        type: 'latest',
+        count: 1,
+        grace_ttl: 86400
+    };
     var schema = this.makeSchema(opts);
     schema.table = req.params.bucket;
     var rp = req.params;
