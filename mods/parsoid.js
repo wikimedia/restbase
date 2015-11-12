@@ -825,6 +825,7 @@ PSP.makeTransform = function(from, to) {
             }
         }
 
+        var originalBodyOnly = req.body.bodyOnly;
         var transform;
         if (rp.revision && rp.revision !== '0') {
             transform = self.transformRevision(restbase, req, from, to);
@@ -857,16 +858,18 @@ PSP.makeTransform = function(from, to) {
                 res = res.body[to];
                 res.status = 200;
             }
+            // normalise the content type
             rbUtil.normalizeContentType(res);
+            // remove the content-length header since that
+            // is added automatically
+            delete res.headers['content-length'];
             // Handle body_only flag.
             // bodyOnly is deprecated and will be removed at some point.
             // XXX: Remove bodyOnly support after end of November 2015 (see
             // https://phabricator.wikimedia.org/T114185).
-            if (to === 'html' && (req.body.body_only || req.body.bodyOnly)) {
-                // Log remaining bodyOnly uses / users
-                if (req.body.bodyOnly) {
-                    self.log('warn/parsoid/bodyonly', req.headers);
-                }
+            // Log remaining bodyOnly uses / users
+            if (to === 'html' && originalBodyOnly) {
+                self.log('warn/parsoid/bodyonly', req.headers);
             }
             return res;
         });
