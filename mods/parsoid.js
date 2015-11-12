@@ -338,7 +338,8 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
             return self.wrapContentReq(restbase, req,
                 P.resolve(currentContentRes), format, rp.tid, true);
         } else {
-            // Temporary code: need to invalidate summary when a render changes.
+            // TEMP TEMP TEMP!!!
+            // Need to invalidate summary when a render changes.
             // In future this should be controlled by dependency tracking system.
             // return is missed on purpose - we don't want to wait for the result
             restbase.get({
