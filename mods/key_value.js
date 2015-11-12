@@ -278,7 +278,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: rbUtil.makeETag('0', tid)
+                    etag: req.headers && req.headers.etag || rbUtil.makeETag('0', tid)
                 },
                 body: {
                     message: "Created.",
