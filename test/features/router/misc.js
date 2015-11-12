@@ -111,7 +111,7 @@ describe('router - misc', function() {
             throw new Error('Error should be thrown');
         } catch(e) {
             assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.title, 'data.body.testParam is a required property');
+            assert.deepEqual(e.body.detail, 'data.body.testParam is a required property');
         }
     });
     it('Should compile validator with no required fields', function() {
@@ -119,5 +119,76 @@ describe('router - misc', function() {
             name: 'testParam',
             in: 'formData'
         }]);
+    });
+    it('Should validate integers', function() {
+        var validator = new Validator([{
+            name: 'testParam',
+            in: 'query',
+            type: 'integer',
+            required: true
+        }]);
+        try {
+            validator.validate({
+                query: {
+                    testParam: 'not_an_integer'
+                }
+            });
+            throw new Error('Error should be thrown');
+        } catch(e) {
+            assert.deepEqual(e.constructor.name, 'HTTPError');
+            assert.deepEqual(e.body.detail, 'data.query.testParam should be an integer');
+        }
+    });
+    it('Should validate object schemas', function() {
+        var validator = new Validator([{
+            name: 'testParam',
+            in: 'body',
+            schema: {
+                type: 'object',
+                properties: {
+                    field1: {
+                        type: 'string'
+                    },
+                    field2: {
+                        type: 'string'
+                    }
+                },
+                required: ['field1', 'field2']
+            },
+            required: true
+        }]);
+        try {
+            validator.validate({
+                body: {
+                    field1: 'some string'
+                }
+            });
+            throw new Error('Error should be thrown');
+        } catch(e) {
+            assert.deepEqual(e.constructor.name, 'HTTPError');
+            assert.deepEqual(e.body.detail, 'data.body.field2 is a required property');
+        }
+    });
+    it('Should allow floats in number validator', function() {
+        var validator = new Validator([
+            {
+                name: 'testParam1',
+                in: 'query',
+                type: 'number',
+                required: true
+            },
+            {
+                name: 'testParam2',
+                in: 'query',
+                type: 'number',
+                required: true
+            }
+        ]);
+        validator.validate({
+            query: {
+                testParam1: '27.5',
+                testParam2: '27,5'
+            }
+        });
     });
 });

@@ -1,7 +1,7 @@
 # Declarative request handler definition
 
-## General madel
-On each endpont there could be two high-level blocks: `x-setup-handler` and `x-request-handler`. 
+## General model
+On each endpoint there could be two high-level blocks: `x-setup-handler` and `x-request-handler`. 
 The former is run during RESTBase start-up and is optional, while the latter is executed on every 
 incoming request and can be made up of multiple requests (further referred to as request blocks).
 
