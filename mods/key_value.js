@@ -31,7 +31,7 @@ KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KVBucket.prototype.makeSchema = function(opts) {
-    opts.schemaVersion = 2;
+    opts.schemaVersion = 3;
     return {
         version: opts.schemaVersion,
         options: {
@@ -42,6 +42,7 @@ KVBucket.prototype.makeSchema = function(opts) {
                 }
             ]
         },
+        revisionRetentionPolicy: opts.retention_policy,
         attributes: {
             key: opts.keyType || 'string',
             tid: 'timeuuid',
@@ -66,6 +67,11 @@ KVBucket.prototype.createBucket = function(restbase, req) {
     if (!opts.keyType) { opts.keyType = 'string'; }
     if (!opts.valueType) { opts.valueType = 'blob'; }
     if (!opts.revisioned) { opts.revisioned = true; } // No choice..
+    opts.retention_policy = opts.retention_policy || {
+        type: 'latest',
+        count: 1,
+        grace_ttl: 86400
+    };
     var schema = this.makeSchema(opts);
     schema.table = req.params.bucket;
     var rp = req.params;
@@ -125,7 +131,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
             var headers = {
-                etag: rbUtil.makeETag(row.rev, row.tid),
+                etag: rbUtil.makeETag('0', row.tid),
                 'content-type': row['content-type']
             };
             if (row.headers) {
@@ -245,7 +251,12 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
 KVBucket.prototype.putRevision = function(restbase, req) {
     // TODO: support other formats! See cassandra backend getRevision impl.
     var rp = req.params;
-    var tid = uuid.now().toString();
+    var tid = rp.tid && coerceTid(rp.tid);
+
+    if (!tid) {
+        tid = (rbUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
+        tid = tid || uuid.now().toString();
+    }
 
     var storeReq = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -255,7 +266,8 @@ KVBucket.prototype.putRevision = function(restbase, req) {
                 key: rp.key,
                 tid: tid,
                 value: req.body,
-                headers: req.headers
+                headers: req.headers,
+                'content-type': req.headers && req.headers['content-type']
                 // TODO: include other data!
             }
         }
@@ -266,11 +278,11 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: rbUtil.makeETag(rp.revision, tid)
+                    etag: req.headers && req.headers.etag || rbUtil.makeETag('0', tid)
                 },
                 body: {
                     message: "Created.",
-                    tid: rp.revision
+                    tid: tid
                 }
             };
         } else {
