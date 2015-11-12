@@ -166,8 +166,6 @@ templates:
                       request:
                         method: get
                         uri: /{domain}/sys/page_revisions/page/{title}
-                        headers:
-                          cache-control: '{cache-control}'
                   - process_request:
                       request:
                         method: get
@@ -182,9 +180,9 @@ templates:
                         uri: /{domain}/sys/action/query
                         body:
                           prop: 'extracts|pageimages'
-                          redirects: true
+                          redirects: ''
                           exsentences: 5
-                          explaintext: 'true'
+                          explaintext: ''
                           piprop: 'thumbnail'
                           pithumbsize: 320
                           titles: '{$.request.body.title}'
@@ -194,7 +192,7 @@ templates:
                         uri: /{domain}/sys/key_value/summary/{$.request.body.title}
                         headers:
                           content-type: application/json
-                          etag: '{$.request.body.rev}/{$.request.body.tid}'
+                          etag: '"{$.request.body.rev}/{$.request.body.tid}"'
                         body:
                           title: '{$.get_extracts.body.items[0].title}'
                           extract: '{$.get_extracts.body.items[0].extract}'
@@ -205,7 +203,7 @@ templates:
                         status: 200
                         headers:
                           content-type: application/json
-                          etag: '{$.request.body.rev}/{$.request.body.tid}'
+                          etag: '"{$.request.body.rev}/{$.request.body.tid}"'
                         body:
                           title: '{$.get_extracts.body.items[0].title}'
                           extract: '{$.get_extracts.body.items[0].extract}'

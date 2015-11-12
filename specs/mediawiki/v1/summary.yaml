@@ -36,8 +36,7 @@ paths:
           required: true
       responses:
         '200':
-          description: >
-            The summary for the given page
+          description: The summary for the given page
           schema:
             $ref: '#/definitions/summary'
         '404':
