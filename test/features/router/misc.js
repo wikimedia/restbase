@@ -136,7 +136,7 @@ describe('router - misc', function() {
             throw new Error('Error should be thrown');
         } catch(e) {
             assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.detail, 'data.query.testParam should be integer');
+            assert.deepEqual(e.body.detail, 'data.query.testParam should be an integer');
         }
     });
     it('Should validate object schemas', function() {
