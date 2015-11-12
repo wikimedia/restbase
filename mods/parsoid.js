@@ -719,6 +719,16 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
+    // ensure scrub_wikitext and bodyOnly have been translated
+    if (req.body.scrub_wikitext) {
+        req.body.scrubWikitext = true;
+        delete req.body.scrub_wikitext;
+    }
+    if (req.body.bodyOnly) {
+        req.body.body_only = true;
+        delete req.body.bodyOnly;
+    }
+
     var parsoidReq = {
         uri: this.parsoidHost + '/' + rp.domain + '/v3/transform/'
             + from + '/to/' + parsoidTo + parsoidExtraPath,
