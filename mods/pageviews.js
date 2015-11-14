@@ -251,6 +251,12 @@ var validateYearMonthDay = function(rp) {
 PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
     var rp = req.params;
 
+    // dates are passed in as YYYYMMDD but we need the HH to match the loaded data
+    // which was originally planned at hourly resolution
+    if (rp.start && rp.end) {
+        rp.start += '00';
+        rp.end += '00';
+    }
     validateStartAndEnd(rp);
 
     var dataRequest = restbase.get({

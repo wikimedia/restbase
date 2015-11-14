@@ -1,8 +1,8 @@
 swagger: '2.0'
 info:
   version: '1.0.0-beta'
-  title: Analytics Pageviews API
-  description: Analytics Pageviews API.
+  title: Analytics Pageview API
+  description: Analytics Pageview API
   termsofservice: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Analytics
@@ -17,7 +17,7 @@ paths:
       tags:
         - Pageviews data
       description: >
-        List pageviews data sub-apis.
+        This is the root of all pageview data endpoints.  The list of paths that this returns includes ways to query by article, project, top articles, etc.  If browsing the interactive documentation, see the specifics for each endpoint below.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
@@ -38,47 +38,47 @@ paths:
       tags:
         - Pageviews data
       description: >
-        List pageviews for a given article in a project, over a given time period.
+        Given a Mediawiki article and a date range, returns a daily timeseries of its pageview counts. You can also filter by access method and/or agent type
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: project
           in: path
-          description: 'Name of the project or "all-projects", as [language code].[project name] (for example: en.wikipedia).  You may pass en.wikipedia.org and the .org will be stripped off.'
+          description: The name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off.  For projects like commons without language codes, use commons.wikimedia
           type: string
           required: true
         - name: access
           in: path
-          description: Type of access method
+          description: If you want to filter by access method, use one of desktop, mobile-app or mobile-web. If you are interested in pageviews regardless of access method, use all-access
           type: string
           enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
         - name: agent
           in: path
-          description: Type of user agent
+          description: If you want to filter by agent type, use one of user, bot or spider. If you are interested in pageviews regardless of agent type, use all-agents
           type: string
           enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
         - name: article
           in: path
-          description: Name of the article for which to get data
+          description: 'The name of any article in the specified project. Any spaces should be replaced with underscores. It also should be URI-encoded, so that non-URI-safe characters like %, / or ? are accepted. Example: Are_You_the_One%3F'
           type: string
           required: true
         - name: granularity
           in: path
-          description: Time granularity of the response data (per-article hourly data is too big to fit on our current storage, we're currently working on finding a way to make it available in other ways)
+          description: The time unit for the response data. As of today, the only supported granularity for this endpoint is daily
           type: string
           enum: ['daily']
           required: true
         - name: start
           in: path
-          description: Start timestamp in YYYYMMDDHH format
+          description: The date of the first day to include, in YYYYMMDD format
           type: string
           required: true
         - name: end
           in: path
-          description: End timestamp in YYYYMMDDHH format
+          description: The date of the last day to include, in YYYYMMDD format
           type: string
           required: true
       responses:
@@ -101,42 +101,42 @@ paths:
       tags:
         - Pageviews data
       description: >
-        List pageviews for a given project, over a given time period.
+        Given a date range, returns a timeseries of pageview counts. You can filter by project, access method and/or agent type. You can choose between daily and hourly granularity as well
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: project
           in: path
-          description: 'Name of the project or "all-projects", as [language code].[project name] (for example: en.wikipedia).  You may pass en.wikipedia.org and the .org will be stripped off.'
+          description: If you want to filter by project, use the name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off. For projects like commons without language codes, use commons.wikimedia. If you are interested in all pageviews regardless of project, use all-projects
           type: string
           required: true
         - name: access
           in: path
-          description: Type of access method
+          description: If you want to filter by access method, use one of desktop, mobile-app or mobile-web. If you are interested in pageviews regardless of access method, use all-access
           type: string
           enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
         - name: agent
           in: path
-          description: Type of user agent
+          description: If you want to filter by agent type, use one of user, bot or spider. If you are interested in pageviews regardless of agent type, use all-agents
           type: string
           enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
         - name: granularity
           in: path
-          description: Time granularity of the response data
+          description: The time unit for the response data. As of today, the supported granularities for this endpoint are hourly, daily, and monthly
           type: string
           enum: ['hourly', 'daily', 'monthly']
           required: true
         - name: start
           in: path
-          description: Start timestamp in YYYYMMDDHH format
+          description: The timestamp of the first day to include, in YYYYMMDDHH format
           type: string
           required: true
         - name: end
           in: path
-          description: End timestamp in YYYYMMDDHH format
+          description: The timestamp of the first day to include, in YYYYMMDDHH format
           type: string
           required: true
       responses:
@@ -181,35 +181,35 @@ paths:
       tags:
         - Pageviews data
       description: >
-        List the 1000 most viewed articles for a given project, for all time, or during a specific year, month, or day.
+        Lists the 1000 most viewed articles for a given project and timespan (year, month or day). You can filter by access method
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: project
           in: path
-          description: 'Name of the project or "all-projects", as [language code].[project name] (for example: en.wikipedia).  You may pass en.wikipedia.org and the .org will be stripped off.'
+          description: The name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off.  For projects like commons without language codes, use commons.wikimedia
           type: string
           required: true
         - name: access
           in: path
-          description: Type of access method
+          description: If you want to filter by access method, use one of desktop, mobile-app or mobile-web. If you are interested in pageviews regardless of access method, use all-access
           type: string
           enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
         - name: year
           in: path
-          description: The year for which to retrieve top articles.
+          description: The year of the date for which to retrieve top articles, in YYYY format. If you want to get the top articles of a whole year, the month and day parameters should be all-months and all-days respectively
           type: string
           required: true
         - name: month
           in: path
-          description: The month for which to retrieve top articles [all-months|month].  If you pass all-months, you must pass all-days or the input is invalid.
+          description: The month of the date for which to retrieve top articles, in MM format. If you want to get the top articles of a whole month, the day parameter should be all-days.
           type: string
           required: true
         - name: day
           in: path
-          description: The day for which to retrieve top articles [all-days|day].  If you pass all-days, we just return the top articles over the year and month you passed.
+          description: The day of the date for which to retrieve top articles, in DD format.
           type: string
           required: true
       responses:
