@@ -1,0 +1,7 @@
+paths:
+  /v1/png/{title}/{revision}/{graph_id}:
+      get:
+        x-request-handler:
+          - get_from_graphoid:
+              request:
+                uri: '{+$$.conf.host}/{domain}/v1/png/{title}/{revision}/{graph_id}'
