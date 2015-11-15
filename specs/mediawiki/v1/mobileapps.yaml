@@ -40,18 +40,7 @@ paths:
               uri: /{domain}/sys/mobileapps/html/{title}
               headers:
                 cache-control: '{cache-control}'
-      x-monitor: true
-      x-amples:
-        - title: Get MobileApps Main Page from RB storage
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Main_Page
-          response:
-            status: 200
-            headers:
-              content-type: /text\/html/
-            body: /body/
+      x-monitor: false
 
   /{module:page}/mobile-html-sections/{title}:
     get:
@@ -90,6 +79,16 @@ paths:
               headers:
                 cache-control: '{cache-control}'
       x-monitor: false
+      x-amples:
+        - title: Get MobileApps Foobar page
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              content-type: /aplication\/json/
 
   /{module:page}/mobile-html-sections-lead/{title}:
     get:
