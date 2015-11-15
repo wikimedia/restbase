@@ -174,36 +174,48 @@ var stripOrgFromProject = function(rp) {
 };
 
 
-var validateTimestamp = function(timestamp) {
-    if (!/^[0-9]{10}$/.test(timestamp)) {
+var validateTimestamp = function(timestamp, opts) {
+    opts = opts || {};
+
+    if (timestamp && timestamp.length > 10) {
         return false;
     }
 
-    var year = timestamp.substring(0, 4);
-    var month = timestamp.substring(4, 6);
-    var day = timestamp.substring(6, 8);
-    var hour = timestamp.substring(8, 10);
+    try {
+        var year = timestamp.substring(0, 4);
+        var month = timestamp.substring(4, 6);
+        var day = timestamp.substring(6, 8);
+        var hour = opts.fakeHour ? '00' : timestamp.substring(8, 10);
 
-    var dt = new Date([year, month, day].join('-') + ' ' + hour + ':00:00 UTC');
+        var dt = new Date([year, month, day].join('-') + ' ' + hour + ':00:00 UTC');
 
-    return dt.toString() !== 'Invalid Date'
-        && dt.getUTCFullYear() === parseInt(year, 10)
-        && dt.getUTCMonth() === (parseInt(month, 10) - 1)
-        && dt.getUTCDate() === parseInt(day, 10)
-        && dt.getUTCHours() === parseInt(hour);
+        return dt.toString() !== 'Invalid Date'
+            && dt.getUTCFullYear() === parseInt(year, 10)
+            && dt.getUTCMonth() === (parseInt(month, 10) - 1)
+            && dt.getUTCDate() === parseInt(day, 10)
+            && dt.getUTCHours() === parseInt(hour);
+
+    } catch (e) {
+        return false;
+    }
 };
 
 
-var validateStartAndEnd = function(rp) {
+var validateStartAndEnd = function(rp, opts) {
+    opts = opts || {};
+
     var errors = [];
+    var invalidMessage = opts.fakeHour ?
+       'invalid, must be a valid date in YYYYMMDD format' :
+       'invalid, must be a valid timestamp in YYYYMMDDHH format';
 
     stripOrgFromProject(rp);
 
-    if (!validateTimestamp(rp.start)) {
-        errors.push('start timestamp is invalid, must be a valid date in YYYYMMDDHH format');
+    if (!validateTimestamp(rp.start, opts)) {
+        errors.push('start timestamp is ' + invalidMessage);
     }
-    if (!validateTimestamp(rp.end)) {
-        errors.push('end timestamp is invalid, must be a valid date in YYYYMMDDHH format');
+    if (!validateTimestamp(rp.end, opts)) {
+        errors.push('end timestamp is ' + invalidMessage);
     }
 
     if (rp.start > rp.end) {
@@ -251,7 +263,9 @@ var validateYearMonthDay = function(rp) {
 PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
     var rp = req.params;
 
-    validateStartAndEnd(rp);
+    // dates are passed in as YYYYMMDD but we need the HH to match the loaded data
+    // which was originally planned at hourly resolution, so we pass "fakeHour"
+    validateStartAndEnd(rp, { fakeHour: true });
 
     var dataRequest = restbase.get({
         uri: tableURI(rp.domain, tables.articleFlat),

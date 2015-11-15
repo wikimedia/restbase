@@ -14,7 +14,7 @@ describe('pageviews endpoints', function () {
     //Start server before running tests
     before(function () { return server.start(); });
 
-    var articleEndpoint = '/pageviews/per-article/en.wikipedia/desktop/spider/one/daily/2015070100/2015070300';
+    var articleEndpoint = '/pageviews/per-article/en.wikipedia/desktop/spider/one/daily/20150701/20150703';
     var projectEndpoint = '/pageviews/aggregate/en.wikipedia/all-access/all-agents/hourly/1969010100/1971010100';
     var topsEndpoint = '/pageviews/top/en.wikipedia/mobile-web/2015/all-months/all-days';
 
@@ -29,7 +29,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when per article parameters are wrong', function () {
         return preq.get({
-            uri: server.config.globalURL + articleEndpoint.replace('2015070300', '201507a300')
+            uri: server.config.globalURL + articleEndpoint.replace('20150703', '201507a3')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
