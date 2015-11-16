@@ -34,12 +34,7 @@ templates:
       license:
         name: Apache2
         url: http://www.apache.org/licenses/LICENSE-2.0
-    x-subspecs:
-      - mediawiki/v1/content
-      - mediawiki/v1/graphoid
-      - mediawiki/v1/mobileapps
-      - media/v1/mathoid
-      - test
+
     securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
         description: Checks permissions using MW api
@@ -58,6 +53,19 @@ templates:
         x-whitelists:
           internal:
             - /^(?:::ffff:)?(?:10|127)\./
+
+    x-modules:
+      - name: graphoid
+        path: mods/wikimedia/graphoid_v1
+        type: spec
+        options:
+          host: http://graphoid.wikimedia.org
+
+    x-subspecs:
+      - mediawiki/v1/content
+      - mediawiki/v1/mobileapps
+      - media/v1/mathoid
+      - test
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
     info:
@@ -135,13 +143,6 @@ templates:
               parsoidHost: http://parsoid-beta.wmflabs.org
               # For local testing, use:
               # parsoidHost: http://localhost:8000
-
-      /{module:graphoid}:
-        x-modules:
-          - path: specs/graphoid_test
-            type: spec
-            options:
-              host: http://graphoid.wikimedia.org
 
       /{module:mobileapps}:
         x-subspec:
