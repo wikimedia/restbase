@@ -138,7 +138,7 @@ templates:
 
       /{module:graphoid}:
         x-modules:
-          - path: graphoid_test
+          - path: specs/graphoid_test
             type: spec
             options:
               host: http://graphoid.wikimedia.org
