@@ -122,7 +122,7 @@ templates:
         x-modules:
           - name: action
             type: file
-            options:
+            templates:
               apiRequest:
                 method: post
                 uri: http://{domain}/w/api.php

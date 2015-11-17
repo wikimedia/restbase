@@ -94,7 +94,7 @@ templates:
         x-modules:
           - name: action
             type: file
-            options:
+            templates:
               apiRequest:
                 method: post
                 # XXX: double-check the API URI:
