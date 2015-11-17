@@ -104,11 +104,11 @@ function apiError(apiErr) {
 /**
  * Action module code
  */
-function ActionService(options) {
-    if (!options.apiRequest) {
+function ActionService(options, templates) {
+    if (!templates.apiRequest) {
         throw new Error('The action module needs the apiRequest templating stanza to exist!');
     }
-    this.apiRequestTemplate = new Template(options.apiRequest);
+    this.apiRequestTemplate = new Template(templates.apiRequest);
 }
 
 function buildQueryResponse(res) {
@@ -188,8 +188,8 @@ ActionService.prototype.edit = function(restbase, req) {
 };
 
 
-module.exports = function(options) {
-    var actionService = new ActionService(options);
+module.exports = function(options, templates) {
+    var actionService = new ActionService(options, templates);
     return {
         spec: {
             paths: {

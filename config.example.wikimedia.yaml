@@ -35,15 +35,7 @@ templates:
       license:
         name: Apache2
         url: http://www.apache.org/licenses/LICENSE-2.0
-    # Override the base path for host-based (proxied) requests. In our case,
-    # we proxy https://{domain}/api/rest_v1/ to the API.
-    x-host-basePath: /api/rest_v1
-    x-subspecs:
-      - mediawiki/v1/content
-      - mediawiki/v1/graphoid
-      - mediawiki/v1/mobileapps
-      - media/v1/mathoid
-    # - mediawiki/v1/revision-scoring
+
     securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
         description: Checks permissions using MW api
@@ -59,6 +51,23 @@ templates:
         x-whitelists:
           internal:
             - /^(?:::ffff:)?(?:10|127)\./
+              #
+    # Override the base path for host-based (proxied) requests. In our case,
+    # we proxy https://{domain}/api/rest_v1/ to the API.
+    x-host-basePath: /api/rest_v1
+
+    x-modules:
+      - name: graphoid
+        path: mods/wikimedia/graphoid_v1
+        type: spec
+        options:
+          host: http://graphoid.wikimedia.org
+
+    x-subspecs:
+      - mediawiki/v1/content
+      - mediawiki/v1/mobileapps
+      - media/v1/mathoid
+    # - mediawiki/v1/revision-scoring
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
     info:
@@ -113,7 +122,7 @@ templates:
         x-modules:
           - name: action
             type: file
-            options:
+            templates:
               apiRequest:
                 method: post
                 uri: http://{domain}/w/api.php
