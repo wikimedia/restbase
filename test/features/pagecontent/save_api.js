@@ -25,7 +25,7 @@ describe('page save api', function() {
     var lastETag = '';
     var apiUri = server.config
         .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+        .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
     var labsApiURI = apiUri.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
 
     this.timeout(20000);
