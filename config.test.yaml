@@ -136,12 +136,12 @@ templates:
               # For local testing, use:
               # parsoidHost: http://localhost:8000
 
-      /{module:graphoid}/v1/png/{title}/{revision}/{graph_id}:
-        get:
-          x-request-handler:
-            - get_from_graphoid:
-                request:
-                  uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+      /{module:graphoid}:
+        x-modules:
+          - path: specs/graphoid_test
+            type: spec
+            options:
+              host: http://graphoid.wikimedia.org
 
       /{module:mobileapps}:
         x-subspec:
