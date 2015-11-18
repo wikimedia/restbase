@@ -1,0 +1,141 @@
+info:
+  title: Mobileapps sys API module
+paths:
+  /handling/rev/{route}/{title}:
+    get:
+      x-request-handler:
+        - get_rev:
+            request:
+              method: get
+              uri: /{domain}/sys/page_revisions/page/{title}
+              headers:
+                cache-control: '{cache-control}'
+        - cache_branch:
+            request:
+              method: post
+              uri: /{domain}/sys/mobileapps/v1/handling/content/{route}/{$$.default($.request.headers.cache-control, 'none-given')}/{title}
+              headers:
+                content-type: application/json
+              body: '{$.get_rev.body}'
+
+  /handling/content/mobile-sections/no-cache/{title}:
+    post:
+      x-request-handler:
+        - get_mobileapps:
+            request:
+              method: get
+              uri: '{+$$.options.host}/{domain}/v1/page/mobile-sections/{title}'
+              headers:
+                x-restbase-etag: '{$.request.body.items[0].rev}/{$.request.body.items[0].tid}'
+        - store_lead:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              headers: '{$.get_mobileapps.headers}'
+              body: '{$.get_mobileapps.body.lead}'
+        - store_remaining:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              headers: '{$.get_mobileapps.headers}'
+              body: '{$.get_mobileapps.body.remaining}'
+        - return:
+            return:
+              status: 200
+              headers: '{$.get_mobileapps.headers}'
+              body: '{$.get_mobileapps.body}'
+
+  /handling/content/mobile-sections/{cache-default}/{title}:
+    post:
+      x-setup-handler:
+        - init-lead:
+            method: put
+            uri: /{domain}/sys/key_value/mobileapps.lead
+            body:
+              revisionRetentionPolicy:
+                type: latest
+                count: 1
+                grace_ttl: 86400
+              valueType: json
+              updates:
+                pattern: timeseries
+        - init-remaining:
+            method: put
+            uri: /{domain}/sys/key_value/mobileapps.remaining
+            body:
+              revisionRetentionPolicy:
+                type: latest
+                count: 1
+                grace_ttl: 86400
+              valueType: json
+              updates:
+                pattern: timeseries
+      x-request-handler:
+        - check_storage_lead:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+            catch:
+              status: 404
+        - check_storage_remaining:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+            catch:
+              status: 404
+            return_if:
+              status: '2xx'
+            return:
+              status: 200
+              headers: '{$.check_storage_lead.headers}'
+              body:
+                lead: '{$.check_storage_lead.body}'
+                remaining: '{$.check_storage_remaining.body}'
+        - render:
+            request:
+              method: post
+              uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
+              body: '{$.request.body}'
+
+  /handling/content/mobile-sections-lead/{cache-default}/{title}:
+    post:
+      x-request-handler:
+        - check_storage:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+            return_if:
+              status: '2xx'
+            catch:
+              status: 404
+        - get_sections:
+            request:
+              method: post
+              uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
+              body: '{$.request.body}'
+            return:
+              status: 200
+              headers: '{$.get_sections.headers}'
+              body: '{$.get_sections.body.lead}'
+
+  /handling/content/mobile-sections-remaining/{cache-default}/{title}:
+    post:
+      x-request-handler:
+        - check_storage:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+            return_if:
+              status: '2xx'
+            catch:
+              status: 404
+        - get_sections:
+            request:
+              method: post
+              uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
+              body: '{$.request.body}'
+            return:
+              status: 200
+              headers: '{$.get_sections.headers}'
+              body: '{$.get_sections.body.remaining}'
+
