@@ -35,12 +35,8 @@ KVBucket.prototype.makeSchema = function(opts) {
     return {
         version: opts.schemaVersion,
         options: {
-            compression: [
-                {
-                    algorithm: 'deflate',
-                    block_size: 256
-                }
-            ]
+            compression: opts.compression,
+            updates: opts.updates
         },
         revisionRetentionPolicy: opts.retention_policy,
         attributes: {
@@ -72,6 +68,16 @@ KVBucket.prototype.createBucket = function(restbase, req) {
         count: 1,
         grace_ttl: 86400
     };
+    opts.compression = opts.compression || [
+        {
+            algorithm: 'deflate',
+            block_size: 256
+        }
+    ];
+    if (!Array.isArray(opts.compression)) {
+        opts.compression = [opts.compression];
+    }
+    opts.updates = opts.updates || undefined;
     var schema = this.makeSchema(opts);
     schema.table = req.params.bucket;
     var rp = req.params;
@@ -171,26 +177,11 @@ function coerceTid(tidString) {
     throw new rbUtil.HTTPError({
         status: 400,
         body: {
-            type: 'key_rev_value/invalid_tid',
+            type: 'key_value/invalid_tid',
             title: 'Invalid tid parameter',
             tid: tidString
         }
     });
-}
-
-function parseRevision(rev) {
-    if (!/^[0-9]+/.test(rev)) {
-        throw new rbUtil.HTTPError({
-            status: 400,
-            body: {
-                type: 'key_rev_value/invalid_revision',
-                title: 'Invalid revision parameter',
-                rev: rev
-            }
-        });
-    }
-
-    return parseInt(rev);
 }
 
 KVBucket.prototype.getRevision = function(restbase, req) {
