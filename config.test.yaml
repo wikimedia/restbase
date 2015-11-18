@@ -72,7 +72,6 @@ templates:
 
     x-subspecs:
       - mediawiki/v1/content
-      - mediawiki/v1/mobileapps
       - media/v1/mathoid
       - test
 
@@ -231,10 +230,10 @@ templates:
                       request:
                         method: get
                         uri: /{domain}/sys/key_value/summary/{$.request.body.title}
-                      return_if:
-                        status: '2xx'
                       catch:
                         status: 404
+                      return_if:
+                        status: '2xx'
                   - get_content:
                       request:
                         method: get
@@ -312,14 +311,14 @@ templates:
                   uri: /{domain}/sys/key_value/mathoid.data/{$.request.headers.x-resource-location}
                   headers:
                     cache-control: '{cache-control}'
+                catch:
+                  status: 404
                 return_if:
                   status: '2xx'
                 return:
                   status: 200
                   headers: '{$$.merge($.check_storage.body.data[$.request.params.format].headers,$.check_storage.body.headers)}'
                   body: '{$.check_storage.body.data[$.request.params.format].body}'
-                catch:
-                  status: 404
             - mathoid:
                 request:
                   method: post

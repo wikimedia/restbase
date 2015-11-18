@@ -47,12 +47,74 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+
+      x-setup-handler:
+        # Set up a simple key-value bucket.
+        - init:
+            method: 'put'
+            uri: /{domain}/sys/key_value/summary
+            body:
+              valueType: 'json'
+
       x-request-handler:
-        - get_from_backend:
+
+        # Get the revision metadata for access control (will return an error
+        # if there's no access), and so that we can use the normalized title &
+        # other info in case we have a storage miss.
+        - rev_info:
             request:
-              uri: /{domain}/sys/summary/request/{title}
+              method: get
+              uri: /{domain}/sys/page_revisions/page/{title}
+            response: 
+              body: '{{rev_info.body.items[0]}}'
+
+          storage:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/summary/{request.params.title}
+            catch:
+              status: 404
+            return_if:
+              # Typical case: Return straight from storage.
+              status: '2xx'
+
+        # Storage miss. Call the Action API to get the textextract.
+        - extract:
+            request:
+              method: post
+              uri: /{domain}/sys/action/query
+              body:
+                prop: 'extracts|pageimages'
+                redirects: ''
+                exsentences: 5
+                explaintext: ''
+                piprop: 'thumbnail'
+                pithumbsize: 320
+                titles: '{{rev_info.body.title}}'
+            response:
+              # Define the response to save & return.
               headers:
-                cache-control: '{cache-control}'
+                content-type: application/json
+                etag: '"{{rev_info.body.rev}}/{{request.params.tid}}"'
+              foo: '{{log(extract.body.items[0].title)}}'
+              body:
+                title: '{{extract.body.items[0].title}}'
+                extract: '{{extract.body.items[0].extract}}'
+                thumbnail: '{{default(extract.body.items[0].thumbnail, null)}}'
+                timestamp: '{{request.params.timestamp}}'
+
+        - store_and_return:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/summary/{request.body.title}
+              headers: '{{extract.headers}}'
+              body: '{{extract.body}}'
+
+            return:
+              status: 200
+              headers: '{{extract.headers}}'
+              body: '{{extract.body}}'
+
       x-monitor: true
       x-amples:
         - title: Get summary from storage
