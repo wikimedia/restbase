@@ -62,12 +62,12 @@ templates:
           host: http://appservice.wmflabs.org
 
       - name: graphoid
-        path: mods/wikimedia/graphoid_v1
+        path: mods/restbase/graphoid_v1
         type: spec
         options:
           host: http://graphoid.wikimedia.org
 
-      - path: specs/mediawiki/v1/summary
+      - path: mods/restbase/summary_v1
         type: spec
 
     x-subspecs:
