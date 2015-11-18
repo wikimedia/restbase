@@ -404,6 +404,7 @@ templates:
                   status: 200
                   headers: '{$$.merge($.mathoid.body[$.request.params.format].headers,$$.merge($$.strip($.mathoid.headers, ["content-length", "content-encoding"]), {"x-resource-location": $.request.headers.x-resource-location}))}'
                   body: '{$.mathoid.body[$.request.params.format].body}'
+
       /{module:pageviews}:
         x-modules:
           - name: pageviews
@@ -467,7 +468,7 @@ services:
 test:
   content_types:
     html: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
-    data-parsoid: application/json; profile="mediawiki.org/specs/data-parsoid/0.0.1"
+    data-parsoid: application/json; charset=utf-8; profile="mediawiki.org/specs/data-parsoid/0.0.1"
     wikitext: text/plain; charset=utf-8; profile="mediawiki.org/specs/wikitext/1.0.0"
 
 logging:

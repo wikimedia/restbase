@@ -198,7 +198,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: application/json; profile="mediawiki.org/specs/data-parsoid/0.0.1"
+                content-type: application/json; charset=utf-8; profile="mediawiki.org/specs/data-parsoid/0.0.1"
 definitions:
   defaultError:
     required:
