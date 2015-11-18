@@ -1,51 +1,10 @@
 # MobileApps page-manipulation service
 
 swagger: 2.0
-x-default-params:
-  domain: en.wikipedia.org
 paths:
-  /{module:page}/mobile-html/{title}:
+  /{module:page}/mobile-sections/{title}:
     get:
       tags:
-        - Page content
-        - Mobile
-      description: >
-        Retrieve the latest HTML for a page title optimised for viewing with
-        native mobile applications.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
-      produces:
-        - text/html
-      parameters:
-        - name: title
-          in: path
-          description: The page title
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The HTML for the given page title.
-        '404':
-          description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              method: get
-              uri: /{domain}/sys/mobileapps/html/{title}
-              headers:
-                cache-control: '{cache-control}'
-      x-monitor: false
-
-  /{module:page}/mobile-html-sections/{title}:
-    get:
-      tags:
-        - Page content
         - Mobile
       description: >
         Retrieve the latest HTML for a page title optimised for viewing with
@@ -75,10 +34,10 @@ paths:
         - get_from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/sections/{title}
+              uri: /{domain}/sys/mobileapps/v1/handling/rev/mobile-sections/{title}
               headers:
                 cache-control: '{cache-control}'
-      x-monitor: false
+      x-monitor: true
       x-amples:
         - title: Get MobileApps Foobar page
           request:
@@ -88,12 +47,14 @@ paths:
           response:
             status: 200
             headers:
-              content-type: /aplication\/json/
+              content-type: /application\/json/
+            body:
+              lead: /.+/
+              remaining: /.+/
 
-  /{module:page}/mobile-html-sections-lead/{title}:
+  /{module:page}/mobile-sections-lead/{title}:
     get:
       tags:
-        - Page content
         - Mobile
       description: >
         Retrieve the lead section of the latest HTML for a page title optimised
@@ -123,15 +84,14 @@ paths:
         - get_from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/sections-lead/{title}
+              uri: /{domain}/sys/mobileapps/v1/handling/rev/mobile-sections-lead/{title}
               headers:
                 cache-control: '{cache-control}'
       x-monitor: false
 
-  /{module:page}/mobile-html-sections-remaining/{title}:
+  /{module:page}/mobile-sections-remaining/{title}:
     get:
       tags:
-        - Page content
         - Mobile
       description: >
         Retrieve the remainder of the latest HTML (without the lead section) for
@@ -162,7 +122,7 @@ paths:
         - get_from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/sections-remaining/{title}
+              uri: /{domain}/sys/mobileapps/v1/handling/rev/mobile-sections-remaining/{title}
               headers:
                 cache-control: '{cache-control}'
       x-monitor: false
@@ -170,7 +130,6 @@ paths:
   /{module:page}/mobile-text/{title}:
     get:
       tags:
-        - Page content
         - Mobile
       description: >
         Retrieve the *lite* version of the latest HTML for a page title optimised for viewing with
@@ -200,7 +159,7 @@ paths:
         - get_from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/text/{title}
+              uri: '{+$$.options.host}/{domain}/v1/page/mobile-text/{title}'
               headers:
                 cache-control: '{cache-control}'
       x-monitor: false
