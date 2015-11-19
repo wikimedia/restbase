@@ -95,18 +95,17 @@ paths:
               # Define the response to save & return.
               headers:
                 content-type: application/json
-                etag: '"{{rev_info.body.rev}}/{{request.params.tid}}"'
-              foo: '{{log(extract.body.items[0].title)}}'
+                etag: '"{{rev_info.body.rev}}/{{rev_info.body.tid}}"'
               body:
                 title: '{{extract.body.items[0].title}}'
                 extract: '{{extract.body.items[0].extract}}'
-                thumbnail: '{{default(extract.body.items[0].thumbnail, null)}}'
+                thumbnail: '{{extract.body.items[0].thumbnail}}'
                 timestamp: '{{request.params.timestamp}}'
 
         - store_and_return:
             request:
               method: put
-              uri: /{domain}/sys/key_value/summary/{request.body.title}
+              uri: /{domain}/sys/key_value/summary/{request.params.title}
               headers: '{{extract.headers}}'
               body: '{{extract.body}}'
 
