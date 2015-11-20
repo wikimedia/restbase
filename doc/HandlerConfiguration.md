@@ -1,13 +1,21 @@
 # Declarative request handler definition
 
 ## General model
-On each endpoint there could be two high-level blocks: `x-setup-handler` and `x-request-handler`. 
-The former is run during RESTBase start-up and is optional, while the latter is executed on every 
-incoming request and can be made up of multiple requests (further referred to as request blocks).
+Each swagger end point can optionally define two declarative handlers:
+`x-setup-handler` and `x-request-handler`.  `x-setup-handler` is run during
+RESTBase start-up, while the `x-request-handler` is executed on every incoming
+request, and can be made up of multiple sub-requests executed in a sequence of
+steps.
+
+Together, these handlers can make it easy to hook up common behaviors without
+having to write code. If more complex functionality is needed, then this can
+be added with JS modules, which can either take over the handling of the
+entire request, or add handler-specific functionality to the handler
+templating environment.
 
 ## Setup declaration
-The `x-request-setup` stanza could be used to set up storage or do any preparational requests needed on startup.
-And example of a setup declaration:
+The `x-request-setup` stanza is typically used to set up storage or do any
+preparational requests needed on startup.  And example of a setup declaration:
 
 ```yaml
     /{module:service}/test/{title}{/revision}:
@@ -17,154 +25,88 @@ And example of a setup declaration:
                     uri: /{domain}/sys/key_value/testservice.test            
 ```
 
-By default `PUT` method is used for a request. This example would initialize a `testservice.test` bucket in a 
-`key_value` module.
+By default the `PUT` method is used for a request. This example would
+initialize a `testservice.test` bucket in a `key_value` module.
 
-## Request Block
+## Request handlers
 
-Each request block can be a control one, no special naming is used, as everything can be determined by the block's 
-properties. A block's name is remembered and put in the current scope, so that is can be referenced in a later block; 
-its reference is bound to the response returned for it. Therefore, request block names must be unique inside the same 
-`x-request-handler` fragment.
+Request handlers are called whenever a request matches the swagger route &
+validation of parameters succeeded. Here is an example demonstrating a few :
 
-A block is allowed to have the following properties:
-- `request`: a request template of the request to issue in the current block
-- `return`: a response template documenting the response to return
-- `return_if`: a conditional stanza specifying the condition to be met for stopping the execution of the sequential chain
-- `catch`: a conditional stanza specifying which error conditions should be ignored
-
-## Execution Flow
-It is mandatory that a block has either a `request`, a `return` stanza or both. When a `return` stanza is specified 
-without a matching `return_if` conditional, the sequence chain is stopped unconditionally and the response is returned. 
-In the presence of a `return_if` stanza, its conditional is evaluated and, if satisfied, the chain is broken; 
-otherwise, the execution flow switches to the next block.
-
-Errors are defined as responses the status code of which is higher than 399. When an error is encountered, 
-the chain is broken, unless there is a `catch` stanza listing that status code, in which case the execution 
-continues with the next block.
-
-## Sequential and Parallel Blocks
-The `on_request` fragment is an array of objects each of which is a named request block. 
-All of the array elements are executed sequentially one by one until either the chain is broken 
-(because of a `return`, `return_if` or an error) or the end of the array has been reached:
-
-Example: 
 ```yaml
-    on_request:
-        - req_block1: ...
-        - req_block2: ...
-        - ...
-        - req_blockN: ...
+x-request-handler:
+  # First step.
+  - wiki_page_history: # The request name can be used to reference the response later.
+      request:
+        method: get
+        uri: http://{domain}/wiki/{+title}
+        query:
+          action: history
+
+    # Second request, executed in parallel with wiki_page.
+    view_data:
+      request:
+        uri: https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{domain}/all-access/all-agents/Foobar/daily/20150907/20151101
+
+  # Second step: Only defines a `composite` response for later use.
+  - composite:
+      response:
+        headers:
+          content-type: application/json
+          date: '{{wiki_page_history.headers.date}}'
+        body: 
+          history_page: '{{wiki_page_history.body}}'
+          first_view_item: '{{view_data.body.items[0]}}' # Only return the first entry
+
+  # Third step: Saves the `composite` response to a bucket.
+  - save_to_bucket:
+      request:
+        method: put
+        uri: /{domain}/sys/key_value/testservice.test/{title}
+        headers: '{{composite.headers}}'
+        body: '{{composite.body}}'
+
+  # Final step: Returns the `composite` response to the client.
+  - return_to_client:
+      return:
+        status: 200
+        headers: '{{composite.headers}}'
+        body: '{{composite.body}}'
 ```
         
-Should an array element contain more than one request block, they are going to be executed in parallel:
+## Steps: Sequential execution of blocks of parallel requests.
 
-Example:
-```yaml
-on_request:
-  - req_block1: ...
-  - req_block2a: ...
-    req_block2b: ...
-  - ...
-  - req_blockN: ...
-```
-  
-Parallel request blocks cannot have the `return` or the `return_if` stanzas and cannot be the last element of 
-the chain array.
+A handler template is made up of several steps, encoded as objects in an
+array structure. Each property within a step object describes a request and
+its response processing. The name of this property should be unique across the
+entire `x-response-handler`, as the responses are saved in a request-global
+namespace.
 
-## Outline
-Here's the complete outline of the possible blocks/stanzas:
+Each request spec can have the following properties:
+- `request`: a request template of the request to issue in the current block
+- `catch`: a conditional stanza specifying which error conditions should be ignored
+- `return_if`: Modifies the behavior of `return` to only return if the
+    conditions in `return_if` evaluate to true.
+- `return`: Return statement, containing a response object template. Aborts
+    the entire handler. Unconditional if no `return_if` is supplied.
+    Only a single request within a step can have `return` or `return_if` set.
+- `response`: Defines a response template like `return`, but does not abort
+    the step / handler.
 
-```yaml
-x-setup-handler:
-  - name1:
-      uri: uri1
-      method: m1
-      headers:
-        h1: v1
-      body: body1
-x-request-handler:
-  - name1:
-      request:
-        method: m2
-        uri: uri2
-        headers:
-          h2: v2
-        body: body2
-      catch:
-        status: [404, '5xx']
-    name2:
-      request:
-        method: m3
-        uri: uri3
-        headers:
-          h3: v3
-        body: body3
-  - name3:
-      request:
-        method: m4
-        uri: uri4
-        headers:
-          h4: v4
-        body: body4
-      return_if:
-        status: ['2xx', 404]
-  - name4:
-      return: '{$.name2}'
-```      
-      
-## POST Service Definition
-Using this specification, we can define the POST service configuration as follows:
+## Execution Flow
 
-```yaml
-  /posttest/{hash}/png:
-    get:
-      x-setup-handler:
-        - setup_png_storage:
-            method: put 
-            uri: /{domain}/sys/key_value/postservice.png
-      x-request-handler:
-        - get_from_storage:
-            request:
-              method: get
-              headers:
-                cache-control: '{cache-control}'
-              uri: /{domain}/sys/key_value/postservice.png/{hash}
-             return_if:
-               status: 200
-             catch:
-               status: 200
-        - get_post:
-            request:
-              uri: /{domain}/sys/post_data/postservice/{hash}
-        - new_png:
-            request:
-              method: post
-              uri: http://some.post.service/png
-              body: '{$.get_post.body}'
-        - save_new_png:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/postservice.png
-              headers: '{$.new_png.headers}'
-              body: '{$.new_png.body}'
-        - return_png:
-            return: '{$.new_png}'
+Within each step, all requests (if defined) are sent out in parallel, and all
+responses are awaited. If no `catch` property is defined, or if it does not
+match, errors (incl. 4xx and 5xx responses) will abort the entire handler, and
+possibly also parallel requests.
 
-  /posttest/:
-    post:
-      x-setup-handler:
-        - setup_post_data_bucket:
-            method: put
-            uri: /{domain}/sys/post_data/postservice
-      x-request-handler:
-        - do_post:
-            request:
-              method: post
-              uri: /{domain}/sys/post_data/postservice/
-              body: '{$.request.body}'
-```                      
+If all parallel requests succeed, each result is registered in the global
+namespace. If `return_if` conditions are supplied, those are then evaluated
+against the raw response value.
 
-With this configuration, upon a `POST` request, it's stored in the `post_data` module by hash, which is implicitly returned
-to the client. Upon a get request, storage is checked for content. If there's no content in the storage, an original `POST`
-request is loaded and sent to the backend service. The result is stored and returned to the client.
+Next, `return` or `response` statements are evaluated. These have access to
+all previous responses, including those in the current step. The `response`
+template replaces the original response value with its expansion, while
+`return` will return the same value to the client if no `return_if` stanza was
+supplied, or if its condition evaluated to true against the original
+responses.

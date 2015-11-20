@@ -338,6 +338,21 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
             return self.wrapContentReq(restbase, req,
                 P.resolve(currentContentRes), format, rp.tid, true);
         } else {
+            // TEMP TEMP TEMP!!!
+            // Need to invalidate summary when a render changes.
+            // In future this should be controlled by dependency tracking system.
+            // return is missed on purpose - we don't want to wait for the result
+            restbase.get({
+                uri: new URI([rp.domain, 'sys', 'summary', 'request', rp.title]),
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .catch(function(e) {
+                self.log('error/summary', e);
+            });
+            // End of temp code block
+
             return self.saveParsoidResult(restbase, req, format, tid, res);
         }
     });

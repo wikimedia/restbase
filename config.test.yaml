@@ -34,17 +34,7 @@ templates:
       license:
         name: Apache2
         url: http://www.apache.org/licenses/LICENSE-2.0
-    x-modules:
-      - name: mobileapps-public
-        path: specs/mediawiki/v1/mobileapps
-        type: spec
-        options:
-          host: http://appservice.wmflabs.org
-    x-subspecs:
-      - mediawiki/v1/content
-      - mediawiki/v1/graphoid
-      - media/v1/mathoid
-      - test
+
     securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
         description: Checks permissions using MW api
@@ -63,6 +53,27 @@ templates:
         x-whitelists:
           internal:
             - /^(?:::ffff:)?(?:10|127)\./
+
+    x-modules:
+      - name: mobileapps-public
+        path: specs/mediawiki/v1/mobileapps
+        type: spec
+        options:
+          host: http://appservice.wmflabs.org
+
+      - path: wikimedia/v1/graphoid_v1.yaml
+        options:
+          host: http://graphoid.wikimedia.org
+
+      - path: wikimedia/v1/summary_v1.js
+        options:
+          # One hour, for now.
+          response_cache-control: 'max-age: 3600, s-maxage: 3600'
+
+    x-subspecs:
+      - mediawiki/v1/content
+      - media/v1/mathoid
+      - test
 
   wmf-sys-1.0.0: &wp/sys/1.0.0
     info:
@@ -118,7 +129,7 @@ templates:
         x-modules:
           - name: action
             type: file
-            options:
+            templates:
               apiRequest:
                 method: post
                 uri: http://{domain}/w/api.php
@@ -140,13 +151,6 @@ templates:
               parsoidHost: http://parsoid-beta.wmflabs.org
               # For local testing, use:
               # parsoidHost: http://localhost:8000
-
-      /{module:graphoid}:
-        x-modules:
-          - path: specs/graphoid_test
-            type: spec
-            options:
-              host: http://graphoid.wikimedia.org
 
       /{module:mobileapps}:
         x-subspec:
@@ -230,14 +234,14 @@ templates:
                   uri: /{domain}/sys/key_value/mathoid.data/{$.request.headers.x-resource-location}
                   headers:
                     cache-control: '{cache-control}'
+                catch:
+                  status: 404
                 return_if:
                   status: '2xx'
                 return:
                   status: 200
                   headers: '{$$.merge($.check_storage.body.data[$.request.params.format].headers,$.check_storage.body.headers)}'
                   body: '{$.check_storage.body.data[$.request.params.format].body}'
-                catch:
-                  status: 404
             - mathoid:
                 request:
                   method: post

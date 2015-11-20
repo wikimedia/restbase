@@ -167,13 +167,15 @@ var nestedSecuritySpec = {
 
 var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
+var fakeRestBase = { rb_config: {} };
+
 describe('tree building', function() {
 
     before(function() { server.start(); });
 
     it('should build a simple spec tree', function() {
         var router = new Router();
-        return router.loadSpec(rootSpec)
+        return router.loadSpec(rootSpec, fakeRestBase)
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
             var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
@@ -186,7 +188,7 @@ describe('tree building', function() {
 
     it('should fail loading a faulty spec', function() {
         var router = new Router();
-        return router.loadSpec(faultySpec)
+        return router.loadSpec(faultySpec, fakeRestBase)
         .then(function() {
             throw new Error("Should throw an exception!");
         },
@@ -201,7 +203,8 @@ describe('tree building', function() {
         return router.loadSpec(fullSpec.spec, {
             request: function(req) {
                 resourceRequests.push(req);
-            }
+            },
+            rb_config: {},
         })
         .then(function() {
             var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
@@ -214,7 +217,7 @@ describe('tree building', function() {
 
     it('should allow adding methods to existing paths', function() {
         var router = new Router();
-        return router.loadSpec(additionalMethodSpec)
+        return router.loadSpec(additionalMethodSpec, fakeRestBase)
         .then(function() {
             var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
             assert.equal(!!handler.value.methods.get, true);
@@ -233,9 +236,9 @@ describe('tree building', function() {
         });
     });
 
-    it('should parse permission along the path to endpoint', function() {
+    it('should pass permission along the path to endpoint', function() {
         var router = new Router();
-        return router.loadSpec(nestedSecuritySpec)
+        return router.loadSpec(nestedSecuritySpec, fakeRestBase)
         .then(function() {
             var handler = router.route('/en.wikipedia.org/v1/page/secure');
             assert.deepEqual(handler.permissions, [

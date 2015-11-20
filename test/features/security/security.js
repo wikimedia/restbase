@@ -41,7 +41,7 @@ describe('router - security', function() {
         nock.enableNetConnect();
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'fr.wikipedia.org');
         var api = nock(apiURI, {
             reqheaders: {
@@ -111,7 +111,7 @@ describe('router - security', function() {
     it ('should not send cookies to non-restricted domains', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
         var api = nock(apiURI, {
             badheaders: ['cookie']
@@ -133,7 +133,7 @@ describe('router - security', function() {
         nock.enableNetConnect();
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'fr.wikipedia.org');
         var title = 'TestingTitle';
         var revision = 12345;
