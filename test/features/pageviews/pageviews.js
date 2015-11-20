@@ -169,7 +169,7 @@ describe('pageviews endpoints', function () {
                         views: 2000
                     },{
                         rank: 2,
-                        article: 't%22w%22o',
+                        article: 'two\\',
                         views: 1000
                     }
                 ]
@@ -184,7 +184,7 @@ describe('pageviews endpoints', function () {
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].articles[0].article, 'o"n"e');
             assert.deepEqual(res.body.items[0].articles[1].views, 1000);
-            assert.deepEqual(res.body.items[0].articles[1].article, 't"w"o');
+            assert.deepEqual(res.body.items[0].articles[1].article, 'two\\');
         });
     });
 });

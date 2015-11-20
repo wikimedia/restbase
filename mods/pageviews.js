@@ -89,8 +89,6 @@ var tableSchemas = {
             // [{\"rank\": 1, \"article\": \"<<title>>\", \"views\": 123}, ...]
             articles: 'string',
             // this will be preferred to articles and uses the same format
-            // NOTE: article titles will be decoded in the output JSON
-            // for consistency with other endpoints
             articlesJSON: 'json'
         },
         index: [
@@ -375,14 +373,7 @@ PJVS.prototype.pageviewsForTops = function(restbase, req) {
             res.body.items.forEach(function(item) {
                 // prefer the articlesJSON column if it's loaded
                 if (item.articlesJSON !== null) {
-                    try {
-                        item.articles = item.articlesJSON.map(function(a) {
-                            a.article = decodeURIComponent(a.article);
-                            return a;
-                        });
-                    } catch (e) {
-                        item.articles = null;
-                    }
+                    item.articles = item.articlesJSON;
                 } else {
                     try {
                         item.articles = JSON.parse(item.articles);
