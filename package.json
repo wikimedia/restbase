@@ -45,7 +45,7 @@
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "tassembly": "^0.2.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
-    "template-expression-compiler": "^0.1.2",
+    "template-expression-compiler": "^0.1.8",
     "htcp-purge": "^0.1.1",
     "ajv": "^1.4.5",
     "content-type": "git+https://github.com/wikimedia/content-type#master"
