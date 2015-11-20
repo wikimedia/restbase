@@ -168,7 +168,7 @@ paths:
                   v: '{$.request.params.v}'
       x-monitor: false
 
-  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}/{data}:
+  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -183,5 +183,5 @@ paths:
                   year: '{$.request.params.year}'
                   month: '{$.request.params.month}'
                   day: '{$.request.params.day}'
-                  articles: '{$.request.params.data}'
+                  articlesJSON: '{$.request.body.articles}'
       x-monitor: false

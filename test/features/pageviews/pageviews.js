@@ -22,7 +22,7 @@ describe('pageviews endpoints', function () {
     var insertArticleEndpoint = '/pageviews/insert-per-article-flat/en.wikipedia/one/daily/2015070200';
     var insertProjectEndpoint = '/pageviews/insert-aggregate/en.wikipedia/all-access/all-agents/hourly/1970010100';
     var insertProjectEndpointLong = '/pageviews/insert-aggregate-long/en.wikipedia/all-access/all-agents/hourly/1970010100';
-    var insertTopsEndpoint = '/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days/';
+    var insertTopsEndpoint = '/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days';
 
     function fix(b, s, u) { return b.replace(s, s + u); }
     // Test Article Endpoint
@@ -161,19 +161,30 @@ describe('pageviews endpoints', function () {
 
     it('should return the expected tops data after insertion', function () {
         return preq.post({
-            uri: server.config.globalURL + insertTopsEndpoint + JSON.stringify([{
-                rank: 1,
-                article: 'one',
-                views: 2000
-            }])
+            uri: server.config.globalURL + insertTopsEndpoint,
+            body: {
+                articles: [{
+                        rank: 1,
+                        article: 'o"n"e',
+                        views: 2000
+                    },{
+                        rank: 2,
+                        article: 'two\\',
+                        views: 1000
+                    }
+                ]
+            },
+            headers: { 'content-type': 'application/json' }
+
         }).then(function() {
             return preq.get({
                 uri: server.config.globalURL + topsEndpoint
             });
         }).then(function(res) {
             assert.deepEqual(res.body.items.length, 1);
-            var article = JSON.parse(res.body.items[0].articles)[0];
-            assert.deepEqual(article.views, 2000);
+            assert.deepEqual(res.body.items[0].articles[0].article, 'o"n"e');
+            assert.deepEqual(res.body.items[0].articles[1].views, 1000);
+            assert.deepEqual(res.body.items[0].articles[1].article, 'two\\');
         });
     });
 });
