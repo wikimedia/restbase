@@ -1,0 +1,109 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki Summary API
+  description: Page content summary API
+  termsofservice: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: Services
+    email: services@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/Services
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+x-default-params:
+  domain: en.wikipedia.org
+paths:
+  /{module:page}/summary/{title}:
+    get:
+      tags:
+        - Page content
+      description: >
+        Returns the summary of the latest page content available in storage.
+        Currently the summary includes the text for the first several sentences and
+        the thumbnail URL.
+
+        Provide a `Cache-Control: no-cache` header to request the latest data.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The summary for the given page
+          schema:
+            $ref: '#/definitions/summary'
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/summary/request/{title}
+              headers:
+                cache-control: '{cache-control}'
+      x-monitor: true
+      x-amples:
+        - title: Get summary from storage
+          request:
+            params:
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^application\/json$/
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  summary:
+    type: object
+    properties:
+      title:
+        type: string
+        description: The page title
+      timestamp:
+        type: string
+        format: date-time
+        description: The ISO timestamp of a page revision
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+      thumbnail:
+        type: object
+        properties:
+          source:
+            type: string
+            description: Thumbnail image URI
+          width:
+            type: integer
+            description: Thumbnail width
+          height:
+            type: integer
+            description: Thumnail height
+        required: ['source', 'width', 'height']
+    required: ['title', 'timestamp', 'extract']

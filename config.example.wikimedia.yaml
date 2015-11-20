@@ -45,6 +45,7 @@ templates:
           host: http://appservice.wmflabs.org
     x-subspecs:
       - mediawiki/v1/content
+      - mediawiki/v1/summary
       - mediawiki/v1/graphoid
       - media/v1/mathoid
     # - mediawiki/v1/revision-scoring
@@ -151,6 +152,83 @@ templates:
             - get_from_graphoid:
                 request:
                   uri: http://graphoid.wikimedia.org/{domain}/v1/png/{title}/{revision}/{graph_id}
+
+      /{module:summary}:
+        x-subspec:
+          info: Summary sys module API
+          paths:
+            /request/{title}:
+              get:
+                x-setup-handler:
+                  - init:
+                      method: 'put'
+                      uri: /{domain}/sys/key_value/summary
+                      body:
+                        valueType: 'json'
+                x-request-handler:
+                  - get_revision:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/page_revisions/page/{title}
+                  - process_request:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/summary/handler/{$$.default($.request.headers.cache-control, 'none-given')}
+                        body: '{$.get_revision.body.items[0]}'
+            /handler/no-cache:
+              get:
+                x-request-handler:
+                  - get_extracts:
+                      request:
+                        method: post
+                        uri: /{domain}/sys/action/query
+                        body:
+                          prop: 'extracts|pageimages'
+                          redirects: ''
+                          exsentences: 5
+                          explaintext: ''
+                          piprop: 'thumbnail'
+                          pithumbsize: 320
+                          titles: '{$.request.body.title}'
+                  - store:
+                      request:
+                        method: put
+                        uri: /{domain}/sys/key_value/summary/{$.request.body.title}
+                        headers:
+                          content-type: application/json
+                          etag: '"{$.request.body.rev}/{$.request.body.tid}"'
+                        body:
+                          title: '{$.get_extracts.body.items[0].title}'
+                          extract: '{$.get_extracts.body.items[0].extract}'
+                          thumbnail: '{$$.default($.get_extracts.body.items[0].thumbnail, null)}'
+                          timestamp: '{$.request.body.timestamp}'
+                  - return_result:
+                      return:
+                        status: 200
+                        headers:
+                          content-type: application/json
+                          etag: '"{$.request.body.rev}/{$.request.body.tid}"'
+                        body:
+                          title: '{$.get_extracts.body.items[0].title}'
+                          extract: '{$.get_extracts.body.items[0].extract}'
+                          thumbnail: '{$$.default($.get_extracts.body.items[0].thumbnail, null)}'
+                          timestamp: '{$.request.body.timestamp}'
+            /handler/{cache-default}:
+              get:
+                x-request-handler:
+                  - check_storage:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/key_value/summary/{$.request.body.title}
+                      return_if:
+                        status: '2xx'
+                      catch:
+                        status: 404
+                  - get_content:
+                      request:
+                        method: get
+                        uri: /{domain}/sys/{module:summary}/handler/no-cache
+                        body: '{$.request.body}'
 
       /{module:mobileapps}:
         x-subspec:
