@@ -78,15 +78,20 @@ var tableSchemas = {
     },
     tops: {
         table: tables.tops,
-        version: 1,
+        version: 2,
         attributes: {
             project: 'string',
             access: 'string',
             year: 'string',
             month: 'string',
             day: 'string',
-            // format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
-            articles: 'string'
+            // this is deprecated, it used to be json stringified to look like:
+            // [{\"rank\": 1, \"article\": \"<<title>>\", \"views\": 123}, ...]
+            articles: 'string',
+            // this will be preferred to articles and uses the same format
+            // NOTE: article titles will be decoded in the output JSON
+            // for consistency with other endpoints
+            articlesJSON: 'json'
         },
         index: [
             { attribute: 'project', type: 'hash' },
@@ -365,7 +370,40 @@ PJVS.prototype.pageviewsForTops = function(restbase, req) {
 
     }).catch(notFoundCatcher);
 
-    return dataRequest.then(normalizeResponse);
+    return dataRequest.then(normalizeResponse).then(function(res) {
+        if (res.body.items) {
+            res.body.items.forEach(function(item) {
+                // prefer the articlesJSON column if it's loaded
+                if (item.articlesJSON !== null) {
+                    try {
+                        item.articles = item.articlesJSON.map(function(a) {
+                            a.article = decodeURIComponent(a.article);
+                            return a;
+                        });
+                    } catch (e) {
+                        item.articles = null;
+                    }
+                } else {
+                    try {
+                        item.articles = JSON.parse(item.articles);
+                    } catch (e) {
+                        throw new rbUtil.HTTPError({
+                            status: 500,
+                            body: {
+                                type: 'error',
+                                description: 'This response contained invalid JSON, we are ' +
+                                    'working on fixing the problem, but until then you can ' +
+                                    'try a different date.'
+                            }
+                        });
+                    }
+                }
+                delete item.articlesJSON;
+            });
+        }
+
+        return res;
+    });
 };
 
 
