@@ -63,13 +63,14 @@ templates:
           host: http://appservice.wmflabs.org
 
       - name: graphoid
-        path: mods/restbase/graphoid_v1
-        type: spec
+        path: wikimedia/v1/graphoid_v1.yaml
         options:
           host: http://graphoid.wikimedia.org
 
-      - path: mods/restbase/summary_v1
-        type: spec
+      - path: wikimedia/v1/summary_v1.js
+        options:
+          # One hour, for now.
+          response_cache-control: 'max-age: 3600, s-maxage: 3600'
 
     x-subspecs:
       - mediawiki/v1/content
