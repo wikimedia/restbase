@@ -94,9 +94,9 @@ paths:
               uri: /{domain}/sys/action/query
               body:
                 prop: 'extracts|pageimages'
-                redirects: 'true'
+                redirects: true
                 exsentences: 5
-                explaintext: 'true'
+                explaintext: true
                 piprop: 'thumbnail'
                 pithumbsize: 320
                 titles: '{{rev_info.body.title}}'
