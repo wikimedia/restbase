@@ -31,7 +31,7 @@ KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KVBucket.prototype.makeSchema = function(opts) {
-    opts.schemaVersion = 3;
+    opts.schemaVersion = 4;
     return {
         version: opts.schemaVersion,
         options: {
@@ -77,7 +77,9 @@ KVBucket.prototype.createBucket = function(restbase, req) {
     if (!Array.isArray(opts.compression)) {
         opts.compression = [opts.compression];
     }
-    opts.updates = opts.updates || undefined;
+    opts.updates = {
+        pattern: 'timeseries'
+    };
     var schema = this.makeSchema(opts);
     schema.table = req.params.bucket;
     var rp = req.params;
