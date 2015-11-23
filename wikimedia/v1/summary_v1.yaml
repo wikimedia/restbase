@@ -71,6 +71,8 @@ paths:
           storage:
             request:
               method: get
+              headers:
+                cache-control: '{{cache-control}}'
               uri: /{domain}/sys/key_value/summary/{request.params.title}
             catch:
               status: 404
@@ -92,9 +94,9 @@ paths:
               uri: /{domain}/sys/action/query
               body:
                 prop: 'extracts|pageimages'
-                redirects: ''
+                redirects: true
                 exsentences: 5
-                explaintext: ''
+                explaintext: true
                 piprop: 'thumbnail'
                 pithumbsize: 320
                 titles: '{{rev_info.body.title}}'
@@ -131,12 +133,16 @@ paths:
         - title: Get summary from storage
           request:
             params:
-              title: Foobar
+              title: Barack_Obama
           response:
             status: 200
             headers:
               etag: /.+/
               content-type: /^application\/json$/
+            body:
+              extract: /.+/
+              thumbnail:
+                source: /^https:/
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem

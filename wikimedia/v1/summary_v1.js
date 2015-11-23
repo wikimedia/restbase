@@ -13,7 +13,7 @@ module.exports = function(options, templates) {
             // called in the response template.
             httpsSource: function(thumb) {
                 if (thumb && thumb.source) {
-                    thumb.source = thumb.replace(/^http:/, 'https:');
+                    thumb.source = thumb.source.replace(/^http:/, 'https:');
                 }
                 return thumb;
             }
