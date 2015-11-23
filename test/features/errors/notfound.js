@@ -81,10 +81,7 @@ describe('404 handling', function() {
         });
     });
     it('should set page_deleted on deleted page', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
+        var apiURI = 'https://en.wikipedia.org/w/api.php';
         var title = 'TestingTitle';
         var revision = 12345;
         var emptyResponse = {'batchcomplete':'','query':{'badrevids':{'12345' :{'revid':'12345'}}}};

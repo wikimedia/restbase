@@ -23,10 +23,7 @@ describe('page save api', function() {
     var oldRev = 259419;
     var lastRev = 0;
     var lastETag = '';
-    var apiUri = server.config
-        .conf.templates['wmf-sys-1.0.0']
-        .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-    var labsApiURI = apiUri.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
+    var labsApiURL = server.config.labsApiURL;
 
     this.timeout(20000);
 
@@ -34,7 +31,7 @@ describe('page save api', function() {
         return server.start().then(function() {
             return P.all([
                 preq.get({
-                    uri: 'http://en.wikipedia.beta.wmflabs.org/w/api.php',
+                    uri: server.config.labsApiURL,
                     query: {
                         action: 'query',
                         meta: 'tokens',
@@ -102,7 +99,7 @@ describe('page save api', function() {
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURI)
+            var api = nock(labsApiURL)
                 // Mock MW API badtoken response
             .post('')
             .reply(200, {
@@ -246,7 +243,7 @@ describe('page save api', function() {
 
         if (NOCK_TESTS) {
             var now = new Date().toISOString();
-            var api = nock(labsApiURI)
+            var api = nock(labsApiURL)
             .post('')
             .reply(200, {
                 edit: {
@@ -315,7 +312,7 @@ describe('page save api', function() {
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURI)
+            var api = nock(labsApiURL)
                 // Mock MW API nochange response
             .post('')
             .reply(200, {
@@ -357,7 +354,7 @@ describe('page save api', function() {
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURI)
+            var api = nock(labsApiURL)
                 // Mock MW API editconflict response
             .post('')
             .reply(200, {
@@ -401,7 +398,7 @@ describe('page save api', function() {
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURI, {
+            var api = nock(labsApiURL, {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
                     'x-forwarded-for': '123.123.123.123',
@@ -464,7 +461,7 @@ describe('page save api', function() {
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURI)
+            var api = nock(labsApiURL)
             .post('')
             .reply(200, {
                 "servedby": "nock",

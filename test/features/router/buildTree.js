@@ -11,33 +11,21 @@ var server = require('../../utils/server');
 var rootSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/page/{title}/html': {
-                            get: {
-                                'x-request-handler': [
-                                    {
-                                        backend_req: {
-                                            request: {
-                                                uri: '/{domain}/sys/parsoid/html/{title}'
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    }
+            'x-modules': {
+                content: {
+                    path: 'v1/content.yaml',
                 }
-            ]
+            }
         }
     }
 };
 
+// x-subspec and x-subspecs is no longer supported.
 var faultySpec = {
     paths: {
         '/{domain:en.wikipedia.org}': {
-            'x-subspecs': ['some/non/existing/spec']
+            'x-subspecs': [],
+            'x-subspec': {}
         }
     }
 };
@@ -45,43 +33,14 @@ var faultySpec = {
 var additionalMethodSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/page/{title}/html': {
-                            get: {
-                                'x-request-handler': [
-                                    {
-                                        backend_req: {
-                                            request: {
-                                                uri: '/{domain}/sys/parsoid/html/{title}'
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    }
+            'x-modules': {
+                subspec1: {
+                    path: 'test/features/router/subspec1.yaml',
                 },
-                {
-                    paths: {
-                        '/page/{title}/html': {
-                            post: {
-                                'x-request-handler': [
-                                    {
-                                        backend_req: {
-                                            request: {
-                                                uri: '/{domain}/sys/parsoid/html/{title}'
-                                            }
-                                        }
-                                    }
-                                ]
-
-                            }
-                        }
-                    }
-                }
-            ]
+                subspec2: {
+                    path: 'test/features/router/subspec2.yaml',
+                },
+            }
         }
     }
 };
@@ -89,81 +48,32 @@ var additionalMethodSpec = {
 var overlappingMethodSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/page/{title}/html': {
-                            get: {
-                                'x-request-handler': [
-                                    {
-                                        backend_req: {
-                                            request: {
-                                                uri: '/{domain}/sys/parsoid/html/{title}'
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    }
+            'x-modules': {
+                subspec1: {
+                    path: 'test/features/router/subspec1.yaml',
                 },
-                {
-                    paths: {
-                        '/page/{title}/html': {
-                            get: {
-                                'x-request-handler': [
-                                    {
-                                        backend_req: {
-                                            request: {
-                                                uri: '/{domain}/sys/parsoid/html/{title}'
-                                            }
-                                        }
-                                    }
-                                ]
-
-                            }
-                        }
-                    }
-                }
-            ]
+                subspec1: {
+                    path: 'test/features/router/subspec1.yaml',
+                },
+            }
         }
     }
 };
+
 
 var nestedSecuritySpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
-            'x-subspecs': [
-                {
-                    paths: {
-                        '/page': {
-                            'x-subspec': {
-                                paths: {
-                                    '/secure': {
-                                        get: {
-                                            'x-request-handler': [
-                                                {
-                                                    backend_req: {
-                                                        request: {
-                                                            uri: '/{domain}/sys/parsoid/html/{title}'
-                                                        }
-                                                    }
-                                                }
-                                            ],
-                                            security: [ 'forth' ]
-                                        }
-                                    }
-                                }
-                            },
-                            security: ['second', 'third']
-                        }
-                    }
-                }
-            ],
-            security: ['first']
+            'x-modules': {
+                secure_subspec: {
+                    path: 'test/features/router/secure_subspec.yaml'
+                },
+            },
+            security: ['first'],
         }
     }
 };
+
 
 var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
@@ -178,7 +88,7 @@ describe('tree building', function() {
         return router.loadSpec(rootSpec, fakeRestBase)
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
-            var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
+            var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
             //console.log(handler);
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.org');
@@ -245,7 +155,7 @@ describe('tree building', function() {
                 { value: 'first' },
                 { value: 'second'},
                 { value: 'third' },
-                { value: 'forth', method: 'get' }
+                { value: 'fourth', method: 'get' }
             ]);
         });
     });

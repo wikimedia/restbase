@@ -39,10 +39,7 @@ describe('router - security', function() {
 
     it('should forward cookies on request to api', function() {
         nock.enableNetConnect();
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'fr.wikipedia.org');
+        var apiURI = server.config.secureApiURL;
         var api = nock(apiURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
@@ -65,12 +62,10 @@ describe('router - security', function() {
 
     it('should forward cookies on request to parsoid', function() {
         nock.enableNetConnect();
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
+        var parsoidURI = 'http://parsoid-beta.wmflabs.org';
         var title = 'Test';
         var revision = 117795883;
-        var api = nock(apiURI, {
+        var api = nock(parsoidURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
             }
@@ -109,10 +104,7 @@ describe('router - security', function() {
     });
 
     it ('should not send cookies to non-restricted domains', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.org');
+        var apiURI = server.config.apiURL;
         var api = nock(apiURI, {
             badheaders: ['cookie']
         })
@@ -131,10 +123,7 @@ describe('router - security', function() {
 
     it('should deny access to resources stored in restbase', function() {
         nock.enableNetConnect();
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'fr.wikipedia.org');
+        var apiURI = server.config.secureApiURL;
         var title = 'TestingTitle';
         var revision = 12345;
 

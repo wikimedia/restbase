@@ -2,7 +2,7 @@
 
 swagger: 2.0
 paths:
-  /{module:page}/mobile-sections/{title}:
+  /page/mobile-sections/{title}:
     get:
       tags:
         - Mobile
@@ -52,7 +52,7 @@ paths:
               lead: /.+/
               remaining: /.+/
 
-  /{module:page}/mobile-sections-lead/{title}:
+  /page/mobile-sections-lead/{title}:
     get:
       tags:
         - Mobile
@@ -89,7 +89,7 @@ paths:
                 cache-control: '{cache-control}'
       x-monitor: false
 
-  /{module:page}/mobile-sections-remaining/{title}:
+  /page/mobile-sections-remaining/{title}:
     get:
       tags:
         - Mobile
@@ -127,7 +127,7 @@ paths:
                 cache-control: '{cache-control}'
       x-monitor: false
 
-  /{module:page}/mobile-text/{title}:
+  /page/mobile-text/{title}:
     get:
       tags:
         - Mobile

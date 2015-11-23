@@ -193,12 +193,12 @@ module.exports = function(options, templates) {
     return {
         spec: {
             paths: {
-                '/query': {
+                '/action/query': {
                     all: {
                         operationId: 'mwApiQuery'
                     }
                 },
-                '/edit': {
+                '/action/edit': {
                     post: {
                         operationId: 'mwApiEdit'
                     }
