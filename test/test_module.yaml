@@ -100,7 +100,7 @@ paths:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
 
-  /pageviews/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
+  /metrics/pageviews/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -132,7 +132,7 @@ paths:
                   mwu: '{$.request.params.views}16'
       x-monitor: false
 
-  /pageviews/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+  /metrics/pageviews/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -150,7 +150,7 @@ paths:
                   views: '{$.request.params.views}'
       x-monitor: false
 
-  /pageviews/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
+  /metrics/pageviews/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -168,7 +168,7 @@ paths:
                   v: '{$.request.params.v}'
       x-monitor: false
 
-  /pageviews/insert-top/{project}/{access}/{year}/{month}/{day}:
+  /metrics/pageviews/insert-top/{project}/{access}/{year}/{month}/{day}:
     post:
       x-request-handler:
         - put_to_storage:

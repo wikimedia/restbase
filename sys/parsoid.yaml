@@ -7,7 +7,7 @@ info:
     API through the `action` module.
 paths:
 
-  /parsoid/pagebundle/{title}{/revision}{/tid}:
+  /pagebundle/{title}{/revision}{/tid}:
 
     get:
       summary: Retrieve a JSON bundle containing html and data-parsoid
@@ -16,7 +16,7 @@ paths:
       summary: Retrieve a JSON bundle containing html and data-parsoid
       operationId: getPageBundle
 
-  /parsoid/wikitext/{title}/:
+  /wikitext/{title}/:
     get:
       summary: List Wikitext revisions.
       operationId: listWikitextRevisions
@@ -27,12 +27,12 @@ paths:
           type: string
           required: false
 
-  /parsoid/wikitext/{title}{/revision}{/tid}:
+  /wikitext/{title}{/revision}{/tid}:
     get:
       summary: Retrieve the wikitext for a title and revision.
       operationId: getWikitext
 
-  /parsoid/html/{title}/:
+  /html/{title}/:
     get:
       summary: List HTML revisions.
       operationId: listHtmlRevisions
@@ -43,12 +43,12 @@ paths:
           type: string
           required: false
 
-  /parsoid/html/{title}{/revision}{/tid}:
+  /html/{title}{/revision}{/tid}:
     get:
       summary: Retrieve the HTML for title and revision.
       operationId: getHtml
 
-  /parsoid/data-parsoid/{title}/:
+  /data-parsoid/{title}/:
     get:
       summary: List data-parsoid revisions.
       operationId: listDataParsoidRevisions
@@ -59,27 +59,27 @@ paths:
           type: string
           required: false
 
-  /parsoid/data-parsoid/{title}{/revision}{/tid}:
+  /data-parsoid/{title}{/revision}{/tid}:
     get:
       summary: Retrieve the data-parsoid JSON for title & revision.
       operationId: getDataParsoid
 
-  /parsoid/transform/html/to/html{/title}{/revision}:
+  /transform/html/to/html{/title}{/revision}:
     post:
       summary: Update HTML, while optionally passing in title & revision.
       operationId: transformHtmlToHtml
 
-  /parsoid/transform/html/to/wikitext{/title}{/revision}:
+  /transform/html/to/wikitext{/title}{/revision}:
     post:
       summary: Transform HTML to wikitext.
       operationId: transformHtmlToWikitext
 
-  /parsoid/transform/wikitext/to/html{/title}{/revision}:
+  /transform/wikitext/to/html{/title}{/revision}:
     post:
       summary: Transform wikitext to HTML.
       operationId: transformWikitextToHtml
 
-  /parsoid/transform/sections/to/wikitext/{title}/{revision}:
+  /transform/sections/to/wikitext/{title}/{revision}:
     post:
       summary: Transform sections to wikitext.
       operationId: transformSectionsToWikitext

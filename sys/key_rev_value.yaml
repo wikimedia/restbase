@@ -4,21 +4,21 @@ info:
   title: RESTBase key-rev-value module
   description: Revisioned blob storage with HTTP interface, backed by table storage
 paths:
-  /key_rev_value/{bucket}:
+  /{bucket}:
     get:
       operationId: getBucketInfo
     put:
       operationId: createBucket
 
-  /key_rev_value/{bucket}/:
+  /{bucket}/:
     get:
       operationId: listBucket
 
-  /key_rev_value/{bucket}/{key}/:
+  /{bucket}/{key}/:
     get:
       operationId: listRevisions
 
-  /key_rev_value/{bucket}/{key}{/revision}{/tid}:
+  /{bucket}/{key}{/revision}{/tid}:
     get:
       operationId: getRevision
     put:

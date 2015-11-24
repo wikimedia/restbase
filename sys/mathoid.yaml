@@ -1,7 +1,7 @@
 info: 
 name: mathoid-sys
 paths:
-  /mathoid/v1/request/{format}:
+  /v1/request/{format}:
     post:
       x-request-handler:
         - store:
@@ -22,7 +22,7 @@ paths:
                 q: '{$.request.body.q}'
                 type: '{$$.default($.request.body.type, "tex")}'
 
-  /mathoid/v1/request/{format}/{hash}:
+  /v1/request/{format}/{hash}:
     get:
       x-setup-handler:
         - init:
@@ -41,7 +41,7 @@ paths:
                 x-resource-location: '{$.request.params.hash}'
               body: '{$.get_from_storage.body}'
 
-  /mathoid/v1/handler/{format}:
+  /v1/handler/{format}:
     post:
       x-setup-handler:
         - init:

@@ -1,7 +1,7 @@
 info:
   title: Mobileapps sys API module
 paths:
-  /mobileapps/v1/handling/rev/{route}/{title}:
+  /v1/handling/rev/{route}/{title}:
     get:
       x-request-handler:
         - get_rev:
@@ -18,7 +18,7 @@ paths:
                 content-type: application/json
               body: '{$.get_rev.body}'
 
-  /mobileapps/v1/handling/content/mobile-sections/no-cache/{title}:
+  /v1/handling/content/mobile-sections/no-cache/{title}:
     post:
       x-request-handler:
         - get_mobileapps:
@@ -45,7 +45,7 @@ paths:
               headers: '{$.get_mobileapps.headers}'
               body: '{$.get_mobileapps.body}'
 
-  /mobileapps/v1/handling/content/mobile-sections/{cache-default}/{title}:
+  /v1/handling/content/mobile-sections/{cache-default}/{title}:
     post:
       x-setup-handler:
         - init-lead:
@@ -97,7 +97,7 @@ paths:
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
               body: '{$.request.body}'
 
-  /mobileapps/v1/handling/content/mobile-sections-lead/{cache-default}/{title}:
+  /v1/handling/content/mobile-sections-lead/{cache-default}/{title}:
     post:
       x-request-handler:
         - check_storage:
@@ -118,7 +118,7 @@ paths:
               headers: '{$.get_sections.headers}'
               body: '{$.get_sections.body.lead}'
 
-  /mobileapps/v1/handling/content/mobile-sections-remaining/{cache-default}/{title}:
+  /v1/handling/content/mobile-sections-remaining/{cache-default}/{title}:
     post:
       x-request-handler:
         - check_storage:

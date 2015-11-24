@@ -4,20 +4,20 @@ info:
   title: RESTBase post data storage module
   description: Revisioned post data storage with HTTP interface, backed by table storage
 paths:
-  /post_data/{bucket}:
+  /{bucket}:
     get:
       operationId: getBucketInfo
     put:
       operationId: createBucket
 
-  /post_data/{bucket}/:
+  /{bucket}/:
     get:
       operationId: listBucket
 
-  /post_data/{bucket}/{key}{/tid}:
+  /{bucket}/{key}{/tid}:
     get:
       operationId: getRevision
 
-  /post_data/{bucket}/:
+  /{bucket}/:
     put:
       operationId: putRevision

@@ -1,5 +1,5 @@
 paths:
-  /{module:page}/graph/png/{title}/{revision}/{graph_id}:
+  /graph/png/{title}/{revision}/{graph_id}:
     get:
       tags:
         - Page content

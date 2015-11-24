@@ -10,11 +10,11 @@ var server = require('../../utils/server');
 
 var rootSpec = {
     paths: {
-        '/{domain:en.wikipedia.org}/v1': {
+        '/{domain:en.wikipedia.org}': {
             'x-modules': {
-                content: {
+                '/v1': [{
                     path: 'v1/content.yaml',
-                }
+                }]
             }
         }
     }
@@ -34,12 +34,12 @@ var additionalMethodSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
             'x-modules': {
-                subspec1: {
+                '/': [{
                     path: 'test/features/router/subspec1.yaml',
                 },
-                subspec2: {
+                {
                     path: 'test/features/router/subspec2.yaml',
-                },
+                }],
             }
         }
     }
@@ -49,12 +49,12 @@ var overlappingMethodSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
             'x-modules': {
-                subspec1: {
+                '/': [{
                     path: 'test/features/router/subspec1.yaml',
                 },
-                subspec1: {
+                {
                     path: 'test/features/router/subspec1.yaml',
-                },
+                }]
             }
         }
     }
@@ -65,9 +65,9 @@ var nestedSecuritySpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
             'x-modules': {
-                secure_subspec: {
+                '/': [{
                     path: 'test/features/router/secure_subspec.yaml'
-                },
+                }],
             },
             security: ['first'],
         }
@@ -110,7 +110,7 @@ describe('tree building', function() {
     it('should build the example config spec tree', function() {
         var router = new Router();
         var resourceRequests = [];
-        return router.loadSpec(fullSpec.spec, {
+        return router.loadSpec(fullSpec.spec_root, {
             request: function(req) {
                 resourceRequests.push(req);
             },

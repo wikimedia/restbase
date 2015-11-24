@@ -1,4 +1,4 @@
-# RESTBase config
+# RESTBase test config, used in integration tests.
 
 # First, we define some project templates. These are referenced / shared
 # between domains in the root_spec further down.
@@ -8,7 +8,7 @@ default_project: &default_project
     /{api:v1}: &default_project_paths_v1
       # Spec root, resulting in an aggregated public spec & docs.
       swagger: '2.0'
-      info: &default_project_paths_v1_info
+      info:
         version: 1.0.0-beta
         title: Wikimedia REST API
         description: >
@@ -23,9 +23,6 @@ default_project: &default_project
               - Don't perform more than 500 requests/s to this API.
               - Set a unique `User-Agent` header that allows us to contact you
                 quickly. Email addresses or URLs of contact pages work well.
-              - Consider using our [HTML
-                dumps](https://phabricator.wikimedia.org/T17017) once they
-                become available.
 
         termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
         contact:
@@ -34,8 +31,9 @@ default_project: &default_project
         license:
           name: Apache2
           url: http://www.apache.org/licenses/LICENSE-2.0
+        x-is-api-root: true
 
-      securityDefinitions: &default_project_paths_v1_securityDefinitions
+      securityDefinitions:
         mediawiki_auth:
           description: Checks permissions using MW api
           type: apiKey
@@ -56,82 +54,71 @@ default_project: &default_project
           x-is-api: true
 
       x-modules: &default_project_paths_v1_modules
-        content: 
+        /: 
           # The main content module, defining page/* and transform entry
           # points.
-          path: v1/content.yaml
-        page_mobile:
-          path: v1/mobileapps.yaml
-          options:
-            host: http://appservice.wmflabs.org
-        page_graph:
-          path: v1/graphoid.yaml
-          options:
-            host: http://graphoid.wikimedia.org
-        page_summary:
-          path: v1/summary.js
-          options:
-            response_cache-control: 'max-age: 3600, s-maxage: 3600'
-        mathoid:
-          path: v1/mathoid.yaml
-        test:
-          path: test/test_module.yaml
+          - path: v1/content.yaml
+          - path: test/test_module.yaml
+        /page:
+          - path: v1/mobileapps.yaml
+            options:
+              host: http://appservice.wmflabs.org
+          - path: v1/graphoid.yaml
+            options:
+              host: http://graphoid.wikimedia.org
+          - path: v1/summary.js
+            options:
+              response_cache-control: 'max-age: 3600, s-maxage: 3600'
+        /media:
+          - path: v1/mathoid.yaml
 
     /{api:sys}: &default_project_paths_sys
       x-modules: &default_project_paths_sys_modules
-        table: &sys_table
-          type: npm
-          name: restbase-mod-table-cassandra
-          # See: 
-          # https://github.com/wikimedia/restbase-mod-table-cassandra/blob/master/Readme.md#configuration
-          options:
-            conf:
-              dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
-              hosts: [localhost]
-              keyspace: system
-              username: cassandra
-              password: cassandra
-              defaultConsistency: one # or 'one' for single-node testing
-              storage_groups:
-                - name: test.group.local
-                  domains: /./
-
-        key_value: &sys_key_value
-          path: sys/key_value.js
-
-        key_rev_value:
-          path: sys/key_rev_value.js
-
-        page_revisions:
-          path: sys/page_revisions.js
-
-        post_data: &sys_post_data
-          path: sys/post_data.js
-
-        action:
-          path: sys/action.js
-          templates:
-            apiRequest:
-              method: post
-              uri: https://{domain}/w/api.php
-              headers:
-                host: '{$.request.params.domain}'
-              body: '{$.request.body}'
-
-        page_save:
-          path: sys/page_save.js
-
-        parsoid:
-          path: sys/parsoid.js
-          options:
-            parsoidHost: http://parsoid-beta.wmflabs.org
-            # For local testing, use:
-            # parsoidHost: http://localhost:8000
-
-        mobileapps:
-          path: sys/mobileapps.yaml
-          options:
-            host: http://appservice.wmflabs.org
+        /table: &sys_table
+          - type: npm
+            name: restbase-mod-table-cassandra
+            # See: 
+            # https://github.com/wikimedia/restbase-mod-table-cassandra/blob/master/Readme.md#configuration
+            options:
+              conf:
+                dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+                hosts: [localhost]
+                keyspace: system
+                username: cassandra
+                password: cassandra
+                defaultConsistency: one # or 'one' for single-node testing
+                storage_groups:
+                  - name: test.group.local
+                    domains: /./
+        /key_value: &sys_key_value
+          - path: sys/key_value.js
+        /key_rev_value:
+          - path: sys/key_rev_value.js
+        /page_revisions:
+          - path: sys/page_revisions.js
+        /post_data: &sys_post_data
+          - path: sys/post_data.js
+        /action:
+          - path: sys/action.js
+            templates:
+              apiRequest:
+                method: post
+                uri: https://{domain}/w/api.php
+                headers:
+                  host: '{$.request.params.domain}'
+                body: '{$.request.body}'
+        /page_save:
+          - path: sys/page_save.js
+        /parsoid:
+          - path: sys/parsoid.js
+            options:
+              parsoidHost: http://parsoid-beta.wmflabs.org
+              # For local testing, use:
+              # parsoidHost: http://localhost:8000
+        /mobileapps:
+          - path: sys/mobileapps.yaml
+            options:
+              host: http://appservice.wmflabs.org
 
 labs_project: &labs_project
   swagger: '2.0'
@@ -141,15 +128,15 @@ labs_project: &labs_project
       x-modules:
         <<: *default_project_paths_sys_modules
         # Override the action API config to use http
-        action:
-          path: sys/action.js
-          templates:
-            apiRequest:
-              method: post
-              uri: http://{domain}/w/api.php
-              headers:
-                host: '{$.request.params.domain}'
-              body: '{$.request.body}'
+        /action:
+          - path: sys/action.js
+            templates:
+              apiRequest:
+                method: post
+                uri: http://{domain}/w/api.php
+                headers:
+                  host: '{$.request.params.domain}'
+                body: '{$.request.body}'
 
 wikimedia.org: &wikimedia.org
   swagger: '2.0'
@@ -158,21 +145,24 @@ wikimedia.org: &wikimedia.org
       <<: *default_project_paths_v1
       # Override x-modules
       x-modules:
-        mathoid: { path: v1/mathoid.yaml }
-        pageviews: { path: v1/pageviews.yaml }
-        test: { path: test/test_module.yaml }
+        /:
+          - path: test/test_module.yaml
+        /media:
+          - path: v1/mathoid.yaml
+        /metrics:
+          - path: v1/pageviews.yaml
 
     /{api:sys}:
       x-modules:
-        table: *sys_table
-        key_value: *sys_key_value
-        post_data: *sys_post_data
-        mathoid:
-          path: sys/mathoid.yaml
-          options:
-            host: http://mathoid-tester.wmflabs.org
-        pageviews:
-          path: sys/pageviews.js
+        /table: *sys_table
+        /key_value: *sys_key_value
+        /post_data: *sys_post_data
+        /mathoid:
+          - path: sys/mathoid.yaml
+            options:
+              host: http://mathoid-tester.wmflabs.org
+        /pageviews:
+          - path: sys/pageviews.js
 
 private_project: &private_project
   swagger: '2.0'
@@ -180,6 +170,7 @@ private_project: &private_project
     /{api:v1}:
       # Merge in the default project v1 paths
       <<: *default_project_paths_v1
+      # Tighten down security for everything below /v1/.
       security:
         - mediawiki_auth:
           - read
@@ -212,7 +203,6 @@ spec_root: &spec_root
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org
 
-
 # Finally, a standard service-runner config.
 info:
   name: restbase
@@ -231,7 +221,6 @@ logging:
   name: restbase
   level: info
   #streams:
-  ## XXX: Use gelf-stream -> logstash
   #- type: gelf
   #  host: <%= @logstash_host %>
   #  port: <%= @logstash_port %>

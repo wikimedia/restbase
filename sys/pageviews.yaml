@@ -1,13 +1,13 @@
 paths:
-    /pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}:
+    /per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}:
         get:
           summary: query pageviews per article
           operationId: pageviewsForArticle
-    /pageviews/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}:
+    /per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}:
         get:
           summary: query pageviews per project
           operationId: pageviewsForProjects
-    /pageviews/top/{project}/{access}/{year}/{month}/{day}:
+    /top/{project}/{access}/{year}/{month}/{day}:
         get:
           summary: query top pageviews
           operationId: pageviewsForTops

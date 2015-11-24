@@ -14,7 +14,7 @@ info:
 x-default-params:
   domain: en.wikipedia.org
 paths:
-  /{module:page}/summary/{title}:
+  /summary/{title}:
     get:
       tags:
         - Page content

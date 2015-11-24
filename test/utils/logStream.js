@@ -7,7 +7,7 @@ function logStream() {
   var log = [];
   var parrot = bunyan.createLogger({
     name: 'test-logger',
-    level: 'debug'
+    level: 'warn'
   });
 
   function write(chunk, encoding, callback) {

@@ -18,12 +18,12 @@ function PageSave(options) {
     this.log = options.log || function() {};
     this.spec = {
         paths: {
-            '/page_save/wikitext/{title}': {
+            '/wikitext/{title}': {
                 post: {
                     operationId: 'saveWikitext'
                 }
             },
-            '/page_save/html/{title}': {
+            '/html/{title}': {
                 post: {
                     operationId: 'saveHTML'
                 }
