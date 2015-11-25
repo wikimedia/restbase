@@ -3,53 +3,40 @@
 swagger: 2.0
 
 paths:
-  /{module:media}/math/{format}:
+  /{module:media}/math/check/{type}:
     post:
-      tags:
-        - Media
-        - Math
+      tags: ['Math']
       description: >
-        Renders a TeX formula into its mathematic representation in the given
-        format. Available formats are svg and mml. The response contains the
-        `x-resource-location` header which can be used to retrieve the same
-        formula in a different render format. Just append the value of the
-        header to `/media/math/{format}/` and perform a GET request against
-        that URL.
+        Checks the supplied TeX formula for correctness and returns the
+        normalised formula representation as well as information about
+        identifiers. Available types are tex and inline-tex. The response
+        contains the `x-resource-location` header which can be used to retrieve
+        the render of the checked formula in one of the supported rendering
+        formats. Just append the value of the header to `/media/math/{format}/`
+        and perform a GET request against that URL.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
-        - image/svg+xml
-        - application/mathml+xml
         - application/json
       parameters:
-        - name: format
-          in: path
-          description: The output format; can be svg or mml
-          type: string
-          required: true
-          enum:
-            - svg
-            - mml
-        - name: q
-          in: formData
-          description: The formula to render
-          type: string
-          required: true
         - name: type
-          in: formData
-          description: The input type of the given formula; can be tex, inline-tex, mml or ascii
+          in: path
+          description: The input type of the given formula; can be tex or inline-tex
           type: string
-          required: false
+          required: true
           enum:
             - tex
             - inline-tex
-            - mml
-            - ascii
+        - name: q
+          in: formData
+          description: The formula to check
+          type: string
+          required: true
       responses:
         '200':
-          description: The rendered formula
+          description: Information about the checked formula
         '400':
-          description: Invalid format or type
+          description: Invalid type
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -61,60 +48,64 @@ paths:
             - header: 'x-client-ip'
               patterns:
                 - internal
-      x-request-handler:
-        - do_post:
-            request:
-              method: post
-              uri: /wikimedia.org/sys/mathoid/v1/request/{format}
-              headers:
-                cache-control: '{cache-control}'
-              body: '{$.request.body}'
       x-monitor: true
       x-amples:
-        - title: Mathoid - test formula
+        - title: Mathoid - check test formula
           request:
             params:
-              domain: en.wikipedia.org
-              format: svg
-            body:
-              q: E=mc^2
               type: tex
+            body:
+              q: E=mc^{2}
           response:
             status: 200
             headers:
-              content-type: /^image\/svg/
-            body: /.+/
-        - title: Mathoid - test formula from storage (global domain)
-          request:
-            params:
-              domain: wikimedia.org
-              format: mml
+              content-type: /^application\/json/
+              x-resource-location: /.+/
             body:
-              q: E=mc^2
-              type: tex
-          response:
-            status: 200
-            headers:
-              content-type: /^application\/mathml/
-            body: /.+/
+              success: true
+              checked: /.+/
+      x-setup-handler:
+        - init:
+            uri: /wikimedia.org/sys/post_data/mathoid.input
+      x-request-handler:
+        - check_input:
+            request:
+              uri: '{{$$.options.host}}/texvcinfo'
+              headers:
+                content-type: application/json
+              body:
+                q: '{{$.request.body.q}}'
+                type: '{{$.request.params.type}}'
+        - post_store:
+            request:
+              method: put
+              uri: /wikimedia.org/sys/post_data/mathoid.input/
+              headers:
+                content-type: application/json
+              body:
+                q: '{{$.check_input.body.checked}}'
+                type: '{{$.request.params.type}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json
+                x-resource-location: '{{$.post_store.body}}'
+              body: '{$.check_input.body}'
 
-  /{module:media}/math/{format}/{hash}:
+  /{module:media}/math/render/{format}/{hash}:
     get:
-      tags:
-        - Media
-        - Math
+      tags: ['Math']
       description: >
         Given a request hash, renders a TeX formula into its mathematic
         representation in the given format. When a request is issued to the
-        `/media/math/{format}` POST endpoint, the response contains the
+        `/media/math/check/{format}` POST endpoint, the response contains the
         `x-resource-location` header denoting the hash ID of the POST data. Once
-        obtained, this endpoint may be used to avoid sending the payload.
+        obtained, this endpoint has to be used to obtain the actual render.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
       produces:
         - image/svg+xml
         - application/mathml+xml
-        - application/json
       parameters:
         - name: format
           in: path
@@ -133,19 +124,61 @@ paths:
         '200':
           description: The rendered formula
         '404':
-          description: Unknown hash ID
+          description: Unknown format or hash ID
           schema:
             $ref: '#/definitions/problem'
         default:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-monitor: false
+      x-setup-handler:
+        - init_svg:
+            uri: /wikimedia.org/sys/key_value/mathoid.svg
+            body:
+              keyType: string
+              valueType: string
+        - init_mml:
+            uri: /wikimedia.org/sys/key_value/mathoid.mml
+            body:
+              keyType: string
+              valueType: string
       x-request-handler:
-        - stored_post:
+        - check_storage:
             request:
               method: get
-              uri: /wikimedia.org/sys/mathoid/v1/request/{format}/{hash}
+              uri: /wikimedia.org/sys/key_value/mathoid.{$.request.params.format}/{$.request.params.hash}
               headers:
                 cache-control: '{cache-control}'
-      x-monitor: false
+            catch:
+              status: 404
+            return_if:
+              status: '2xx'
+        - get_post:
+            request:
+              uri: /wikimedia.org/sys/post_data/mathoid.input/{$.request.params.hash}
+        - mathoid:
+            request:
+              method: post
+              uri: '{{$$.options.host}}/complete'
+              headers:
+                content-type: application/json
+              body: '{$.get_post.body}'
+        - store_svg:
+            request:
+              method: put
+              uri: /wikimedia.org/sys/key_value/mathoid.svg/{$.request.params.hash}
+              headers: '{$$.merge($.mathoid.body.svg.headers, {"x-resource-location":$.request.params.hash})}'
+              body: '{$.mathoid.body.svg.body}'
+          store_mml:
+            request:
+              method: put
+              uri: /wikimedia.org/sys/key_value/mathoid.mml/{$.request.params.hash}
+              headers: '{$$.merge($.mathoid.body.mml.headers, {"x-resource-location":$.request.params.hash})}'
+              body: '{$.mathoid.body.mml.body}'
+        - return:
+            return:
+              status: 200
+              headers: '{$$.merge($.mathoid.body[$.request.params.format].headers, {"x-resource-location":$.request.params.hash})}'
+              body: '{$.mathoid.body[$.request.params.format].body}'
 
