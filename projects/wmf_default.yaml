@@ -64,6 +64,7 @@ paths:
             response_cache-control: 'max-age: 3600, s-maxage: 3600'
       /media:
         - path: v1/mathoid.yaml
+          options: '{{options.mathoid}}'
 
   /{api:sys}: &default_project_paths_sys
     x-modules: &default_project_paths_sys_modules

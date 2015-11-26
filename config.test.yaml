@@ -71,6 +71,8 @@ default_project: &default_project
               response_cache-control: 'max-age: 3600, s-maxage: 3600'
         /media:
           - path: v1/mathoid.yaml
+            options:
+              host: http://mathoid-tester.wmflabs.org
 
     /{api:sys}: &default_project_paths_sys
       x-modules: &default_project_paths_sys_modules
@@ -139,6 +141,8 @@ wikimedia.org: &wikimedia.org
           - path: test/test_module.yaml
         /media:
           - path: v1/mathoid.yaml
+            options:
+              host: http://mathoid-tester.wmflabs.org
         /metrics:
           - path: v1/pageviews.yaml
 
@@ -147,10 +151,6 @@ wikimedia.org: &wikimedia.org
         /table: *sys_table
         /key_value: *sys_key_value
         /post_data: *sys_post_data
-        /mathoid:
-          - path: sys/mathoid.yaml
-            options:
-              host: http://mathoid-tester.wmflabs.org
         /pageviews:
           - path: sys/pageviews.js
 

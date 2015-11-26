@@ -51,6 +51,7 @@ paths:
     x-modules:
       /media:
         - path: v1/mathoid.yaml
+          options: '{{options.mathoid}}'
       /metrics:
         - path: v1/pageviews.yaml
 
@@ -60,7 +61,7 @@ paths:
         - type: npm
           name: restbase-mod-table-cassandra
           options:
-            conf: '{{options.cassandra}}'
+            conf: '{{options.table}}'
       /key_value:
         - path: sys/key_value.js
       /key_rev_value:
