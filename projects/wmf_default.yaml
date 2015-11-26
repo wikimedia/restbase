@@ -73,7 +73,7 @@ paths:
           # See: 
           # https://github.com/wikimedia/restbase-mod-table-cassandra/blob/master/Readme.md#configuration
           options:
-            conf: '{{options.cassandra}}'
+            conf: '{{options.table}}'
       /key_value: &sys_key_value
         - path: sys/key_value.js
       /key_rev_value:
@@ -84,13 +84,7 @@ paths:
         - path: sys/post_data.js
       /action:
         - path: sys/action.js
-          templates:
-            apiRequest:
-              method: post
-              uri: https://{domain}/w/api.php
-              headers:
-                host: '{$.request.params.domain}'
-              body: '{$.request.body}'
+          options: "{{options.action}}"
       /page_save:
         - path: sys/page_save.js
       /parsoid:

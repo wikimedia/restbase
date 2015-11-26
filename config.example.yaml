@@ -16,91 +16,37 @@
 # - If all went well, http://localhost:7231/localhost/v1/page/html/Main_Page
 # should show your wiki's [[Main Page]].
 
-# First, we define some project templates. These are referenced / shared
-# between domains in the root_spec further down.
-spec_root: &spec_root
-  swagger: '2.0'
-  paths:
-    /{domain:localhost}/{api:v1}:
-      swagger: '2.0'
-      info:
-        version: 1.0.0-beta
-        title: Wikimedia REST API
-        description: Welcome to your RESTBase API.
-        x-is-api-root: true
-
-      securityDefinitions:
-        mediawiki_auth:
-          description: Checks permissions using MW api
-          type: apiKey
-          in: header
-          name: cookie
-          x-internal-request-whitelist:
-            - http://localhost/w/api.php
-            - http://localhost:8142
-        header_match:
-          description: Checks client ip against one of the predefined whitelists
-          x-error-message: This client is not allowed to use the endpoint
-          x-whitelists:
-            internal:
-              - /^(?:localhost)|(?:127\.)/
-
-      x-modules:
-        /: 
-          # The main content module, defining page/* and transform entry
-          # points.
-          - path: v1/content.yaml
-
-    /{domain:localhost}/{api:sys}:
-      x-modules:
-        /table:
-          - type: npm
-            name: restbase-mod-table-sqlite
-            version: 1.0.0
-            type: npm
-            options:
-              conf:
-                dbname: db.sqlite3
-                pool_idle_timeout: 20000
-                retry_delay: 250
-                retry_limit: 10
-                show_sql: false
-        /key_value:
-          - path: sys/key_value.js
-        /key_rev_value:
-          - path: sys/key_rev_value.js
-        /page_revisions:
-          - path: sys/page_revisions.js
-        /post_data:
-          - path: sys/post_data.js
-        /action:
-          - path: sys/action.js
-            templates:
-              apiRequest:
-                method: post
-                # XXX: double-check the API URI:
-                uri: 'http://localhost/w/api.php'
-                body: '{$.request.body}'
-        /page_save:
-          - path: sys/page_save.js
-        /parsoid:
-          - path: sys/parsoid.js
-            options:
-              parsoidHost: http://localhost:8142
-
-# Finally, a standard service-runner config.
-info:
-  name: restbase
-
 services:
   - name: restbase
     module: ./lib/server
     conf: 
       port: 7231
-      spec: *spec_root
       salt: secret
       default_page_size: 125
       user_agent: RESTBase
+      spec: 
+        paths:
+          /{domain:localhost}:
+            x-modules:
+              /:
+                - path: projects/example.yaml
+                  options:
+                    action:
+                      # XXX Check API URL!
+                      apiUriTemplate: http://localhost/w/api.php
+                    parsoid:
+                      # XXX Check Parsoid URL!
+                      host: http://localhost:8142
+                    table:
+                      dbname: db.sqlite3
+                      pool_idle_timeout: 20000
+                      retry_delay: 250
+                      retry_limit: 10
+                      show_sql: false
+
+# Finally, a standard service-runner config.
+info:
+  name: restbase
 
 logging:
   name: restbase

@@ -7,7 +7,7 @@ default_project: &default_project
     /:
       - path: projects/wmf_default.yaml
         options: &default_options
-          cassandra:
+          table:
             hosts: [localhost]
             keyspace: system
             username: cassandra
@@ -18,6 +18,8 @@ default_project: &default_project
                 domains: /./
           parsoid:
             host: http://parsoid-lb.eqiad.wikimedia.org
+          action:
+            apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           graphoid:
             host: http://graphoid.wikimedia.org
           mathoid:

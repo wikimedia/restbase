@@ -100,13 +100,8 @@ default_project: &default_project
           - path: sys/post_data.js
         /action:
           - path: sys/action.js
-            templates:
-              apiRequest:
-                method: post
-                uri: https://{domain}/w/api.php
-                headers:
-                  host: '{$.request.params.domain}'
-                body: '{$.request.body}'
+            options:
+              apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
         /page_save:
           - path: sys/page_save.js
         /parsoid:
@@ -130,13 +125,8 @@ labs_project: &labs_project
         # Override the action API config to use http
         /action:
           - path: sys/action.js
-            templates:
-              apiRequest:
-                method: post
-                uri: http://{domain}/w/api.php
-                headers:
-                  host: '{$.request.params.domain}'
-                body: '{$.request.body}'
+            options:
+              apiUriTemplate: "{{'http://{domain}/w/api.php'}}"
 
 wikimedia.org: &wikimedia.org
   swagger: '2.0'
