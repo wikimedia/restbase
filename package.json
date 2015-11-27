@@ -41,7 +41,7 @@
     "preq": "^0.4.4",
     "restbase-mod-table-cassandra": "^0.8.7",
     "service-runner": "^0.3.0",
-    "swagger-router": "git+https://github.com/gwicke/swagger-router.git#cleaner_expressions",
+    "swagger-router": "^0.3.1",
     "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "tassembly": "^0.2.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
