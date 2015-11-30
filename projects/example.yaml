@@ -56,7 +56,6 @@ paths:
         - type: npm
           name: restbase-mod-table-sqlite
           version: 1.0.0
-          type: npm
           options: 
             conf: '{{options.table}}'
       /key_value:
