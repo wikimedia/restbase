@@ -931,11 +931,11 @@ paths:
           schema:
             $ref: '#/definitions/problem'
         '409':
-          descripting: Revision was restricted
+          description: Revision was restricted
           schema:
             $ref: '#/definitions/problem'
         '410':
-          descripting: Page was deleted
+          description: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -1010,11 +1010,11 @@ paths:
           schema:
             $ref: '#/definitions/problem'
         '409':
-          descripting: Revision was restricted
+          description: Revision was restricted
           schema:
             $ref: '#/definitions/problem'
         '410':
-          descripting: Page was deleted
+          description: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -1095,11 +1095,11 @@ paths:
           schema:
             $ref: '#/definitions/problem'
         '409':
-          descripting: Revision was restricted
+          description: Revision was restricted
           schema:
             $ref: '#/definitions/problem'
         '410':
-          descripting: Page was deleted
+          description: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -1145,7 +1145,6 @@ paths:
         - name: sections
           in: body
           description: Sections to transform
-          type: string
           required: true
           schema:
             type: 'object'
@@ -1170,11 +1169,11 @@ paths:
           schema:
             $ref: '#/definitions/problem'
         '409':
-          descripting: Revision was restricted
+          description: Revision was restricted
           schema:
             $ref: '#/definitions/problem'
         '410':
-          descripting: Page was deleted
+          description: Page was deleted
           schema:
             $ref: '#/definitions/problem'
         default:
