@@ -124,7 +124,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{extract.headers.content-type}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache-control}}'
               body: '{{extract.body}}'
 
