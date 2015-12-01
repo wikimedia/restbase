@@ -223,7 +223,7 @@ describe('item requests', function() {
         });
     });
 
-   /* it('should list revisions for a title', function() {
+    it('should list revisions for a title', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/title/Foobar/'
         })
@@ -244,7 +244,7 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.body.items, [241155]);
         });
-    });*/
+    });
 
     function responseWithTitleRevision(title, revision) {
         return {
@@ -334,42 +334,6 @@ describe('item requests', function() {
         .finally(function() {nock.cleanAll()});
     });
 
-    it('should track renames and restrict access to older content', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fBefore_Rename'
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
-            server.config.labsBucketURL + '/html/User%3APchelolo%2FAfter_Rename');
-        });
-    });
-
-
-    it('should track renames and restrict access to older content (no-cache)', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
-        nock.enableNetConnect();
-        var api = nock(apiURI)
-        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 281004))
-        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/After_Rename', 281005));
-        return preq.get({
-            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fBefore_Rename',
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
-                server.config.labsBucketURL + '/html/User%3APchelolo%2FAfter_Rename');
-        })
-        .then(function() { api.done(); })
-        .finally(function() {nock.cleanAll()});
-    });
-
     it('should allow creating new pages instead of renamed', function() {
         // A 'redirect' page was created for this page, need to be able to add it too
         return preq.get({
@@ -389,62 +353,6 @@ describe('item requests', function() {
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].rev, 281006);
         });
-    });
-
-    it('should return the latest page title', function() {
-        var apiURI = server.config
-            .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
-        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
-        nock.enableNetConnect();
-        var api = nock(apiURI)
-        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Renames1', 280999))
-        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Renames2', 281000))
-        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Renames3', 281002));
-
-        return preq.get({
-            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRenames1/280999',
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            return preq.get({
-                uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRenames2/281000',
-                headers: {
-                    'cache-control': 'no-cache',
-                    'x-restbase-parenttitle': 'User:Pchelolo/Renames1',
-                    'x-restbase-parentrevision': '280999'
-                }
-            });
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            return preq.get({
-                uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRenames3/281002',
-                headers: {
-                    'cache-control': 'no-cache',
-                    'x-restbase-parenttitle': 'User:Pchelolo/Renames2',
-                    'x-restbase-parentrevision': '281000'
-                }
-            });
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            return preq.get({
-                uri: server.config.labsBucketURL + '/title/User:Pchelolo%2fRenames1'
-            })
-            .then(function(res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body.items[0].title, 'User:Pchelolo/Renames3');
-                assert.deepEqual(res.body.items[0].rev, 281002);
-                assert.deepEqual(res.headers['content-location'],
-                    server.config.labsBucketURL + '/title/User%3APchelolo%2FRenames3');
-            });
-        })
-        .then(function() { api.done(); })
-        .finally(function() { nock.cleanAll(); });
     });
 
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {

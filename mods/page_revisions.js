@@ -534,7 +534,6 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 pageData: pageDataRequest
             });
         }
-        revisionRequest = revisionRequest.then(self._createRenameChecker(restbase, req));
     } else {
         throw new Error("Invalid revision: " + rp.revision);
     }
@@ -543,8 +542,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         self._checkPageDeletion(restbase, req, res);
         res = res.revisionInfo;
         // Check if the revision has any restrictions
-        self._checkRevReturn(res.body.items.length
-                && res.body.items[0]);
+        self._checkRevReturn(res.body.items.length && res.body.items[0]);
         // Clear paging info
         delete res.body.next;
 
@@ -556,82 +554,6 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         return res;
     });
     // TODO: handle other revision formats (tid)
-};
-
-PRS.prototype._createRenameChecker = function(restbase, req) {
-    var self = this;
-    var rp = req.params;
-    return function(res) {
-        if (res.pageData
-                && res.pageData.body.items
-                && res.pageData.body.items.length) {
-            var latestEvent = res.pageData.body.items[0];
-            var latestRev = res.revisionInfo.body.items[0];
-            if (latestEvent.event_type === 'rename_to'
-                    && uuid.fromString(latestEvent.tid).getDate()
-                        >= uuid.fromString(latestRev.tid).getDate()) {
-                return self._getLatestPageTitle(restbase, req, latestEvent)
-                .then(function(latestTitle) {
-                    var rootPath = restbase._rootReq.uri.path;
-                    var newPath = [];
-                    var titleSeen = false;
-                    rootPath.forEach(function(pathElement) {
-                        if (pathElement !== rp.title) {
-                            if (titleSeen) {
-                                newPath.push(pathElement);
-                                newPath = ['..'].concat(newPath);
-                            }
-                        } else {
-                            newPath.push(encodeURIComponent(latestTitle));
-                            titleSeen = true;
-                        }
-                    });
-                    throw new rbUtil.HTTPRedirect({
-                        status: 301,
-                        headers: {
-                            location: newPath.join('/')
-                        }
-                    });
-                });
-            }
-        }
-        return res;
-    };
-};
-
-PRS.prototype._getLatestPageTitle = function(restbase, req, renameEvent) {
-    var self = this;
-    var rp = req.params;
-    return restbase.get({
-        uri: self.pageTableURI(rp.domain),
-        body: {
-            table: self.pageTableName,
-            attributes: {
-                title: renameEvent.event_data,
-                tid: {
-                    ge: renameEvent.tid
-                }
-            },
-            order: {
-                tid: 'asc'
-            }
-
-        }
-    })
-    .then(function(res) {
-        for (var idx = 0; idx < res.body.items.length; idx++) {
-            var event = res.body.items[idx];
-            // Page was deleted and no matching 'undelete' happened after
-            if (event.event_type === 'delete'
-                    && event.tid === event.good_after) {
-                break;
-            } else if (event.event_type === 'rename_to') {
-                return self._getLatestPageTitle(restbase, req, event);
-            }
-        }
-        // There always will be one, at least 'rename_from'
-        return res.body.items[0].title;
-    });
 };
 
 PRS.prototype._storeRename = function(restbase, req, currentTitle, parentTitle) {

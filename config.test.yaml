@@ -105,7 +105,6 @@ templates:
                 storage_groups:
                   - name: test.group.local
                     domains: /./
-                #unsupported_features: fallback
 
       /{module:page_revisions}: &wp/sys/page_revisions
         x-modules:
