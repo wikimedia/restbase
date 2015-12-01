@@ -264,7 +264,7 @@ describe('on-demand generation of html and data-parsoid', function() {
             .conf.templates['wmf-sys-1.0.0']
             .paths['/{module:parsoid}']['x-modules'][0].options.parsoidHost;
         var api = nock(apiURI)
-        .get('/v2/en.wikipedia.beta.wmflabs.org/pagebundle/User%3APchelolo%2FValidationTest/283875')
+        .get('/en.wikipedia.beta.wmflabs.org/v3/page/pagebundle/User%3APchelolo%2FValidationTest/283875')
         .reply(200, {
             html: {
                 // First reply with old content-type version to test repeated request
@@ -276,7 +276,7 @@ describe('on-demand generation of html and data-parsoid', function() {
                 body: {}
             }
         })
-        .get('/v2/en.wikipedia.beta.wmflabs.org/pagebundle/User%3APchelolo%2FValidationTest/283875')
+        .get('/en.wikipedia.beta.wmflabs.org/v3/page/pagebundle/User%3APchelolo%2FValidationTest/283875')
         .reply(200, {
             html: {
                 // First reply with old content-type version to test repeated request
