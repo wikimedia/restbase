@@ -282,10 +282,11 @@ describe('item requests', function() {
     it('should not store duplicated revision on rename', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
         nock.enableNetConnect();
         var api = nock(apiURI)
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 281004))
         .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 281004))
         .post('').reply(200, responseWithTitleRevision('User:Pchelolo/After_Rename', 281005));
         return preq.get({
@@ -348,7 +349,7 @@ describe('item requests', function() {
     it('should track renames and restrict access to older content (no-cache)', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
         nock.enableNetConnect();
         var api = nock(apiURI)
@@ -390,10 +391,10 @@ describe('item requests', function() {
         });
     });
 
-    it('should return the lastest page title', function() {
+    it('should return the latest page title', function() {
         var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
         apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
         nock.enableNetConnect();
         var api = nock(apiURI)

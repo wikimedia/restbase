@@ -17,7 +17,7 @@ describe('Delete/undelete handling', function() {
 
     var apiURI = server.config
             .conf.templates['wmf-sys-1.0.0']
-            .paths['/{module:action}']['x-modules'][0].options.apiRequest.uri;
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
     apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
 
     function getEmptyResponse(revid) {
@@ -45,7 +45,7 @@ describe('Delete/undelete handling', function() {
                             'size': 2941,
                             'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
                             'contentmodel': 'wikitext',
-                            'comment': 'Test',
+                            'comment': '' + Math.random(),
                             'tags': []
                         }]
                     }
@@ -205,33 +205,6 @@ describe('Delete/undelete handling', function() {
         })
         .then(function() { return assertRevisionDeleted(12345); })
         .then(function() { return assertRevisionDeleted(12346); })
-        .then(function() { api.done(); })
-        .finally(function() { nock.cleanAll(); });
-    });
-
-    it('should handle delete/undelete on pages created instead of deleted', function() {
-        var title = 'TestingTitle3';
-        nock.enableNetConnect();
-        var api = nock(apiURI)
-        // Return a page so that we store it.
-        .post('').reply(200, getApiResponse(title, 12345))
-        .post('').reply(200, getEmptyResponse(12345))
-        .post('').reply(200, getApiResponse(title, 12346))
-        .post('').reply(200, getEmptyResponse(12346))
-        .post('').reply(200, getApiResponse(title, 12346, 12346));
-        // Fetch the page
-        return fetchPage(title, 12345)
-        .then(function() { return sendDeleteSignal(title); })
-        .then(function() { return signalPageEdit(title, 12346); })
-        .then(function() { return sendDeleteSignal(title); })
-        .then(function() { return sendUndeleteSignal(title, 12346); })
-        .then(function() { return preq.get({uri: server.config.labsBucketURL + '/revision/' + 12346}); })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.items.length, 1);
-            assert.deepEqual(res.body.items[0].rev, 12346);
-        })
-        .then(function() { return assertRevisionDeleted(12345); })
         .then(function() { api.done(); })
         .finally(function() { nock.cleanAll(); });
     });
