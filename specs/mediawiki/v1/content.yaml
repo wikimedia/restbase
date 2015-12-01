@@ -271,6 +271,7 @@ paths:
                 if-unmodified-since: '{if-unmodified-since}'
                 x-restbase-mode: '{x-restbase-mode}'
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                x-restbase-parenttitle: '{x-restbase-parenttitle}'
               query:
                 sections: '{sections}'
       x-monitor: true
@@ -428,6 +429,7 @@ paths:
                 if-unmodified-since: '{if-unmodified-since}'
                 x-restbase-mode: '{x-restbase-mode}'
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                x-restbase-parenttitle: '{x-restbase-parenttitle}'
               query:
                 page: '{page}'
       x-monitor: false
@@ -501,6 +503,7 @@ paths:
                 if-unmodified-since: '{if-unmodified-since}'
                 x-restbase-mode: '{x-restbase-mode}'
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                x-restbase-parenttitle: '{x-restbase-parenttitle}'
               query:
                 sections: '{sections}'
       x-monitor: false

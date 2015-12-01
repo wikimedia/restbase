@@ -14,6 +14,7 @@
 var rbUtil = require('../lib/rbUtil.js');
 var URI = require('swagger-router').URI;
 var uuid = require('cassandra-uuid').TimeUuid;
+var P = require('bluebird');
 
 // TODO: move to module
 var fs = require('fs');
@@ -82,6 +83,29 @@ PRS.prototype.getTableSchema = function() {
     };
 };
 
+PRS.prototype.pageTableName = 'page';
+PRS.prototype.pageTableURI = function(domain) {
+    return new URI([domain, 'sys', 'table', this.pageTableName, '']);
+};
+PRS.prototype.getPageTableSchema = function() {
+    return {
+        table: this.pageTableName,
+        version: 1,
+        attributes: {
+            title: 'string',
+            event_type: 'string', // Enum: 'rename_to', 'rename_from', 'delete', 'undelete'
+            event_data: 'string',
+            good_after: 'timeuuid',
+            tid: 'timeuuid'
+        },
+        index: [
+            { attribute: 'title', type: 'hash' },
+            { attribute: 'good_after', type: 'static' },
+            { attribute: 'tid', type: 'range', order: 'desc' }
+        ]
+    };
+};
+
 /**
  * Checks the revision info returned from the storage/MW API
  * for restrictions, and if there are any, acts appropriately:
@@ -129,6 +153,86 @@ PRS.prototype._checkRevReturn = function(item) {
         }
     }
     return true;
+};
+
+PRS.prototype._signalPageDeleted = function(restbase, req) {
+    var self = this;
+    var rp = req.params;
+    var now = uuid.now().toString();
+    return restbase.put({
+        uri: self.pageTableURI(rp.domain),
+        body: {
+            table: self.pageTableName,
+            attributes: {
+                title: rbUtil.normalizeTitle(rp.title),
+                tid: now,
+                event_type: 'delete',
+                good_after: now
+            }
+        }
+    });
+};
+
+PRS.prototype._checkPageUndeleted = function(restbase, req, res) {
+    var self = this;
+    var pageData = res.pageData;
+    var rp = req.params;
+
+    function findDeleteEvent() {
+        var prevDeletedEvent;
+        for (var idx = 0; idx < pageData.body.items.length; idx ++) {
+            var event = pageData.body.items[idx];
+            if (event.event_type === 'delete') {
+                if (prevDeletedEvent) {
+                    return event;
+                }
+                prevDeletedEvent = event;
+            }
+        }
+    }
+
+    if (pageData
+            && pageData.body.items
+            && pageData.body.items.length
+            && res.pageData.body.items[0].event_type === 'delete') {
+        var prevDeletedEvent = findDeleteEvent();
+        var newGoodAfter = prevDeletedEvent && prevDeletedEvent.tid || null;
+        return restbase.put({
+            uri: self.pageTableURI(rp.domain),
+            body: {
+                table: self.pageTableName,
+                attributes: {
+                    title: rbUtil.normalizeTitle(rp.title),
+                    tid: uuid.now().toString(),
+                    event_type: 'undelete',
+                    good_after: newGoodAfter
+                }
+            }
+        })
+        .then(function() { return res; });
+    } else {
+        return P.resolve(res);
+    }
+};
+
+PRS.prototype._checkPageDeletion = function(restbase, req, res) {
+    var revInfo = res.revisionInfo;
+    var pageData = res.pageData;
+    var item = revInfo.body.items.length && revInfo.body.items[0];
+    var latestPageEvent = pageData && pageData.body.items;
+    if (item && latestPageEvent && latestPageEvent.length) {
+        var deleteTid = pageData.body.items[0].good_after;
+        if (deleteTid && uuid.fromString(deleteTid).getDate()
+                >= uuid.fromString(item.tid).getDate()) {
+            throw new rbUtil.HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page was deleted'
+                }
+            });
+        }
+    }
 };
 
 // /page/
@@ -274,38 +378,47 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
             redirect: redirect
         };
 
-        // Check if the same revision is already in storage
-        return restbase.get({
-            uri: self.tableURI(rp.domain),
-            body: {
-                table: self.tableName,
-                attributes: {
-                    title: rbUtil.normalizeTitle(dataResp.title),
-                    rev: parseInt(apiRev.revid)
-                }
-            }
-        })
-        .then(function(res) {
-            var sameRev = res && res.body.items
-                    && res.body.items.length > 0
-                    && self._checkSameRev(revision, res.body.items[0]);
-            if (!sameRev) {
-                throw new rbUtil.HTTPError({ status: 404 });
-            }
-        })
-        .catch(function(e) {
-            if (e.status === 404) {
-                return restbase.put({ // Save / update the revision entry
-                    uri: self.tableURI(rp.domain),
-                    body: {
-                        table: self.tableName,
-                        attributes: revision
+        var actions = [
+            // Check if the same revision is already in storage
+            restbase.get({
+                uri: self.tableURI(rp.domain),
+                body: {
+                    table: self.tableName,
+                    attributes: {
+                        title: rbUtil.normalizeTitle(dataResp.title),
+                        rev: parseInt(apiRev.revid)
                     }
-                });
-            } else {
-                throw e;
-            }
-        })
+                }
+            })
+            .then(function(res) {
+                var sameRev = res && res.body.items
+                        && res.body.items.length > 0
+                        && self._checkSameRev(revision, res.body.items[0]);
+                if (!sameRev) {
+                    throw new rbUtil.HTTPError({ status: 404 });
+                }
+            })
+            .catch(function(e) {
+                if (e.status === 404) {
+                    return restbase.put({ // Save / update the revision entry
+                        uri: self.tableURI(rp.domain),
+                        body: {
+                            table: self.tableName,
+                            attributes: revision
+                        }
+                    });
+                } else {
+                    throw e;
+                }
+            })
+        ];
+        // Also check if the page title was changed and set a log rename history
+        var parentTitle = req.headers['x-restbase-parenttitle'];
+        if (parentTitle && parentTitle !== revision.title) {
+            actions = actions.concat(self._storeRename(restbase, req, revision.title, parentTitle));
+        }
+
+        return P.all(actions)
         .then(function() {
             self._checkRevReturn(revision);
             // No restrictions, continue
@@ -335,14 +448,33 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
 PRS.prototype.getTitleRevision = function(restbase, req) {
     var self = this;
     var rp = req.params;
+    var title = rbUtil.normalizeTitle(rp.title);
     var revisionRequest;
+    var pageDataRequest = restbase.get({
+        uri: self.pageTableURI(rp.domain),
+        body: {
+            table: self.pageTableName,
+            attributes: {
+                title: title
+            }
+        }
+    })
+    .catch(function(e) {
+        // Ignore lack of page data
+        if (e.status !== 404) {
+            throw e;
+        }
+    }).then(function(res) {
+        return res;
+    });
+
     function getLatestTitleRevision() {
         return restbase.get({
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: rbUtil.normalizeTitle(rp.title)
+                    title: title
                 },
                 limit: 1
             }
@@ -351,56 +483,55 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
 
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
-        revisionRequest = restbase.get({
-            uri: this.tableURI(rp.domain),
-            body: {
-                table: this.tableName,
-                attributes: {
-                    title: rbUtil.normalizeTitle(rp.title),
-                    rev: parseInt(rp.revision)
-                },
-                limit: 1
-            }
-        })
-        .catch(function(e) {
-            if (e.status !== 404) {
-                throw e;
-            }
-            return self.fetchAndStoreMWRevision(restbase, req);
-        });
-    } else if (!rp.revision) {
-        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
-            revisionRequest = self.fetchAndStoreMWRevision(restbase, req)
-            .catch(function(e) {
-                if (e.status !== 404) {
-                    throw e;
+        revisionRequest = P.props({
+            revisionInfo: restbase.get({
+                uri: this.tableURI(rp.domain),
+                body: {
+                    table: this.tableName,
+                    attributes: {
+                        title: title,
+                        rev: parseInt(rp.revision)
+                    },
+                    limit: 1
                 }
-                return getLatestTitleRevision()
-                // In case 404 is returned by MW api, the page is deleted
-                .then(function(result) {
-                    result = result.body.items[0];
-                    result.tid = uuid.now().toString();
-                    result.restrictions = result.restrictions || [];
-                    result.restrictions.push('page_deleted');
-                    return restbase.put({
-                        uri: self.tableURI(rp.domain),
-                        body: {
-                            table: self.tableName,
-                            attributes: result
-                        }
-                    })
-                    .then(function() {
-                        throw e;
-                    });
-                });
-            });
-        } else {
-            revisionRequest = getLatestTitleRevision()
+            })
             .catch(function(e) {
                 if (e.status !== 404) {
                     throw e;
                 }
                 return self.fetchAndStoreMWRevision(restbase, req);
+            }),
+            pageData: pageDataRequest
+        });
+    } else if (!rp.revision) {
+        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+            revisionRequest = P.props({
+                revisionInfo: self.fetchAndStoreMWRevision(restbase, req),
+                pageData: pageDataRequest
+            })
+            .then(function(res) {
+                return self._checkPageUndeleted(restbase, req, res);
+            })
+            .catch(function(e) {
+                if (e.status !== 404) {
+                    throw e;
+                }
+                // Page data request never returns 404, so it's from MW API => page was deleted
+                return self._signalPageDeleted(restbase, req)
+                .then(function() {
+                    throw e;
+                });
+            });
+        } else {
+            revisionRequest = P.props({
+                revisionInfo: getLatestTitleRevision()
+                .catch(function(e) {
+                    if (e.status !== 404) {
+                        throw e;
+                    }
+                    return self.fetchAndStoreMWRevision(restbase, req);
+                }),
+                pageData: pageDataRequest
             });
         }
     } else {
@@ -408,9 +539,10 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     }
     return revisionRequest
     .then(function(res) {
+        self._checkPageDeletion(restbase, req, res);
+        res = res.revisionInfo;
         // Check if the revision has any restrictions
         self._checkRevReturn(res.body.items.length && res.body.items[0]);
-
         // Clear paging info
         delete res.body.next;
 
@@ -422,6 +554,34 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         return res;
     });
     // TODO: handle other revision formats (tid)
+};
+
+PRS.prototype._storeRename = function(restbase, req, currentTitle, parentTitle) {
+    var self = this;
+    var rp = req.params;
+    var now = uuid.now().toString();
+    return [
+        {
+            title: parentTitle,
+            tid: now,
+            event_type: 'rename_to',
+            event_data: currentTitle
+        },
+        {
+            title: currentTitle,
+            tid: now,
+            event_type: 'rename_from',
+            event_data: parentTitle
+        }
+    ].map(function(item) {
+        return restbase.put({
+            uri: self.pageTableURI(rp.domain),
+            body: {
+                table: self.pageTableName,
+                attributes: item
+            }
+        });
+    });
 };
 
 PRS.prototype.listTitleRevisions = function(restbase, req) {
@@ -542,7 +702,6 @@ PRS.prototype.getRevision = function(restbase, req) {
     .then(function(res) {
         // Check the return
         self._checkRevReturn(res.body.items.length && res.body.items[0]);
-
         // Clear paging info
         delete res.body.next;
 
@@ -552,7 +711,7 @@ PRS.prototype.getRevision = function(restbase, req) {
         return self.getTitleRevision(restbase, req);
     })
     .catch(function(e) {
-        if (e.status !== 404) {
+        if (e.status !== 404 || /^Page was deleted/.test(e.body.description)) {
             throw e;
         }
         return self.fetchAndStoreMWRevision(restbase, req);
@@ -576,6 +735,10 @@ module.exports = function(options) {
                 // Revision table
                 uri: '/{domain}/sys/table/' + prs.tableName,
                 body: prs.getTableSchema()
+            },
+            {
+                uri: '/{domain}/sys/table/' + prs.pageTableName,
+                body: prs.getPageTableSchema()
             }
         ]
     };

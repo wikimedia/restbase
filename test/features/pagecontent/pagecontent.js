@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var nock   = require('nock');
 var pagingToken = '';
 
 describe('item requests', function() {
@@ -244,6 +245,116 @@ describe('item requests', function() {
             assert.deepEqual(res.body.items, [241155]);
         });
     });
+
+    function responseWithTitleRevision(title, revision) {
+        return {
+            'batchcomplete': '',
+            'query': {
+                'pages': {
+                    '11089416': {
+                        'pageid': 11089416,
+                        'ns': 0,
+                        'title': title,
+                        'contentmodel': 'wikitext',
+                        'pagelanguage': 'en',
+                        'touched': '2015-05-22T08:49:39Z',
+                        'lastrevid': 653508365,
+                        'length': 2941,
+                        'revisions': [{
+                            'revid': revision,
+                            'user': 'Chuck Norris',
+                            'userid': 3606755,
+                            'timestamp': '2015-03-25T20:29:50Z',
+                            'size': 2941,
+                            'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
+                            'contentmodel': 'wikitext',
+                            'comment': 'Test',
+                            'tags': []
+                        }]
+                    }
+                }
+            }
+        };
+    }
+
+    // Nock is needed here, because the page are already renamed in MW API,
+    // but we need to pretend it's happening while renaming.
+    it('should not store duplicated revision on rename', function() {
+        var apiURI = server.config
+            .conf.templates['wmf-sys-1.0.0']
+            .paths['/{module:action}']['x-modules'][0].templates.apiRequest.uri;
+        apiURI = apiURI.replace('{domain}', 'en.wikipedia.beta.wmflabs.org');
+        nock.enableNetConnect();
+        var api = nock(apiURI)
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 281004))
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/Before_Rename', 281004))
+        .post('').reply(200, responseWithTitleRevision('User:Pchelolo/After_Rename', 281005));
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fBefore_Rename/281004',
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fAfter_Rename/281005',
+                headers: {
+                    'cache-control': 'no-cache',
+                    'x-restbase-parentrevision': 281004,
+                    'x-restbase-parenttitle': 'User:Pchelolo/Before_Rename'
+                }
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/title/User:Pchelolo%2fAfter_Rename/'
+            })
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0], 281005);
+            if (res.body.next) {
+                return preq.get({
+                    uri: server.config.labsBucketURL
+                            + '/title/User:Pchelolo%2fAfter_Rename/'
+                            + res.body._links.next.href
+                })
+                .then(function() {
+                    throw new Error('Only one revision should be stored.');
+                })
+                .catch(function(e) {
+                    assert.deepEqual(e.status, 404);
+                });
+            }
+        })
+        .then(function() { api.done(); })
+        .finally(function() {nock.cleanAll()});
+    });
+
+    it('should allow creating new pages instead of renamed', function() {
+        // A 'redirect' page was created for this page, need to be able to add it too
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fBefore_Rename/281006',
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/title/User:Pchelolo%2fBefore_Rename'
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            assert.deepEqual(res.body.items[0].rev, 281006);
+        });
+    });
+
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
     //    this.timeout(20000);
     //    return preq.get({
