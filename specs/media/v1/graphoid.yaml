@@ -57,19 +57,11 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      security:
-        - header_match:
-            - header: 'x-client-ip'
-              patterns:
-                - internal
-      x-request-handler:
-        - post_to_backend:
-            request:
-              method: post
-              uri: /wikimedia.org/sys/graphoid/v1/{$$.default($.request.query.mode, "store")}/{format}
-              headers:
-                cache-control: '{cache-control}'
-              body: '{$.request.body}'
+#      security:
+#        - header_match:
+#            - header: 'x-client-ip'
+#              patterns:
+#                - internal
       x-monitor: true
       x-amples:
         - title: Graphoid - test graph
@@ -85,6 +77,14 @@ paths:
             headers:
               content-type: /^image\/svg/
             body: /.+/
+      x-request-handler:
+        - post_to_backend:
+            request:
+              method: post
+              uri: /wikimedia.org/sys/graphoid/v1/{$$.default($.request.query.mode, "store")}/{format}
+              headers:
+                cache-control: '{cache-control}'
+              body: '{$.request.body}'
 
   /{module:media}/graph/{format}/{hash}:
     get:
@@ -131,6 +131,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-monitor: false
       x-request-handler:
         - stored_post:
             request:
@@ -138,4 +139,3 @@ paths:
               uri: /wikimedia.org/sys/graphoid/v1/request/{format}/{hash}
               headers:
                 cache-control: '{cache-control}'
-      x-monitor: false

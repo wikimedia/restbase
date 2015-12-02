@@ -62,10 +62,9 @@ templates:
         options:
           host: http://appservice.wmflabs.org
 
-      - name: graphoid
-        path: wikimedia/v1/graphoid_v1.yaml
-        options:
-          host: http://graphoid.wikimedia.org
+      - name: graphoid-public
+        path: specs/media/v1/graphoid.yaml
+        type: spec
 
       - path: wikimedia/v1/summary_v1.js
         options:
@@ -199,6 +198,14 @@ templates:
       /{module:table}: *wp/sys/table
       /{module:key_value}: *wp/sys/key_value
       /{module:post_data}: *wp/sys/post_data
+      /{module:graphoid}:
+        x-modules:
+          - name: graphoid-sys
+            path: mods/wikimedia/v1/graphoid
+            type: spec
+            options:
+              host: http://graphoid-beta.wmflabs.org
+              preview_ttl: 1800
 
   wp-default-1.0.0: &wp/default/1.0.0
     x-subspecs:

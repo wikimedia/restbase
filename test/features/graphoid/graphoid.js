@@ -10,7 +10,6 @@ var fs = require('fs');
 
 describe('Graphoid tests:', function() {
     var random_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/random_graph.json'));
-    var invalid_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/invalid_graph.json'));
     var static_graph_definition = JSON.parse(fs.readFileSync(__dirname + '/static_graph.json'));
     var svg_render_result = fs.readFileSync(__dirname + '/render_result.svg');
     var resource_location;
@@ -192,22 +191,6 @@ describe('Graphoid tests:', function() {
             throw new Error('Should not find the resource');
         }, function(e) {
             assert.deepEqual(e.status, 404);
-        });
-    });
-
-    it('Should propagate errors for invalid graph', function() {
-        return preq.post({
-            uri: server.config.baseURL + '/media/graph/png',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: invalid_graph_definition
-        })
-        .then(function() {
-            throw new Error('Error should be thrown');
-        }, function(e) {
-            // It depends on Graphoid which error to send, just verify it's an error
-            assert.deepEqual(e.status > 400, true);
         });
     });
 
