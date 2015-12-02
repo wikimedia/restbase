@@ -1,0 +1,141 @@
+# Graphoid graph render service
+
+swagger: 2.0
+
+paths:
+  /{module:media}/graph/{format}:
+    post:
+      tags:
+        - Media
+        - Graph
+      description: >
+        Renders a graph definition into an image in a given format. Obly currently
+        available format is png. The response contains the `x-resource-location`
+        header which can be used to retrieve the graph image. Just append the value of the
+        header to `/media/graph/{format}/` and perform a GET request against that URL.
+
+        A `preview` query parameter could be used to avoid storage of the content.
+        Note, that this endpoint is available only for internal clients.
+
+        Provide a `cache-control: no-cache` header if the content should be rerendered even
+        if the result is in storage.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - application/json
+      produces:
+        - image/png
+        - image/svg
+      parameters:
+        - name: format
+          in: path
+          description: The format of the output image
+          type: string
+          enum:
+            - png
+            - svg
+          required: true
+        - name: mode
+          in: query
+          description: If `preview`, store content temporarily. Default is `store`
+          type: string
+          enum:
+            - preview
+            - store
+        - name: content
+          in: body
+          description: Graph definition
+          required: true
+      responses:
+        '200':
+          description: The render of the given graph in the requested format
+        '403':
+          description: Access to the endpoint is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+#      security:
+#        - header_match:
+#            - header: 'x-client-ip'
+#              patterns:
+#                - internal
+      x-monitor: true
+      x-amples:
+        - title: Graphoid - test graph
+          request:
+            params:
+              domain: en.wikipedia.org
+              format: svg
+            body:
+              q: E=mc^2
+              type: tex
+          response:
+            status: 200
+            headers:
+              content-type: /^image\/svg/
+            body: /.+/
+      x-request-handler:
+        - post_to_backend:
+            request:
+              method: post
+              uri: /wikimedia.org/sys/graphoid/v1/{$$.default($.request.query.mode, "store")}/{format}
+              headers:
+                cache-control: '{cache-control}'
+              body: '{$.request.body}'
+
+  /{module:media}/graph/{format}/{hash}:
+    get:
+      tags:
+        - Media
+        - Graph
+      description: >
+        Given a request hash, renders a graph definition into an image
+        in the given format. When a request is issued to the `/media/graph/{format}`
+        POST endpoint, the response contains the `x-resource-location` header
+        denoting the hash ID of the POST data. Once obtained, this endpoint may be
+        used to avoid sending the payload.
+
+        Provide a `cache-control: no-cache` header if the content should be rerendered with
+        a graph definition from the storage.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+      produces:
+        - image/png
+        - image/svg
+      parameters:
+        - name: format
+          in: path
+          description: The format of the output image
+          type: string
+          required: true
+          enum:
+            - png
+            - svg
+            - json
+        - name: hash
+          in: path
+          description: The hash string of the previous POST data
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The rendered graph
+        '404':
+          description: Unknown hash ID
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+      x-request-handler:
+        - stored_post:
+            request:
+              method: get
+              uri: /wikimedia.org/sys/graphoid/v1/request/{format}/{hash}
+              headers:
+                cache-control: '{cache-control}'

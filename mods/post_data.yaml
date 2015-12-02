@@ -21,3 +21,7 @@ paths:
   /{bucket}/:
     put:
       operationId: putRevision
+
+  /{bucket}/hash:
+    put:
+      operationId: calculateHash
