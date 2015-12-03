@@ -89,7 +89,7 @@ paths:
                 cache-control: '{cache-control}'
       x-monitor: false
 
-  /page/mobile-sections-remaining/{title}:
+  /mobile-sections-remaining/{title}:
     get:
       tags:
         - Mobile
