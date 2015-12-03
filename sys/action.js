@@ -104,11 +104,26 @@ function apiError(apiErr) {
 /**
  * Action module code
  */
-function ActionService(options, templates) {
-    if (!templates.apiRequest) {
-        throw new Error('The action module needs the apiRequest templating stanza to exist!');
+function ActionService(options) {
+    if (!options) { throw new Error("No options supplied for action module"); }
+    if (options.apiRequest && typeof options.apiRequest === 'function') {
+        this.apiRequestTemplate = options.apiRequest;
+    } else if (options.apiUriTemplate) {
+        this.apiRequestTemplate = new Template({
+            uri: options.apiUriTemplate,
+            method: 'post',
+            headers: {
+                host: '{{request.params.domain}}'
+            },
+            body: '{{request.body}}',
+        }).expand;
+    } else {
+        var e = new Error('Missing parameter in action module:\n'
+                + '- apiRequest template function, or\n'
+                + '- apiUriTemplate string parameter.');
+        e.options = options;
+        throw e;
     }
-    this.apiRequestTemplate = new Template(templates.apiRequest);
 }
 
 function buildQueryResponse(res) {
@@ -160,7 +175,7 @@ function buildEditResponse(res) {
 }
 
 ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
-    var apiRequest = this.apiRequestTemplate.expand({
+    var apiRequest = this.apiRequestTemplate({
         request: req
     });
     apiRequest.body.action = defBody.action;
@@ -188,8 +203,8 @@ ActionService.prototype.edit = function(restbase, req) {
 };
 
 
-module.exports = function(options, templates) {
-    var actionService = new ActionService(options, templates);
+module.exports = function(options) {
+    var actionService = new ActionService(options);
     return {
         spec: {
             paths: {

@@ -14,15 +14,15 @@ describe('pageviews endpoints', function () {
     //Start server before running tests
     before(function () { return server.start(); });
 
-    var articleEndpoint = '/pageviews/per-article/en.wikipedia/desktop/spider/one/daily/20150701/20150703';
-    var projectEndpoint = '/pageviews/aggregate/en.wikipedia/all-access/all-agents/hourly/1969010100/1971010100';
-    var topsEndpoint = '/pageviews/top/en.wikipedia/mobile-web/2015/all-months/all-days';
+    var articleEndpoint = '/metrics/pageviews/per-article/en.wikipedia/desktop/spider/one/daily/20150701/20150703';
+    var projectEndpoint = '/metrics/pageviews/aggregate/en.wikipedia/all-access/all-agents/hourly/1969010100/1971010100';
+    var topsEndpoint = '/metrics/pageviews/top/en.wikipedia/mobile-web/2015/all-months/all-days';
 
     // Fake data insertion endpoints
-    var insertArticleEndpoint = '/pageviews/insert-per-article-flat/en.wikipedia/one/daily/2015070200';
-    var insertProjectEndpoint = '/pageviews/insert-aggregate/en.wikipedia/all-access/all-agents/hourly/1970010100';
-    var insertProjectEndpointLong = '/pageviews/insert-aggregate-long/en.wikipedia/all-access/all-agents/hourly/1970010100';
-    var insertTopsEndpoint = '/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days';
+    var insertArticleEndpoint = '/metrics/pageviews/insert-per-article-flat/en.wikipedia/one/daily/2015070200';
+    var insertProjectEndpoint = '/metrics/pageviews/insert-aggregate/en.wikipedia/all-access/all-agents/hourly/1970010100';
+    var insertProjectEndpointLong = '/metrics/pageviews/insert-aggregate-long/en.wikipedia/all-access/all-agents/hourly/1970010100';
+    var insertTopsEndpoint = '/metrics/pageviews/insert-top/en.wikipedia/mobile-web/2015/all-months/all-days';
 
     function fix(b, s, u) { return b.replace(s, s + u); }
     // Test Article Endpoint

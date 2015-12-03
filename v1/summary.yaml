@@ -14,7 +14,7 @@ info:
 x-default-params:
   domain: en.wikipedia.org
 paths:
-  /{module:page}/summary/{title}:
+  /summary/{title}:
     get:
       tags:
         - Page content
@@ -124,7 +124,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{extract.headers.content-type}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache-control}}'
               body: '{{extract.body}}'
 

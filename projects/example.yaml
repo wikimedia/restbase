@@ -1,0 +1,78 @@
+# RESTBase config for small wiki installs
+#
+# - sqlite backend
+# - parsoid at http://localhost:8142
+# - wiki at http://localhost/w/api.php
+# 
+# Quick setup:
+# - npm install
+#   If you see errors about sqlite, you might have to `apt-get install
+#   libsqlite3-dev`.
+# - cp config.example.yaml config.yaml
+# - double-check and possibly modify lines marked with XXX, then start restbase with
+#
+#   node server
+#
+# - If all went well, http://localhost:7231/localhost/v1/page/html/Main_Page
+# should show your wiki's [[Main Page]].
+
+# First, we define some project templates. These are referenced / shared
+# between domains in the root_spec further down.
+swagger: '2.0'
+paths:
+  /{api:v1}:
+    swagger: '2.0'
+    info:
+      version: 1.0.0-beta
+      title: Wikimedia REST API
+      description: Welcome to your RESTBase API.
+      x-is-api-root: true
+
+    securityDefinitions:
+      mediawiki_auth:
+        description: Checks permissions using MW api
+        type: apiKey
+        in: header
+        name: cookie
+        x-internal-request-whitelist:
+          - http://localhost/w/api.php
+          - http://localhost:8142
+      header_match:
+        description: Checks client ip against one of the predefined whitelists
+        x-error-message: This client is not allowed to use the endpoint
+        x-whitelists:
+          internal:
+            - /^(?:localhost)|(?:127\.)/
+
+    x-modules:
+      /: 
+        # The main content module, defining page/* and transform entry
+        # points.
+        - path: v1/content.yaml
+
+  /{api:sys}:
+    x-modules:
+      /table:
+        - type: npm
+          name: restbase-mod-table-sqlite
+          version: 1.0.0
+          options: 
+            conf: '{{options.table}}'
+      /key_value:
+        - path: sys/key_value.js
+      /key_rev_value:
+        - path: sys/key_rev_value.js
+      /page_revisions:
+        - path: sys/page_revisions.js
+      /post_data:
+        - path: sys/post_data.js
+      /action:
+        - path: sys/action.js
+          options: '{{options.action}}'
+      /page_save:
+        - path: sys/page_save.js
+      /parsoid:
+        - path: sys/parsoid.js
+          options:
+            parsoidHost: '{{options.parsoid.host}}'
+

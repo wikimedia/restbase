@@ -37,9 +37,15 @@ var config = {
     baseURL: baseURL,
     globalURL: globalURL,
     bucketURL: bucketURL,
+    apiURL: 'https://en.wikipedia.org/w/api.php',
+    makeBucketURL: function(domain) {
+        return hostPort + '/' + domain + '/v1/page';
+    },
     secureURL: secureURL,
+    secureApiURL: 'https://fr.wikipedia.org/w/api.php',
     labsURL: labsURL,
     labsBucketURL: labsBucketURL,
+    labsApiURL: 'http://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
     conf: loadConfig(__dirname + '/../../config.test.yaml')
 };

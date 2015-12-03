@@ -3,7 +3,7 @@
 swagger: 2.0
 
 paths:
-  /{module:service}/test/{title}{/revision}:
+  /service/test/{title}{/revision}:
     get:
       x-setup-handler:
         - init_storage:
@@ -39,7 +39,7 @@ paths:
 
       x-monitor: false
 
-  /{module:service}/test_parallel/{key1}/{key2}:
+  /service/test_parallel/{key1}/{key2}:
     get:
       x-request-handler:
         - get_from_api1:
@@ -73,7 +73,7 @@ paths:
                 headers:
                   content-type: /^text\/html.+/
 
-  /{module:post_data}/:
+  /post_data/:
     post:
       security:
         - header_match:
@@ -89,7 +89,7 @@ paths:
               body: '{$.request.body}'
       x-monitor: false
 
-  /{module:post_data}/{hash}:
+  /post_data/{hash}:
     get:
       x-setup-handler:
         - init_storage:
@@ -100,7 +100,7 @@ paths:
               uri: /{domain}/sys/post_data/post.test/{hash}
       x-monitor: false
 
-  /{module:pageviews}/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
+  /metrics/pageviews/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -132,7 +132,7 @@ paths:
                   mwu: '{$.request.params.views}16'
       x-monitor: false
 
-  /{module:pageviews}/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+  /metrics/pageviews/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -150,7 +150,7 @@ paths:
                   views: '{$.request.params.views}'
       x-monitor: false
 
-  /{module:pageviews}/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
+  /metrics/pageviews/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
     post:
       x-request-handler:
         - put_to_storage:
@@ -168,7 +168,7 @@ paths:
                   v: '{$.request.params.v}'
       x-monitor: false
 
-  /{module:pageviews}/insert-top/{project}/{access}/{year}/{month}/{day}:
+  /metrics/pageviews/insert-top/{project}/{access}/{year}/{month}/{day}:
     post:
       x-request-handler:
         - put_to_storage:

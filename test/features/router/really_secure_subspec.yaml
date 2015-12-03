@@ -1,0 +1,9 @@
+paths:
+  /secure:
+    get:
+      security: [fourth]
+      x-request-handler:
+        - backend_request:
+            request:
+              uri: /{domain}/sys/parsoid/html/{title}
+          

@@ -3,7 +3,7 @@
 swagger: 2.0
 
 paths:
-  /{module:media}/math/check/{type}:
+  /math/check/{type}:
     post:
       tags: ['Math']
       description: >
@@ -92,7 +92,7 @@ paths:
                 x-resource-location: '{{$.post_store.body}}'
               body: '{$.check_input.body}'
 
-  /{module:media}/math/render/{format}/{hash}:
+  /math/render/{format}/{hash}:
     get:
       tags: ['Math']
       description: >
