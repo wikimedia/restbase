@@ -70,12 +70,12 @@ paths:
       x-request-handler:
         - check_input:
             request:
-              uri: '{{$$.options.host}}/texvcinfo'
+              uri: '{{ options.host }}/texvcinfo'
               headers:
                 content-type: application/json
               body:
-                q: '{{$.request.body.q}}'
-                type: '{{$.request.params.type}}'
+                q: '{{ request.body.q }}'
+                type: '{{ request.params.type }}'
         - post_store:
             request:
               method: put
@@ -83,14 +83,15 @@ paths:
               headers:
                 content-type: application/json
               body:
-                q: '{{$.check_input.body.checked}}'
-                type: '{{$.request.params.type}}'
+                q: '{{ check_input.body.checked }}'
+                type: '{{ request.params.type }}'
             return:
               status: 200
               headers:
                 content-type: application/json
-                x-resource-location: '{{$.post_store.body}}'
-              body: '{$.check_input.body}'
+                cache-control: '{{ options.cache-control }}'
+                x-resource-location: '{{ post_store.body }}'
+              body: '{{ check_input.body }}'
 
   /math/render/{format}/{hash}:
     get:
@@ -149,36 +150,36 @@ paths:
               method: get
               uri: /wikimedia.org/sys/key_value/mathoid.{$.request.params.format}/{$.request.params.hash}
               headers:
-                cache-control: '{cache-control}'
+                cache-control: '{{ cache-control }}'
             catch:
               status: 404
             return_if:
               status: '2xx'
-        - get_post:
+        - postdata:
             request:
               uri: /wikimedia.org/sys/post_data/mathoid.input/{$.request.params.hash}
         - mathoid:
             request:
               method: post
-              uri: '{{$$.options.host}}/complete'
+              uri: '{{options.host}}/complete'
               headers:
                 content-type: application/json
-              body: '{$.get_post.body}'
+              body: '{{postdata.body}}'
         - store_svg:
             request:
               method: put
               uri: /wikimedia.org/sys/key_value/mathoid.svg/{$.request.params.hash}
-              headers: '{$$.merge($.mathoid.body.svg.headers, {"x-resource-location":$.request.params.hash})}'
+              headers: "{{ merge(mathoid.body.svg.headers, { 'x-resource-location': request.params.hash }) }}"
               body: '{$.mathoid.body.svg.body}'
           store_mml:
             request:
               method: put
               uri: /wikimedia.org/sys/key_value/mathoid.mml/{$.request.params.hash}
-              headers: '{$$.merge($.mathoid.body.mml.headers, {"x-resource-location":$.request.params.hash})}'
-              body: '{$.mathoid.body.mml.body}'
+              headers: "{{ merge(mathoid.body.mml.headers, { 'x-resource-location': request.params.hash }) }}"
+              body: '{{ mathoid.body.mml.body }}'
         - return:
             return:
               status: 200
-              headers: '{$$.merge($.mathoid.body[$.request.params.format].headers, {"x-resource-location":$.request.params.hash})}'
-              body: '{$.mathoid.body[$.request.params.format].body}'
+              headers: "{{ merge(mathoid.body[request.params.format].headers, { 'x-resource-location': request.params.hash, 'cache-control': options.cache-control }) }}"
+              body: '{{ mathoid.body[request.params.format].body }}'
 
