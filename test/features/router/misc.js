@@ -111,7 +111,7 @@ describe('router - misc', function() {
             throw new Error('Error should be thrown');
         } catch(e) {
             assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.detail, 'data.body.testParam is a required property');
+            assert.deepEqual(e.body.detail, "data.body should have required property 'testParam'");
         }
     });
     it('Should compile validator with no required fields', function() {
@@ -166,7 +166,7 @@ describe('router - misc', function() {
             throw new Error('Error should be thrown');
         } catch(e) {
             assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.detail, 'data.body.field2 is a required property');
+            assert.deepEqual(e.body.detail, "data.body should have required property 'field2'");
         }
     });
     it('Should allow floats in number validator', function() {
