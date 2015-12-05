@@ -73,6 +73,7 @@ default_project: &default_project
           - path: v1/mathoid.yaml
             options:
               host: http://mathoid-tester.wmflabs.org
+              cache-control: s-maxage=86400, max-age=86400
 
     /{api:sys}: &default_project_paths_sys
       x-modules: &default_project_paths_sys_modules

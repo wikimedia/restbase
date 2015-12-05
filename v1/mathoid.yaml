@@ -61,6 +61,7 @@ paths:
             headers:
               content-type: /^application\/json/
               x-resource-location: /.+/
+              cache-control: /s-maxage/
             body:
               success: true
               checked: /.+/
