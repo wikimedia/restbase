@@ -1,8 +1,8 @@
 {
   "name": "restbase",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "REST storage and service dispatcher",
-  "main": "server.js",
+  "main": "lib/server.js",
   "scripts": {
     "start": "service-runner",
     "test": "sh test/utils/run_tests.sh test",
