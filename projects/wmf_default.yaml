@@ -53,7 +53,6 @@ paths:
         # The main content module, defining page/* and transform entry
         # points.
         - path: v1/content.yaml
-        - path: test/test_module.yaml
       /page:
         - path: v1/mobileapps.yaml
           options: '{{options.mobileapps}}'
