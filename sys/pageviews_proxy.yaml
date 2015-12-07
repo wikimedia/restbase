@@ -1,0 +1,24 @@
+# Simple proxy handler, used by the front-end RESTBase to proxy requests to
+# the AQS backend. Pulled in by projects/wikimedia.org.yaml.
+
+paths:
+  /per-article/{+rest}:
+    get:
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/pageviews/per-article/{+rest}'
+
+  /per-project/{+rest}:
+    get:
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/pageviews/aggregate/{+rest}'
+
+  /top/{+rest}:
+    get:
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/pageviews/top/{+rest}'

@@ -71,4 +71,5 @@ paths:
       /post_data: &sys_post_data
         - path: sys/post_data.js
       /pageviews:
-        - path: sys/pageviews.js
+        - path: sys/pageviews_proxy.yaml
+          options: '{{options.pageviews}}'
