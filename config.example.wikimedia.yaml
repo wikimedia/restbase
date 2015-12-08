@@ -43,6 +43,12 @@ spec_root: &spec_root
   title: "The RESTBase root"
   paths:
     /{domain:en.wikipedia.org}: *default_project
+    /{domain:fr.wikipedia.org}: *default_project
+    /{domain:de.wikipedia.org}: *default_project
+    /{domain:es.wikipedia.org}: *default_project
+    /{domain:it.wikipedia.org}: *default_project
+    /{domain:da.wikipedia.org}: *default_project
+    /{domain:sv.wikipedia.org}: *default_project
 
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org
