@@ -6,8 +6,6 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
-var Validator = require('../../../lib/validator');
-var HTTPError = require('../../../lib/rbUtil').HTTPError;
 
 describe('router - misc', function() {
 
@@ -94,101 +92,6 @@ describe('router - misc', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-length'], undefined);
             assert.deepEqual(res.body, '');
-        });
-    });
-    it('Should validate request for required fields', function() {
-        var validator = new Validator([{
-            name: 'testParam',
-            in: 'formData',
-            required: true
-        }]);
-        try {
-            validator.validate({
-                body: {
-                    otherParam: 'test'
-                }
-            });
-            throw new Error('Error should be thrown');
-        } catch(e) {
-            assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.detail, "data.body should have required property 'testParam'");
-        }
-    });
-    it('Should compile validator with no required fields', function() {
-        new Validator([{
-            name: 'testParam',
-            in: 'formData'
-        }]);
-    });
-    it('Should validate integers', function() {
-        var validator = new Validator([{
-            name: 'testParam',
-            in: 'query',
-            type: 'integer',
-            required: true
-        }]);
-        try {
-            validator.validate({
-                query: {
-                    testParam: 'not_an_integer'
-                }
-            });
-            throw new Error('Error should be thrown');
-        } catch(e) {
-            assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.detail, 'data.query.testParam should be an integer');
-        }
-    });
-    it('Should validate object schemas', function() {
-        var validator = new Validator([{
-            name: 'testParam',
-            in: 'body',
-            schema: {
-                type: 'object',
-                properties: {
-                    field1: {
-                        type: 'string'
-                    },
-                    field2: {
-                        type: 'string'
-                    }
-                },
-                required: ['field1', 'field2']
-            },
-            required: true
-        }]);
-        try {
-            validator.validate({
-                body: {
-                    field1: 'some string'
-                }
-            });
-            throw new Error('Error should be thrown');
-        } catch(e) {
-            assert.deepEqual(e.constructor.name, 'HTTPError');
-            assert.deepEqual(e.body.detail, "data.body should have required property 'field2'");
-        }
-    });
-    it('Should allow floats in number validator', function() {
-        var validator = new Validator([
-            {
-                name: 'testParam1',
-                in: 'query',
-                type: 'number',
-                required: true
-            },
-            {
-                name: 'testParam2',
-                in: 'query',
-                type: 'number',
-                required: true
-            }
-        ]);
-        validator.validate({
-            query: {
-                testParam1: '27.5',
-                testParam2: '27,5'
-            }
         });
     });
 });

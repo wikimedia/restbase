@@ -7,7 +7,6 @@ var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
 var preq   = require('preq');
 var P = require('bluebird');
-var handlerTemplate = require('../../../lib/handlerTemplate');
 
 describe('handler template', function () {
     this.timeout(20000);
@@ -73,85 +72,5 @@ describe('handler template', function () {
             assert.remoteRequests(slice, false);
             hasTextContentType(res);
         });
-    });
-
-    function testValidation(action, expectedError) {
-        var caught;
-        try {
-            action();
-        } catch (e) {
-            caught = true;
-            assert.deepEqual(expectedError.test(e.message), true);
-        }
-        if (!caught) {
-            throw new Error('Error should be thrown');
-        }
-    }
-
-    it('validates config: checks parallel returning requests', function() {
-        testValidation(function() {
-            handlerTemplate.createHandler([{
-                get_one: {
-                    request: {
-                        uri: 'http://en.wikipedia.org/wiki/One'
-                    },
-                    return: '{$.get_one}'
-                },
-                get_two: {
-                    request: {
-                        uri: 'http://en.wikipedia.org/wiki/Two'
-                    },
-                    return: '{$.get_two}'
-                }
-            }]);
-        }, /^Invalid spec\. Returning requests cannot be parallel\..*/);
-    });
-
-    it('validates config: requires either return or request', function() {
-        testValidation(function() {
-            handlerTemplate.createHandler([{
-                get_one: {}
-            }]);
-        }, /^Invalid spec\. Either request or return must be specified\..*/);
-    });
-
-    it('validates config: compiles a valid condition function', function() {
-        handlerTemplate.createHandler([{
-            get_one: {
-                request: {
-                    uri: '/my/path'
-                },
-                return_if: {
-                    status: '5xx'
-                },
-                return: '{$.request}'
-            }
-        }]);
-    });
-
-    it('validates config: requires request for return_if', function() {
-        testValidation(function() {
-            handlerTemplate.createHandler([{
-                get_one: {
-                    return_if: {
-                        status: '5xx'
-                    },
-                    return: '$.request'
-                }
-            }]);
-        }, /^Invalid spec\. return_if should have a matching request\..*/);
-    });
-
-    it('validates config: requires request for catch', function() {
-        testValidation(function() {
-            handlerTemplate.createHandler([{
-                get_one: {
-                    catch: {
-                        status: '5xx'
-                    },
-                    return: '$.request'
-                }
-            }]);
-        }, /^Invalid spec\. catch should have a matching request\..*/);
     });
 });

@@ -1,0 +1,7 @@
+paths:
+  /page/{title}/html:
+    get:
+      x-request-handler: 
+        - backend_req:
+            request:
+              uri: '/{domain}/sys/parsoid/html/{title}'

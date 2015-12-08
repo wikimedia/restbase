@@ -96,17 +96,6 @@ describe('tree building', function() {
         });
     });
 
-    it('should fail loading a faulty spec', function() {
-        var router = new Router();
-        return router.loadSpec(faultySpec, fakeRestBase)
-        .then(function() {
-            throw new Error("Should throw an exception!");
-        },
-        function() {
-            // exception thrown as expected
-        });
-    });
-
     it('should build the example config spec tree', function() {
         var router = new Router();
         var resourceRequests = [];
@@ -122,41 +111,6 @@ describe('tree building', function() {
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.org');
             assert.equal(handler.params.title, 'Foo');
-        });
-    });
-
-    it('should allow adding methods to existing paths', function() {
-        var router = new Router();
-        return router.loadSpec(additionalMethodSpec, fakeRestBase)
-        .then(function() {
-            var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
-            assert.equal(!!handler.value.methods.get, true);
-            assert.equal(!!handler.value.methods.post, true);
-        });
-    });
-
-    it('should error on overlapping methods on the same path', function() {
-        var router = new Router();
-        return router.loadSpec(overlappingMethodSpec)
-        .then(function() {
-            throw new Error("Should throw an exception!");
-        },
-        function() {
-            // exception thrown as expected
-        });
-    });
-
-    it('should pass permission along the path to endpoint', function() {
-        var router = new Router();
-        return router.loadSpec(nestedSecuritySpec, fakeRestBase)
-        .then(function() {
-            var handler = router.route('/en.wikipedia.org/v1/page/secure');
-            assert.deepEqual(handler.permissions, [
-                { value: 'first' },
-                { value: 'second'},
-                { value: 'third' },
-                { value: 'fourth', method: 'get' }
-            ]);
         });
     });
 
