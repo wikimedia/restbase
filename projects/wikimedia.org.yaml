@@ -66,8 +66,6 @@ paths:
         - path: sys/key_value.js
       /key_rev_value:
         - path: sys/key_rev_value.js
-      /page_revisions:
-        - path: sys/page_revisions.js
       /post_data: &sys_post_data
         - path: sys/post_data.js
       /pageviews:
