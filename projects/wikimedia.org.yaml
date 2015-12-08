@@ -56,6 +56,9 @@ paths:
         - path: v1/pageviews.yaml
 
   /{api:sys}:
+    swagger: 2.0
+    info:
+      x-is-api-root: true
     x-modules:
       /table:
         - type: npm

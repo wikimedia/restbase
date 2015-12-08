@@ -66,6 +66,9 @@ paths:
           options: '{{options.mathoid}}'
 
   /{api:sys}: &default_project_paths_sys
+    swagger: 2.0
+    info:
+      x-is-api-root: true
     x-modules: &default_project_paths_sys_modules
       /table: &sys_table
         - type: npm
