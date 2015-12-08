@@ -15,10 +15,7 @@ describe('Handler Template', function() {
     it('Retrieve content from backend service', function () {
         var mockReply = '<html><head><title>1</title></head><body></body></html>';
         var api = nock('http://mocked_domain_for_tests.com')
-        .get('/TestTitle')
-        .reply(200, mockReply, {
-            'Content-Type': 'text/html'
-        });
+        .get('/TestTitle').reply(200, mockReply, { 'Content-Type': 'text/html' });
 
         return preq.get({ uri: server.hostPort + '/service/simple_test/TestTitle' })
         .then(function (res) {
@@ -34,10 +31,8 @@ describe('Handler Template', function() {
         var mockReply1 = '<html><head><title>1</title></head><body></body></html>';
         var mockReply2 = '<html><head><title>2</title></head><body></body></html>';
         var api = nock('http://mocked_domain_for_tests.com')
-        .get('/TestTitle')
-        .reply(200, mockReply1, { 'Content-Type': 'text/html' })
-        .get('/TestTitle')
-        .reply(200, mockReply2, { 'Content-Type': 'text/html' });
+        .get('/TestTitle').reply(200, mockReply1, { 'Content-Type': 'text/html' })
+        .get('/TestTitle').reply(200, mockReply2, { 'Content-Type': 'text/html' });
 
         return preq.get({ uri: server.hostPort + '/service/parallel_test/TestTitle' })
         .then(function (res) {
@@ -52,10 +47,7 @@ describe('Handler Template', function() {
     it('Returns response on return_if match', function() {
         var mockReply = '<html><head><title>1</title></head><body></body></html>';
         var api = nock('http://mocked_domain_for_tests.com')
-        .get('/TestTitle')
-        .reply(200, mockReply, {
-            'Content-Type': 'text/html'
-        });
+        .get('/TestTitle').reply(200, mockReply, { 'Content-Type': 'text/html' });
 
         return preq.get({ uri: server.hostPort + '/service/return_if_test/TestTitle' })
         .then(function (res) {
@@ -70,10 +62,8 @@ describe('Handler Template', function() {
     it('Follows a chain on simple catch match', function() {
         var mockReply = '<html><head><title>1</title></head><body></body></html>';
         var api = nock('http://mocked_domain_for_tests.com')
-        .get('/TestTitle')
-        .reply(404, 'NOT FOUND', { 'Content-Type': 'text/plain' })
-        .get('/TestTitle')
-        .reply(200, mockReply, { 'Content-Type': 'text/html' });
+        .get('/TestTitle').reply(404, 'NOT FOUND', { 'Content-Type': 'text/plain' })
+        .get('/TestTitle').reply(200, mockReply, { 'Content-Type': 'text/html' });
 
         return preq.get({ uri: server.hostPort + '/service/simple_catch/TestTitle' })
         .then(function (res) {
@@ -88,14 +78,10 @@ describe('Handler Template', function() {
     it('Follows a chain on array catch match', function() {
         var mockReply = '<html><head><title>1</title></head><body></body></html>';
         var api = nock('http://mocked_domain_for_tests.com')
-        .get('/TestTitle')
-        .reply(404, 'NOT FOUND', { 'Content-Type': 'text/plain' })
-        .get('/TestTitle')
-        .reply(200, mockReply, { 'Content-Type': 'text/html' })
-        .get('/TestTitle')
-        .reply(302, 'WHATEVER', { 'Content-Type': 'text/plain' })
-        .get('/TestTitle')
-        .reply(200, mockReply, { 'Content-Type': 'text/html' });
+        .get('/TestTitle').reply(404, 'NOT FOUND', { 'Content-Type': 'text/plain' })
+        .get('/TestTitle').reply(200, mockReply, { 'Content-Type': 'text/html' })
+        .get('/TestTitle').reply(302, 'WHATEVER', { 'Content-Type': 'text/plain' })
+        .get('/TestTitle').reply(200, mockReply, { 'Content-Type': 'text/html' });
 
         return preq.get({ uri: server.hostPort + '/service/return_if_test/TestTitle' })
         .then(function (res) {
@@ -115,8 +101,7 @@ describe('Handler Template', function() {
 
     it('Propagates error on catch mismatch', function() {
         var api = nock('http://mocked_domain_for_tests.com')
-        .get('/TestTitle')
-        .reply(500, 'SERVER_ERROR', { 'Content-Type': 'text/plain' });
+        .get('/TestTitle').reply(500, 'SERVER_ERROR', { 'Content-Type': 'text/plain' });
 
         return preq.get({ uri: server.hostPort + '/service/return_if_test/TestTitle' })
         .then(function () {
