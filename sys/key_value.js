@@ -31,14 +31,29 @@ KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KVBucket.prototype.makeSchema = function(opts) {
-    opts.schemaVersion = 4;
+    var schemaVersionMajor = 5;
+
     return {
-        version: opts.schemaVersion,
+        // Combine option & bucket version into a monotonically increasing
+        // combined schema version. By multiplying the bucket version by 1000,
+        // we increase the chance of catching a reset in the option version.
+        version: schemaVersionMajor * 1000 + (opts.version || 0),
         options: {
-            compression: opts.compression,
-            updates: opts.updates
+            compression: opts.compression || [
+                {
+                    algorithm: 'deflate',
+                    block_size: 256
+                }
+            ],
+            updates: opts.updates || {
+                pattern: 'timeseries'
+            },
         },
-        revisionRetentionPolicy: opts.retention_policy,
+        revisionRetentionPolicy: opts.retention_policy || {
+            type: 'latest',
+            count: 1,
+            grace_ttl: 86400
+        },
         attributes: {
             key: opts.keyType || 'string',
             tid: 'timeuuid',
@@ -59,28 +74,7 @@ KVBucket.prototype.makeSchema = function(opts) {
 };
 
 KVBucket.prototype.createBucket = function(restbase, req) {
-    var opts = req.body || {};
-    if (!opts.keyType) { opts.keyType = 'string'; }
-    if (!opts.valueType) { opts.valueType = 'blob'; }
-    if (!opts.revisioned) { opts.revisioned = true; } // No choice..
-    opts.retention_policy = opts.retention_policy || {
-        type: 'latest',
-        count: 1,
-        grace_ttl: 86400
-    };
-    opts.compression = opts.compression || [
-        {
-            algorithm: 'deflate',
-            block_size: 256
-        }
-    ];
-    if (!Array.isArray(opts.compression)) {
-        opts.compression = [opts.compression];
-    }
-    opts.updates = {
-        pattern: 'timeseries'
-    };
-    var schema = this.makeSchema(opts);
+    var schema = this.makeSchema(req.body || {});
     schema.table = req.params.bucket;
     var rp = req.params;
     var storeRequest = {

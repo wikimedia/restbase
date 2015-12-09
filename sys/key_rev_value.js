@@ -30,17 +30,27 @@ KRVBucket.prototype.getBucketInfo = function(restbase, req, options) {
 };
 
 KRVBucket.prototype.makeSchema = function(opts) {
-    var schemaVersionMajor = 1;
+    var schemaVersionMajor = 2;
 
-    var schema =  {
+    return {
+        // Combine option & bucket version into a monotonically increasing
+        // combined schema version. By multiplying the bucket version by 1000,
+        // we increase the chance of catching a reset in the option version.
+        version: schemaVersionMajor * 1000 + (opts.version || 0),
         options: {
-            compression: [
+            compression: opts.compression || [
                 {
                     algorithm: 'deflate',
                     block_size: 256
                 }
-            ]
+            ],
+            updates: opts.updates || {
+                pattern: 'timeseries'
+            },
         },
+        revisionRetentionPolicy: opts.retention_policy
+            // Deprecated version. TODO: Remove eventually.
+            || opts.revisionRetentionPolicy,
         attributes: {
             key: opts.keyType || 'string',
             rev: 'int',
@@ -59,23 +69,10 @@ KRVBucket.prototype.makeSchema = function(opts) {
             { attribute: 'tid', type: 'range', order: 'desc' }
         ]
     };
-
-    if (opts.revisionRetentionPolicy) {
-        schema.revisionRetentionPolicy = opts.revisionRetentionPolicy;
-    }
-    if (opts.version) {
-        schema.version = schemaVersionMajor + opts.version;
-    }
-
-    return schema;
 };
 
 KRVBucket.prototype.createBucket = function(restbase, req) {
-    var opts = req.body;
-    if (!opts.type) { opts.type = 'key_rev_value'; }
-    if (!opts.keyType) { opts.keyType = 'string'; }
-    if (!opts.valueType) { opts.valueType = 'blob'; }
-    var schema = this.makeSchema(opts);
+    var schema = this.makeSchema(req.body || {});
     schema.table = req.params.bucket;
     var rp = req.params;
     var storeRequest = {
