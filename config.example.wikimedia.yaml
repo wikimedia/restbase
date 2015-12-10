@@ -59,6 +59,7 @@ spec_root: &spec_root
         x-request-handler:
           - static:
               return:
+                status: 200
                 headers:
                   content-type: text/plain
                 body: |
