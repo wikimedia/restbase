@@ -44,7 +44,7 @@ var cacheURIs = [
 
 function ParsoidService(options) {
     var self = this;
-    options = options || {};
+    this.options = options = options || {};
     this.log = options.log || function() {};
     this.parsoidHost = options.parsoidHost
         || 'http://parsoid-lb.eqiad.wikimedia.org';
@@ -380,6 +380,28 @@ PSP.getRevisionInfo = function(restbase, req) {
     });
 };
 
+/**
+ * Internal check to see if it's okay to re-render a particular title in
+ * response to a no-cache request.
+ *
+ * TODO: Remove this temporary code once
+ * https://phabricator.wikimedia.org/T120171 and
+ * https://phabricator.wikimedia.org/T120972 are resolved / resource
+ * consumption for these articles has been reduced to a reasonable level.
+ *
+ * @param {Request}
+ * @return {boolean} Whether re-rendering this title is okay.
+ */
+PSP._okayToRerender = function(req) {
+    var blackList = this.options.rerenderBlacklist;
+    if (blackList) {
+        return !blackList[req.params.domain]
+            || !blackList[req.params.domain][req.params.title];
+    } else {
+        return true;
+    }
+};
+
 PSP.getFormat = function(format, restbase, req) {
     var self = this;
     var rp = req.params;
@@ -417,6 +439,18 @@ PSP.getFormat = function(format, restbase, req) {
     });
 
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
+        if (!self._okayToRerender(req)) {
+            // Still update the revision metadata.
+            self.getRevisionInfo(restbase, req);
+            throw new rbUtil.HTTPError({
+                status: 403,
+                body: {
+                    type: 'rerenders_disabled',
+                    description: "Rerenders for this article are blacklisted "
+                        + "in the config."
+                }
+            });
+        }
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
