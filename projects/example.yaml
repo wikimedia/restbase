@@ -18,15 +18,12 @@
 
 # First, we define some project templates. These are referenced / shared
 # between domains in the root_spec further down.
-swagger: '2.0'
 paths:
   /{api:v1}:
-    swagger: '2.0'
     info:
       version: 1.0.0-beta
       title: Wikimedia REST API
       description: Welcome to your RESTBase API.
-      x-is-api-root: true
 
     securityDefinitions:
       mediawiki_auth:
@@ -51,9 +48,6 @@ paths:
         - path: v1/content.yaml
 
   /{api:sys}:
-    swagger: 2.0
-    info:
-      x-is-api-root: true
     x-modules:
       /table:
         - type: npm

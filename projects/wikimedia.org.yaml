@@ -1,7 +1,5 @@
-swagger: '2.0'
 paths:
   /{api:v1}: &default_project_paths_v1
-    swagger: '2.0'
     # swagger options, overriding the shared ones from the merged specs (?)
     info:
       version: 1.0.0-beta
@@ -26,7 +24,6 @@ paths:
       license:
         name: Apache2
         url: http://www.apache.org/licenses/LICENSE-2.0
-      x-is-api-root: true
 
     securityDefinitions: &wp/content-security/1.0.0
       mediawiki_auth:
@@ -56,9 +53,6 @@ paths:
         - path: v1/pageviews.yaml
 
   /{api:sys}:
-    swagger: 2.0
-    info:
-      x-is-api-root: true
     x-modules:
       /table:
         - type: npm
