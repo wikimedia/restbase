@@ -127,6 +127,7 @@ paths:
                 نام_مقامات_جی: true
                 نام_مقامات_ایچ: true
                 نام_مقامات_ایم: true
+                نام_مقامات_ایس: true
               commons.wikipedia.org:
                 Commons:Quality_images_candidates/candidate_list: true
       /mobileapps:
