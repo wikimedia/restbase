@@ -3,4 +3,4 @@ paths:
     security: [second, third]
     x-modules:
       /:
-        - path: test/features/router/really_secure_subspec.yaml
+        - path: test/framework/router/really_secure_subspec.yaml
