@@ -151,6 +151,7 @@ var normalizeResponse = function(res) {
     res = res || {};
     res.body = res.body || { items: [] };
     res.headers = res.headers || {};
+    res.headers['cache-control'] = 's-maxage=3600, max-age=3600';
     return res;
 };
 
