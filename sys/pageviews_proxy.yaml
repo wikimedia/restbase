@@ -8,6 +8,10 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/per-article/{+rest}'
+            return:
+              status: '{{get_from_backend.status}}'
+              headers: '{{merge(get_from_backend.headers, {"cache-control":"s-maxage: 3600, max-age: 3600"})}}'
+              body: '{{get_from_backend.body}}'
 
   /per-project/{+rest}:
     get:
@@ -15,6 +19,10 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/aggregate/{+rest}'
+            return:
+              status: '{{get_from_backend.status}}'
+              headers: '{{merge(get_from_backend.headers, {"cache-control":"s-maxage: 3600, max-age: 3600"})}}'
+              body: '{{get_from_backend.body}}'
 
   /top/{+rest}:
     get:
@@ -22,3 +30,7 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/top/{+rest}'
+            return:
+              status: '{{get_from_backend.status}}'
+              headers: '{{merge(get_from_backend.headers, {"cache-control":"s-maxage: 3600, max-age: 3600"})}}'
+              body: '{{get_from_backend.body}}'
