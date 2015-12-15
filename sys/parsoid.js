@@ -447,14 +447,16 @@ PSP.getFormat = function(format, restbase, req) {
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
         if (!self._okayToRerender(req)) {
             // Still update the revision metadata.
-            self.getRevisionInfo(restbase, req);
-            throw new rbUtil.HTTPError({
-                status: 403,
-                body: {
-                    type: 'rerenders_disabled',
-                    description: "Rerenders for this article are blacklisted "
+            return self.getRevisionInfo(restbase, req)
+            .then(function() {
+                throw new rbUtil.HTTPError({
+                    status: 403,
+                    body: {
+                        type: 'rerenders_disabled',
+                        description: "Rerenders for this article are blacklisted "
                         + "in the config."
-                }
+                    }
+                });
             });
         }
         // Check content generation either way
@@ -924,7 +926,8 @@ PSP.makeTransform = function(from, to) {
             // https://phabricator.wikimedia.org/T114185).
             // Log remaining bodyOnly uses / users
             if (to === 'html' && originalBodyOnly) {
-                self.log('warn/parsoid/bodyonly', req.headers);
+                self.log('warn/parsoid/bodyonly',
+                    restbase._rootReq && restbase._rootReq.headers);
             }
             return res;
         });
