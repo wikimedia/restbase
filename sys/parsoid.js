@@ -927,6 +927,7 @@ PSP.makeTransform = function(from, to) {
             // Log remaining bodyOnly uses / users
             if (to === 'html' && originalBodyOnly) {
                 self.log('warn/parsoid/bodyonly', {
+                    msg: 'Client-supplied bodyOnly flag encountered',
                     req_headers: restbase._rootReq && restbase._rootReq.headers
                 });
             }
