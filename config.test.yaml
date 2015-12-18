@@ -1,171 +1,64 @@
 # RESTBase test config, used in integration tests.
 
-# First, we define some project templates. These are referenced / shared
-# between domains in the root_spec further down.
+# Load some project templates. These are referenced / shared between domains
+# in the root_spec further down.
 default_project: &default_project
-  swagger: '2.0'
-  paths:
-    /{api:v1}: &default_project_paths_v1
-      # Spec root, resulting in an aggregated public spec & docs.
-      swagger: '2.0'
-      info:
-        version: 1.0.0-beta
-        title: Wikimedia REST API
-        description: >
-            This API aims to provide coherent and low-latency access to
-            Wikimedia content and services. It is currently in beta testing, so
-            things aren't completely locked down yet. Each entry point has
-            explicit stability markers to inform you about development status
-            and change policy, according to [our API version
-            policy](https://www.mediawiki.org/wiki/API_versioning).
-
-            ### High-volume access
-              - Don't perform more than 500 requests/s to this API.
-              - Set a unique `User-Agent` header that allows us to contact you
-                quickly. Email addresses or URLs of contact pages work well.
-
-        termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
-        contact:
-          name: the Wikimedia Services team
-          url: http://mediawiki.org/wiki/RESTBase
-        license:
-          name: Apache2
-          url: http://www.apache.org/licenses/LICENSE-2.0
-        x-is-api-root: true
-
-      securityDefinitions:
-        mediawiki_auth:
-          description: Checks permissions using MW api
-          type: apiKey
-          in: header
-          name: cookie
-          x-internal-request-whitelist:
-            - https://en.wikipedia.org/w/api.php
-            - https://fr.wikipedia.org/w/api.php
-            - http://en.wikipedia.beta.wmflabs.org/w/api.php
-            # Left as a regex for test purpose
-            - /http:\/\/parsoid\-beta\.wmflabs\.org/
-        header_match:
-          description: Checks client ip against one of the predefined whitelists
-          x-error-message: This client is not allowed to use the endpoint
-          x-whitelists:
-            internal:
-              - /^(?:::ffff:)?(?:10|127)\./
-          x-is-api: true
-
-      x-modules: &default_project_paths_v1_modules
-        /: 
-          # The main content module, defining page/* and transform entry
-          # points.
-          - path: v1/content.yaml
-          - path: test/test_module.yaml
-        /page:
-          - path: v1/mobileapps.yaml
-            options:
-              host: http://appservice.wmflabs.org
-          - path: v1/graphoid.yaml
-            options:
-              host: http://graphoid.wikimedia.org
-          - path: v1/summary.js
-            options:
-              response_cache-control: 'max-age: 3600, s-maxage: 3600'
-        /media:
-          - path: v1/mathoid.yaml
-            options:
-              host: http://mathoid-tester.wmflabs.org
-              cache-control: s-maxage=86400, max-age=86400
-
-    /{api:sys}: &default_project_paths_sys
-      x-modules: &default_project_paths_sys_modules
-        /table: &sys_table
-          - type: npm
-            name: restbase-mod-table-cassandra
-            # See: 
-            # https://github.com/wikimedia/restbase-mod-table-cassandra/blob/master/Readme.md#configuration
-            options:
-              conf:
-                dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
-                hosts: [localhost]
-                keyspace: system
-                username: cassandra
-                password: cassandra
-                defaultConsistency: one # or 'one' for single-node testing
-                storage_groups:
-                  - name: test.group.local
-                    domains: /./
-        /key_value: &sys_key_value
-          - path: sys/key_value.js
-        /key_rev_value:
-          - path: sys/key_rev_value.js
-        /page_revisions:
-          - path: sys/page_revisions.js
-        /post_data: &sys_post_data
-          - path: sys/post_data.js
-        /action:
-          - path: sys/action.js
-            options:
-              apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
-        /page_save:
-          - path: sys/page_save.js
-        /parsoid:
-          - path: sys/parsoid.js
-            options:
-              parsoidHost: http://parsoid-beta.wmflabs.org
-              # For local testing, use:
-              # parsoidHost: http://localhost:8000
-        /mobileapps:
-          - path: sys/mobileapps.yaml
-            options:
-              host: http://appservice.wmflabs.org
+  x-modules:
+    /:
+      - path: test/test_module.yaml
+      - path: projects/wmf_default.yaml
+        options: &default_options
+          table:
+            hosts: [localhost]
+            keyspace: system
+            username: cassandra
+            password: cassandra
+            defaultConsistency: one # or 'localQuorum' for production
+            storage_groups:
+              - name: test.group.local
+                domains: /./
+            dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+          parsoid:
+            host: http://parsoid-beta.wmflabs.org
+          action:
+            apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+          graphoid:
+            host: http://graphoid.wikimedia.org
+          mathoid:
+            host: http://mathoid-tester.wmflabs.org
+            # 10 days Varnish caching, one day client-side
+            cache-control: s-maxage=864000, max-age=86400
+          mobileapps:
+            host: http://appservice.wmflabs.org
 
 labs_project: &labs_project
-  swagger: '2.0'
-  paths:
-    /{api:v1}: *default_project_paths_v1
-    /{api:sys}:
-      x-modules:
-        <<: *default_project_paths_sys_modules
-        # Override the action API config to use http
-        /action:
-          - path: sys/action.js
-            options:
-              apiUriTemplate: "{{'http://{domain}/w/api.php'}}"
+  x-modules:
+    /:
+      - path: test/test_module.yaml
+      - path: projects/wmf_default.yaml
+        options:
+          <<: *default_options
+          action:
+            apiUriTemplate: "{{'http://{domain}/w/api.php'}}"
 
+# A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
-  swagger: '2.0'
-  paths:
-    /{api:v1}:
-      <<: *default_project_paths_v1
-      # Override x-modules
-      x-modules:
-        /:
-          - path: test/test_module.yaml
-        /media:
-          - path: v1/mathoid.yaml
-            options:
-              host: http://mathoid-tester.wmflabs.org
-        /metrics:
-          - path: v1/pageviews.yaml
+  x-modules:
+    /:
+      - path: test/test_module.yaml
+      - path: projects/wikimedia.org.yaml
+        options:
+          <<: *default_options
+          pageviews:
+            host: https://wikimedia.org/api/rest_v1/metrics
 
-    /{api:sys}:
-      x-modules:
-        /table: *sys_table
-        /key_value: *sys_key_value
-        /post_data: *sys_post_data
-        /pageviews:
-          - path: sys/pageviews.js
-
-private_project: &private_project
-  swagger: '2.0'
-  paths:
-    /{api:v1}:
-      # Merge in the default project v1 paths
-      <<: *default_project_paths_v1
-      # Tighten down security for everything below /v1/.
-      security:
-        - mediawiki_auth:
-          - read
-    /{api:sys}: *default_project_paths_sys
+# A synthetic domain to test pageviews module data
+aqs.wikimedia.org: &aqs.wikimedia.org
+  x-modules:
+    /:
+      - path: test/aqs_test_module.yaml
+      - path: projects/aqs_default.yaml
+        options: *default_options
 
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
@@ -187,9 +80,14 @@ spec_root: &spec_root
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *labs_project
+    /{domain:aqs.wikimedia.org}: *aqs.wikimedia.org
 
     # For security testing we rely on mocks, so it's OK to use French wiki.
-    /{domain:fr.wikipedia.org}: *private_project
+    /{domain:fr.wikipedia.org}:
+      <<: *default_project
+      security:
+        - mediawiki_auth:
+            - read
 
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org

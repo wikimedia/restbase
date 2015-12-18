@@ -59,6 +59,7 @@
     "nock": "^3.3.2",
     "restbase-mod-table-sqlite": "^0.1.13",
     "swagger-test": "0.2.0",
-    "url-template": "^2.0.6"
+    "url-template": "^2.0.6",
+    "temp": "^0.8.3"
   }
 }

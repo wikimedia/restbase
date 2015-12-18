@@ -35,8 +35,9 @@ paths:
         in: header
         name: cookie
         x-internal-request-whitelist:
-          - /http:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+          - /https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
           - http://parsoid-lb.eqiad.wikimedia.org
+          - http://parsoid-beta.wmflabs.org
       header_match:
         description: Checks client ip against one of the predefined whitelists
         x-error-message: This client is not allowed to use the endpoint

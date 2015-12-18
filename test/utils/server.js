@@ -9,10 +9,12 @@ var logStream = require('./logStream');
 var fs        = require('fs');
 var assert    = require('./assert');
 var yaml      = require('js-yaml');
+var temp      = require('temp').track();
 
 var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/en.wikipedia.org/v1';
 var globalURL = hostPort + '/wikimedia.org/v1';
+var aqsURL    = hostPort + '/aqs.wikimedia.org/v1';
 var bucketURL = baseURL + '/page';
 var secureURL = hostPort + '/fr.wikipedia.org/v1/page';
 var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
@@ -26,7 +28,14 @@ function loadConfig(path) {
             throw new Error('Invalid RB_TEST_BACKEND env variable value. Allowed values: "cassandra", "sqlite"');
         }
         if (backendImpl === 'sqlite') {
-            confString = confString.replace('restbase-mod-table-cassandra', 'restbase-mod-table-sqlite')
+            // First, replace the module in all projects and move them to the temp directory
+            var tempDir = temp.mkdirSync('tempProjects');
+            fs.readdirSync(__dirname + '/../../projects').forEach(function(fileName) {
+                var fileStr = fs.readFileSync(__dirname + '/../../projects/' + fileName).toString()
+                        .replace(/restbase\-mod\-table\-cassandra/g, 'restbase-mod-table-sqlite');
+                fs.writeFileSync(tempDir + '/' + fileName, fileStr);
+            });
+            confString = confString.replace(/projects\//g, tempDir + '/');
         }
     }
     return yaml.safeLoad(confString);
@@ -36,6 +45,7 @@ var config = {
     hostPort: hostPort,
     baseURL: baseURL,
     globalURL: globalURL,
+    aqsURL: aqsURL,
     bucketURL: bucketURL,
     apiURL: 'https://en.wikipedia.org/w/api.php',
     makeBucketURL: function(domain) {
