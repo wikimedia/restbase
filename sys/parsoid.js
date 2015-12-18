@@ -926,8 +926,9 @@ PSP.makeTransform = function(from, to) {
             // https://phabricator.wikimedia.org/T114185).
             // Log remaining bodyOnly uses / users
             if (to === 'html' && originalBodyOnly) {
-                self.log('warn/parsoid/bodyonly',
-                    restbase._rootReq && restbase._rootReq.headers);
+                self.log('warn/parsoid/bodyonly', {
+                    req_headers: restbase._rootReq && restbase._rootReq.headers
+                });
             }
             return res;
         });
