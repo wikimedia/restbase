@@ -5,7 +5,7 @@ var assert = require('assert');
 function deepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
-            assert.ok(result === expected || (new RegExp(expected).test(result)));
+            assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)));
         } else {
             assert.deepEqual(result, expected, message);
         }
