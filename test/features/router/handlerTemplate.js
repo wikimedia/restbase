@@ -18,7 +18,7 @@ describe('handler template', function () {
     var testPage = server.config.baseURL + '/service/test/User:GWicke%2fDate';
 
     function hasTextContentType(res) {
-        assert.contentType(res, 'text/html');
+        assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
     }
 
     var slice;

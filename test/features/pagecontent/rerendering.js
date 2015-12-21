@@ -23,7 +23,7 @@ describe('page re-rendering', function () {
     var dynamic2 = '/html/User:Pchelolo%2fDate/275851';
 
     function hasTextContentType(res) {
-        assert.contentType(res, 'text/html');
+        assert.contentType(res, server.config.conf.test.content_types.html);
     }
 
     it('should render & re-render independent revisions', function () {

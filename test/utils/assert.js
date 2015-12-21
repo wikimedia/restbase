@@ -62,7 +62,7 @@ function findParsoidRequest(slice) {
 function isDeepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
-            assert.ok(result === expected || (new RegExp(expected).test(result)), message);
+            assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)), message);
         } else {
             assert.deepEqual(result, expected, message);
         }
@@ -75,7 +75,7 @@ function isDeepEqual(result, expected, message) {
 function deepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
-            assert.ok(result === expected || (new RegExp(expected).test(result)));
+            assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)));
         } else {
             assert.deepEqual(result, expected, message);
         }

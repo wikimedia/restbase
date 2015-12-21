@@ -1,0 +1,16 @@
+domain_paths: &domain_paths
+  swagger: 2.0
+  info:
+    x-is-api-root: true
+  paths:
+    /test:
+      post:
+        x-request-handlers:
+          return_echo:
+            return:
+              status: 200
+              body: '{{$.request.body}}'
+
+paths:
+  /{domain:test1}: *domain_paths
+  /{domain:test2}: *domain_paths

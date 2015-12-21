@@ -5,6 +5,8 @@
 
 var Router = require('../../../lib/router');
 var assert = require('../utils/assert');
+var fs     = require('fs');
+var yaml   = require('js-yaml');
 
 var fakeRestBase = { rb_config: {} };
 
@@ -107,6 +109,16 @@ describe('Router', function() {
                 { value: 'third' },
                 { value: 'fourth', method: 'get' }
             ]);
+        });
+    });
+
+    it('should not modify top-level spec-root', function() {
+        var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/multi_domain_spec.yaml'));
+        var router = new Router();
+        return router.loadSpec(spec, fakeRestBase)
+        .then(function() {
+            var node = router.route('/test2');
+            assert.deepEqual(node.value.path, '/test2');
         });
     });
 });
