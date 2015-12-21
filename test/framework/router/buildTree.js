@@ -35,6 +35,16 @@ var additionalMethodSpec = {
     }
 };
 
+var noHandlerSpec = {
+    paths: {
+        '/test': {
+            get: {
+                operationId: 'unknown'
+            }
+        }
+    }
+};
+
 var overlappingMethodSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/v1': {
@@ -72,8 +82,9 @@ describe('Router', function() {
         .then(function() {
             throw new Error("Should throw an exception!");
         },
-        function() {
-            // exception thrown as expected
+        function(e) {
+            assert.deepEqual(e.message,
+                'x-subspec and x-subspecs is no longer supported! Use x-modules instead.');
         });
     });
 
@@ -89,12 +100,12 @@ describe('Router', function() {
 
     it('should error on overlapping methods on the same path', function() {
         var router = new Router();
-        return router.loadSpec(overlappingMethodSpec)
+        return router.loadSpec(overlappingMethodSpec, fakeRestBase)
         .then(function() {
             throw new Error("Should throw an exception!");
         },
-        function() {
-            // exception thrown as expected
+        function(e) {
+            assert.deepEqual(/^Trying to re-define existing metho/.test(e.message), true);
         });
     });
 
@@ -109,6 +120,17 @@ describe('Router', function() {
                 { value: 'third' },
                 { value: 'fourth', method: 'get' }
             ]);
+        });
+    });
+    it('should fail when no handler found for method', function() {
+        var router = new Router();
+        return router.loadSpec(noHandlerSpec, fakeRestBase)
+        .then(function() {
+            throw new Error("Should throw an exception!");
+        },
+        function(e) {
+            assert.deepEqual(e.message,
+                'No known handler associated with operationId unknown');
         });
     });
 
