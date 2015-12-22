@@ -7,7 +7,9 @@
 var P = require('bluebird');
 var URI = require('swagger-router').URI;
 var uuid   = require('cassandra-uuid').TimeUuid;
-var rbUtil = require('../lib/rbUtil');
+var mwUtil = require('../lib/mwUtil');
+var framework = require('../lib/exports');
+var HTTPError = framework.HTTPError;
 
 // TODO: move tests & spec to separate npm module!
 var yaml = require('js-yaml');
@@ -213,7 +215,7 @@ PSP.pagebundle = function(restbase, req) {
     if (!newReq.method) { newReq.method = 'get'; }
     var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
     newReq.uri = this.parsoidHost + '/' + domain + '/v3/' + path + '/pagebundle/'
-        + encodeURIComponent(rbUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
+        + encodeURIComponent(mwUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
     return restbase.request(newReq);
 };
 
@@ -251,7 +253,7 @@ PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
                 headers: parsoidResp.body[format].headers,
                 body: parsoidResp.body[format].body
             };
-            resp.headers.etag = rbUtil.makeETag(rp.revision, tid);
+            resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
             return self.wrapContentReq(restbase, req, P.resolve(resp), format, tid);
         });
     } else {
@@ -276,7 +278,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     var rp = req.params;
 
     var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
-                     rbUtil.normalizeTitle(rp.title), rp.revision]);
+                mwUtil.normalizeTitle(rp.title), rp.revision]);
 
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
@@ -393,7 +395,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 PSP.getRevisionInfo = function(restbase, req) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
-                         rbUtil.normalizeTitle(rp.title)];
+                    mwUtil.normalizeTitle(rp.title)];
     if (/^(?:[0-9]+)$/.test(rp.revision)) {
         path.push(rp.revision);
     } else if (rp.revision) {
@@ -437,7 +439,7 @@ PSP._okayToRerender = function(req) {
 PSP.getFormat = function(format, restbase, req) {
     var self = this;
     var rp = req.params;
-    rp.title = rbUtil.normalizeTitle(rp.title);
+    rp.title = mwUtil.normalizeTitle(rp.title);
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
@@ -475,7 +477,7 @@ PSP.getFormat = function(format, restbase, req) {
                 body: {
                     type: 'rerenders_disabled',
                     description: "Rerenders for this article are blacklisted "
-                        + "in the config."
+                    + "in the config."
                 }
             });
         });
@@ -484,13 +486,14 @@ PSP.getFormat = function(format, restbase, req) {
     var contentReq = restbase.get({
         uri: self.getBucketURI(rp, format, rp.tid)
     });
+
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
                     try {
                         var jobTime = Date.parse(req.headers['if-unmodified-since']);
-                        var revInfo = rbUtil.parseETag(res.headers.etag);
+                        var revInfo = mwUtil.parseETag(res.headers.etag);
                         if (revInfo && uuid.fromString(revInfo.tid).getDate() >= jobTime) {
                             // Already up to date, nothing to do.
                             return {
@@ -516,8 +519,8 @@ PSP.getFormat = function(format, restbase, req) {
     }
     return contentReq
     .then(function(res) {
-        rbUtil.normalizeContentType(res);
-        rbUtil.addCSPHeaders(res, {
+        mwUtil.normalizeContentType(res);
+        framework.misc.addCSPHeaders(res, {
             domain: rp.domain,
             allowInline: true,
         });
@@ -530,7 +533,7 @@ PSP.listRevisions = function(format, restbase, req) {
     var rp = req.params;
     var revReq = {
         uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
-                        rbUtil.normalizeTitle(rp.title), '']),
+                        mwUtil.normalizeTitle(rp.title), '']),
         body: {
             limit: restbase.rb_config.default_page_size
         }
@@ -558,7 +561,7 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 
     function get(format) {
         var path = [rp.domain, 'sys', 'parsoid', format,
-                     rbUtil.normalizeTitle(rp.title), revision];
+                mwUtil.normalizeTitle(rp.title), revision];
         if (tid) {
             path.push(tid);
         }
@@ -594,7 +597,7 @@ PSP._getStashedContent = function(restbase, req, etag) {
     var self = this;
     var rp = req.params;
     if (!rp.title || !rp.revision) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
@@ -603,7 +606,7 @@ PSP._getStashedContent = function(restbase, req, etag) {
             }
         });
     }
-    rp.title = rbUtil.normalizeTitle(rp.title);
+    rp.title = mwUtil.normalizeTitle(rp.title);
     function getStash(format) {
         return restbase.get({
             uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
@@ -631,7 +634,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
     var self = this;
     var rp = req.params;
 
-    var etag = req.headers && rbUtil.parseETag(req.headers['if-match']);
+    var etag = req.headers && mwUtil.parseETag(req.headers['if-match']);
     var tid;
     if (from === 'html') {
         if (etag) {
@@ -645,7 +648,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
             tid = tidMatch && (tidMatch[1] || tidMatch[2]);
         }
         if (!tid) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
@@ -667,7 +670,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
         if (!original['data-parsoid'].body
                 || original['data-parsoid'].body.constructor !== Object
                 || !original['data-parsoid'].body.ids) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
@@ -685,7 +688,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
                     sections = JSON.parse(req.body.sections.toString());
                 } catch (e) {
                     // Catch JSON parsing exception and return 400
-                    throw new rbUtil.HTTPError({
+                    throw new HTTPError({
                         status: 400,
                         body: {
                             type: 'invalid_request',
@@ -718,7 +721,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
 
         var path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
         if (rp.title) {
-            path.push(rbUtil.normalizeTitle(rp.title));
+            path.push(mwUtil.normalizeTitle(rp.title));
             if (rp.revision) {
                 path.push(rp.revision);
             }
@@ -772,7 +775,7 @@ PSP.stashTransform = function(restbase, req, transformPromise) {
         // Add the ETag to the original response so it can be propagated
         // back to the client
         }).then(function() {
-            original.body.html.headers.etag = rbUtil.makeETag(rp.revision, tid, 'stash');
+            original.body.html.headers.etag = mwUtil.makeETag(rp.revision, tid, 'stash');
             return original;
         });
     });
@@ -788,7 +791,7 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
 
     var parsoidExtras = [];
     if (rp.title) {
-        parsoidExtras.push(rbUtil.normalizeTitle(rp.title));
+        parsoidExtras.push(mwUtil.normalizeTitle(rp.title));
     } else {
         // Fake title to avoid Parsoid error: <400/No title or wikitext was provided>
         parsoidExtras.push('Main_Page');
@@ -849,7 +852,7 @@ function replaceSections(original, sectionsJson) {
         return !sectionOffsets[id];
     });
     if (illegalId) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
@@ -876,7 +879,7 @@ PSP.makeTransform = function(from, to) {
         var rp = req.params;
         if ((!req.body && req.body !== '')
                 || (!req.body[from] && req.body[from] !== '')) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
@@ -887,7 +890,7 @@ PSP.makeTransform = function(from, to) {
         // check if we have all the info for stashing
         if (req.body.stash) {
             if (!rp.title) {
-                throw new rbUtil.HTTPError({
+                throw new HTTPError({
                     status: 400,
                     body: {
                         type: 'invalid_request',
@@ -917,7 +920,7 @@ PSP.makeTransform = function(from, to) {
             var revisionRestricted = e.status === 403 && e.body
                     && /Access is restricted/.test(e.body.description);
             if (pageDeleted || revisionRestricted) {
-                throw new rbUtil.HTTPError({
+                throw new HTTPError({
                     status: pageDeleted ? 410 : 409,
                     body: {
                         type: 'revision#conflict',
@@ -935,7 +938,7 @@ PSP.makeTransform = function(from, to) {
                 res.status = 200;
             }
             // normalise the content type
-            rbUtil.normalizeContentType(res);
+            mwUtil.normalizeContentType(res);
             // remove the content-length header since that
             // is added automatically
             delete res.headers['content-length'];

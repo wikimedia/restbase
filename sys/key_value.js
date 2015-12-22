@@ -6,17 +6,14 @@
 
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
-var rbUtil = require('../lib/rbUtil');
-var HTTPError = rbUtil.HTTPError;
+var mwUtil = require('../lib/mwUtil');
+var HTTPError = require('../lib/exports').HTTPError;
 var URI = require('swagger-router').URI;
 
 // TODO: move to separate spec package
 var yaml = require('js-yaml');
 var fs = require('fs');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_value.yaml'));
-
-var backend;
-var config;
 
 function KVBucket(options) {
     this.log = options.log || function() {};
@@ -122,7 +119,7 @@ KVBucket.prototype.listBucket = function(restbase, req, options) {
     })
     .catch(function(error) {
         self.log('error/kv/listBucket', error);
-        throw new rbUtil.HTTPError({ status: 404 });
+        throw new HTTPError({ status: 404 });
     });
 };
 
@@ -133,7 +130,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
             var headers = {
-                etag: rbUtil.makeETag('0', row.tid),
+                etag: mwUtil.makeETag('0', row.tid),
                 'content-type': row['content-type']
             };
             if (row.headers) {
@@ -145,7 +142,7 @@ function returnRevision(req) {
                 body: row.value
             };
         } else {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found',
@@ -158,19 +155,19 @@ function returnRevision(req) {
 }
 
 function coerceTid(tidString) {
-    if (rbUtil.isTimeUUID(tidString)) {
+    if (uuid.test(tidString)) {
         return tidString;
     }
 
     if (/^\d{4}-\d{2}-\d{2}/.test(tidString)) {
         // Timestamp
         try {
-            return rbUtil.tidFromDate(tidString);
+            return mwUtil.tidFromDate(tidString);
         } catch (e) {} // Fall through
     }
 
     // Out of luck
-    throw new rbUtil.HTTPError({
+    throw new HTTPError({
         status: 400,
         body: {
             type: 'key_value/invalid_tid',
@@ -241,7 +238,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
     var tid = rp.tid && coerceTid(rp.tid);
 
     if (!tid) {
-        tid = (rbUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
+        tid = (mwUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
         tid = tid || uuid.now().toString();
     }
 
@@ -265,7 +262,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: req.headers && req.headers.etag || rbUtil.makeETag('0', tid)
+                    etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
                 },
                 body: {
                     message: "Created.",

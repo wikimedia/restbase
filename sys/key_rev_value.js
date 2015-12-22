@@ -6,7 +6,8 @@
 
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
-var rbUtil = require('../lib/rbUtil');
+var mwUtil = require('../lib/mwUtil');
+var HTTPError = require('../lib/exports').HTTPError;
 var URI = require('swagger-router').URI;
 
 // TODO: move to separate spec package
@@ -120,7 +121,7 @@ KRVBucket.prototype.listBucket = function(restbase, req, options) {
     })
     .catch(function(error) {
         self.log('error/kv/listBucket', error);
-        throw new rbUtil.HTTPError({ status: 404 });
+        throw new HTTPError({ status: 404 });
     });
 };
 
@@ -131,7 +132,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
             var headers = {
-                etag: rbUtil.makeETag(row.rev, row.tid),
+                etag: mwUtil.makeETag(row.rev, row.tid),
                 'content-type': row['content-type']
             };
             return {
@@ -140,7 +141,7 @@ function returnRevision(req) {
                 body: row.value
             };
         } else {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found',
@@ -153,19 +154,19 @@ function returnRevision(req) {
 }
 
 function coerceTid(tidString) {
-    if (rbUtil.isTimeUUID(tidString)) {
+    if (uuid.test(tidString)) {
         return tidString;
     }
 
     if (/^\d{4}-\d{2}-\d{2}/.test(tidString)) {
         // Timestamp
         try {
-            return rbUtil.tidFromDate(tidString);
+            return mwUtil.tidFromDate(tidString);
         } catch (e) {} // Fall through
     }
 
     // Out of luck
-    throw new rbUtil.HTTPError({
+    throw new HTTPError({
         status: 400,
         body: {
             type: 'key_rev_value/invalid_tid',
@@ -177,7 +178,7 @@ function coerceTid(tidString) {
 
 function parseRevision(rev) {
     if (!/^[0-9]+/.test(rev)) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'key_rev_value/invalid_revision',
@@ -253,7 +254,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
     var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
     if (req.headers['last-modified']) {
         // XXX: require elevated rights for passing in the revision time
-        tid = rbUtil.tidFromDate(req.headers['last-modified']);
+        tid = mwUtil.tidFromDate(req.headers['last-modified']);
     }
 
     var storeReq = {
@@ -276,7 +277,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
             return {
                 status: 201,
                 headers: {
-                    etag: rbUtil.makeETag(rp.revision, tid)
+                    etag: mwUtil.makeETag(rp.revision, tid)
                 },
                 body: {
                     message: "Created.",

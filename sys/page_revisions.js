@@ -11,9 +11,10 @@
  */
 
 
-var rbUtil = require('../lib/rbUtil.js');
+var HTTPError = require('../lib/exports').HTTPError;
 var URI = require('swagger-router').URI;
 var uuid = require('cassandra-uuid').TimeUuid;
+var mwUtil = require('../lib/mwUtil');
 var stringify = require('json-stable-stringify');
 
 // TODO: move to module
@@ -93,13 +94,13 @@ PRS.prototype.getTableSchema = function() {
  *
  * @param item Object the revision item
  * @return true
- * @throws rbUtil.httpError if access to the revision should be denied
+ * @throws HTTPError if access to the revision should be denied
  */
 PRS.prototype._checkRevReturn = function(item) {
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
         // Page was deleted
         if (item.restrictions.indexOf('page_deleted') >= 0) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found#page_revisions',
@@ -110,7 +111,7 @@ PRS.prototype._checkRevReturn = function(item) {
         // Revision restricted
         if (item.restrictions.indexOf('sha1hidden') >= 0
                 || item.restrictions.indexOf('texthidden') >= 0) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 403,
                 body: {
                     type: 'access_denied#revision',
@@ -231,7 +232,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
     .then(function(apiRes) {
         var items = apiRes.body.items;
         if (!items.length || !items[0].revisions) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found#page_revisions',
@@ -251,14 +252,13 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
             return /hidden$/.test(key);
         });
 
-
         // Get the redirect property, it's inclusion means true
         var redirect = dataResp.redirect !== undefined;
         var revision = {
             // FIXME: if a title has been given, check it
             // matches the one returned by the MW API
             // cf. https://phabricator.wikimedia.org/T87393
-            title: rbUtil.normalizeTitle(dataResp.title),
+            title: mwUtil.normalizeTitle(dataResp.title),
             page_id: parseInt(dataResp.pageid),
             rev: parseInt(apiRev.revid),
             tid: uuid.now().toString(),
@@ -278,7 +278,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: rbUtil.normalizeTitle(dataResp.title),
+                    title: mwUtil.normalizeTitle(dataResp.title),
                     rev: parseInt(apiRev.revid)
                 }
             }
@@ -288,7 +288,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
                     && res.body.items.length > 0
                     && self._checkSameRev(revision, res.body.items[0]);
             if (!sameRev) {
-                throw new rbUtil.HTTPError({ status: 404 });
+                throw new HTTPError({ status: 404 });
             }
         })
         .catch({ status: 404 }, function() {
@@ -312,7 +312,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
         // returns a 500 with the 'Missing query pages' message
         // so catch that and turn it into a 404 in our case
         if (e.status === 500 && /^Missing query pages/.test(e.body.description)) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found#page_revisions',
@@ -336,7 +336,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: rbUtil.normalizeTitle(rp.title)
+                    title: mwUtil.normalizeTitle(rp.title)
                 },
                 limit: 1
             }
@@ -350,7 +350,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             body: {
                 table: this.tableName,
                 attributes: {
-                    title: rbUtil.normalizeTitle(rp.title),
+                    title: mwUtil.normalizeTitle(rp.title),
                     rev: parseInt(rp.revision)
                 },
                 limit: 1
@@ -400,7 +400,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             res.headers = {};
         }
         var info = res.body.items[0];
-        res.headers.etag = rbUtil.makeETag(info.rev, info.tid);
+        res.headers.etag = mwUtil.makeETag(info.rev, info.tid);
         return res;
     });
     // TODO: handle other revision formats (tid)
@@ -411,7 +411,7 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
     var revisionRequest = {
         table: this.tableName,
         attributes: {
-            title: rbUtil.normalizeTitle(rp.title)
+            title: mwUtil.normalizeTitle(rp.title)
         },
         proj: ['rev'],
         limit: restbase.rb_config.default_page_size
@@ -495,7 +495,7 @@ PRS.prototype.getRevision = function(restbase, req) {
     var self = this;
     // Sanity check
     if (!/^[0-9]+$/.test(rp.revision)) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalidRevision',

@@ -10,7 +10,8 @@
 
 var P = require('bluebird');
 var URI = require('swagger-router').URI;
-var rbUtil = require('../lib/rbUtil');
+var mwUtil = require('../lib/mwUtil');
+var HTTPError = require('../lib/exports').HTTPError;
 var TimeUuid = require('cassandra-uuid').TimeUuid;
 
 function PageSave(options) {
@@ -38,9 +39,9 @@ function PageSave(options) {
 
 PageSave.prototype._getStartTimestamp = function(req) {
     if (req.headers && req.headers['if-match']) {
-        var etag = rbUtil.parseETag(req.headers['if-match']);
+        var etag = mwUtil.parseETag(req.headers['if-match']);
         if (!etag || !TimeUuid.test(etag.tid) || !/^(?:[0-9]+)$/.test(etag.rev)) {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
@@ -57,11 +58,11 @@ PageSave.prototype._getStartTimestamp = function(req) {
 
 PageSave.prototype._getBaseRevision = function(req) {
     if (req.body.base_etag) {
-        var etag = rbUtil.parseETag(req.body.base_etag);
+        var etag = mwUtil.parseETag(req.body.base_etag);
         if (etag) {
             return etag.rev;
         } else {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
@@ -77,9 +78,9 @@ PageSave.prototype._getBaseRevision = function(req) {
 PageSave.prototype._getRevInfo = function(restbase, req, revision) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
-                         rbUtil.normalizeTitle(rp.title)];
+                    mwUtil.normalizeTitle(rp.title)];
     if (!/^(?:[0-9]+)$/.test(revision)) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
@@ -98,7 +99,7 @@ PageSave.prototype._getRevInfo = function(restbase, req, revision) {
         // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit
-        return { title: rbUtil.normalizeTitle(rp.title) };
+        return { title: mwUtil.normalizeTitle(rp.title) };
     });
 };
 
@@ -106,7 +107,7 @@ PageSave.prototype._checkParams = function(params) {
     if (!(params && params.csrf_token &&
             ((params.wikitext && params.wikitext.trim()) || (params.html && params.html.trim()))
     )) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
@@ -120,7 +121,7 @@ PageSave.prototype._checkParams = function(params) {
 PageSave.prototype.saveWikitext = function(restbase, req) {
     var self = this;
     var rp = req.params;
-    var title = rbUtil.normalizeTitle(rp.title);
+    var title = mwUtil.normalizeTitle(rp.title);
     var promise = P.resolve({});
     this._checkParams(req.body);
     var baseRevision = this._getBaseRevision(req);
@@ -161,7 +162,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
 PageSave.prototype.saveHtml = function(restbase, req) {
     var self = this;
     var rp = req.params;
-    var title = rbUtil.normalizeTitle(rp.title);
+    var title = mwUtil.normalizeTitle(rp.title);
     this._checkParams(req.body);
     // First transform the HTML to wikitext via the parsoid module
     var path = [rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title];
