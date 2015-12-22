@@ -1,0 +1,30 @@
+swagger: '2.0'
+paths:
+  /{api:v1}: &default_project_paths_v1
+    swagger: '2.0'
+    # swagger options, overriding the shared ones from the merged specs (?)
+    info:
+      version: 1.0.0-beta
+      title: Analytics REST API
+      description: >
+          Sample project for AQS RESTBase setup
+      x-is-api-root: true
+
+    x-host-basePath: /api/rest_v1
+
+    x-modules:
+      /metrics:
+        - path: v1/pageviews.yaml
+
+  /{api:sys}:
+    swagger: 2.0
+    info:
+      x-is-api-root: true
+    x-modules:
+      /table:
+        - type: npm
+          name: restbase-mod-table-cassandra
+          options:
+            conf: '{{options.table}}'
+      /pageviews:
+        - path: sys/pageviews.js

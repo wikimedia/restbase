@@ -29,7 +29,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when per article parameters are wrong', function () {
         return preq.get({
-            uri: server.config.globalURL + articleEndpoint.replace('20150703', '201507a3')
+            uri: server.config.aqsURL + articleEndpoint.replace('20150703', '201507a3')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -39,10 +39,10 @@ describe('pageviews endpoints', function () {
         return preq.post({
             // the way we have configured the test insert-per-article endpoint
             // means views_desktop_spider will be 1007 when we pass /100
-            uri: server.config.globalURL + insertArticleEndpoint + '/100'
+            uri: server.config.aqsURL + insertArticleEndpoint + '/100'
         }).then(function() {
             return preq.get({
-                uri: server.config.globalURL + articleEndpoint
+                uri: server.config.aqsURL + articleEndpoint
             });
         }).then(function(res) {
             assert.deepEqual(res.body.items.length, 1);
@@ -55,7 +55,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when aggregate parameters are wrong', function () {
         return preq.get({
-            uri: server.config.globalURL + projectEndpoint.replace('1971010100', '20150701000000')
+            uri: server.config.aqsURL + projectEndpoint.replace('1971010100', '20150701000000')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -63,7 +63,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when start is before end', function () {
         return preq.get({
-            uri: server.config.globalURL + projectEndpoint.replace('1969010100', '2016070100')
+            uri: server.config.aqsURL + projectEndpoint.replace('1969010100', '2016070100')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -71,7 +71,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when timestamp is invalid', function () {
         return preq.get({
-            uri: server.config.globalURL + projectEndpoint.replace('1971010100', '2015022900')
+            uri: server.config.aqsURL + projectEndpoint.replace('1971010100', '2015022900')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -81,10 +81,10 @@ describe('pageviews endpoints', function () {
     // by the monitoring tests.
     it('should return the expected aggregate data after insertion', function () {
         return preq.post({
-            uri: server.config.globalURL + insertProjectEndpoint + '/0'
+            uri: server.config.aqsURL + insertProjectEndpoint + '/0'
         }).then(function() {
             return preq.get({
-                uri: server.config.globalURL + projectEndpoint
+                uri: server.config.aqsURL + projectEndpoint
             });
         }).then(function(res) {
             assert.deepEqual(res.body.items.length, 1);
@@ -94,12 +94,12 @@ describe('pageviews endpoints', function () {
 
     it('should return the expected aggregate data after long insertion', function () {
         return preq.post({
-            uri: server.config.globalURL +
+            uri: server.config.aqsURL +
                  fix(insertProjectEndpointLong, 'en.wikipedia', '1') +
                  '/0'
         }).then(function() {
             return preq.get({
-                uri: server.config.globalURL +
+                uri: server.config.aqsURL +
                      fix(projectEndpoint, 'en.wikipedia', '1')
             });
         }).then(function(res) {
@@ -110,12 +110,12 @@ describe('pageviews endpoints', function () {
 
     it('should parse the v column string into an int', function () {
         return preq.post({
-            uri: server.config.globalURL +
+            uri: server.config.aqsURL +
                  fix(insertProjectEndpointLong, 'en.wikipedia', '3') +
                  '/9007199254740991'
         }).then(function() {
             return preq.get({
-                uri: server.config.globalURL +
+                uri: server.config.aqsURL +
                      fix(projectEndpoint, 'en.wikipedia', '3')
             });
         }).then(function(res) {
@@ -129,7 +129,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when tops parameters are wrong', function () {
         return preq.get({
-            uri: server.config.globalURL + topsEndpoint.replace('all-months', 'all-monthz')
+            uri: server.config.aqsURL + topsEndpoint.replace('all-months', 'all-monthz')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -137,7 +137,7 @@ describe('pageviews endpoints', function () {
 
     it('Should return 400 when all-year is used for the year parameter', function () {
         return preq.get({
-            uri: server.config.globalURL + topsEndpoint.replace('2015', 'all-years')
+            uri: server.config.aqsURL + topsEndpoint.replace('2015', 'all-years')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -145,7 +145,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when tops date is invalid', function () {
         return preq.get({
-            uri: server.config.globalURL + topsEndpoint.replace('all-months/all-days', '02/29')
+            uri: server.config.aqsURL + topsEndpoint.replace('all-months/all-days', '02/29')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -153,7 +153,7 @@ describe('pageviews endpoints', function () {
 
     it('should return 400 when tops parameters are using "all-months" wrong', function () {
         return preq.get({
-            uri: server.config.globalURL + topsEndpoint.replace('all-days', '01')
+            uri: server.config.aqsURL + topsEndpoint.replace('all-days', '01')
         }).catch(function(res) {
             assert.deepEqual(res.status, 400);
         });
@@ -161,7 +161,7 @@ describe('pageviews endpoints', function () {
 
     it('should return the expected tops data after insertion', function () {
         return preq.post({
-            uri: server.config.globalURL + insertTopsEndpoint,
+            uri: server.config.aqsURL + insertTopsEndpoint,
             body: {
                 articles: [{
                         rank: 1,
@@ -178,7 +178,7 @@ describe('pageviews endpoints', function () {
 
         }).then(function() {
             return preq.get({
-                uri: server.config.globalURL + topsEndpoint
+                uri: server.config.aqsURL + topsEndpoint
             });
         }).then(function(res) {
             assert.deepEqual(res.body.items.length, 1);
