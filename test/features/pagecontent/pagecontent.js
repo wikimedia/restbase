@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
+var P      = require('bluebird');
 var pagingToken = '';
 
 describe('item requests', function() {
@@ -183,6 +184,56 @@ describe('item requests', function() {
     it('should retrieve the swagger-ui main page', function() {
         return preq.get({
             uri: server.config.baseURL + '/?doc'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'text/html');
+            assert.deepEqual(/<html/.exec(res.body)[0], '<html');
+        });
+    });
+
+    it('should retrieve all dependencies of the swagger-ui main page', function() {
+        return preq.get({ uri: server.config.baseURL + '/?doc' })
+        .then(function(res) {
+            var assertions = [];
+            var linkRegex = /<link\s[^>]*href=["']([^"']+)["']/g;
+            var scriptRegex =  /<script\s[^>]*src=["']([^"']+)["']/g;
+            var match;
+            while (match = linkRegex.exec(res.body)) {
+                assertions.push(match[1]);
+            }
+            while (match = scriptRegex.exec(res.body)) {
+                assertions.push(match[1]);
+            }
+            return P.all(assertions.map(function(path) {
+                return preq.get({ uri: server.config.baseURL + '/' + path })
+                .then(function(res) {
+                    assert.deepEqual(res.status, 200);
+                });
+            }));
+        });
+    });
+
+    it('should retrieve domain listing in html', function() {
+        return preq.get({
+            uri: server.config.hostPort + '/',
+            headers: {
+                accept: 'text/html'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, 'text/html');
+            assert.deepEqual(/<html/.exec(res.body)[0], '<html');
+        });
+    });
+
+    it('should retrieve API listing in html', function() {
+        return preq.get({
+            uri: server.config.hostPort + '/en.wikipedia.org/',
+            headers: {
+                accept: 'text/html'
+            }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
