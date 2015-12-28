@@ -187,7 +187,7 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
         var firstVal = firstRev[attrName];
         var secondVal = secondRev[attrName];
         // We don't really care if an empty value is null, or undefined, or other falsy
-        if (!firstVal || !secondVal || attrName === 'tid') {
+        if ((!firstVal && !secondVal) || attrName === 'tid') {
             return false;
         } else if (attrName === 'timestamp') {
             // 'timestamp' fields need to be parsed because Cassandra

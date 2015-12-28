@@ -7,6 +7,7 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var P      = require('bluebird');
+var nock   = require('nock');
 var pagingToken = '';
 
 describe('item requests', function() {
@@ -344,7 +345,73 @@ describe('page content access', function() {
             assert.deepEqual(res.status, 403);
         });
     });
+    it('should correctly store updated restrictions', function() {
+        var pageTitle = 'User:Pchelolo%2frestriction_testing_mock';
+        var pageRev = 301375;
+        var normalRev = {
+            "revid": pageRev,
+            "user": "Pchelolo",
+            "userid": 6591,
+            "timestamp": "2015-02-03T21:15:55Z",
+            "size": 7700,
+            "contentmodel": "wikitext",
+            "tags": []
+        };
+        var normalResponse = {
+            "pageid": 152993,
+            "ns": 3,
+            "title": "User:Pchelolo/restriction_testing_mock",
+            "contentmodel": "wikitext",
+            "pagelanguage": "en",
+            "pagelanguagehtmlcode": "en",
+            "pagelanguagedir": "ltr",
+            "touched": "2015-12-10T23:41:54Z",
+            "lastrevid": pageRev,
+            "length": 23950,
+            "revisions": [normalRev]
+        };
+        var restrictedRev = Object.assign({}, normalRev);
+        restrictedRev.texthidden = true;
+        restrictedRev.sha1hidden = true;
+        var restrictedResponse = Object.assign({}, normalResponse);
+        restrictedResponse.revisions = [restrictedRev];
+        var api = nock(server.config.labsApiURL)
+        .post('').reply(200, {
+            "batchcomplete": "",
+            "query": {"pages": {"45161196": normalResponse}}
+        }).post('').reply(200, {
+            "batchcomplete": "",
+            "query": {"pages": {"45161196": restrictedResponse}}});
 
+        // First fetch a non-restricted revision
+        return preq.get({
+            uri: server.config.labsBucketURL + '/title/' + pageTitle
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.items.length, 1);
+            // Now fetch update with restrictions
+            return preq.get({
+                uri: server.config.labsBucketURL + '/title/' + pageTitle,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            });
+        }).then(function(res) {
+            throw new Error('403 should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 403);
+            // Now verify that updated restrictions are stored
+            return preq.get({
+                uri: server.config.labsBucketURL + '/title/' + pageTitle
+            });
+        }).then(function() {
+            throw new Error('403 should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 403);
+        }).then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
 });
 
 describe('page content hierarchy', function() {
