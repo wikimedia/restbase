@@ -14,6 +14,7 @@
 var rbUtil = require('../lib/rbUtil.js');
 var URI = require('swagger-router').URI;
 var uuid = require('cassandra-uuid').TimeUuid;
+var stringify = require('json-stable-stringify');
 
 // TODO: move to module
 var fs = require('fs');
@@ -183,32 +184,26 @@ PRS.prototype.listTitles = function(restbase, req, options) {
  * @private
  */
 PRS.prototype._checkSameRev = function(firstRev, secondRev) {
-    return !Object.keys(firstRev).some(function(attrName) {
-        var firstVal = firstRev[attrName];
-        var secondVal = secondRev[attrName];
-        // We don't really care if an empty value is null, or undefined, or other falsy
-        if ((!firstVal && !secondVal) || attrName === 'tid') {
-            return false;
-        } else if (attrName === 'timestamp') {
-            // 'timestamp' fields need to be parsed because Cassandra
-            // returns a ISO8601 ts which includes milliseconds, while
-            // the ts returned by MW API does not
-            return Date.parse(firstVal) !== Date.parse(secondVal);
-        } else if (Array.isArray(firstVal) || Array.isArray(secondVal)) {
-            // we need a special case for arrays (the 'restrictions' attribute)
-            if (Array.isArray(firstVal) && Array.isArray(secondVal)
-                    && firstVal.length === secondVal.length) {
-                for (var idx = 0; idx < firstVal.length; idx++) {
-                    if (firstVal[idx] !== secondVal[idx]) {
-                        return true;
-                    }
+    function normalizeRev(rev) {
+        var result = {};
+        Object.keys(rev).forEach(function(key) {
+            var value = rev[key];
+            // Ignore the tid attribute
+            if (key !== 'tid') {
+                if (!value || (Array.isArray(value) && !value.length)) {
+                    // treat all falsy values, as well as an empty array equally - as null.
+                    result[key] = null;
+                } else if (key === 'timestamp') {
+                    // 'timestamp' fields need to be parsed because Cassandra
+                    // returns a ISO8601 ts which includes milliseconds, while
+                    // the ts returned by MW API does not
+                    result[key] = Date.parse(value);
                 }
-                return false;
             }
-            return true;
-        }
-        return firstVal !== secondVal;
-    });
+        });
+        return result;
+    }
+    return stringify(normalizeRev(firstRev)) === stringify(normalizeRev(secondRev));
 };
 
 PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
@@ -253,6 +248,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
         var restrictions = Object.keys(apiRev).filter(function(key) {
             return /hidden$/.test(key);
         });
+
 
         // Get the redirect property, it's inclusion means true
         var redirect = dataResp.redirect !== undefined;
