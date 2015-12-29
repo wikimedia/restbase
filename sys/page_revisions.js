@@ -189,16 +189,18 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
         Object.keys(rev).forEach(function(key) {
             var value = rev[key];
             // Ignore the tid attribute
-            if (key !== 'tid') {
-                if (key === 'timestamp') {
-                    // 'timestamp' fields need to be parsed because Cassandra
-                    // returns a ISO8601 ts which includes milliseconds, while
-                    // the ts returned by MW API does not
-                    result[key] = Date.parse(value);
-                } else if (value && (!Array.isArray(value) || value.length)) {
-                    result[key] = value;
-                }
-                // ignore all falsy values, as well as an empty array
+            // Ignore all falsy values, as well as an empty array
+            if (key === 'tid' || !value || (Array.isArray(value) && !value.length)) {
+                return;
+            }
+
+            if (key === 'timestamp') {
+                // 'timestamp' fields need to be parsed because Cassandra
+                // returns a ISO8601 ts which includes milliseconds, while
+                // the ts returned by MW API does not
+                result[key] = Date.parse(value);
+            } else {
+                result[key] = value;
             }
         });
         return result;
