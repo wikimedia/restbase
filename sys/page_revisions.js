@@ -190,15 +190,15 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
             var value = rev[key];
             // Ignore the tid attribute
             if (key !== 'tid') {
-                if (!value || (Array.isArray(value) && !value.length)) {
-                    // treat all falsy values, as well as an empty array equally - as null.
-                    result[key] = null;
-                } else if (key === 'timestamp') {
+                if (key === 'timestamp') {
                     // 'timestamp' fields need to be parsed because Cassandra
                     // returns a ISO8601 ts which includes milliseconds, while
                     // the ts returned by MW API does not
                     result[key] = Date.parse(value);
+                } else if (value && (!Array.isArray(value) || value.length)) {
+                    result[key] = value;
                 }
+                // ignore all falsy values, as well as an empty array
             }
         });
         return result;
