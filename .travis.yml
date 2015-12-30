@@ -12,7 +12,10 @@ services:
     - cassandra
 
 notifications:
-  email:
-    - services@wikimedia.org
+  irc:
+    channels:
+      - "irc.freenode.org#wikimedia-services"
+    on_success: change
+    on_failure: always
 
 script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
