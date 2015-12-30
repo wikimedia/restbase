@@ -395,17 +395,18 @@ PSP.getRevisionInfo = function(restbase, req) {
  * https://phabricator.wikimedia.org/T120972 are resolved / resource
  * consumption for these articles has been reduced to a reasonable level.
  *
- * @param {Request}
+ * @param {Request} req the request being processed
  * @return {boolean} Whether re-rendering this title is okay.
  */
 PSP._okayToRerender = function(req) {
-    var blackList = this.options.rerenderBlacklist;
-    if (blackList) {
-        return !blackList[req.params.domain]
-            || !blackList[req.params.domain][req.params.title];
-    } else {
-        return true;
+    if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
+        var blackList = this.options.rerenderBlacklist;
+        if (blackList) {
+            return !blackList[req.params.domain]
+                || !blackList[req.params.domain][req.params.title];
+        }
     }
+    return true;
 };
 
 PSP.getFormat = function(format, restbase, req) {
@@ -440,25 +441,25 @@ PSP.getFormat = function(format, restbase, req) {
         }
     }
 
+    if (!self._okayToRerender(req)) {
+        // Still update the revision metadata.
+        return self.getRevisionInfo(restbase, req)
+        .then(function() {
+            throw new rbUtil.HTTPError({
+                status: 403,
+                body: {
+                    type: 'rerenders_disabled',
+                    description: "Rerenders for this article are blacklisted "
+                        + "in the config."
+                }
+            });
+        });
+    }
+
     var contentReq = restbase.get({
         uri: self.getBucketURI(rp, format, rp.tid)
     });
-
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
-        if (!self._okayToRerender(req)) {
-            // Still update the revision metadata.
-            return self.getRevisionInfo(restbase, req)
-            .then(function() {
-                throw new rbUtil.HTTPError({
-                    status: 403,
-                    body: {
-                        type: 'rerenders_disabled',
-                        description: "Rerenders for this article are blacklisted "
-                        + "in the config."
-                    }
-                });
-            });
-        }
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
                 if (req.headers['if-unmodified-since']) {
