@@ -156,6 +156,10 @@ paths:
               status: 404
             return_if:
               status: '2xx'
+            return:
+              status: 200
+              headers: "{{ merge({ 'cache-control': options.cache-control }, check_storage.headers) }}"
+              body: '{{ check_storage.body }}'
         - postdata:
             request:
               uri: /wikimedia.org/sys/post_data/mathoid.input/{$.request.params.hash}
