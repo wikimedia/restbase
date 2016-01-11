@@ -35,7 +35,7 @@
     "core-js": "^1.2.6",
     "bluebird": "2.8.2",
     "busboy": "^0.2.12",
-    "js-yaml": "^3.4.6",
+    "js-yaml": "^3.5.2",
     "jsonwebtoken": "^5.4.1",
     "cassandra-uuid": "^0.0.2",
     "preq": "^0.4.7",
