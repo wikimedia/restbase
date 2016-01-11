@@ -36,6 +36,11 @@ wikimedia.org: &wikimedia.org
       - path: projects/wikimedia.org.yaml
         options: *default_options
 
+wiktionary_project: &wiktionary_project
+  x-modules:
+    /:
+      - path: projects/wmf_wiktionary.yaml
+        options: *default_options
 
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.
@@ -49,6 +54,9 @@ spec_root: &spec_root
     /{domain:it.wikipedia.org}: *default_project
     /{domain:da.wikipedia.org}: *default_project
     /{domain:sv.wikipedia.org}: *default_project
+
+    # Example for wiktionary
+    /{domain:en.wiktionary.org}: *wiktionary_project
 
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org

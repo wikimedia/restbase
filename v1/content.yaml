@@ -11,8 +11,6 @@ info:
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
-x-default-params:
-  domain: en.wikipedia.org
 paths:
   /{module:page}/:
     get:
@@ -127,6 +125,7 @@ paths:
         - title: Get rev by title from storage
           request:
             params:
+              domain: en.wikipedia.org
               title: Foobar
           response:
             status: 200
@@ -292,8 +291,10 @@ paths:
         #      content-type: /^text\/html.+/
         #    body: /^<!DOCTYPE html>.*/
         - title: Get html by title from storage
+          tags: [ 'content', 'parsoid' ]
           request:
             params:
+              domain: en.wikipedia.org
               title: Foobar
           response:
             status: 200
@@ -582,8 +583,10 @@ paths:
       x-monitor: true
       x-amples:
         - title: Get data-parsoid by title
+          tags: [ 'content', 'parsoid' ]
           request:
             params:
+              domain: en.wikipedia.org
               title: Foobar
           response:
             status: 200
@@ -1033,8 +1036,10 @@ paths:
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
+          tags: [ 'content', 'parsoid' ]
           request:
             params:
+              domain: en.wikipedia.org
               title: Foobar
             body:
               wikitext: == Heading ==

@@ -157,6 +157,7 @@ paths:
         - title: Get aggregate page views
           request:
             params:
+              domain: wikimedia.org
               project: en.wikipedia
               access: all-access
               agent: all-agents
