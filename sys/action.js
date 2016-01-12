@@ -152,7 +152,8 @@ function buildQueryResponse(res) {
         };
         return res;
     } else if (res.body.query.userinfo) {
-        return res.body.query.userinfo;
+        res.body = res.body.query.userinfo;
+        return res;
     } else {
         throw apiError({ info: 'Unable to parse PHP action API response.' });
     }
