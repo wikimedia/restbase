@@ -61,5 +61,12 @@
     "swagger-test": "0.2.0",
     "url-template": "^2.0.6",
     "temp": "^0.8.3"
+  },
+  "deploy": {
+    "node": "4.2",
+    "target": "debian",
+    "dependencies": {
+      "_all": []
+    }
   }
 }
