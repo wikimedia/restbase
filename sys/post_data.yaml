@@ -13,11 +13,9 @@ paths:
   /{bucket}/:
     get:
       operationId: listBucket
+    put:
+      operationId: putRevision
 
   /{bucket}/{key}{/tid}:
     get:
       operationId: getRevision
-
-  /{bucket}/:
-    put:
-      operationId: putRevision
