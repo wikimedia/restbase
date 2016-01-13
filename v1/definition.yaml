@@ -96,7 +96,6 @@ paths:
               # Define the response to save & return.
               headers:
                 content-type: application/json
-                etag: '"{{rev_info.body.rev}}/{{rev_info.body.tid}}"'
               body: '{{extract.body}}'
         - store_and_return:
             request:
@@ -108,7 +107,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{extract.headers.etag}}'
+                etag: '{{store_and_return.headers.etag}}'
                 cache-control: '{{options.response_cache-control}}'
               body: '{{extract.body}}'
 
