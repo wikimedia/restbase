@@ -53,6 +53,7 @@ paths:
         - title: Mathoid - check test formula
           request:
             params:
+              domain: wikimedia.org
               type: tex
             body:
               q: E=mc^{2}

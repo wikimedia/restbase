@@ -25,15 +25,8 @@ function constructTestCase(title, path, method, request, response) {
     };
 }
 
-function constructTests(spec, defParams) {
+function constructTests(spec, options) {
     var paths = spec.paths;
-    if (spec['x-default-params']) {
-        Object.keys(spec['x-default-params']).forEach(function(paramName) {
-           if (!defParams[paramName]) {
-               defParams[paramName] = spec['x-default-params'][paramName];
-           }
-        });
-    }
     var ret = [];
     Object.keys(paths).forEach(function(pathStr) {
         if (!pathStr) return;
@@ -53,9 +46,13 @@ function constructTests(spec, defParams) {
             }
             p['x-amples'].forEach(function(ex) {
                 ex.request = ex.request || {};
+                if (ex.request.params && ex.request.params.domain !== options.domain) {
+                    return;
+                }
+
                 ret.push(constructTestCase(
                     ex.title,
-                    uri.toString({params: Object.assign({}, defParams, ex.request.params || {})}),
+                    uri.toString({params: ex.request.params}),
                     method,
                     ex.request,
                     ex.response || {}
@@ -145,6 +142,10 @@ describe('Monitoring tests', function() {
             {
                 domain: 'wikimedia.org',
                 specURI: server.config.globalURL + '/?spec'
+            },
+            {
+                domain: 'en.wiktionary.org',
+                specURI: server.config.hostPort + '/en.wiktionary.org/v1/?spec'
             }],
         function(options) {
             return preq.get(options.specURI)
@@ -156,13 +157,7 @@ describe('Monitoring tests', function() {
             })
             .then(function(spec) {
                 describe('Monitoring routes, ' + options.domain + ' domain', function() {
-                    var defaults = spec['x-default-params'] || {};
-                    if (options.domain === 'en.wikipedia.org') {
-                        defaults.domain = 'en.wikipedia.beta.wmflabs.org';
-                    } else {
-                        defaults.domain = options.domain;
-                    }
-                    constructTests(spec, defaults).forEach(function(testCase) {
+                    constructTests(spec, options).forEach(function(testCase) {
                         it(testCase.title, function() {
                             return preq(testCase.request)
                             .then(function(res) {

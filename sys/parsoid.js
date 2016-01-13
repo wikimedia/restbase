@@ -346,7 +346,9 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                 // In future this should be controlled by dependency tracking system.
                 // return is missed on purpose - we don't want to wait for the result
                 restbase.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
+                    uri: new URI([rp.domain, 'v1', 'page',
+                        rp.domain.indexOf('wiktionary') < 0 ? 'summary' : 'definition',
+                        rp.title]),
                     headers: {
                         'cache-control': 'no-cache'
                     }

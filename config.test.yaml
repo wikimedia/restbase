@@ -52,6 +52,12 @@ wikimedia.org: &wikimedia.org
           pageviews:
             host: https://wikimedia.org/api/rest_v1/metrics
 
+wiktionary_project: &wiktionary_project
+  x-modules:
+    /:
+      - path: projects/wmf_wiktionary.yaml
+        options: *default_options
+
 # A synthetic domain to test pageviews module data
 aqs.wikimedia.org: &aqs.wikimedia.org
   x-modules:
@@ -91,6 +97,9 @@ spec_root: &spec_root
 
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org
+
+    # Wiktionary has some specific endpoints
+    /{domain:en.wiktionary.org}: *wiktionary_project
 
 # Finally, a standard service-runner config.
 info:
