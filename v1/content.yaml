@@ -291,7 +291,6 @@ paths:
         #      content-type: /^text\/html.+/
         #    body: /^<!DOCTYPE html>.*/
         - title: Get html by title from storage
-          tags: [ 'content', 'parsoid' ]
           request:
             params:
               domain: en.wikipedia.org
@@ -583,7 +582,6 @@ paths:
       x-monitor: true
       x-amples:
         - title: Get data-parsoid by title
-          tags: [ 'content', 'parsoid' ]
           request:
             params:
               domain: en.wikipedia.org
@@ -1036,7 +1034,6 @@ paths:
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
-          tags: [ 'content', 'parsoid' ]
           request:
             params:
               domain: en.wikipedia.org

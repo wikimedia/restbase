@@ -37,7 +37,11 @@ paths:
           schema:
             $ref: '#/definitions/definitionsResponse'
         '404':
-          description: Unknown term or definitions not supported for this language
+          description: Unknown term
+          schema:
+            $ref: '#/definitions/problem'
+        '501':
+          description: Term definitions not supported for this language
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -49,7 +53,7 @@ paths:
         # Set up a simple key-value bucket.
         - init:
             method: 'put'
-            uri: /{domain}/sys/key_value/definition
+            uri: /{domain}/sys/key_value/term.definition
             body:
               valueType: 'json'
 
@@ -69,7 +73,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/definition/{request.params.term}
+              uri: /{domain}/sys/key_value/term.definition/{request.params.term}
             catch:
               status: 404
             return_if:
@@ -97,7 +101,7 @@ paths:
         - store_and_return:
             request:
               method: put
-              uri: /{domain}/sys/key_value/definition/{request.params.term}
+              uri: /{domain}/sys/key_value/term.definition/{request.params.term}
               headers: '{{extract.headers}}'
               body: '{{extract.body}}'
             return:

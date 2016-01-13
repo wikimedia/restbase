@@ -50,14 +50,6 @@ function constructTests(spec, options) {
                     return;
                 }
 
-                // This is a hack. We're running tests again parsoid instance in labs
-                // which doesn't have access to en.wikipedia.org, but all of our x-amples
-                // point to en.wiki. So for tests which involve parsoid we have to manually
-                // rewrite the domain.
-                if (ex.tags && ex.tags.indexOf('parsoid') >= 0) {
-                    ex.request.params.domain = 'en.wikipedia.beta.wmflabs.org';
-                }
-
                 ret.push(constructTestCase(
                     ex.title,
                     uri.toString({params: ex.request.params}),
