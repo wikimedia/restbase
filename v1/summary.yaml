@@ -191,8 +191,10 @@ definitions:
         required: ['source', 'width', 'height']
       lang:
         type: string
-        description: The page language
+        description: The page language code
+        example: en
       dir:
         type: string
-        description: The page language direction (e.g. 'ltr' or 'rtl')
+        description: The page language direction code
+        example: ltr
     required: ['title', 'extract', 'lang', 'dir']
