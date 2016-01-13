@@ -93,7 +93,7 @@ paths:
               method: post
               uri: /{domain}/sys/action/query
               body:
-                prop: 'extracts|pageimages'
+                prop: 'info|extracts|pageimages'
                 redirects: true
                 exsentences: 5
                 explaintext: true
@@ -109,6 +109,8 @@ paths:
                 title: '{{extract.body.items[0].title}}'
                 extract: '{{extract.body.items[0].extract}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
+                lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
+                dir: '{{extract.body.items[0].pagelanguagedir}}'
                 # Need to figure out the format of this before we can add it.
                 # See https://phabricator.wikimedia.org/T117082#1787617.
                 #timestamp: '{{request.params.timestamp}}'
@@ -185,4 +187,10 @@ definitions:
             type: integer
             description: Thumnail height
         required: ['source', 'width', 'height']
-    required: ['title', 'extract']
+      lang:
+        type: string
+        description: The page language
+      dir:
+        type: string
+        description: The page language direction (e.g. 'ltr' or 'rtl')
+    required: ['title', 'extract', 'lang', 'dir']
