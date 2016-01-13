@@ -145,6 +145,8 @@ paths:
               extract: /.+/
               thumbnail:
                 source: /^https:/
+              lang: en
+              dir: ltr
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
