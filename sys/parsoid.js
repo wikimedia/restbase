@@ -354,7 +354,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                     }
                 })
                 .catch(function(e) {
-                    if (e.status !== 501) {
+                    if (e.status !== 501 && e.status !== 404) {
                         self.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
                             'summary' : 'definition', e);
                     }
