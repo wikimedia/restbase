@@ -101,7 +101,8 @@ paths:
             request:
               uri: /{domain}/sys/page_revisions/page/{title}
               headers:
-                cache-control: '{cache-control}'
+                # FIXME: Temporary work-around (see T120212).
+                cache-control: 'no-cache'
                 if-unmodified-since: '{if-unmodified-since}'
       x-monitor: true
       x-amples:
@@ -777,7 +778,8 @@ paths:
             request:
               uri: /{domain}/sys/page_revisions/rev/{revision}
               headers:
-                cache-control: '{cache-control}'
+                # FIXME: Temporary work-around (see T120212).
+                cache-control: 'no-cache'
       x-monitor: true
       x-amples:
         - title: Get rev by ID
