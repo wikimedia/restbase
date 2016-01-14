@@ -14,8 +14,8 @@ notifications:
     on_failure: always
 
 before_install:
-  - wget https://archive.apache.org/dist/cassandra/2.1.12/apache-cassandra-2.1.12-bin.tar.gz
-  - tar -xzf apache-cassandra-2.1.12-bin.tar.gz
-  - sh apache-cassandra-2.1.12/bin/cassandra > /dev/null
+  - wget https://archive.apache.org/dist/cassandra/2.1.12/apache-cassandra-2.1.12-bin.tar.gz -P ../
+  - tar -xzf ../apache-cassandra-2.1.12-bin.tar.gz -C ../
+  - sh ../apache-cassandra-2.1.12/bin/cassandra > /dev/null
 
 script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
