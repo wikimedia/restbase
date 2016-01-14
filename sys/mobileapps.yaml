@@ -8,13 +8,12 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/page_revisions/page/{title}
-              headers:
-                cache-control: '{cache-control}'
         - cache_branch:
             request:
               method: post
               uri: /{domain}/sys/mobileapps/v1/handling/content/{route}/{$$.default($.request.headers.cache-control, 'none-given')}/{title}
               headers:
+                cache-control: '{cache-control}'
                 content-type: application/json
               body: '{$.get_rev.body}'
 
@@ -25,18 +24,16 @@ paths:
             request:
               method: get
               uri: '{+$$.options.host}/{domain}/v1/page/mobile-sections/{title}'
-              headers:
-                x-restbase-etag: '{$.request.body.items[0].rev}/{$.request.body.items[0].tid}'
         - store_lead:
             request:
               method: put
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
               headers: '{$.get_mobileapps.headers}'
               body: '{$.get_mobileapps.body.lead}'
-        - store_remaining:
+          store_remaining:
             request:
               method: put
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
               headers: '{$.get_mobileapps.headers}'
               body: '{$.get_mobileapps.body.remaining}'
         - return:
@@ -74,13 +71,17 @@ paths:
         - check_storage_lead:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
+              headers:
+                cache-control: '{cache-control}'
             catch:
               status: 404
         - check_storage_remaining:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
+              headers:
+                cache-control: '{cache-control}'
             catch:
               status: 404
             return_if:
@@ -103,7 +104,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
             return_if:
               status: '2xx'
             catch:
@@ -124,7 +125,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
             return_if:
               status: '2xx'
             catch:
