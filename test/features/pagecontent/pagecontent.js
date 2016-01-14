@@ -345,7 +345,9 @@ describe('page content access', function() {
             assert.deepEqual(res.status, 403);
         });
     });
-    it('should correctly store updated restrictions', function() {
+
+    // FIXME: Test disabled until cached responses are once again used (see: T120212).
+    it.skip('should correctly store updated restrictions', function() {
         var pageTitle = 'User:Pchelolo%2frestriction_testing_mock';
         var pageRev = 301375;
         var normalRev = {
