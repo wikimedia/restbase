@@ -359,6 +359,15 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                             'summary' : 'definition', e);
                     }
                 }),
+                // MobileApps pre-generation
+                restbase.get({
+                    uri: new URI([rp.domain, 'v1', 'page', 'mobile-sections', rp.title]),
+                    headers: {
+                        'cache-control': 'no-cache'
+                    }
+                }).catch(function(e) {
+                    self.log('warn/mobileapps', e);
+                }),
                 // End of temp code block
 
                 function(parsoidSaveResult, summaryUpdateResult) {
