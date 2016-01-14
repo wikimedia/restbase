@@ -8,35 +8,31 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/page_revisions/page/{title}
-              headers:
-                cache-control: '{cache-control}'
-        - cache_branch:
+          cache_branch:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/{route}/{$$.default($.request.headers.cache-control, 'none-given')}/{title}
               headers:
-                content-type: application/json
-              body: '{$.get_rev.body}'
+                cache-control: '{cache-control}'
+            return: '{$.cache_branch}'
 
   /v1/handling/content/mobile-sections/no-cache/{title}:
-    post:
+    get:
       x-request-handler:
         - get_mobileapps:
             request:
               method: get
               uri: '{+$$.options.host}/{domain}/v1/page/mobile-sections/{title}'
-              headers:
-                x-restbase-etag: '{$.request.body.items[0].rev}/{$.request.body.items[0].tid}'
         - store_lead:
             request:
               method: put
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
               headers: '{$.get_mobileapps.headers}'
               body: '{$.get_mobileapps.body.lead}'
-        - store_remaining:
+          store_remaining:
             request:
               method: put
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
               headers: '{$.get_mobileapps.headers}'
               body: '{$.get_mobileapps.body.remaining}'
         - return:
@@ -46,7 +42,7 @@ paths:
               body: '{$.get_mobileapps.body}'
 
   /v1/handling/content/mobile-sections/{cache-default}/{title}:
-    post:
+    get:
       x-setup-handler:
         - init-lead:
             method: put
@@ -74,13 +70,13 @@ paths:
         - check_storage_lead:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
             catch:
               status: 404
         - check_storage_remaining:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
             catch:
               status: 404
             return_if:
@@ -93,47 +89,44 @@ paths:
                 remaining: '{$.check_storage_remaining.body}'
         - render:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
-              body: '{$.request.body}'
 
   /v1/handling/content/mobile-sections-lead/{cache-default}/{title}:
-    post:
+    get:
       x-request-handler:
         - check_storage:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
             return_if:
               status: '2xx'
             catch:
               status: 404
         - get_sections:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
-              body: '{$.request.body}'
             return:
               status: 200
               headers: '{$.get_sections.headers}'
               body: '{$.get_sections.body.lead}'
 
   /v1/handling/content/mobile-sections-remaining/{cache-default}/{title}:
-    post:
+    get:
       x-request-handler:
         - check_storage:
             request:
               method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}/{$.request.body.items[0].tid}
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
             return_if:
               status: '2xx'
             catch:
               status: 404
         - get_sections:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
-              body: '{$.request.body}'
             return:
               status: 200
               headers: '{$.get_sections.headers}'
