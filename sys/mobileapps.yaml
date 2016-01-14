@@ -8,17 +8,16 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/page_revisions/page/{title}
-        - cache_branch:
+          cache_branch:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/{route}/{$$.default($.request.headers.cache-control, 'none-given')}/{title}
               headers:
                 cache-control: '{cache-control}'
-                content-type: application/json
-              body: '{$.get_rev.body}'
+            return: '{$.cache_branch}'
 
   /v1/handling/content/mobile-sections/no-cache/{title}:
-    post:
+    get:
       x-request-handler:
         - get_mobileapps:
             request:
@@ -43,7 +42,7 @@ paths:
               body: '{$.get_mobileapps.body}'
 
   /v1/handling/content/mobile-sections/{cache-default}/{title}:
-    post:
+    get:
       x-setup-handler:
         - init-lead:
             method: put
@@ -72,16 +71,12 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/key_value/mobileapps.lead/{title}
-              headers:
-                cache-control: '{cache-control}'
             catch:
               status: 404
         - check_storage_remaining:
             request:
               method: get
               uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
-              headers:
-                cache-control: '{cache-control}'
             catch:
               status: 404
             return_if:
@@ -94,12 +89,11 @@ paths:
                 remaining: '{$.check_storage_remaining.body}'
         - render:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
-              body: '{$.request.body}'
 
   /v1/handling/content/mobile-sections-lead/{cache-default}/{title}:
-    post:
+    get:
       x-request-handler:
         - check_storage:
             request:
@@ -111,16 +105,15 @@ paths:
               status: 404
         - get_sections:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
-              body: '{$.request.body}'
             return:
               status: 200
               headers: '{$.get_sections.headers}'
               body: '{$.get_sections.body.lead}'
 
   /v1/handling/content/mobile-sections-remaining/{cache-default}/{title}:
-    post:
+    get:
       x-request-handler:
         - check_storage:
             request:
@@ -132,9 +125,8 @@ paths:
               status: 404
         - get_sections:
             request:
-              method: post
+              method: get
               uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
-              body: '{$.request.body}'
             return:
               status: 200
               headers: '{$.get_sections.headers}'

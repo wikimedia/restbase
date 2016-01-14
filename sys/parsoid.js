@@ -361,10 +361,8 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                 }),
                 // MobileApps pre-generation
                 restbase.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'mobile-sections', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
+                    uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
+                        'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
                 }).catch(function(e) {
                     self.log('warn/mobileapps', e);
                 }),
