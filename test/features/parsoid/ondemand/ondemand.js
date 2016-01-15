@@ -8,7 +8,9 @@
 
 var assert = require('../../../utils/assert.js');
 var server = require('../../../utils/server.js');
+var nock   = require('nock');
 var preq   = require('preq');
+var contentType = require('content-type');
 
 var revA = '275843';
 var revB = '275844';
@@ -254,5 +256,45 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(/Second Revision/.test(res.body.mwAQ), true);
         })
+    });
+
+    it('should validate response content-type', function() {
+        nock.enableNetConnect();
+        var api = nock(server.config.parsoidURL)
+        .get('/en.wikipedia.beta.wmflabs.org/v3/page/pagebundle/User%3APchelolo%2FValidationTest/283875')
+        .reply(200, {
+            html: {
+                // First reply with old content-type version to test repeated request
+                headers: {'content-type': 'text/html;profile="mediawiki.org/specs/html/1.0.0";charset=utf-8'},
+                body: 'some html'
+            },
+            'data-parsoid': {
+                headers: {'content-type': 'application/json;profile="mediawiki.org/specs/data-parsoid/0.0.1"'},
+                body: {}
+            }
+        })
+        .get('/en.wikipedia.beta.wmflabs.org/v3/page/pagebundle/User%3APchelolo%2FValidationTest/283875')
+        .reply(200, {
+            html: {
+                // First reply with old content-type version to test repeated request
+                headers: {'content-type': 'text/html;profile="mediawiki.org/specs/html/1.1.0";charset=utf-8'},
+                body: 'some html'
+            },
+            'data-parsoid': {
+                headers: {'content-type': 'application/json;profile="mediawiki.org/specs/data-parsoid/0.0.1"'},
+                body: {}
+            }
+        });
+        return preq.get({
+            uri: pageUrl + '/html/User%3APchelolo%2FValidationTest'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            var CT = contentType.parse(res.headers['content-type']);
+            assert.deepEqual(CT.type, 'text/html');
+            assert.deepEqual(CT.parameters.profile, 'mediawiki.org/specs/html/1.1.0');
+        })
+        .then(function() {api.done(); })
+        .finally(function() { nock.cleanAll(); });
     });
 });

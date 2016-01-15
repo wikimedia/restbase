@@ -245,6 +245,7 @@ paths:
           type: string
       produces:
         - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - application/json
       responses:
         '200':
           description: >
@@ -268,6 +269,17 @@ paths:
               uri: /{domain}/sys/parsoid/html/{title}
               headers:
                 cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+              query:
+                sections: '{sections}'
+      x-invalid-response-handler:
+        - repeat_request:
+            request:
+              uri: /{domain}/sys/parsoid/html/{title}
+              headers:
+                cache-control: 'no-cache'
                 if-unmodified-since: '{if-unmodified-since}'
                 x-restbase-mode: '{x-restbase-mode}'
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'
@@ -453,6 +465,7 @@ paths:
       operationId: getFormatRevision
       produces:
         - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - application/json
       parameters:
         - name: title
           in: path
@@ -499,6 +512,17 @@ paths:
               uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
               headers:
                 cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+              query:
+                sections: '{sections}'
+      x-invalid-response-handler:
+        - repeat_request:
+            request:
+              uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
+              headers:
+                cache-control: 'no-cache'
                 if-unmodified-since: '{if-unmodified-since}'
                 x-restbase-mode: '{x-restbase-mode}'
                 x-restbase-parentrevision: '{x-restbase-parentrevision}'

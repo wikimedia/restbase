@@ -56,6 +56,7 @@ var config = {
     labsURL: labsURL,
     labsBucketURL: labsBucketURL,
     labsApiURL: 'http://en.wikipedia.beta.wmflabs.org/w/api.php',
+    parsoidURL: 'http://parsoid-beta.wmflabs.org',
     logStream: logStream(),
     conf: loadConfig(__dirname + '/../../config.test.yaml')
 };

@@ -266,8 +266,9 @@ function normalizeHtml(html) {
         && html.toString()
             .replace(/ about="[^"]+"(?=[\/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
 }
-function sameHtml(a, b) {
-    return normalizeHtml(a) === normalizeHtml(b);
+function sameHtmlResponse(newRes, oldRes) {
+    return normalizeHtml(newRes.body) === normalizeHtml(oldRes.body)
+        && newRes.headers['content-type'] === oldRes.headers['content-type'];
 }
 
 PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
@@ -328,7 +329,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                     + 'content="' + tid + '"/>');
         }
         if (format === 'html' && currentContentRes
-                && sameHtml(res.body.html.body, currentContentRes.body)) {
+                && sameHtmlResponse(res.body.html, currentContentRes)) {
             // New render is the same as the previous one, no need to store
             // it.
             restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
