@@ -94,10 +94,7 @@ PageSave.prototype._getRevInfo = function(restbase, req, revision) {
     })
     .then(function(res) {
         return res.body.items[0];
-    }).catch(function(err) {
-        if (err.status !== 403) {
-            throw err;
-        }
+    }).catch({ status: 403 }, function() {
         // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit

@@ -76,27 +76,23 @@ PostDataBucket.prototype.putRevision = function(restbase, req) {
             body: key
         };
     })
-    .catch(function(e) {
-        if (e.status === 404) {
-            return restbase.put({
-                uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, key]),
+    .catch({ status: 404 }, function() {
+        return restbase.put({
+            uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, key]),
+            headers: {
+                'content-type': 'application/json',
+            },
+            body: storedData
+        })
+        .then(function(res) {
+            return {
+                status: res.status,
                 headers: {
-                    'content-type': 'application/json',
+                    'content-type': 'text/plain'
                 },
-                body: storedData
-            })
-            .then(function(res) {
-                return {
-                    status: res.status,
-                    headers: {
-                        'content-type': 'text/plain'
-                    },
-                    body: key
-                };
-            });
-        } else {
-            throw e;
-        }
+                body: key
+            };
+        });
     });
 
 };

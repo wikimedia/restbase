@@ -291,18 +291,14 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
                 throw new rbUtil.HTTPError({ status: 404 });
             }
         })
-        .catch(function(e) {
-            if (e.status === 404) {
-                return restbase.put({ // Save / update the revision entry
-                    uri: self.tableURI(rp.domain),
-                    body: {
-                        table: self.tableName,
-                        attributes: revision
-                    }
-                });
-            } else {
-                throw e;
-            }
+        .catch({ status: 404 }, function() {
+            return restbase.put({ // Save / update the revision entry
+                uri: self.tableURI(rp.domain),
+                body: {
+                    table: self.tableName,
+                    attributes: revision
+                }
+            });
         })
         .then(function() {
             self._checkRevReturn(revision);
@@ -360,19 +356,13 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                 limit: 1
             }
         })
-        .catch(function(e) {
-            if (e.status !== 404) {
-                throw e;
-            }
+        .catch({ status: 404 }, function() {
             return self.fetchAndStoreMWRevision(restbase, req);
         });
     } else if (!rp.revision) {
         if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
             revisionRequest = self.fetchAndStoreMWRevision(restbase, req)
-            .catch(function(e) {
-                if (e.status !== 404) {
-                    throw e;
-                }
+            .catch({ status: 404 }, function(e) {
                 return getLatestTitleRevision()
                 // In case 404 is returned by MW api, the page is deleted
                 .then(function(result) {
@@ -386,18 +376,12 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                             table: self.tableName,
                             attributes: result
                         }
-                    })
-                    .then(function() {
-                        throw e;
-                    });
+                    }).throw(e);
                 });
             });
         } else {
             revisionRequest = getLatestTitleRevision()
-            .catch(function(e) {
-                if (e.status !== 404) {
-                    throw e;
-                }
+            .catch({ status: 404 }, function() {
                 return self.fetchAndStoreMWRevision(restbase, req);
             });
         }
@@ -549,10 +533,7 @@ PRS.prototype.getRevision = function(restbase, req) {
         rp.title = res.body.items[0].title;
         return self.getTitleRevision(restbase, req);
     })
-    .catch(function(e) {
-        if (e.status !== 404) {
-            throw e;
-        }
+    .catch({ status: 404 }, function() {
         return self.fetchAndStoreMWRevision(restbase, req);
     });
 };
