@@ -127,3 +127,4 @@ metrics:
   #type: txstatsd
   #host: localhost
   #port: 8125
+  #batch: true
