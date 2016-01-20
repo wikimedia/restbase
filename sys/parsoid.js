@@ -338,6 +338,33 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
             return self.wrapContentReq(restbase, req,
                 P.resolve(currentContentRes), format, rp.tid, true);
         } else {
+            // TEMP TEMP TEMP!!!
+            // Wiktionary / summary invalidation
+            var summaryPromise = P.resolve();
+            if (rp.domain.indexOf('wiktionary') === -1) {
+                // non-wiktionary, update summary
+                summaryPromise = restbase.get({
+                    uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
+                    headers: {
+                        'cache-control': 'no-cache'
+                    }
+                });
+            } else if (/en.wiktionary/.test(rp.domain)) {
+                // wiktionary update, we are interested only in en.wiktionary
+                summaryPromise = restbase.get({
+                    uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
+                    headers: {
+                        'cache-control': 'no-cache'
+                    }
+                });
+            }
+            summaryPromise = summaryPromise.catch(function(e) {
+                if (e.status !== 501 && e.status !== 404) {
+                    self.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
+                        'summary' : 'definition', e);
+                }
+            });
+            // END TEMP END TEMP
             return P.join(
                 self.saveParsoidResult(restbase, req, format, tid, res),
 
@@ -345,20 +372,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                 // Need to invalidate summary when a render changes.
                 // In future this should be controlled by dependency tracking system.
                 // return is missed on purpose - we don't want to wait for the result
-                restbase.get({
-                    uri: new URI([rp.domain, 'v1', 'page',
-                        rp.domain.indexOf('wiktionary') < 0 ? 'summary' : 'definition',
-                        rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                })
-                .catch(function(e) {
-                    if (e.status !== 501 && e.status !== 404) {
-                        self.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
-                            'summary' : 'definition', e);
-                    }
-                }),
+                summaryPromise,
                 // MobileApps pre-generation
                 restbase.get({
                     uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
