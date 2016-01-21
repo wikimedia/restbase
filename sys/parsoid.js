@@ -365,27 +365,26 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                 }
             });
             // END TEMP END TEMP
-            return P.join(
-                self.saveParsoidResult(restbase, req, format, tid, res),
-
-                // TEMP TEMP TEMP!!!
-                // Need to invalidate summary when a render changes.
-                // In future this should be controlled by dependency tracking system.
-                // return is missed on purpose - we don't want to wait for the result
-                summaryPromise,
-                // MobileApps pre-generation
-                restbase.get({
-                    uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
-                        'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
-                }).catch(function(e) {
-                    self.log('warn/mobileapps', e);
-                }),
-                // End of temp code block
-
-                function(parsoidSaveResult, summaryUpdateResult) {
+            return self.saveParsoidResult(restbase, req, format, tid, res)
+            .then(function(parsoidSaveResult) {
+                return P.join(
+                    // TEMP TEMP TEMP!!!
+                    // Need to invalidate summary when a render changes.
+                    // In future this should be controlled by dependency tracking system.
+                    // return is missed on purpose - we don't want to wait for the result
+                    summaryPromise,
+                    // MobileApps pre-generation
+                    restbase.get({
+                        uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
+                            'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
+                    }).catch(function(e) {
+                        self.log('warn/mobileapps', e);
+                    })
+                )
+                .then(function() {
                     return parsoidSaveResult;
-                }
-            );
+                });
+            });
         }
     });
 };
