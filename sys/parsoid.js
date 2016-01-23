@@ -170,7 +170,7 @@ PSP.wrapContentReq = function(restbase, req, promise, format, tid, skipAccessChe
             sections.forEach(function(id) {
                 var offsets = sectionOffsets[id];
                 if (!offsets) {
-                    throw new rbUtil.HTTPError({
+                    throw new HTTPError({
                         status: 400,
                         body: {
                             type: 'invalid_request',
@@ -472,12 +472,11 @@ PSP.getFormat = function(format, restbase, req) {
         // Still update the revision metadata.
         return self.getRevisionInfo(restbase, req)
         .then(function() {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 403,
                 body: {
                     type: 'rerenders_disabled',
-                    description: "Rerenders for this article are blacklisted "
-                    + "in the config."
+                    description: "Rerenders for this article are blacklisted in the config."
                 }
             });
         });
