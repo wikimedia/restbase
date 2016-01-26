@@ -29,6 +29,18 @@ describe('Handler Template', function() {
         });
     });
 
+    it('Buffer streaming, no compression', function () {
+        return preq.get({
+            uri: server.hostPort + '/test/buffer',
+            gzip: false
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-type'], 'text/html');
+            assert.deepEqual(res.body, 'hello');
+        });
+    });
+
     it('Multi-chunk streaming', function () {
         return preq.get({ uri: server.hostPort + '/test/chunks' })
         .then(function (res) {
