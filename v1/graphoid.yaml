@@ -49,7 +49,7 @@ paths:
             request:
               uri: '{+ $$.options.host }/{domain}/v1/png/{title}/{revision}/{graph_id}'
 
-      x-monitor: true
+      x-monitor: false
       x-amples:
         - title: Get a graph from Graphoid
           request:
