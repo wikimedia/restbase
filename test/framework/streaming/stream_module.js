@@ -16,7 +16,12 @@ function hello(restbase, req) {
 
 function buffer(restbase, req) {
     var body = new stream.PassThrough();
-    body.end(new Buffer('hello'));
+    body.write(new Buffer('hel'));
+    // Delay the final write to test async production.
+    setTimeout(function() {
+        body.end(new Buffer('lo'));
+    }, 500);
+
     return {
         status: 200,
         headers: {
