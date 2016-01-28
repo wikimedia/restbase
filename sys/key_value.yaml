@@ -5,14 +5,8 @@ info:
   description: Revisioned blob storage with HTTP interface, backed by table storage
 paths:
   /{bucket}:
-    get:
-      operationId: getBucketInfo
     put:
       operationId: createBucket
-
-  /{bucket}/:
-    get:
-      operationId: listBucket
 
   /{bucket}/{key}/:
     get:

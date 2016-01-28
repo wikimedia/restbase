@@ -15,19 +15,8 @@ var yaml = require('js-yaml');
 var fs = require('fs');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_rev_value.yaml'));
 
-var backend;
-var config;
-
 function KRVBucket(options) {
 }
-
-KRVBucket.prototype.getBucketInfo = function(hyper, req, options) {
-    var self = this;
-    return P.resolve({
-        status: 200,
-        body: options
-    });
-};
 
 KRVBucket.prototype.makeSchema = function(opts) {
     var schemaVersionMajor = 2;
@@ -211,10 +200,18 @@ KRVBucket.prototype.getRevision = function(hyper, req) {
     return hyper.get(storeReq).then(returnRevision(req));
 };
 
+function getLimit(hyper, req) {
+    if (req.body && req.body.limit) {
+        return req.body.limit;
+    } else if (req.query && req.query.limit) {
+        return req.query.limit;
+    }
+    return hyper.config.default_page_size;
+}
 
 KRVBucket.prototype.listRevisions = function(hyper, req) {
     var rp = req.params;
-    var storeRequest = {
+    return hyper.get({
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
         body: {
             table: req.params.bucket,
@@ -222,14 +219,9 @@ KRVBucket.prototype.listRevisions = function(hyper, req) {
                 key: req.params.key
             },
             proj: ['rev', 'tid'],
-            limit: (req.body && req.body.limit) ?
-                        req.body.limit : hyper.config.default_page_size
+            limit: getLimit(hyper, req)
         }
-    };
-    if (rp.revision) {
-        storeRequest.body.attributes.rev = parseRevision(rp.revision);
-    }
-    return hyper.get(storeRequest)
+    })
     .then(function(res) {
         return {
             status: 200,
@@ -286,8 +278,7 @@ KRVBucket.prototype.putRevision = function(hyper, req) {
         } else {
             throw res;
         }
-    })
-    .catch(function(error) {
+    }, function(error) {
         hyper.log('error/kv/putRevision', error);
         return { status: 400 };
     });
@@ -299,9 +290,7 @@ module.exports = function(options) {
     return {
         spec: spec, // Re-export from spec module
         operations: {
-            getBucketInfo: krvBucket.getBucketInfo.bind(krvBucket),
             createBucket: krvBucket.createBucket.bind(krvBucket),
-            listBucket: krvBucket.listBucket.bind(krvBucket),
             listRevisions: krvBucket.listRevisions.bind(krvBucket),
             getRevision: krvBucket.getRevision.bind(krvBucket),
             putRevision: krvBucket.putRevision.bind(krvBucket)
