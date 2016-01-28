@@ -986,11 +986,6 @@ paths:
           description: The Wikitext to transform to HTML
           type: string
           required: true
-        - name: bodyOnly
-          in: formData
-          description: Deprecated. Use `body_only`
-          type: boolean
-          required: false
         - name: body_only
           in: formData
           description: Return only `body.innerHTML`
@@ -1030,7 +1025,6 @@ paths:
               uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
               body:
                 wikitext: '{wikitext}'
-                bodyOnly: '{bodyOnly}'
                 body_only: '{body_only}'
                 stash: '{stash}'
       x-monitor: true
@@ -1077,11 +1071,6 @@ paths:
           description: The HTML to transform
           type: string
           required: true
-        - name: bodyOnly
-          in: formData
-          description: Deprecated. Use `body_only`.
-          type: boolean
-          required: false
         - name: body_only
           in: formData
           description: Return only `body.innerHTML`
@@ -1118,7 +1107,6 @@ paths:
                 if-match: '{if-match}'
               body:
                 html: '{html}'
-                bodyOnly: '{bodyOnly}'
                 body_only: '{body_only}'
       x-monitor: false
 

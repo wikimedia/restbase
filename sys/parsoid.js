@@ -709,9 +709,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
             body2.scrubWikitext = true;
         }
 
-        if (req.body.bodyOnly || req.body.body_only) {
-            body2.body_only = true;
-        }
+        body2.body_only = req.body.body_only;
 
         // Let the stash flag through as well
         if (req.body.stash) {
@@ -782,7 +780,6 @@ PSP.stashTransform = function(restbase, req, transformPromise) {
 
 PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
     var rp = req.params;
-    // Parsoid currently spells 'wikitext' as 'wt'
     var parsoidTo = to;
     if (to === 'html') {
         // Retrieve pagebundle whenever we want HTML
@@ -802,14 +799,10 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
-    // ensure scrub_wikitext and bodyOnly have been translated
-    if (req.body.scrub_wikitext) {
+    // ensure scrub_wikitext has been translated
+    if (req.body.scrub_wikitext || req.body.scrubWikitext) {
         req.body.scrubWikitext = true;
         delete req.body.scrub_wikitext;
-    }
-    if (req.body.bodyOnly) {
-        req.body.body_only = true;
-        delete req.body.bodyOnly;
     }
 
     var parsoidReq = {
@@ -908,7 +901,7 @@ PSP.makeTransform = function(from, to) {
             }
         }
 
-        var originalBodyOnly = req.body.bodyOnly;
+        var originalScrubWikitext = req.body.scrubWikitext;
         var transform;
         if (rp.revision && rp.revision !== '0') {
             transform = self.transformRevision(restbase, req, from, to);
@@ -946,14 +939,10 @@ PSP.makeTransform = function(from, to) {
             // remove the content-length header since that
             // is added automatically
             delete res.headers['content-length'];
-            // Handle body_only flag.
-            // bodyOnly is deprecated and will be removed at some point.
-            // XXX: Remove bodyOnly support after end of November 2015 (see
-            // https://phabricator.wikimedia.org/T114185).
-            // Log remaining bodyOnly uses / users
-            if (to === 'html' && originalBodyOnly) {
-                self.log('warn/parsoid/bodyonly', {
-                    msg: 'Client-supplied bodyOnly flag encountered',
+            // Log remaining scrubWikitext flag uses / users before removing it from the API
+            if (originalScrubWikitext) {
+                self.log('warn/parsoid/scrubWikitext', {
+                    msg: 'Client-supplied scrubWikitext flag encountered',
                     req_headers: restbase._rootReq && restbase._rootReq.headers
                 });
             }
