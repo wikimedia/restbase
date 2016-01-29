@@ -75,7 +75,7 @@ PageSave.prototype._getBaseRevision = function(req) {
     return undefined;
 };
 
-PageSave.prototype._getRevInfo = function(restbase, req, revision) {
+PageSave.prototype._getRevInfo = function(hs, req, revision) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
                     mwUtil.normalizeTitle(rp.title)];
@@ -90,7 +90,7 @@ PageSave.prototype._getRevInfo = function(restbase, req, revision) {
         });
     }
     path.push(revision);
-    return restbase.get({
+    return hs.get({
         uri: new URI(path)
     })
     .then(function(res) {
@@ -118,7 +118,7 @@ PageSave.prototype._checkParams = function(params) {
     }
 };
 
-PageSave.prototype.saveWikitext = function(restbase, req) {
+PageSave.prototype.saveWikitext = function(hs, req) {
     var self = this;
     var rp = req.params;
     var title = mwUtil.normalizeTitle(rp.title);
@@ -126,7 +126,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     this._checkParams(req.body);
     var baseRevision = this._getBaseRevision(req);
     if (baseRevision) {
-        promise = this._getRevInfo(restbase, req, baseRevision);
+        promise = this._getRevInfo(hs, req, baseRevision);
     }
     return promise.then(function(revInfo) {
         var body = {
@@ -149,7 +149,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
             body.basetimestamp = revInfo.timestamp;
         }
         body.starttimestamp = self._getStartTimestamp(req);
-        return restbase.post({
+        return hs.post({
             uri: new URI([rp.domain, 'sys', 'action', 'edit']),
             headers: {
                 cookie: req.headers.cookie
@@ -159,7 +159,7 @@ PageSave.prototype.saveWikitext = function(restbase, req) {
     });
 };
 
-PageSave.prototype.saveHtml = function(restbase, req) {
+PageSave.prototype.saveHtml = function(hs, req) {
     var self = this;
     var rp = req.params;
     var title = mwUtil.normalizeTitle(rp.title);
@@ -170,7 +170,7 @@ PageSave.prototype.saveHtml = function(restbase, req) {
     if (baseRevision) {
         path.push(baseRevision);
     }
-    return restbase.post({
+    return hs.post({
         uri: new URI(path),
         body: {
             html: req.body.html
@@ -183,7 +183,7 @@ PageSave.prototype.saveHtml = function(restbase, req) {
         // Then send it to the MW API
         req.body.wikitext = res.body;
         delete req.body.html;
-        return self.saveWikitext(restbase, req);
+        return self.saveWikitext(hs, req);
     });
 };
 

@@ -175,7 +175,7 @@ function buildEditResponse(res) {
     return res;
 }
 
-ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
+ActionService.prototype._doRequest = function(hs, req, defBody, cont) {
     var apiRequest = this.apiRequestTemplate({
         request: req
     });
@@ -185,18 +185,18 @@ ActionService.prototype._doRequest = function(restbase, req, defBody, cont) {
     if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
         apiRequest.body.continue = '';
     }
-    return restbase.request(apiRequest).then(cont);
+    return hs.request(apiRequest).then(cont);
 };
 
-ActionService.prototype.query = function(restbase, req) {
-    return this._doRequest(restbase, req, {
+ActionService.prototype.query = function(hs, req) {
+    return this._doRequest(hs, req, {
         action: 'query',
         format: 'json'
     }, buildQueryResponse);
 };
 
-ActionService.prototype.edit = function(restbase, req) {
-    return this._doRequest(restbase, req, {
+ActionService.prototype.edit = function(hs, req) {
+    return this._doRequest(hs, req, {
         action: 'edit',
         format: 'json',
         formatversion: 2

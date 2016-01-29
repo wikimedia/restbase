@@ -176,13 +176,13 @@ PSP.purgeCaches = function(domain, title) {
 
 // TEMP TEMP TEMP!!!
 // Wiktionary / summary invalidation and mobileapps pregeneration
-PSP._dependenciesUpdate = function(restbase, req) {
+PSP._dependenciesUpdate = function(hs, req) {
     var self = this;
     var rp = req.params;
     var summaryPromise = P.resolve();
     if (rp.domain.indexOf('wiktionary') === -1) {
         // non-wiktionary, update summary
-        summaryPromise = restbase.get({
+        summaryPromise = hs.get({
             uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
             headers: {
                 'cache-control': 'no-cache'
@@ -190,7 +190,7 @@ PSP._dependenciesUpdate = function(restbase, req) {
         });
     } else if (/en.wiktionary/.test(rp.domain)) {
         // wiktionary update, we are interested only in en.wiktionary
-        summaryPromise = restbase.get({
+        summaryPromise = hs.get({
             uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
             headers: {
                 'cache-control': 'no-cache'
@@ -205,7 +205,7 @@ PSP._dependenciesUpdate = function(restbase, req) {
     });
     return P.join(
         summaryPromise,
-        restbase.get({
+        hs.get({
             uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
                 'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
         }).catch(function(e) {
@@ -219,15 +219,15 @@ PSP._dependenciesUpdate = function(restbase, req) {
  * P.all() call, bundling it with a request for revision
  * info, so that a 403 error gets raised overall if access to
  * the revision should be denied
- * @param restbase RESTBase the Restbase router object
+ * @param hs the Hyperswitch router object
  * @param {Object} req the user request
  * @param {Object} promise the promise object to wrap
  * @private
  */
-PSP._wrapInAccessCheck = function(restbase, req, promise) {
+PSP._wrapInAccessCheck = function(hs, req, promise) {
     return P.props({
         content: promise,
-        revisionInfo: this.getRevisionInfo(restbase, req)
+        revisionInfo: this.getRevisionInfo(hs, req)
     })
     .then(function(responses) { return responses.content; });
 };
@@ -236,20 +236,20 @@ PSP._wrapInAccessCheck = function(restbase, req, promise) {
  * Wrap content request with sections request if needed
  * and ensures charset in the response
  *
- * @param restbase RESTBase the Restbase router object
+ * @param {Hyperswitch} hs the Hyperswitch router object
  * @param {Object} req the user request
  * @param {Object} promise the promise object to wrap
  * @param {String} format the requested format
  * @param {String} tid time ID of the requested render
  */
-PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
+PSP.wrapContentReq = function(hs, req, promise, format, tid) {
     var rp = req.params;
     var reqs = { content: promise };
 
     // If the format is HTML and sections were requested, also request section
     // offsets
     if (format === 'html' && req.query.sections) {
-        reqs.sectionOffsets = restbase.get({
+        reqs.sectionOffsets = hs.get({
             uri: this.getBucketURI(rp, 'section.offsets', tid)
         });
     }
@@ -306,7 +306,7 @@ PSP.getBucketURI = function(rp, format, tid) {
     return new URI(path);
 };
 
-PSP.pagebundle = function(restbase, req) {
+PSP.pagebundle = function(hs, req) {
     var rp = req.params;
     var domain = rp.domain;
     var newReq = Object.assign({}, req);
@@ -314,19 +314,19 @@ PSP.pagebundle = function(restbase, req) {
     var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
     newReq.uri = this.parsoidHost + '/' + domain + '/v3/' + path + '/pagebundle/'
         + encodeURIComponent(mwUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
-    return restbase.request(newReq);
+    return hs.request(newReq);
 };
 
-PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
+PSP.saveParsoidResult = function(hs, req, format, tid, parsoidResp) {
     var self = this;
     var rp = req.params;
     return P.join(
-        restbase.put({
+        hs.put({
             uri: self.getBucketURI(rp, 'data-parsoid', tid),
             headers: parsoidResp.body['data-parsoid'].headers,
             body: parsoidResp.body['data-parsoid'].body
         }),
-        restbase.put({
+        hs.put({
             uri: self.getBucketURI(rp, 'section.offsets', tid),
             headers: { 'content-type': 'application/json' },
             body: parsoidResp.body['data-parsoid'].body.sectionOffsets
@@ -334,7 +334,7 @@ PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
     )
     // Save HTML last, so that any error in metadata storage suppresses HTML.
     .then(function() {
-        return restbase.put({
+        return hs.put({
             uri: self.getBucketURI(rp, 'html', tid),
             headers: parsoidResp.body.html.headers,
             body: parsoidResp.body.html.body
@@ -342,7 +342,7 @@ PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
     });
 };
 
-PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
+PSP.generateAndSave = function(hs, req, format, currentContentRes) {
     var self = this;
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
@@ -353,13 +353,13 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
     function getOrigAndPostToParsoid(revision, contentName, updateMode) {
-        return self._getOriginalContent(restbase, req, revision)
+        return self._getOriginalContent(hs, req, revision)
         .then(function(res) {
             var body = {
                 update: updateMode
             };
             body[contentName] = res;
-            return restbase.post({
+            return hs.post({
                 uri: pageBundleUri,
                 headers: {
                     'content-type': 'application/json',
@@ -369,7 +369,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
             });
         }, function(e) {
             // Fall back to plain GET
-            return restbase.get({ uri: pageBundleUri });
+            return hs.get({ uri: pageBundleUri });
         });
     }
 
@@ -386,7 +386,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
         parsoidReq = getOrigAndPostToParsoid(rp.revision, 'original', updateMode);
     } else {
         // Plain render
-        parsoidReq = restbase.get({ uri: pageBundleUri });
+        parsoidReq = hs.get({ uri: pageBundleUri });
     }
 
     return parsoidReq
@@ -397,15 +397,15 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
         if (format === 'html' && currentContentRes
                 && sameHtml(res.body.html.body, currentContentRes.body)) {
             // New render is the same as the previous one, no need to store it.
-            restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
+            hs.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
 
             // No need to check access again here, as we rely on the pagebundle request
             // being wrapped & throwing an error if access is denied
-            return self.wrapContentReq(restbase, req, P.resolve(currentContentRes), format, rp.tid);
+            return self.wrapContentReq(hs, req, P.resolve(currentContentRes), format, rp.tid);
         } else if (res.status === 200) {
-            return self.saveParsoidResult(restbase, req, format, tid, res)
+            return self.saveParsoidResult(hs, req, format, tid, res)
             .then(function() {
-                return self._dependenciesUpdate(restbase, req); })
+                return self._dependenciesUpdate(hs, req); })
             .then(function() {
                 var resp = {
                     status: res.status,
@@ -413,7 +413,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                     body: res.body[format].body
                 };
                 resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                return self.wrapContentReq(restbase, req, P.resolve(resp), format, tid);
+                return self.wrapContentReq(hs, req, P.resolve(resp), format, tid);
             });
         } else {
             return res;
@@ -422,7 +422,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 };
 
 // Get / check the revision metadata for a request
-PSP.getRevisionInfo = function(restbase, req) {
+PSP.getRevisionInfo = function(hs, req) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
                     mwUtil.normalizeTitle(rp.title)];
@@ -432,7 +432,7 @@ PSP.getRevisionInfo = function(restbase, req) {
         throw new Error("Invalid revision: " + rp.revision);
     }
 
-    return restbase.get({
+    return hs.get({
         uri: new URI(path),
         headers: {
             'cache-control': req.headers && req.headers['cache-control']
@@ -466,23 +466,23 @@ PSP._okayToRerender = function(req) {
     return true;
 };
 
-PSP.getFormat = function(format, restbase, req) {
+PSP.getFormat = function(format, hs, req) {
     var self = this;
     var rp = req.params;
     rp.title = mwUtil.normalizeTitle(rp.title);
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
-            var revInfoPromise = self.getRevisionInfo(restbase, req)
+            var revInfoPromise = self.getRevisionInfo(hs, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
                 if (revInfo.title !== rp.title) {
                     // Re-try to retrieve from storage with the
                     // normalized title & revision
                     rp.title = revInfo.title;
-                    return self.getFormat(format, restbase, req);
+                    return self.getFormat(format, hs, req);
                 } else {
-                    return self.generateAndSave(restbase, req, format, storageRes);
+                    return self.generateAndSave(hs, req, format, storageRes);
                 }
             });
             if (self.purgeOnUpdate) {
@@ -500,7 +500,7 @@ PSP.getFormat = function(format, restbase, req) {
 
     if (!self._okayToRerender(req)) {
         // Still update the revision metadata.
-        return self.getRevisionInfo(restbase, req)
+        return self.getRevisionInfo(hs, req)
         .then(function() {
             throw new HTTPError({
                 status: 403,
@@ -512,7 +512,7 @@ PSP.getFormat = function(format, restbase, req) {
         });
     }
 
-    var contentReq = restbase.get({
+    var contentReq = hs.get({
         uri: self.getBucketURI(rp, format, rp.tid)
     });
 
@@ -534,10 +534,10 @@ PSP.getFormat = function(format, restbase, req) {
             generateContent);
     } else {
         // Only (possibly) generate content if there was an error
-        contentReq = self.wrapContentReq(restbase, req, contentReq, format)
+        contentReq = self.wrapContentReq(hs, req, contentReq, format)
         .catch(generateContent)
         .then(function(res) {
-            return self._wrapInAccessCheck(restbase, req, P.resolve(res));
+            return self._wrapInAccessCheck(hs, req, P.resolve(res));
         });
     }
     return contentReq
@@ -551,27 +551,27 @@ PSP.getFormat = function(format, restbase, req) {
     });
 };
 
-PSP.listRevisions = function(format, restbase, req) {
+PSP.listRevisions = function(format, hs, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
         uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
                         mwUtil.normalizeTitle(rp.title), '']),
         body: {
-            limit: restbase.rb_config.default_page_size
+            limit: hs.config.default_page_size
         }
     };
 
     if (req.query.page) {
-        revReq.body.next = restbase.decodeToken(req.query.page);
+        revReq.body.next = hs.decodeToken(req.query.page);
     }
 
-    return restbase.get(revReq)
+    return hs.get(revReq)
     .then(function(res) {
         if (res.body.next) {
             res.body._links = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next)
+                    href: "?page=" + hs.encodeToken(res.body.next)
                 }
             };
         }
@@ -579,7 +579,7 @@ PSP.listRevisions = function(format, restbase, req) {
     });
 };
 
-PSP._getOriginalContent = function(restbase, req, revision, tid) {
+PSP._getOriginalContent = function(hs, req, revision, tid) {
     var rp = req.params;
 
     function get(format) {
@@ -589,7 +589,7 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
             path.push(tid);
         }
 
-        return restbase.get({
+        return hs.get({
             uri: new URI(path)
         })
         .then(function(res) {
@@ -616,13 +616,13 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 
 };
 
-PSP._getStashedContent = function(restbase, req, etag) {
+PSP._getStashedContent = function(hs, req, etag) {
     var self = this;
     var rp = req.params;
 
     rp.title = mwUtil.normalizeTitle(rp.title);
     function getStash(format) {
-        return restbase.get({
+        return hs.get({
             uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
         }).then(function(fRes) {
             if (fRes.body && Buffer.isBuffer(fRes.body)) {
@@ -695,7 +695,7 @@ function parseSections(req) {
 }
 
 
-PSP.transformRevision = function(restbase, req, from, to) {
+PSP.transformRevision = function(hs, req, from, to) {
     var self = this;
     var rp = req.params;
 
@@ -723,9 +723,9 @@ PSP.transformRevision = function(restbase, req, from, to) {
 
     var contentPromise;
     if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
-        contentPromise = this._getStashedContent(restbase, req, etag);
+        contentPromise = this._getStashedContent(hs, req, etag);
     } else {
-        contentPromise = this._getOriginalContent(restbase, req, rp.revision, tid);
+        contentPromise = this._getOriginalContent(hs, req, rp.revision, tid);
     }
     return contentPromise.then(function(original) {
         // Check if parsoid metadata is present as it's required by parsoid.
@@ -782,12 +782,12 @@ PSP.transformRevision = function(restbase, req, from, to) {
             },
             body: body2
         };
-        return self.callParsoidTransform(restbase, newReq, from, to);
+        return self.callParsoidTransform(hs, newReq, from, to);
     });
 
 };
 
-PSP.stashTransform = function(restbase, req, transformPromise) {
+PSP.stashTransform = function(hs, req, transformPromise) {
     // A stash has been requested. We need to store the wikitext sent by
     // the client together with the page bundle returned by Parsoid, so it
     // can be later reused when transforming back from HTML to wikitext
@@ -800,12 +800,12 @@ PSP.stashTransform = function(restbase, req, transformPromise) {
         // Save the returned data-parsoid for the transform and
         // the wikitext sent by the client
         return P.all([
-            restbase.put({
+            hs.put({
                 uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
                 headers: original.body['data-parsoid'].headers,
                 body: original.body['data-parsoid'].body
             }),
-            restbase.put({
+            hs.put({
                 uri: self.getBucketURI(rp, 'stash.wikitext', tid),
                 headers: { 'content-type': wtType },
                 body: req.body.wikitext
@@ -814,7 +814,7 @@ PSP.stashTransform = function(restbase, req, transformPromise) {
         // Save HTML last, so that any error in metadata storage suppresses
         // HTML.
         .then(function() {
-            return restbase.put({
+            return hs.put({
                 uri: self.getBucketURI(rp, 'stash.html', tid),
                 headers: original.body.html.headers,
                 body: original.body.html.body
@@ -828,7 +828,7 @@ PSP.stashTransform = function(restbase, req, transformPromise) {
     });
 };
 
-PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to) {
+PSP.callParsoidTransform = function callParsoidTransform(hs, req, from, to) {
     var rp = req.params;
     var parsoidTo = to;
     if (to === 'html') {
@@ -865,9 +865,9 @@ PSP.callParsoidTransform = function callParsoidTransform(restbase, req, from, to
         body: req.body
     };
 
-    var transformPromise = restbase.post(parsoidReq);
+    var transformPromise = hs.post(parsoidReq);
     if (req.body.stash && from === 'wikitext' && to === 'html') {
-        return this.stashTransform(restbase, req, transformPromise);
+        return this.stashTransform(hs, req, transformPromise);
     }
     return transformPromise;
 
@@ -891,7 +891,7 @@ function cheapBodyInnerHTML(html) {
 PSP.makeTransform = function(from, to) {
     var self = this;
 
-    return function(restbase, req) {
+    return function(hs, req) {
         var rp = req.params;
         if ((!req.body && req.body !== '')
                 || (!req.body[from] && req.body[from] !== '')) {
@@ -923,9 +923,9 @@ PSP.makeTransform = function(from, to) {
         var originalScrubWikitext = req.body.scrubWikitext;
         var transform;
         if (rp.revision && rp.revision !== '0') {
-            transform = self.transformRevision(restbase, req, from, to);
+            transform = self.transformRevision(hs, req, from, to);
         } else {
-            transform = self.callParsoidTransform(restbase, req, from, to);
+            transform = self.callParsoidTransform(hs, req, from, to);
         }
         return transform
         .catch(function(e) {
@@ -962,7 +962,7 @@ PSP.makeTransform = function(from, to) {
             if (originalScrubWikitext) {
                 self.log('warn/parsoid/scrubWikitext', {
                     msg: 'Client-supplied scrubWikitext flag encountered',
-                    req_headers: restbase._rootReq && restbase._rootReq.headers
+                    req_headers: hs._rootReq && hs._rootReq.headers
                 });
             }
             return res;

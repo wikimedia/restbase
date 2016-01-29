@@ -22,7 +22,7 @@ function KRVBucket(options) {
     this.log = options.log || function() {};
 }
 
-KRVBucket.prototype.getBucketInfo = function(restbase, req, options) {
+KRVBucket.prototype.getBucketInfo = function(hs, req, options) {
     var self = this;
     return P.resolve({
         status: 200,
@@ -72,7 +72,7 @@ KRVBucket.prototype.makeSchema = function(opts) {
     };
 };
 
-KRVBucket.prototype.createBucket = function(restbase, req) {
+KRVBucket.prototype.createBucket = function(hs, req) {
     var schema = this.makeSchema(req.body || {});
     schema.table = req.params.bucket;
     var rp = req.params;
@@ -80,7 +80,7 @@ KRVBucket.prototype.createBucket = function(restbase, req) {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
         body: schema
     };
-    return restbase.put(storeRequest);
+    return hs.put(storeRequest);
 };
 
 
@@ -95,13 +95,13 @@ KRVBucket.prototype.getListQuery = function(options, bucket) {
 
 
 
-KRVBucket.prototype.listBucket = function(restbase, req, options) {
+KRVBucket.prototype.listBucket = function(hs, req, options) {
     var self = this;
     // XXX: check params!
     var rp = req.params;
 
     var listQuery = this.getListQuery(options, rp.bucket);
-    return restbase.get({
+    return hs.get({
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
         body: listQuery
     })
@@ -191,7 +191,7 @@ function parseRevision(rev) {
     return parseInt(rev);
 }
 
-KRVBucket.prototype.getRevision = function(restbase, req) {
+KRVBucket.prototype.getRevision = function(hs, req) {
     var rp = req.params;
     var storeReq = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -209,11 +209,11 @@ KRVBucket.prototype.getRevision = function(restbase, req) {
             storeReq.body.attributes.tid = coerceTid(rp.tid);
         }
     }
-    return restbase.get(storeReq).then(returnRevision(req));
+    return hs.get(storeReq).then(returnRevision(req));
 };
 
 
-KRVBucket.prototype.listRevisions = function(restbase, req) {
+KRVBucket.prototype.listRevisions = function(hs, req) {
     var rp = req.params;
     var storeRequest = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -224,13 +224,13 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
             },
             proj: ['rev', 'tid'],
             limit: (req.body && req.body.limit) ?
-                        req.body.limit : restbase.rb_config.default_page_size
+                        req.body.limit : hs.config.default_page_size
         }
     };
     if (rp.revision) {
         storeRequest.body.attributes.rev = parseRevision(rp.revision);
     }
-    return restbase.get(storeRequest)
+    return hs.get(storeRequest)
     .then(function(res) {
         return {
             status: 200,
@@ -248,7 +248,7 @@ KRVBucket.prototype.listRevisions = function(restbase, req) {
 };
 
 
-KRVBucket.prototype.putRevision = function(restbase, req) {
+KRVBucket.prototype.putRevision = function(hs, req) {
     var rp = req.params;
     var rev = parseRevision(rp.revision);
     var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
@@ -271,7 +271,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
             }
         }
     };
-    return restbase.put(storeReq)
+    return hs.put(storeReq)
     .then(function(res) {
         if (res.status === 201) {
             return {
@@ -289,7 +289,7 @@ KRVBucket.prototype.putRevision = function(restbase, req) {
         }
     })
     .catch(function(error) {
-        restbase.log('error/kv/putRevision', error);
+        hs.log('error/kv/putRevision', error);
         return { status: 400 };
     });
 };

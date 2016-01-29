@@ -134,24 +134,24 @@ PRS.prototype._checkRevReturn = function(item) {
 };
 
 // /page/
-PRS.prototype.listTitles = function(restbase, req, options) {
+PRS.prototype.listTitles = function(hs, req, options) {
     var rp = req.params;
     var listReq = {
         uri: new URI([rp.domain, 'sys', 'action', 'query']),
         method: 'post',
         body: {
             generator: 'allpages',
-            gaplimit: restbase.rb_config.default_page_size,
+            gaplimit: hs.config.default_page_size,
             prop: 'revisions',
             format: 'json'
         }
     };
 
     if (req.query.page) {
-        Object.assign(listReq.body, restbase.decodeToken(req.query.page));
+        Object.assign(listReq.body, hs.decodeToken(req.query.page));
     }
 
-    return restbase.get(listReq)
+    return hs.get(listReq)
     .then(function(res) {
         var pages = res.body.items;
         var items = [];
@@ -165,7 +165,7 @@ PRS.prototype.listTitles = function(restbase, req, options) {
         if (res.body.next) {
             next = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next)
+                    href: "?page=" + hs.encodeToken(res.body.next)
                 }
             };
         }
@@ -209,7 +209,7 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
     return stringify(normalizeRev(firstRev)) === stringify(normalizeRev(secondRev));
 };
 
-PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
+PRS.prototype.fetchAndStoreMWRevision = function(hs, req) {
     var self = this;
     var rp = req.params;
     // Try to resolve MW oldids to tids
@@ -228,7 +228,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
     } else {
         apiReq.body.titles = rp.title;
     }
-    return restbase.post(apiReq)
+    return hs.post(apiReq)
     .then(function(apiRes) {
         var items = apiRes.body.items;
         if (!items.length || !items[0].revisions) {
@@ -273,7 +273,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
         };
 
         // Check if the same revision is already in storage
-        return restbase.get({
+        return hs.get({
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
@@ -292,7 +292,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
             }
         })
         .catch({ status: 404 }, function() {
-            return restbase.put({ // Save / update the revision entry
+            return hs.put({ // Save / update the revision entry
                 uri: self.tableURI(rp.domain),
                 body: {
                     table: self.tableName,
@@ -305,7 +305,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
             // No restrictions, continue
             rp.revision = apiRev.revid + '';
             rp.title = dataResp.title;
-            return self.getTitleRevision(restbase, req);
+            return self.getTitleRevision(hs, req);
         });
     }).catch(function(e) {
         // If a bad revision is supplied, the action module
@@ -326,12 +326,12 @@ PRS.prototype.fetchAndStoreMWRevision = function(restbase, req) {
 };
 
 
-PRS.prototype.getTitleRevision = function(restbase, req) {
+PRS.prototype.getTitleRevision = function(hs, req) {
     var self = this;
     var rp = req.params;
     var revisionRequest;
     function getLatestTitleRevision() {
-        return restbase.get({
+        return hs.get({
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
@@ -345,7 +345,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
 
     if (/^[0-9]+$/.test(rp.revision)) {
         // Check the local db
-        revisionRequest = restbase.get({
+        revisionRequest = hs.get({
             uri: this.tableURI(rp.domain),
             body: {
                 table: this.tableName,
@@ -357,11 +357,11 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
             }
         })
         .catch({ status: 404 }, function() {
-            return self.fetchAndStoreMWRevision(restbase, req);
+            return self.fetchAndStoreMWRevision(hs, req);
         });
     } else if (!rp.revision) {
         if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
-            revisionRequest = self.fetchAndStoreMWRevision(restbase, req)
+            revisionRequest = self.fetchAndStoreMWRevision(hs, req)
             .catch({ status: 404 }, function(e) {
                 return getLatestTitleRevision()
                 // In case 404 is returned by MW api, the page is deleted
@@ -370,7 +370,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
                     result.tid = uuid.now().toString();
                     result.restrictions = result.restrictions || [];
                     result.restrictions.push('page_deleted');
-                    return restbase.put({
+                    return hs.put({
                         uri: self.tableURI(rp.domain),
                         body: {
                             table: self.tableName,
@@ -382,7 +382,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
         } else {
             revisionRequest = getLatestTitleRevision()
             .catch({ status: 404 }, function() {
-                return self.fetchAndStoreMWRevision(restbase, req);
+                return self.fetchAndStoreMWRevision(hs, req);
             });
         }
     } else {
@@ -406,7 +406,7 @@ PRS.prototype.getTitleRevision = function(restbase, req) {
     // TODO: handle other revision formats (tid)
 };
 
-PRS.prototype.listTitleRevisions = function(restbase, req) {
+PRS.prototype.listTitleRevisions = function(hs, req) {
     var rp = req.params;
     var revisionRequest = {
         table: this.tableName,
@@ -414,12 +414,12 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
             title: mwUtil.normalizeTitle(rp.title)
         },
         proj: ['rev'],
-        limit: restbase.rb_config.default_page_size
+        limit: hs.config.default_page_size
     };
     if (req.query.page) {
-        revisionRequest.next = restbase.decodeToken(req.query.page);
+        revisionRequest.next = hs.decodeToken(req.query.page);
     }
-    return restbase.get({
+    return hs.get({
         uri: this.tableURI(rp.domain),
         body: revisionRequest
     })
@@ -437,7 +437,7 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
         if (res.body.next) {
             res.body._links = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next)
+                    href: "?page=" + hs.encodeToken(res.body.next)
                 }
             };
         }
@@ -447,7 +447,7 @@ PRS.prototype.listTitleRevisions = function(restbase, req) {
 };
 
 // /rev/
-PRS.prototype.listRevisions = function(restbase, req) {
+PRS.prototype.listRevisions = function(hs, req) {
     var rp = req.params;
 
     var listReq = {
@@ -455,15 +455,15 @@ PRS.prototype.listRevisions = function(restbase, req) {
         method: 'post',
         body: {
             generator: 'allpages',
-            gaplimit: restbase.rb_config.default_page_size,
+            gaplimit: hs.config.default_page_size,
             prop: 'revisions',
             format: 'json'
         }
     };
     if (req.query.page) {
-        Object.assign(listReq.body, restbase.decodeToken(req.query.page));
+        Object.assign(listReq.body, hs.decodeToken(req.query.page));
     }
-    return restbase.get(listReq)
+    return hs.get(listReq)
     .then(function(res) {
         var pages = res.body.items;
         var items = [];
@@ -475,7 +475,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
         if (res.body.next) {
             next = {
                 next: {
-                    href: "?page=" + restbase.encodeToken(res.body.next)
+                    href: "?page=" + hs.encodeToken(res.body.next)
                 }
             };
         }
@@ -490,7 +490,7 @@ PRS.prototype.listRevisions = function(restbase, req) {
     });
 };
 
-PRS.prototype.getRevision = function(restbase, req) {
+PRS.prototype.getRevision = function(hs, req) {
     var rp = req.params;
     var self = this;
     // Sanity check
@@ -506,11 +506,11 @@ PRS.prototype.getRevision = function(restbase, req) {
     if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
         // Ask the MW API directly and
         // store and return its result
-        return this.fetchAndStoreMWRevision(restbase, req);
+        return this.fetchAndStoreMWRevision(hs, req);
     }
     // Check the storage, and, if no match is found
     // ask the MW API about the revision
-    return restbase.get({
+    return hs.get({
         uri: this.tableURI(rp.domain),
         body: {
             table: this.tableName,
@@ -531,10 +531,10 @@ PRS.prototype.getRevision = function(restbase, req) {
         // And get the revision info for the
         // page now that we have the title
         rp.title = res.body.items[0].title;
-        return self.getTitleRevision(restbase, req);
+        return self.getTitleRevision(hs, req);
     })
     .catch({ status: 404 }, function() {
-        return self.fetchAndStoreMWRevision(restbase, req);
+        return self.fetchAndStoreMWRevision(hs, req);
     });
 };
 
