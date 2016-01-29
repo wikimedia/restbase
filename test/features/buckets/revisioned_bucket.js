@@ -153,7 +153,6 @@ describe('Revisioned buckets', function() {
         });
 
         it('throws 404 error if revision not found', function() {
-            var testData = randomString(100);
             return preq.get({
                 uri: bucketBaseURI + '/Test4/123456789'
             })
@@ -166,5 +165,5 @@ describe('Revisioned buckets', function() {
     }
 
     describe('key_rev_value', function() { runTests('key_rev_value') });
-    describe('chunked_bucket', function() { runTests('chunked'); });
+    describe('key_rev_large_value', function() { runTests('key_rev_large_value'); });
 });

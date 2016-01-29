@@ -278,7 +278,7 @@ KRVBucket.prototype.putRevision = function(hyper, req) {
             throw res;
         }
     }, function(error) {
-        hyper.log('error/kv/putRevision', error);
+        hyper.log('error/krv/putRevision', error);
         return { status: 400 };
     });
 };

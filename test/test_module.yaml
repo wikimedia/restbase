@@ -116,8 +116,8 @@ paths:
 
       /buckets:
         x-modules:
-          /chunked:
-            - path: sys/chunked_bucket.js
+          /key_rev_large_value:
+            - path: sys/key_rev_large_value.js
           /key_rev_value:
             - path: sys/key_rev_value.js
           /key_value:

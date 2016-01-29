@@ -9,7 +9,7 @@ var preq = require('preq');
 
 var yaml = require('js-yaml');
 var fs = require('fs');
-var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/chunked_bucket.yaml'));
+var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_rev_value.yaml'));
 
 /**
  * The chunk size to use for data slicing
@@ -54,7 +54,7 @@ ChunkedBucket.prototype._joinData = function(dataParts) {
     } else if (Buffer.isBuffer(dataParts[0])) {
         return Buffer.concat(dataParts);
     } else {
-        return String.prototype.concat.apply(dataParts[0], dataParts.slice(1));
+        return ''.concat(dataParts);
     }
 };
 
@@ -75,7 +75,7 @@ ChunkedBucket.prototype._makeMetaSchema = function(opts) {
             compression: opts.compression || [
                 {
                     algorithm: 'deflate',
-                    block_size: 1024
+                    block_size: 128
                 }
             ]
         },
@@ -413,7 +413,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
         }
     })
     .catch(function(error) {
-        restbase.log('error/kv/putRevision', error);
+        restbase.log('error/krlv/putRevision', error);
         return { status: 400 };
     });
 };
