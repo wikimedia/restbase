@@ -225,6 +225,7 @@ PSP._dependenciesUpdate = function(restbase, req) {
  * @private
  */
 PSP._wrapInAccessCheck = function(restbase, req, promise) {
+    console.log('WRAP');
     return P.props({
         content: promise,
         revisionInfo: this.getRevisionInfo(restbase, req)
@@ -423,6 +424,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 
 // Get / check the revision metadata for a request
 PSP.getRevisionInfo = function(restbase, req) {
+    console.log('GET REV INVO', req.params);
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
                     mwUtil.normalizeTitle(rp.title)];
@@ -473,6 +475,7 @@ PSP.getFormat = function(format, restbase, req) {
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
+            console.log('GENERATE');
             var revInfoPromise = self.getRevisionInfo(restbase, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
@@ -535,7 +538,13 @@ PSP.getFormat = function(format, restbase, req) {
     } else {
         // Only (possibly) generate content if there was an error
         contentReq = self.wrapContentReq(restbase, req, contentReq, format, rp.tid);
-        contentReq = self._wrapInAccessCheck(restbase, req, contentReq.catch(generateContent));
+        contentReq = self._wrapInAccessCheck(restbase, req, contentReq)
+        .catch(function(e) {
+            if (e.status !== 403) {
+                return generateContent(e);
+            }
+            throw e;
+        });
     }
     return contentReq
     .then(function(res) {
