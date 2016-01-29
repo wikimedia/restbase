@@ -16,13 +16,6 @@ function PostDataBucket(options) {
     this.log = options.log || function() {};
 }
 
-PostDataBucket.prototype.getBucketInfo = function(restbase, req) {
-    var rp = req.params;
-    return restbase.get({
-        uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket]),
-    });
-};
-
 PostDataBucket.prototype.createBucket = function(restbase, req) {
     var rp = req.params;
     return restbase.put({
@@ -31,13 +24,6 @@ PostDataBucket.prototype.createBucket = function(restbase, req) {
             keyType: 'string',
             valueType: 'json'
         }
-    });
-};
-
-PostDataBucket.prototype.listBucket = function(restbase, req) {
-    var rp = req.params;
-    return restbase.get({
-        uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, ''])
     });
 };
 
@@ -103,9 +89,7 @@ module.exports = function(options) {
     return {
         spec: spec, // Re-export from spec module
         operations: {
-            getBucketInfo: postDataBucket.getBucketInfo.bind(postDataBucket),
             createBucket: postDataBucket.createBucket.bind(postDataBucket),
-            listBucket: postDataBucket.listBucket.bind(postDataBucket),
             getRevision: postDataBucket.getRevision.bind(postDataBucket),
             putRevision: postDataBucket.putRevision.bind(postDataBucket)
         }

@@ -5,14 +5,10 @@ info:
   description: Revisioned post data storage with HTTP interface, backed by table storage
 paths:
   /{bucket}:
-    get:
-      operationId: getBucketInfo
     put:
       operationId: createBucket
 
   /{bucket}/:
-    get:
-      operationId: listBucket
     put:
       operationId: putRevision
 
