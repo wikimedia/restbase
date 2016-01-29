@@ -4,7 +4,6 @@
  * Key-rev-value bucket handler
  */
 
-var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
 var HTTPError = require('../lib/exports').HTTPError;

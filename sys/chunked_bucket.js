@@ -2,7 +2,8 @@
 
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
-var rbUtil = require('../lib/rbUtil');
+var mwUtil = require('../lib/mwUtil');
+var HTTPError = require('../lib/exports').HTTPError;
 var URI = require('swagger-router').URI;
 var preq = require('preq');
 
@@ -149,7 +150,7 @@ function returnRevision(req, metadata) {
                 body: row.value
             };
         } else {
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 404,
                 body: {
                     type: 'not_found',
@@ -162,12 +163,12 @@ function returnRevision(req, metadata) {
 }
 
 function coerceTid(tidString) {
-    if (rbUtil.isTimeUUID(tidString)) {
+    if (uuid.test(tidString)) {
         return tidString;
     }
 
     // Out of luck
-    throw new rbUtil.HTTPError({
+    throw new HTTPError({
         status: 400,
         body: {
             type: 'key_rev_value/invalid_tid',
@@ -179,7 +180,7 @@ function coerceTid(tidString) {
 
 function parseRevision(rev) {
     if (!/^[0-9]+/.test(rev)) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'key_rev_value/invalid_revision',
@@ -358,7 +359,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
     var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
     if (req.headers['last-modified']) {
         // XXX: require elevated rights for passing in the revision time
-        tid = rbUtil.tidFromDate(req.headers['last-modified']);
+        tid = mwUtil.tidFromDate(req.headers['last-modified']);
     }
 
     var chunks = this._sliceData(req.body);
@@ -378,7 +379,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
     }))
     .then(function() {
         var headers = Object.assign({}, req.headers);
-        headers.etag = headers.etag || rbUtil.makeETag(rev, tid);
+        headers.etag = headers.etag || mwUtil.makeETag(rev, tid);
         return restbase.put({
             uri: new URI([rp.domain, 'sys', 'table', self._metaTableName(req), '']),
             body: {
@@ -400,7 +401,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
             .thenReturn({
                 status: 201,
                 headers: {
-                    etag: rbUtil.makeETag(rp.revision, tid)
+                    etag: mwUtil.makeETag(rp.revision, tid)
                 },
                 body: {
                     message: "Created.",
