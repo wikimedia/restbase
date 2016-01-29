@@ -314,9 +314,7 @@ PSP.pagebundle = function(restbase, req) {
     var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
     newReq.uri = this.parsoidHost + '/' + domain + '/v3/' + path + '/pagebundle/'
         + encodeURIComponent(mwUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
-    // TODO: We don't really need to make an access check here, parsoid can do it for us,
-    // but a lot of code depend on this now.
-    return this._wrapInAccessCheck(restbase, req, restbase.request(newReq));
+    return restbase.request(newReq);
 };
 
 PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
