@@ -534,13 +534,10 @@ PSP.getFormat = function(format, restbase, req) {
             generateContent);
     } else {
         // Only (possibly) generate content if there was an error
-        contentReq = self.wrapContentReq(restbase, req, contentReq, format, rp.tid);
-        contentReq = self._wrapInAccessCheck(restbase, req, contentReq)
-        .catch(function(e) {
-            if (e.status !== 403) {
-                return generateContent(e);
-            }
-            throw e;
+        contentReq = self.wrapContentReq(restbase, req, contentReq, format)
+        .catch(generateContent)
+        .then(function(res) {
+            return self._wrapInAccessCheck(restbase, req, P.resolve(res));
         });
     }
     return contentReq
