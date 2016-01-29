@@ -339,7 +339,7 @@ paths:
           required: true
         - name: csrf_token
           in: formData
-          description: The CRSF edit token provided by the MW API
+          description: The CSRF edit token provided by the MW API
           type: string
           required: true
         - name: comment
