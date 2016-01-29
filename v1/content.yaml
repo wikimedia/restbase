@@ -16,7 +16,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List page properties / page content sub-apis.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
@@ -37,7 +37,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List all pages.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
@@ -70,7 +70,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Returns the latest revision ID for the title present in storage.
         Supply the Cache-Control: no-cache header to obtain the latest available revision ID
 
@@ -144,7 +144,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List revisions for a title. Currently this lists all revisions that
         ever used this title and are stored in RESTBase, but eventually it
         should probably return the linear history (across renames) of the page
@@ -185,7 +185,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List titles for which an HTML representation is available. Currently
         this only lists pages that have revisions stored in RESTBase.
 
@@ -219,18 +219,21 @@ paths:
     get:
       tags:
         - Page content
-      description: >
-        Retrieve the latest html for a page title available in storage.
+      description: |
+        Retrieve the latest html for a title.
 
-        If you know the revision as well, then please use the
-        `{title}/{revision}` end point instead for better performance.
-
-        Supply the `Cache-Control: no-cache` header to force a fetch
-        of the most recent version.
+        The response provides an `ETag` header indicating the revision and
+        render timeuuid separated by a slash
+        (ex: `ETag: 701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc`). This ETag can be
+        passed to the HTML save end point (as `base_etag` POST parameter), and
+        can also be used to retrieve the exact corresponding data-parsoid
+        metadata, by requesting the specific `revision` and `tid` indicated by
+        the `ETag`.
 
         See [the MediaWiki DOM
         spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
         description of the MediaWiki-specific semantic markup in this HTML.
+        Note that additional metadata is available in the HTML head.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
@@ -247,7 +250,7 @@ paths:
         - text/html; profile="mediawiki.org/specs/html/1.1.0"
       responses:
         '200':
-          description: >
+          description: |
             The html for the given page title. Conforms to
             https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec.
         '404':
@@ -305,12 +308,12 @@ paths:
     post:
       tags:
         - Page content
-      description: >
+      description: |
         Save a new revision of a page given in HTML format.
 
         For new pages, or when editting the latest revision of a page,
         the `base_etag` parameter should be left empty. For editing old revisions,
-        it should contain the ETag header of the revision the edit is derived from.
+        it should contain the `ETag` header of the revision the edit is derived from.
 
         The latest page revision ETag header could be provided in the If-Match header
         to detect edit conflicts. If the new page is created, appropriate user cookies
@@ -393,7 +396,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List HTML revisions for a title. This currently only lists revisions
         that are already stored in RESTBase.
 
@@ -437,12 +440,21 @@ paths:
     get:
       tags:
         - Page content
-      description: >
-        Retrieve the html for a given revision (and optional timeuuid).
+      description: |
+        Retrieve the html for a given title, revision, and optionally timeuuid.
+
+        The response provides an `ETag` header indicating the revision and
+        render timeuuid separated by a slash
+        (ex: `ETag: 701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc`). This ETag can be
+        passed to the HTML save end point (as `base_etag` POST parameter), and
+        can also be used to retrieve the exact corresponding data-parsoid
+        metadata, by requesting the specific `revision` and `tid` indicated by
+        the `ETag`.
 
         See [the MediaWiki DOM
         spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
         description of the MediaWiki-specific semantic markup in this HTML.
+        Note that additional metadata is available in the HTML head.
 
         This HTML can be edited using arbitrary HTML tools. The modified HTML
         can be converted back to wikitext using the
@@ -474,7 +486,7 @@ paths:
           type: string
       responses:
         '200':
-          description: >
+          description: |
             The html for the given page, revision and tid. Conforms to
             https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec.
         '400':
@@ -510,7 +522,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List titles for which the data-parsoid property is available. This
         currently only lists pages which have revisions stored in RESTBase.
 
@@ -546,7 +558,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Retrieve the latest data-parsoid (private Parsoid metadata)
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
@@ -601,7 +613,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List data-parsoid revisions for a page. This currently only lists
         revisions stored in RESTBase.
 
@@ -649,7 +661,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Retrieve data-parsoid (internal Parsoid metadata) for a given page & revision
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
@@ -707,7 +719,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         List revisions. This currently only lists revisions stored in RESTBase.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
@@ -740,7 +752,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Get metadata about a specific revision.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
@@ -803,7 +815,7 @@ paths:
     post:
       tags:
         - Page content
-      description: >
+      description: |
         Save a new revision of a page.
 
         For new pages, or when editting the latest revision of a page,
@@ -888,7 +900,7 @@ paths:
     post:
       tags:
         - Transforms
-      description: >
+      description: |
         Transform HTML to wikitext
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
@@ -961,7 +973,7 @@ paths:
     post:
       tags:
         - Transforms
-      description: >
+      description: |
         Transform wikitext to HTML. Note that if you set `stash: true`, you
           also need to supply the title.
 
@@ -1047,7 +1059,7 @@ paths:
     post:
       tags:
         - Transforms
-      description: >
+      description: |
         Update / refresh / sanitize HTML
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
@@ -1114,7 +1126,7 @@ paths:
     post:
       tags:
         - Transforms
-      description: >
+      description: |
         Transform sections representation to wikitext
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)

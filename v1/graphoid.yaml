@@ -3,7 +3,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Retrieve PNG graph images embedded in specific revisions of a
         page. See [the Graphoid
         documentation](https://www.mediawiki.org/wiki/Extension:Graph#Graphoid_service)

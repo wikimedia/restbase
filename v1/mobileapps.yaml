@@ -6,7 +6,7 @@ paths:
     get:
       tags:
         - Mobile
-      description: >
+      description: |
         Retrieve the latest HTML for a page title optimised for viewing with
         native mobile applications. Note that the output is split by sections.
 
@@ -56,7 +56,7 @@ paths:
     get:
       tags:
         - Mobile
-      description: >
+      description: |
         Retrieve the lead section of the latest HTML for a page title optimised
         for viewing with native mobile applications.
 
@@ -93,7 +93,7 @@ paths:
     get:
       tags:
         - Mobile
-      description: >
+      description: |
         Retrieve the remainder of the latest HTML (without the lead section) for
         a page title optimised for viewing with native mobile applications,
         provided as a JSON object containing the sections.
@@ -131,7 +131,7 @@ paths:
     get:
       tags:
         - Mobile
-      description: >
+      description: |
         Retrieve the *lite* version of the latest HTML for a page title optimised for viewing with
         native mobile applications.
 

@@ -16,7 +16,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Returns the summary of the latest page content available in storage.
         Currently the summary includes the text for the first several sentences and
         the thumbnail URL.
