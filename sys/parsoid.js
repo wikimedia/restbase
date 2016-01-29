@@ -44,12 +44,75 @@ var cacheURIs = [
 
 ];
 
+// Temporary work-around for Parsoid issue
+// https://phabricator.wikimedia.org/T93715
+function normalizeHtml(html) {
+    return html && html.toString
+    && html.toString()
+    .replace(/ about="[^"]+"(?=[\/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
+}
+function sameHtml(a, b) {
+    return normalizeHtml(a) === normalizeHtml(b);
+}
+
+/**
+ * Makes sure we have a meta tag for the tid in our output
+ *
+ * @param html {string} original HTML content
+ * @param tid {string} the tid to insert
+ * @returns {string} modified html
+ */
+function insertTidMeta(html, tid) {
+    if (!/<meta property="mw:TimeUuid" [^>]+>/.test(html)) {
+        return html.replace(/(<head [^>]+>)/,
+            '$1<meta property="mw:TimeUuid" content="' + tid + '"/>');
+    }
+    return html;
+}
+
+function extractTidMeta(html) {
+    // Fall back to an inline meta tag in the HTML
+    var tidMatch = new RegExp('<meta\\s+(?:content="([^"]+)"\\s+)?' +
+            'property="mw:TimeUuid"(?:\\s+content="([^"]+)")?\\s*\\/?>')
+    .exec(html);
+    return tidMatch && (tidMatch[1] || tidMatch[2]);
+}
+
+/**
+ *  Checks whether the content has been modified since the timestamp
+ *  in `if-unmodified-since` header of the request
+ *
+ * @param req {object} the request
+ * @param res {object} the response
+ * @returns {boolean} true if content has beed modified
+ */
+function isModifiedSince(req, res) {
+    try {
+        if (req.headers['if-unmodified-since']) {
+            var jobTime = Date.parse(req.headers['if-unmodified-since']);
+            var revInfo = mwUtil.parseETag(res.headers.etag);
+            return revInfo && uuid.fromString(revInfo.tid).getDate() >= jobTime;
+        }
+    } catch (e) {
+        // Ignore errors from date parsing
+    }
+    return false;
+}
+
+function ensureCharsetInContentType(res) {
+    var cType = res.headers['content-type'];
+    if (/^text\/html\b/.test(cType) && !/charset=/.test(cType)) {
+        // Make sure a charset is set
+        res.headers['content-type'] = cType + ';charset=utf-8';
+    }
+    return res;
+}
+
 function ParsoidService(options) {
     var self = this;
     this.options = options = options || {};
     this.log = options.log || function() {};
-    this.parsoidHost = options.parsoidHost
-        || 'http://parsoid-lb.eqiad.wikimedia.org';
+    this.parsoidHost = options.parsoidHost;
 
     // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
     // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
@@ -67,10 +130,7 @@ function ParsoidService(options) {
 
     // Set up operations
     this.operations = {
-        getPageBundle: function(restbase, req) {
-            return self.wrapContentReq(restbase, req,
-                    self.pagebundle(restbase, req), 'pagebundle');
-        },
+        getPageBundle: self.pagebundle.bind(self),
         // Revision retrieval per format
         getWikitext: self.getFormat.bind(self, 'wikitext'),
         getHtml: self.getFormat.bind(self, 'html'),
@@ -113,39 +173,78 @@ PSP.purgeCaches = function(domain, title) {
     }));
 };
 
+
+// TEMP TEMP TEMP!!!
+// Wiktionary / summary invalidation and mobileapps pregeneration
+PSP._dependenciesUpdate = function(restbase, req) {
+    var self = this;
+    var rp = req.params;
+    var summaryPromise = P.resolve();
+    if (rp.domain.indexOf('wiktionary') === -1) {
+        // non-wiktionary, update summary
+        summaryPromise = restbase.get({
+            uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        });
+    } else if (/en.wiktionary/.test(rp.domain)) {
+        // wiktionary update, we are interested only in en.wiktionary
+        summaryPromise = restbase.get({
+            uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        });
+    }
+    summaryPromise = summaryPromise.catch(function(e) {
+        if (e.status !== 501 && e.status !== 404) {
+            self.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
+            'summary' : 'definition', e);
+        }
+    });
+    return P.join(
+        summaryPromise,
+        restbase.get({
+            uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
+                'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
+        }).catch(function(e) {
+            self.log('warn/mobileapps', e);
+        })
+    );
+};
+
 /**
  * Wraps a request for getting content (the promise) into a
  * P.all() call, bundling it with a request for revision
  * info, so that a 403 error gets raised overall if access to
  * the revision should be denied
+ * @param restbase RESTBase the Restbase router object
+ * @param {Object} req the user request
+ * @param {Object} promise the promise object to wrap
+ * @private
+ */
+PSP._wrapInAccessCheck = function(restbase, req, promise) {
+    return P.props({
+        content: promise,
+        revisionInfo: this.getRevisionInfo(restbase, req)
+    })
+    .then(function(responses) { return responses.content; });
+};
+
+/**
+ * Wrap content request with sections request if needed
+ * and ensures charset in the response
  *
  * @param restbase RESTBase the Restbase router object
  * @param {Object} req the user request
  * @param {Object} promise the promise object to wrap
  * @param {String} format the requested format
  * @param {String} tid time ID of the requested render
- * @param {Boolean} skipAccessCheck whether to skip revision access check
  */
-PSP.wrapContentReq = function(restbase, req, promise, format, tid, skipAccessCheck) {
+PSP.wrapContentReq = function(restbase, req, promise, format, tid) {
     var rp = req.params;
-    function ensureCharsetInContentType(res) {
-        var cType = res.headers['content-type'];
-        if (/^text\/html\b/.test(cType) && !/charset=/.test(cType)) {
-            // Make sure a charset is set
-            res.headers['content-type'] = cType + ';charset=utf-8';
-        }
-        return res;
-    }
-
-    var reqs = {
-        content: promise
-    };
-
-    if (!skipAccessCheck) {
-        // Bundle the promise together with a call to getRevisionInfo(). A
-        // failure in getRevisionInfo will abort the entire request.
-        reqs.revisionInfo = this.getRevisionInfo(restbase, req);
-    }
+    var reqs = { content: promise };
 
     // If the format is HTML and sections were requested, also request section
     // offsets
@@ -210,7 +309,6 @@ PSP.getBucketURI = function(rp, format, tid) {
 PSP.pagebundle = function(restbase, req) {
     var rp = req.params;
     var domain = rp.domain;
-    // TODO: Pass in current or predecessor version data if available
     var newReq = Object.assign({}, req);
     if (!newReq.method) { newReq.method = 'get'; }
     var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
@@ -222,55 +320,27 @@ PSP.pagebundle = function(restbase, req) {
 PSP.saveParsoidResult = function(restbase, req, format, tid, parsoidResp) {
     var self = this;
     var rp = req.params;
-    // Handle the response from Parsoid
-    if (parsoidResp.status === 200) {
-        return P.all([
-            restbase.put({
-                uri: self.getBucketURI(rp, 'data-parsoid', tid),
-                headers: parsoidResp.body['data-parsoid'].headers,
-                body: parsoidResp.body['data-parsoid'].body
-            }),
-            restbase.put({
-                uri: self.getBucketURI(rp, 'section.offsets', tid),
-                headers: { 'content-type': 'application/json' },
-                body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-            })
-        ])
-        // Save HTML last, so that any error in metadata storage suppresses
-        // HTML.
-        .then(function() {
-            return restbase.put({
-                uri: self.getBucketURI(rp, 'html', tid),
-                headers: parsoidResp.body.html.headers,
-                body: parsoidResp.body.html.body
-            });
+    return P.join(
+        restbase.put({
+            uri: self.getBucketURI(rp, 'data-parsoid', tid),
+            headers: parsoidResp.body['data-parsoid'].headers,
+            body: parsoidResp.body['data-parsoid'].body
+        }),
+        restbase.put({
+            uri: self.getBucketURI(rp, 'section.offsets', tid),
+            headers: { 'content-type': 'application/json' },
+            body: parsoidResp.body['data-parsoid'].body.sectionOffsets
         })
-        // And return the response to the client
-        // but only if the revision is accessible
-        .then(function() {
-            var resp = {
-                status: parsoidResp.status,
-                headers: parsoidResp.body[format].headers,
-                body: parsoidResp.body[format].body
-            };
-            resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-            return self.wrapContentReq(restbase, req, P.resolve(resp), format, tid);
+    )
+    // Save HTML last, so that any error in metadata storage suppresses HTML.
+    .then(function() {
+        return restbase.put({
+            uri: self.getBucketURI(rp, 'html', tid),
+            headers: parsoidResp.body.html.headers,
+            body: parsoidResp.body.html.body
         });
-    } else {
-        return parsoidResp;
-    }
+    });
 };
-
-// Temporary work-around for Parsoid issue
-// https://phabricator.wikimedia.org/T93715
-function normalizeHtml(html) {
-    return html && html.toString
-        && html.toString()
-            .replace(/ about="[^"]+"(?=[\/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
-}
-function sameHtml(a, b) {
-    return normalizeHtml(a) === normalizeHtml(b);
-}
 
 PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
     var self = this;
@@ -321,72 +391,32 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 
     return parsoidReq
     .then(function(res) {
-        var htmlBody = res.body.html.body;
         var tid = uuid.now().toString();
-        // Also make sure we have a meta tag for the tid in our output
-        if (!/<meta property="mw:TimeUuid" [^>]+>/.test(htmlBody)) {
-            res.body.html.body = htmlBody
-                .replace(/(<head [^>]+>)/, '$1<meta property="mw:TimeUuid" '
-                    + 'content="' + tid + '"/>');
-        }
+        res.body.html.body = insertTidMeta(res.body.html.body, tid);
+
         if (format === 'html' && currentContentRes
                 && sameHtml(res.body.html.body, currentContentRes.body)) {
-            // New render is the same as the previous one, no need to store
-            // it.
+            // New render is the same as the previous one, no need to store it.
             restbase.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
 
             // No need to check access again here, as we rely on the pagebundle request
             // being wrapped & throwing an error if access is denied
-            return self.wrapContentReq(restbase, req,
-                P.resolve(currentContentRes), format, rp.tid, true);
-        } else {
-            // TEMP TEMP TEMP!!!
-            // Wiktionary / summary invalidation
-            var summaryPromise = P.resolve();
-            if (rp.domain.indexOf('wiktionary') === -1) {
-                // non-wiktionary, update summary
-                summaryPromise = restbase.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                });
-            } else if (/en.wiktionary/.test(rp.domain)) {
-                // wiktionary update, we are interested only in en.wiktionary
-                summaryPromise = restbase.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                });
-            }
-            summaryPromise = summaryPromise.catch(function(e) {
-                if (e.status !== 501 && e.status !== 404) {
-                    self.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
-                        'summary' : 'definition', e);
-                }
-            });
-            // END TEMP END TEMP
+            return self.wrapContentReq(restbase, req, P.resolve(currentContentRes), format, rp.tid);
+        } else if (res.status === 200) {
             return self.saveParsoidResult(restbase, req, format, tid, res)
-            .then(function(parsoidSaveResult) {
-                return P.join(
-                    // TEMP TEMP TEMP!!!
-                    // Need to invalidate summary when a render changes.
-                    // In future this should be controlled by dependency tracking system.
-                    // return is missed on purpose - we don't want to wait for the result
-                    summaryPromise,
-                    // MobileApps pre-generation
-                    restbase.get({
-                        uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
-                            'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
-                    }).catch(function(e) {
-                        self.log('warn/mobileapps', e);
-                    })
-                )
-                .then(function() {
-                    return parsoidSaveResult;
-                });
+            .then(function() {
+                return self._dependenciesUpdate(restbase, req); })
+            .then(function() {
+                var resp = {
+                    status: res.status,
+                    headers: res.body[format].headers,
+                    body: res.body[format].body
+                };
+                resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
+                return self.wrapContentReq(restbase, req, P.resolve(resp), format, tid);
             });
+        } else {
+            return res;
         }
     });
 };
@@ -489,32 +519,26 @@ PSP.getFormat = function(format, restbase, req) {
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
-                if (req.headers['if-unmodified-since']) {
-                    try {
-                        var jobTime = Date.parse(req.headers['if-unmodified-since']);
-                        var revInfo = mwUtil.parseETag(res.headers.etag);
-                        if (revInfo && uuid.fromString(revInfo.tid).getDate() >= jobTime) {
-                            // Already up to date, nothing to do.
-                            return {
-                                status: 412,
-                                body: {
-                                    type: 'precondition_failed',
-                                    detail: 'The precondition failed'
-                                }
-                            };
+                if (isModifiedSince(req, res)) {
+                    // Already up to date, nothing to do.
+                    return {
+                        status: 412,
+                        body: {
+                            type: 'precondition_failed',
+                            detail: 'The precondition failed'
                         }
-                    } catch (e) {} // Ignore errors from date parsing
+                    };
                 }
                 return generateContent(res);
             },
             generateContent);
     } else {
         // Only (possibly) generate content if there was an error
-        contentReq = contentReq.then(function(res) {
-            return self.wrapContentReq(restbase, req, P.resolve(res), format);
-        },
-        generateContent // No need to wrap generateContent
-        );
+        contentReq = self.wrapContentReq(restbase, req, contentReq, format)
+        .catch(generateContent)
+        .then(function(res) {
+            return self._wrapInAccessCheck(restbase, req, P.resolve(res));
+        });
     }
     return contentReq
     .then(function(res) {
@@ -595,16 +619,7 @@ PSP._getOriginalContent = function(restbase, req, revision, tid) {
 PSP._getStashedContent = function(restbase, req, etag) {
     var self = this;
     var rp = req.params;
-    if (!rp.title || !rp.revision) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'invalid_request',
-                description: 'Stashed data can be retrieved only for a specific' +
-                        ' title/revision combination'
-            }
-        });
-    }
+
     rp.title = mwUtil.normalizeTitle(rp.title);
     function getStash(format) {
         return restbase.get({
@@ -629,6 +644,57 @@ PSP._getStashedContent = function(restbase, req, etag) {
 
 };
 
+/**
+ * Replaces sections in original content with sections provided in sectionsJson
+ */
+function replaceSections(original, sectionsJson) {
+    var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
+    var newBody = cheapBodyInnerHTML(original.html.body);
+    var sectionIds = Object.keys(sectionsJson);
+    var illegalId = sectionIds.some(function(id) {
+        return !sectionOffsets[id];
+    });
+    if (illegalId) {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'invalid_request',
+                description: 'Invalid section ids'
+            }
+        });
+    }
+    sectionIds.sort(function(id1, id2) {
+        return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
+    })
+    .forEach(function(id) {
+        var offset = sectionOffsets[id];
+        newBody = newBody.substring(0, offset.html[0])
+        + sectionsJson[id]
+        + newBody.substring(offset.html[1], newBody.length);
+    });
+    return '<body>' + newBody + '</body>';
+}
+
+function parseSections(req) {
+    var sections = req.body.sections;
+    if (sections.constructor !== Object) {
+        try {
+            return JSON.parse(req.body.sections.toString());
+        } catch (e) {
+            // Catch JSON parsing exception and return 400
+            throw new HTTPError({
+                status: 400,
+                body: {
+                    type: 'invalid_request',
+                    description: 'Invalid JSON provided in the request'
+                }
+            });
+        }
+    }
+    return sections;
+}
+
+
 PSP.transformRevision = function(restbase, req, from, to) {
     var self = this;
     var rp = req.params;
@@ -641,10 +707,7 @@ PSP.transformRevision = function(restbase, req, from, to) {
             tid = etag.tid;
         } else if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
-            var tidMatch = new RegExp('<meta\\s+(?:content="([^"]+)"\\s+)?' +
-                    'property="mw:TimeUuid"(?:\\s+content="([^"]+)")?\\s*\\/?>')
-                .exec(req.body.html);
-            tid = tidMatch && (tidMatch[1] || tidMatch[2]);
+            tid = extractTidMeta(req.body.html);
         }
         if (!tid) {
             throw new HTTPError({
@@ -681,23 +744,8 @@ PSP.transformRevision = function(restbase, req, from, to) {
             original: original
         };
         if (from === 'sections') {
-            var sections = req.body.sections;
-            if (req.body.sections.constructor !== Object) {
-                try {
-                    sections = JSON.parse(req.body.sections.toString());
-                } catch (e) {
-                    // Catch JSON parsing exception and return 400
-                    throw new HTTPError({
-                        status: 400,
-                        body: {
-                            type: 'invalid_request',
-                            description: 'Invalid JSON provided in the request'
-                        }
-                    });
-                }
-            }
             body2.html = {
-                body: replaceSections(original, sections)
+                body: replaceSections(original, parseSections(req))
             };
             from = 'html';
         } else {
@@ -838,37 +886,6 @@ function cheapBodyInnerHTML(html) {
     } else {
         return match[1];
     }
-}
-
-/**
- * Replaces sections in original content with sections provided in sectionsJson
- */
-function replaceSections(original, sectionsJson) {
-    var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
-    var newBody = cheapBodyInnerHTML(original.html.body);
-    var sectionIds = Object.keys(sectionsJson);
-    var illegalId = sectionIds.some(function(id) {
-        return !sectionOffsets[id];
-    });
-    if (illegalId) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'invalid_request',
-                description: 'Invalid section ids'
-            }
-        });
-    }
-    sectionIds.sort(function(id1, id2) {
-        return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
-    })
-    .forEach(function(id) {
-        var offset = sectionOffsets[id];
-        newBody = newBody.substring(0, offset.html[0])
-            + sectionsJson[id]
-            + newBody.substring(offset.html[1], newBody.length);
-    });
-    return '<body>' + newBody + '</body>';
 }
 
 PSP.makeTransform = function(from, to) {

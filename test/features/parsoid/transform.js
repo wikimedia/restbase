@@ -271,6 +271,83 @@ describe('transform api', function() {
             assert.deepEqual(e.status, 409);
         })
     });
+
+    it('supports stashing content', function() {
+        return preq.post({
+            uri: server.config.labsURL
+            + '/transform/wikitext/to/html/' + testPage.title + '/' + testPage.revision,
+            body: {
+                wikitext: '== ABCDEF ==',
+                stash: true
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            var etag = res.headers.etag;
+            assert.deepEqual(/\/stash"$/.test(etag), true);
+            return preq.post({
+                uri: server.config.labsURL
+                    + '/transform/html/to/wikitext/' + testPage.title + '/' + testPage.revision,
+                headers: {
+                    'if-match': etag
+                },
+                body: {
+                    html: res.body.replace('ABCDEF', 'FECDBA')
+                }
+            });
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, '== FECDBA ==');
+        });
+    });
+
+    it('substitutes 0 as revision if not provided for stashing', function() {
+        return preq.post({
+            uri: server.config.labsURL
+            + '/transform/wikitext/to/html/' + testPage.title,
+            body: {
+                wikitext: '== ABCDEF ==',
+                stash: true
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            var etag = res.headers.etag;
+            assert.deepEqual(/^"0\/[^\/]+\/stash"$/.test(etag), true);
+        });
+    });
+
+    it('does not allow stashing without title', function() {
+        return preq.post({
+            uri: server.config.labsURL
+            + '/transform/wikitext/to/html',
+            body: {
+                wikitext: '== ABCDEF ==',
+                stash: true
+            }
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 400);
+        });
+    });
+
+    it('does not allow to transform html with no tid', function() {
+        return preq.post({
+            uri: server.config.labsURL + '/transform/html/to/wikitext/'
+                    + testPage.title + '/' + testPage.revision,
+            body: {
+                html: '<h1>A</h1>'
+            }
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 400);
+        });
+    });
 });
 
 
