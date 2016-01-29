@@ -90,7 +90,7 @@ function isModifiedSince(req, res) {
     try {
         if (req.headers['if-unmodified-since']) {
             var jobTime = Date.parse(req.headers['if-unmodified-since']);
-            var revInfo = rbUtil.parseETag(res.headers.etag);
+            var revInfo = mwUtil.parseETag(res.headers.etag);
             return revInfo && uuid.fromString(revInfo.tid).getDate() >= jobTime;
         }
     } catch (e) {
@@ -225,7 +225,6 @@ PSP._dependenciesUpdate = function(restbase, req) {
  * @private
  */
 PSP._wrapInAccessCheck = function(restbase, req, promise) {
-    console.log('WRAP');
     return P.props({
         content: promise,
         revisionInfo: this.getRevisionInfo(restbase, req)
@@ -413,7 +412,7 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
                     headers: res.body[format].headers,
                     body: res.body[format].body
                 };
-                resp.headers.etag = rbUtil.makeETag(rp.revision, tid);
+                resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
                 return self.wrapContentReq(restbase, req, P.resolve(resp), format, tid);
             });
         } else {
@@ -424,7 +423,6 @@ PSP.generateAndSave = function(restbase, req, format, currentContentRes) {
 
 // Get / check the revision metadata for a request
 PSP.getRevisionInfo = function(restbase, req) {
-    console.log('GET REV INVO', req.params);
     var rp = req.params;
     var path = [rp.domain, 'sys', 'page_revisions', 'page',
                     mwUtil.normalizeTitle(rp.title)];
@@ -475,7 +473,6 @@ PSP.getFormat = function(format, restbase, req) {
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
-            console.log('GENERATE');
             var revInfoPromise = self.getRevisionInfo(restbase, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
@@ -661,7 +658,7 @@ function replaceSections(original, sectionsJson) {
         return !sectionOffsets[id];
     });
     if (illegalId) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
@@ -688,7 +685,7 @@ function parseSections(req) {
             return JSON.parse(req.body.sections.toString());
         } catch (e) {
             // Catch JSON parsing exception and return 400
-            throw new rbUtil.HTTPError({
+            throw new HTTPError({
                 status: 400,
                 body: {
                     type: 'invalid_request',
