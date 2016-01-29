@@ -16,7 +16,7 @@ paths:
     get:
       tags:
         - Page content
-      description: >
+      description: |
         Returns the definition of the term based on the latest wikitionary page content
         available in storage.
 

@@ -6,7 +6,7 @@ paths:
   /math/check/{type}:
     post:
       tags: ['Math']
-      description: >
+      description: |
         Checks the supplied TeX formula for correctness and returns the
         normalised formula representation as well as information about
         identifiers. Available types are tex and inline-tex. The response
@@ -98,7 +98,7 @@ paths:
   /math/render/{format}/{hash}:
     get:
       tags: ['Math']
-      description: >
+      description: |
         Given a request hash, renders a TeX formula into its mathematic
         representation in the given format. When a request is issued to the
         `/media/math/check/{format}` POST endpoint, the response contains the
