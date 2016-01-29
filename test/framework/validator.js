@@ -5,7 +5,6 @@
 
 var assert = require('./utils/assert.js');
 var Validator = require('../../lib/validator');
-var HTTPError = require('../../lib/rbUtil').HTTPError;
 
 describe('Validator', function() {
 

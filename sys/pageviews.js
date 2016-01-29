@@ -12,7 +12,7 @@ var fs = require('fs');
 var yaml = require('js-yaml');
 var path = require('path');
 var spec = yaml.safeLoad(fs.readFileSync(path.join(__dirname, '/pageviews.yaml')));
-var rbUtil = require('../lib/rbUtil');
+var HTTPError = require('../lib/exports').HTTPError;
 
 
 // Pageviews Service
@@ -160,7 +160,7 @@ var normalizeResponse = function(res) {
  */
 var throwIfNeeded = function(errors) {
     if (errors && errors.length) {
-        throw new rbUtil.HTTPError({
+        throw new HTTPError({
             status: 400,
             body: {
                 type: 'invalid_request',
@@ -379,7 +379,7 @@ PJVS.prototype.pageviewsForTops = function(restbase, req) {
                     try {
                         item.articles = JSON.parse(item.articles);
                     } catch (e) {
-                        throw new rbUtil.HTTPError({
+                        throw new HTTPError({
                             status: 500,
                             body: {
                                 type: 'error',

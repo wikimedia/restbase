@@ -4,7 +4,7 @@
  * Simple wrapper for the PHP action API
  */
 
-var rbUtil = require('../lib/rbUtil');
+var HTTPError = require('../lib/exports').HTTPError;
 var Template = require('swagger-router').Template;
 /**
  * Error translation
@@ -97,7 +97,7 @@ function apiError(apiErr) {
         ret.status = errCodes[apiErr.code].status;
         ret.body.type = errCodes[apiErr.code].type;
     }
-    return new rbUtil.HTTPError(ret);
+    return new HTTPError(ret);
 }
 
 
