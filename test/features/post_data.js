@@ -36,6 +36,15 @@ describe('post_data', function () {
         });
     });
 
+    it('should not explode on empty body', function() {
+        return preq.post({
+            uri: server.config.baseURL + '/post_data/'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 201);
+        });
+    });
+
     it('should not store identical request', function() {
         return preq.post({
             uri: server.config.baseURL + '/post_data/',
