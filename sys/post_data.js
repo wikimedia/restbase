@@ -16,9 +16,9 @@ function PostDataBucket(options) {
     this.log = options.log || function() {};
 }
 
-PostDataBucket.prototype.createBucket = function(hs, req) {
+PostDataBucket.prototype.createBucket = function(hyper, req) {
     var rp = req.params;
-    return hs.put({
+    return hyper.put({
         uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket]),
         body: {
             keyType: 'string',
@@ -27,13 +27,13 @@ PostDataBucket.prototype.createBucket = function(hs, req) {
     });
 };
 
-PostDataBucket.prototype.getRevision = function(hs, req) {
+PostDataBucket.prototype.getRevision = function(hyper, req) {
     var rp = req.params;
     var path = [rp.domain, 'sys', 'key_value', rp.bucket, rp.key];
     if (rp.tid) {
         path.push(rp.tid);
     }
-    return hs.get({
+    return hyper.get({
         uri: new URI(path),
         headers: {
             'cache-control': req.headers && req.headers['cache-control']
@@ -47,12 +47,12 @@ function calculateHash(storedData) {
                  .digest('hex');
 }
 
-PostDataBucket.prototype.putRevision = function(hs, req) {
+PostDataBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var storedData = req.body || {};
     var key = calculateHash(storedData);
     req.params.key = key;
-    return this.getRevision(hs, req)
+    return this.getRevision(hyper, req)
     .then(function() {
         return {
             status: 200,
@@ -63,7 +63,7 @@ PostDataBucket.prototype.putRevision = function(hs, req) {
         };
     })
     .catch({ status: 404 }, function() {
-        return hs.put({
+        return hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, key]),
             headers: {
                 'content-type': 'application/json',

@@ -175,7 +175,7 @@ function buildEditResponse(res) {
     return res;
 }
 
-ActionService.prototype._doRequest = function(hs, req, defBody, cont) {
+ActionService.prototype._doRequest = function(hyper, req, defBody, cont) {
     var apiRequest = this.apiRequestTemplate({
         request: req
     });
@@ -185,18 +185,18 @@ ActionService.prototype._doRequest = function(hs, req, defBody, cont) {
     if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
         apiRequest.body.continue = '';
     }
-    return hs.request(apiRequest).then(cont);
+    return hyper.request(apiRequest).then(cont);
 };
 
-ActionService.prototype.query = function(hs, req) {
-    return this._doRequest(hs, req, {
+ActionService.prototype.query = function(hyper, req) {
+    return this._doRequest(hyper, req, {
         action: 'query',
         format: 'json'
     }, buildQueryResponse);
 };
 
-ActionService.prototype.edit = function(hs, req) {
-    return this._doRequest(hs, req, {
+ActionService.prototype.edit = function(hyper, req) {
+    return this._doRequest(hyper, req, {
         action: 'edit',
         format: 'json',
         formatversion: 2

@@ -2,7 +2,7 @@
 
 var stream = require('stream');
 
-function hello(hs, req) {
+function hello(hyper, req) {
     var body = new stream.PassThrough();
     body.end('hello');
     return {
@@ -14,7 +14,7 @@ function hello(hs, req) {
     };
 }
 
-function buffer(hs, req) {
+function buffer(hyper, req) {
     var body = new stream.PassThrough();
     body.write(new Buffer('hel'));
     // Delay the final write to test async production.
@@ -31,7 +31,7 @@ function buffer(hs, req) {
     };
 }
 
-function chunks(hs, req) {
+function chunks(hyper, req) {
     var body = new stream.PassThrough();
     for (var i = 0; i < 100; i++) {
         body.write(i.toString());

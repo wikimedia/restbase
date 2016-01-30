@@ -22,7 +22,7 @@ function KRVBucket(options) {
     this.log = options.log || function() {};
 }
 
-KRVBucket.prototype.getBucketInfo = function(hs, req, options) {
+KRVBucket.prototype.getBucketInfo = function(hyper, req, options) {
     var self = this;
     return P.resolve({
         status: 200,
@@ -72,7 +72,7 @@ KRVBucket.prototype.makeSchema = function(opts) {
     };
 };
 
-KRVBucket.prototype.createBucket = function(hs, req) {
+KRVBucket.prototype.createBucket = function(hyper, req) {
     var schema = this.makeSchema(req.body || {});
     schema.table = req.params.bucket;
     var rp = req.params;
@@ -80,7 +80,7 @@ KRVBucket.prototype.createBucket = function(hs, req) {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
         body: schema
     };
-    return hs.put(storeRequest);
+    return hyper.put(storeRequest);
 };
 
 
@@ -95,13 +95,13 @@ KRVBucket.prototype.getListQuery = function(options, bucket) {
 
 
 
-KRVBucket.prototype.listBucket = function(hs, req, options) {
+KRVBucket.prototype.listBucket = function(hyper, req, options) {
     var self = this;
     // XXX: check params!
     var rp = req.params;
 
     var listQuery = this.getListQuery(options, rp.bucket);
-    return hs.get({
+    return hyper.get({
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
         body: listQuery
     })
@@ -191,7 +191,7 @@ function parseRevision(rev) {
     return parseInt(rev);
 }
 
-KRVBucket.prototype.getRevision = function(hs, req) {
+KRVBucket.prototype.getRevision = function(hyper, req) {
     var rp = req.params;
     var storeReq = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -209,11 +209,11 @@ KRVBucket.prototype.getRevision = function(hs, req) {
             storeReq.body.attributes.tid = coerceTid(rp.tid);
         }
     }
-    return hs.get(storeReq).then(returnRevision(req));
+    return hyper.get(storeReq).then(returnRevision(req));
 };
 
 
-KRVBucket.prototype.listRevisions = function(hs, req) {
+KRVBucket.prototype.listRevisions = function(hyper, req) {
     var rp = req.params;
     var storeRequest = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -224,13 +224,13 @@ KRVBucket.prototype.listRevisions = function(hs, req) {
             },
             proj: ['rev', 'tid'],
             limit: (req.body && req.body.limit) ?
-                        req.body.limit : hs.config.default_page_size
+                        req.body.limit : hyper.config.default_page_size
         }
     };
     if (rp.revision) {
         storeRequest.body.attributes.rev = parseRevision(rp.revision);
     }
-    return hs.get(storeRequest)
+    return hyper.get(storeRequest)
     .then(function(res) {
         return {
             status: 200,
@@ -248,7 +248,7 @@ KRVBucket.prototype.listRevisions = function(hs, req) {
 };
 
 
-KRVBucket.prototype.putRevision = function(hs, req) {
+KRVBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var rev = parseRevision(rp.revision);
     var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
@@ -271,7 +271,7 @@ KRVBucket.prototype.putRevision = function(hs, req) {
             }
         }
     };
-    return hs.put(storeReq)
+    return hyper.put(storeReq)
     .then(function(res) {
         if (res.status === 201) {
             return {
@@ -289,7 +289,7 @@ KRVBucket.prototype.putRevision = function(hs, req) {
         }
     })
     .catch(function(error) {
-        hs.log('error/kv/putRevision', error);
+        hyper.log('error/kv/putRevision', error);
         return { status: 400 };
     });
 };
