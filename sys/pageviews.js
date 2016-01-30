@@ -264,14 +264,14 @@ var validateYearMonthDay = function(rp) {
     throwIfNeeded(errors);
 };
 
-PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
+PJVS.prototype.pageviewsForArticleFlat = function(hyper, req) {
     var rp = req.params;
 
     // dates are passed in as YYYYMMDD but we need the HH to match the loaded data
     // which was originally planned at hourly resolution, so we pass "fakeHour"
     validateStartAndEnd(rp, { fakeHour: true });
 
-    var dataRequest = restbase.get({
+    var dataRequest = hyper.get({
         uri: tableURI(rp.domain, tables.articleFlat),
         body: {
             table: tables.articleFlat,
@@ -310,12 +310,12 @@ PJVS.prototype.pageviewsForArticleFlat = function(restbase, req) {
     });
 };
 
-PJVS.prototype.pageviewsForProjects = function(restbase, req) {
+PJVS.prototype.pageviewsForProjects = function(hyper, req) {
     var rp = req.params;
 
     validateStartAndEnd(rp);
 
-    var dataRequest = restbase.get({
+    var dataRequest = hyper.get({
         uri: tableURI(rp.domain, tables.project),
         body: {
             table: tables.project,
@@ -349,12 +349,12 @@ PJVS.prototype.pageviewsForProjects = function(restbase, req) {
     });
 };
 
-PJVS.prototype.pageviewsForTops = function(restbase, req) {
+PJVS.prototype.pageviewsForTops = function(hyper, req) {
     var rp = req.params;
 
     validateYearMonthDay(rp);
 
-    var dataRequest = restbase.get({
+    var dataRequest = hyper.get({
         uri: tableURI(rp.domain, tables.tops),
         body: {
             table: tables.tops,

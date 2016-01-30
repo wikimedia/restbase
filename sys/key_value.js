@@ -19,7 +19,7 @@ function KVBucket(options) {
     this.log = options.log || function() {};
 }
 
-KVBucket.prototype.getBucketInfo = function(restbase, req, options) {
+KVBucket.prototype.getBucketInfo = function(hyper, req, options) {
     var self = this;
     return P.resolve({
         status: 200,
@@ -70,7 +70,7 @@ KVBucket.prototype.makeSchema = function(opts) {
     };
 };
 
-KVBucket.prototype.createBucket = function(restbase, req) {
+KVBucket.prototype.createBucket = function(hyper, req) {
     var schema = this.makeSchema(req.body || {});
     schema.table = req.params.bucket;
     var rp = req.params;
@@ -78,7 +78,7 @@ KVBucket.prototype.createBucket = function(restbase, req) {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
         body: schema
     };
-    return restbase.put(storeRequest);
+    return hyper.put(storeRequest);
 };
 
 
@@ -93,13 +93,13 @@ KVBucket.prototype.getListQuery = function(options, bucket) {
 
 
 
-KVBucket.prototype.listBucket = function(restbase, req, options) {
+KVBucket.prototype.listBucket = function(hyper, req, options) {
     var self = this;
     // XXX: check params!
     var rp = req.params;
 
     var listQuery = this.getListQuery(options, rp.bucket);
-    return restbase.get({
+    return hyper.get({
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
         body: listQuery
     })
@@ -177,7 +177,7 @@ function coerceTid(tidString) {
     });
 }
 
-KVBucket.prototype.getRevision = function(restbase, req) {
+KVBucket.prototype.getRevision = function(hyper, req) {
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
         throw new HTTPError({
             status: 404
@@ -198,11 +198,11 @@ KVBucket.prototype.getRevision = function(restbase, req) {
     if (rp.tid) {
         storeReq.body.attributes.tid = coerceTid(rp.tid);
     }
-    return restbase.get(storeReq).then(returnRevision(req));
+    return hyper.get(storeReq).then(returnRevision(req));
 };
 
 
-KVBucket.prototype.listRevisions = function(restbase, req) {
+KVBucket.prototype.listRevisions = function(hyper, req) {
     var rp = req.params;
     var storeRequest = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -215,7 +215,7 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
             limit: 1000
         }
     };
-    return restbase.get(storeRequest)
+    return hyper.get(storeRequest)
     .then(function(res) {
         return {
             status: 200,
@@ -232,7 +232,7 @@ KVBucket.prototype.listRevisions = function(restbase, req) {
 };
 
 
-KVBucket.prototype.putRevision = function(restbase, req) {
+KVBucket.prototype.putRevision = function(hyper, req) {
     // TODO: support other formats! See cassandra backend getRevision impl.
     var rp = req.params;
     var tid = rp.tid && coerceTid(rp.tid);
@@ -256,7 +256,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
             }
         }
     };
-    return restbase.put(storeReq)
+    return hyper.put(storeReq)
     .then(function(res) {
         if (res.status === 201) {
             return {
@@ -274,7 +274,7 @@ KVBucket.prototype.putRevision = function(restbase, req) {
         }
     })
     .catch(function(error) {
-        restbase.log('error/kv/putRevision', error);
+        hyper.log('error/kv/putRevision', error);
         return { status: 400 };
     });
 };

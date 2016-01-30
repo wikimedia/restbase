@@ -10,7 +10,7 @@ var Server = function(configPath) {
     this._config = this._loadConfig();
     this._config.num_workers = 0;
     this._config.logging = {
-        name: 'restbase-tests',
+        name: 'hyperswitch-tests',
         level: 'fatal',
         streams: [{ type: 'stdout'}]
     };
