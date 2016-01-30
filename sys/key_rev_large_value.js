@@ -54,7 +54,7 @@ ChunkedBucket.prototype._joinData = function(dataParts) {
     } else if (Buffer.isBuffer(dataParts[0])) {
         return Buffer.concat(dataParts);
     } else {
-        return ''.concat(dataParts);
+        return dataParts.join('');
     }
 };
 
@@ -83,7 +83,7 @@ ChunkedBucket.prototype._makeMetaSchema = function(opts) {
             key: opts.keyType || 'string',
             rev: 'int',
             tid: 'timeuuid',
-            num: 'int',
+            num_chunks: 'int',
             headers: 'json'
         },
         index: [
@@ -121,17 +121,30 @@ ChunkedBucket.prototype._makeChunksSchema = function(opts) {
     };
 };
 
-ChunkedBucket.prototype.createBucket = function(restbase, req) {
+ChunkedBucket.prototype._validateSchemaOptions = function(req) {
+    var options = req.body || {};
+
+    if (options.retention_policy) {
+        throw new Error('key_rev_large_value does not support revision_policy option');
+    }
+
+    if (options.compression) {
+        throw new Error('key_rev_large_value does not support compression option');
+    }
+};
+
+ChunkedBucket.prototype.createBucket = function(hyper, req) {
+    this._validateSchemaOptions(req);
     var metaSchema = this._makeMetaSchema(req.body || {});
     var dataSchema = this._makeChunksSchema(req.body || {});
     metaSchema.table = this._metaTableName(req);
     dataSchema.table = this._chunksTableName(req);
     return P.join(
-        restbase.put({
+        hyper.put({
             uri: new URI([req.params.domain, 'sys', 'table', metaSchema.table]),
             body: metaSchema
         }),
-        restbase.put({
+        hyper.put({
             uri: new URI([req.params.domain, 'sys', 'table', dataSchema.table]),
             body: dataSchema
         }))
@@ -193,7 +206,7 @@ function parseRevision(rev) {
     return parseInt(rev);
 }
 
-ChunkedBucket.prototype._getMetadata = function(restbase, req) {
+ChunkedBucket.prototype._getMetadata = function(hyper, req) {
     var rp = req.params;
     var metadataReq = {
         uri: new URI([rp.domain, 'sys', 'table', this._metaTableName(req), '']),
@@ -211,28 +224,26 @@ ChunkedBucket.prototype._getMetadata = function(restbase, req) {
             metadataReq.body.attributes.tid = coerceTid(rp.tid);
         }
     }
-    return restbase.get(metadataReq)
+    return hyper.get(metadataReq)
     .then(function(metadataRes) {
         return metadataRes.body.items[0];
     });
 };
 
-ChunkedBucket.prototype.getRevision = function(restbase, req) {
+ChunkedBucket.prototype.getRevision = function(hyper, req) {
     var rp = req.params;
     var self = this;
-    return this._getMetadata(restbase, req)
+    return this._getMetadata(hyper, req)
     .then(function(metadata) {
-        return P.all(range(metadata.num).map(function(chunkId) {
-            return restbase.get({
+        return P.all(range(metadata.num_chunks).map(function(chunkId) {
+            return hyper.get({
                 uri: new URI([rp.domain, 'sys', 'table', self._chunksTableName(req), '']),
                 body: {
                     table: self._chunksTableName(req),
                     attributes: {
                         key: rp.key,
                         chunk_id: chunkId,
-                        tid: {
-                            le: metadata.tid
-                        }
+                        tid: metadata.tid
                     },
                     limit: 1
                 }
@@ -252,18 +263,18 @@ ChunkedBucket.prototype.getRevision = function(restbase, req) {
     });
 };
 
-function getLimit(restbase, req) {
+function getLimit(hyper, req) {
     if (req.body && req.body.limit) {
         return req.body.limit;
     } else if (req.query && req.query.limit) {
         return req.query.limit;
     }
-    return restbase.rb_config.default_page_size;
+    return hyper.rb_config.default_page_size;
 }
 
-ChunkedBucket.prototype.listRevisions = function(restbase, req) {
+ChunkedBucket.prototype.listRevisions = function(hyper, req) {
     var rp = req.params;
-    return restbase.get({
+    return hyper.get({
         uri: new URI([rp.domain, 'sys', 'table', this._metaTableName(req), '']),
         body: {
             table: this._metaTableName(req),
@@ -271,7 +282,7 @@ ChunkedBucket.prototype.listRevisions = function(restbase, req) {
                 key: req.params.key
             },
             proj: ['rev', 'tid'],
-            limit: getLimit(restbase, req)
+            limit: getLimit(hyper, req)
         }
     })
     .then(function(res) {
@@ -290,9 +301,47 @@ ChunkedBucket.prototype.listRevisions = function(restbase, req) {
     });
 };
 
-ChunkedBucket.prototype._retentionPolicyUpdate = function(restbase, req, key, rev, tid) {
+ChunkedBucket.prototype._setRowTTLs = function(hyper, req, row) {
     var self = this;
-    return restbase.get({
+    return hyper.put({
+        uri: new URI([req.params.domain, 'sys', 'table', self._metaTableName(req), '']),
+        body: {
+            table: self._metaTableName(req),
+            attributes: Object.assign({}, row, { _ttl: GRACE_TTL })
+        }
+    })
+    .then(function() {
+        return P.all(range(row.num_chunks).map(function(chunkId) {
+            return hyper.get({
+                uri: new URI([req.params.domain, 'sys', 'table',
+                    self._chunksTableName(req), '']),
+                body: {
+                    table: self._chunksTableName(req),
+                    attributes: {
+                        key: row.key,
+                        chunk_id: chunkId,
+                        tid: row.tid
+                    }
+                }
+            })
+            .then(function(res) {
+                var value = res.body.items[0];
+                return hyper.put({
+                    uri: new URI([req.params.domain, 'sys', 'table',
+                        self._chunksTableName(req), '']),
+                    body: {
+                        table: self._chunksTableName(req),
+                        attributes: Object.assign(value, { _ttl: GRACE_TTL })
+                    }
+                });
+            });
+        }));
+    });
+};
+
+ChunkedBucket.prototype._retentionPolicyUpdate = function(hyper, req, key, rev, tid) {
+    var self = this;
+    return hyper.get({
         uri: new URI([req.params.domain, 'sys', 'table', self._metaTableName(req), '']),
         body: {
             table: self._metaTableName(req),
@@ -313,46 +362,13 @@ ChunkedBucket.prototype._retentionPolicyUpdate = function(restbase, req, key, re
         if (rows && rows.length) {
             var toRemove = rows.filter(function(row) { return !row._ttl; });
             return P.each(toRemove, function(row) {
-                return restbase.put({
-                    uri: new URI([req.params.domain, 'sys', 'table', self._metaTableName(req), '']),
-                    body: {
-                        table: self._metaTableName(req),
-                        attributes: Object.assign({}, row, { _ttl: GRACE_TTL })
-                    }
-                })
-                .then(function() {
-                    return P.all(range(row.num).map(function(chunkId) {
-                        return restbase.get({
-                            uri: new URI([req.params.domain, 'sys', 'table',
-                                self._chunksTableName(req), '']),
-                            body: {
-                                table: self._chunksTableName(req),
-                                attributes: {
-                                    key: key,
-                                    chunk_id: chunkId,
-                                    tid: row.tid
-                                }
-                            }
-                        })
-                        .then(function(res) {
-                            var value = res.body.items[0];
-                            return restbase.put({
-                                uri: new URI([req.params.domain, 'sys', 'table',
-                                    self._chunksTableName(req), '']),
-                                body: {
-                                    table: self._chunksTableName(req),
-                                    attributes: Object.assign(value, { _ttl: GRACE_TTL })
-                                }
-                            });
-                        });
-                    }));
-                });
+                return self._setRowTTLs(hyper, req, row);
             });
         }
     });
 };
 
-ChunkedBucket.prototype.putRevision = function(restbase, req) {
+ChunkedBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var self = this;
     var rev = parseRevision(rp.revision);
@@ -364,7 +380,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
 
     var chunks = this._sliceData(req.body);
     return P.all(chunks.map(function(chunk, index) {
-        return restbase.put({
+        return hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', self._chunksTableName(req), '']),
             body: {
                 table: self._chunksTableName(req),
@@ -380,7 +396,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
     .then(function() {
         var headers = Object.assign({}, req.headers);
         headers.etag = headers.etag || mwUtil.makeETag(rev, tid);
-        return restbase.put({
+        return hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', self._metaTableName(req), '']),
             body: {
                 table: self._metaTableName(req),
@@ -388,7 +404,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
                     key: rp.key,
                     rev: rev,
                     tid: tid,
-                    num: chunks.length,
+                    num_chunks: chunks.length,
                     headers: headers
                 }
             }
@@ -397,7 +413,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
     .then(function(res) {
         if (res.status === 201) {
             // Do the retention policy update
-            return self._retentionPolicyUpdate(restbase, req, rp.key, rev, tid)
+            return self._retentionPolicyUpdate(hyper, req, rp.key, rev, tid)
             .thenReturn({
                 status: 201,
                 headers: {
@@ -413,7 +429,7 @@ ChunkedBucket.prototype.putRevision = function(restbase, req) {
         }
     })
     .catch(function(error) {
-        restbase.log('error/krlv/putRevision', error);
+        hyper.log('error/krlv/putRevision', error);
         return { status: 400 };
     });
 };
