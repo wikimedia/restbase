@@ -17,5 +17,5 @@ services:
       spec: *spec_root
       salt: secret
       default_page_size: 1
-      user_agent: Hyperswitch-testsuite
+      user_agent: HyperSwitch-testsuite
 

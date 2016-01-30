@@ -77,7 +77,7 @@ var nestedSecuritySpec = {
 
 var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
-var fakeHyperswitch = { config: {} };
+var fakeHyperSwitch = { config: {} };
 
 describe('tree building', function() {
 
@@ -85,7 +85,7 @@ describe('tree building', function() {
 
     it('should build a simple spec tree', function() {
         var router = new Router();
-        return router.loadSpec(rootSpec, fakeHyperswitch)
+        return router.loadSpec(rootSpec, fakeHyperSwitch)
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
             var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');

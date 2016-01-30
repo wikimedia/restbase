@@ -219,7 +219,7 @@ PSP._dependenciesUpdate = function(hyper, req) {
  * P.all() call, bundling it with a request for revision
  * info, so that a 403 error gets raised overall if access to
  * the revision should be denied
- * @param hyper the Hyperswitch router object
+ * @param {HyperSwitch} hyper the HyperSwitch router object
  * @param {Object} req the user request
  * @param {Object} promise the promise object to wrap
  * @private
@@ -236,7 +236,7 @@ PSP._wrapInAccessCheck = function(hyper, req, promise) {
  * Wrap content request with sections request if needed
  * and ensures charset in the response
  *
- * @param {Hyperswitch} hyper the Hyperswitch router object
+ * @param {HyperSwitch} hyper the HyperSwitch router object
  * @param {Object} req the user request
  * @param {Object} promise the promise object to wrap
  * @param {String} format the requested format
