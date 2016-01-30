@@ -43,11 +43,6 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      security:
-        - header_match:
-            - header: 'x-client-ip'
-              patterns:
-                - internal
       x-monitor: true
       x-amples:
         - title: Mathoid - check test formula
