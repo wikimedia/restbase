@@ -924,6 +924,7 @@ paths:
           description: The HTML to transform
           type: string
           required: true
+          x-textarea: true
         - name: scrub_wikitext
           in: formData
           description: Normalise the DOM to yield cleaner wikitext?
@@ -998,6 +999,7 @@ paths:
           description: The Wikitext to transform to HTML
           type: string
           required: true
+          x-textarea: true
         - name: body_only
           in: formData
           description: Return only `body.innerHTML`
@@ -1083,6 +1085,7 @@ paths:
           description: The HTML to transform
           type: string
           required: true
+          x-textarea: true
         - name: body_only
           in: formData
           description: Return only `body.innerHTML`
