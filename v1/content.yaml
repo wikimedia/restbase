@@ -16,15 +16,14 @@ paths:
     get:
       tags:
         - Page content
+      summary: List page-related API entry points.
       description: |
-        List page properties / page content sub-apis.
-
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json
       responses:
         '200':
-          description: The queriable sub-items
+          description: A list of page-related API end points.
           schema:
             $ref: '#/definitions/listing'
         default:
@@ -37,21 +36,20 @@ paths:
     get:
       tags:
         - Page content
+      summary: List all pages.
       description: |
-        List all pages.
-
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
       produces:
         - application/json
       parameters:
         - name: page
           in: query
-          description: The next page token
+          description: Next page token, provided by _links.next.href property.
           type: string
           required: false
       responses:
         '200':
-          description: The queriable list of page titles
+          description: A pageable list of page titles.
           schema:
             $ref: '#/definitions/listing'
         default:
@@ -70,26 +68,24 @@ paths:
     get:
       tags:
         - Page content
+      summary: Get latest revision metadata for a title.
       description: |
-        Returns the latest revision ID for the title present in storage.
-        Supply the Cache-Control: no-cache header to obtain the latest available revision ID
-
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
       parameters:
         - name: title
           in: path
-          description: The page title.
+          description: Page title.
           type: string
           required: true
       responses:
         '200':
-          description: The latest revision for the title
+          description: The latest revision metadata for the provided title.
           schema:
             $ref: '#/definitions/revision'
         '404':
-          description: Unknown page title or no revisions found
+          description: Unknown page title or no revisions found.
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -144,11 +140,12 @@ paths:
     get:
       tags:
         - Page content
+      summary: List revisions for a title.
       description: |
-        List revisions for a title. Currently this lists all revisions that
-        ever used this title and are stored in RESTBase, but eventually it
-        should probably return the linear history (across renames) of the page
-        currently using this title.
+        Currently this lists all revisions that ever used this title and are
+        stored in RESTBase, but eventually it should return the
+        linear history (across renames) of the page currently using this
+        title.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -156,17 +153,17 @@ paths:
       parameters:
         - name: title
           in: path
-          description: The page title.
+          description: Page title.
           type: string
           required: true
         - name: page
           in: query
-          description: The next page token
+          description: Next page token, provided by _links.next.href property.
           type: string
           required: false
       responses:
         '200':
-          description: The queriable list of page revisions.
+          description: A list of revisions for a title.
           schema:
             $ref: '#/definitions/listing'
         default:
@@ -181,78 +178,79 @@ paths:
                 page: '{page}'
       x-monitor: false
 
-  /{module:page}/html/:
-    get:
-      tags:
-        - Page content
-      description: |
-        List titles for which an HTML representation is available. Currently
-        this only lists pages that have revisions stored in RESTBase.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: The next page token
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The queriable list of page titles
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/page/
-              query:
-                page: '{page}'
-      x-monitor: false
+#  /{module:page}/html/:
+#    get:
+#      tags:
+#        - Page content
+#      summary: List titles available as HTML.
+#      description: |
+#        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+#      produces:
+#        - application/json
+#      parameters:
+#        - name: page
+#          in: query
+#          description: Next page token, provided by _links.next.href property.
+#          type: string
+#          required: false
+#      responses:
+#        '200':
+#          description: A list of page titles.
+#          schema:
+#            $ref: '#/definitions/listing'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: /{domain}/sys/page_revisions/page/
+#              query:
+#                page: '{page}'
+#      x-monitor: false
 
   /{module:page}/html/{title}:
     get:
       tags:
         - Page content
+      summary: Get latest HTML for a title.
       description: |
-        Retrieve the latest html for a title.
-
-        The response provides an `ETag` header indicating the revision and
-        render timeuuid separated by a slash
-        (ex: `ETag: 701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc`). This ETag can be
-        passed to the HTML save end point (as `base_etag` POST parameter), and
-        can also be used to retrieve the exact corresponding data-parsoid
-        metadata, by requesting the specific `revision` and `tid` indicated by
-        the `ETag`.
-
-        See [the MediaWiki DOM
-        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
-        description of the MediaWiki-specific semantic markup in this HTML.
-        Note that additional metadata is available in the HTML head.
-
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: title
           in: path
-          description: The page title.
+          description: Page title.
           type: string
           required: true
         - name: sections
           in: query
-          description: Comma-separated list of section IDs
+          description: Comma-separated list of section IDs.
           type: string
       produces:
         - text/html; profile="mediawiki.org/specs/html/1.1.0"
       responses:
         '200':
           description: |
-            The html for the given page title. Conforms to
-            https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec.
+            The latest HTML for the given page title.
+
+            See [the MediaWiki DOM
+            spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+            description of the MediaWiki-specific semantic markup in this HTML.
+            Note that additional metadata is available in the HTML head.
+          schema:
+            type: string
+          headers:
+            ETag:
+              description: |
+                ETag header indicating the revision and render timeuuid
+                separated by a slash:
+                "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+                This ETag can be passed to the HTML save end point (as
+                `base_etag` POST parameter), and can also be used to retrieve
+                the exact corresponding data-parsoid metadata, by requesting
+                the specific `revision` and `tid` indicated by the `ETag`.
+              type: string
         '404':
           description: Unknown page title
           schema:
@@ -308,8 +306,11 @@ paths:
     post:
       tags:
         - Page content
+      summary: Save a new revision using HTML.
       description: |
-        Save a new revision of a page given in HTML format.
+        Save a new revision of a page given in [Parsoid
+        HTML](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
+        format.
 
         For new pages, or when editting the latest revision of a page,
         the `base_etag` parameter should be left empty. For editing old revisions,
@@ -319,45 +320,44 @@ paths:
         to detect edit conflicts. If the new page is created, appropriate user cookies
         must be provided.
 
-        See [the MediaWiki DOM spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
-        for a description of the MediaWiki-specific semantic markup needed by this API
-        end-point.
-
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: title
           in: path
-          description: The page title.
+          description: Page title.
           type: string
           required: true
         - name: base_etag
           in: formData
-          description: The ETag header of the revision the edit is based on.
+          description: >
+            ETag header of the revision the edit is based on. Should be
+            supplied for all existing pages to ensure clean round-tripping.
           type: string
           required: false
         - name: html
           in: formData
-          description: The HTML of the page to save
+          description: HTML of the page to save.
           type: string
           required: true
+          x-textarea: true
         - name: csrf_token
           in: formData
-          description: The CSRF edit token provided by the MW API
+          description: CSRF edit token provided by the MW API.
           type: string
           required: true
         - name: comment
           in: formData
-          description: The summary of the change
+          description: Comment summarizing the change.
           type: string
           required: false
         - name: is_minor
           in: formData
-          description: Whether this represents a minor change
+          description: Flag indicating a minor change.
           type: boolean
           required: false
         - name: is_bot
           in: formData
-          description: Whether the change is being made by a bot
+          description: Flag indicating a bot edit.
           type: boolean
           required: false
       consumes:
@@ -366,9 +366,18 @@ paths:
         - application/json
       responses:
         '200':
-          description: The existing revision of the page matches the sent text
+          description: The content was not changed, and no new version was created.
+          schema:
+            type: string
         '201':
           description: A new revision of the page has been created
+          headers:
+            ETag:
+              description: |
+                ETag header indicating the new revision and timeuuid,
+                separated by a slash:
+                "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              type: string
         '400':
           description: Invalid request - lack of required parameters, bad ETags etc.
           schema:
@@ -396,9 +405,9 @@ paths:
     get:
       tags:
         - Page content
+      summary: List HTML revisions for a title.
       description: |
-        List HTML revisions for a title. This currently only lists revisions
-        that are already stored in RESTBase.
+        This currently only lists revisions that are already stored in RESTBase.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -411,12 +420,12 @@ paths:
           required: true
         - name: page
           in: query
-          description: The next page token
+          description: The next page token, provided by _links.next.href property.
           type: string
           required: false
       responses:
         '200':
-          description: The list of revisions
+          description: A list of revisions for the given title.
           schema:
             $ref: '#/definitions/revisions'
         default:
@@ -440,27 +449,8 @@ paths:
     get:
       tags:
         - Page content
+      summary: Get HTML for a specific title/revision & optionally timeuuid.
       description: |
-        Retrieve the html for a given title, revision, and optionally timeuuid.
-
-        The response provides an `ETag` header indicating the revision and
-        render timeuuid separated by a slash
-        (ex: `ETag: 701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc`). This ETag can be
-        passed to the HTML save end point (as `base_etag` POST parameter), and
-        can also be used to retrieve the exact corresponding data-parsoid
-        metadata, by requesting the specific `revision` and `tid` indicated by
-        the `ETag`.
-
-        See [the MediaWiki DOM
-        spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
-        description of the MediaWiki-specific semantic markup in this HTML.
-        Note that additional metadata is available in the HTML head.
-
-        This HTML can be edited using arbitrary HTML tools. The modified HTML
-        can be converted back to wikitext using the
-        [/transform/html/to/wikitext{/title}{/revision}](#!/Transforms/transform_html_to_wikitext__title___revision__post)
-        entry point.
-
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       operationId: getFormatRevision
       produces:
@@ -487,8 +477,30 @@ paths:
       responses:
         '200':
           description: |
-            The html for the given page, revision and tid. Conforms to
-            https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec.
+            The html for the given page, revision and tid.
+
+            See [the MediaWiki DOM
+            spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+            description of the MediaWiki-specific semantic markup in this HTML.
+            Note that additional metadata is available in the HTML head.
+
+            This HTML can be edited using arbitrary HTML tools. The modified HTML
+            can be converted back to wikitext using the
+            [/transform/html/to/wikitext{/title}{/revision}](#!/Transforms/transform_html_to_wikitext__title___revision__post)
+            entry point.
+          schema:
+            type: string
+          headers:
+            ETag:
+              description: |
+                ETag header indicating the revision and render timeuuid
+                separated by a slash:
+                "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+                This ETag can be passed to the HTML save end point (as
+                `base_etag` POST parameter), and can also be used to retrieve
+                the exact corresponding data-parsoid metadata, by requesting
+                the specific `revision` and `tid` indicated by the `ETag`.
+              type: string
         '400':
           description: Invalid revision or tid
           schema:
@@ -518,104 +530,114 @@ paths:
                 sections: '{sections}'
       x-monitor: false
 
-  /{module:page}/data-parsoid/:
-    get:
-      tags:
-        - Page content
-      description: |
-        List titles for which the data-parsoid property is available. This
-        currently only lists pages which have revisions stored in RESTBase.
+#  /{module:page}/data-parsoid/:
+#    get:
+#      tags:
+#        - Page content
+#      summary: List titles for which data-parsoid is available.
+#      description: |
+#        Data-parsoid is metadata used by
+#        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
+#        round-tripping conversions between HTML and Wikitext. Besides other
+#        things, it contains the original Wikitext offsets of each HTML
+#        element, indexed by HTML element `id` attribute in the `ids` property.
+#        The format is private to Parsoid and unstable.
+#
+#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+#      produces:
+#        - application/json
+#      parameters:
+#        - name: page
+#          in: query
+#          description: Next page token, provided by _links.next.href property.
+#          type: string
+#          required: false
+#      responses:
+#        '200':
+#          description: The queriable list of page titles
+#          schema:
+#            $ref: '#/definitions/listing'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              # Fixme: only list pages that have at least one revision with content
+#              # model 'wikitext'
+#              uri: /{domain}/sys/page_revisions/page/
+#              query:
+#                page: '{page}'
+#      x-monitor: false
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: The next page token
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The queriable list of page titles
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              # Fixme: only list pages that have at least one revision with content
-              # model 'wikitext'
-              uri: /{domain}/sys/page_revisions/page/
-              query:
-                page: '{page}'
-      x-monitor: false
-
-  /{module:page}/data-parsoid/{title}:
-    get:
-      tags:
-        - Page content
-      description: |
-        Retrieve the latest data-parsoid (private Parsoid metadata)
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      parameters:
-        - name: title
-          in: path
-          description: the title of page content
-          type: string
-          required: true
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: data-parsoid JSON blob
-          schema:
-            $ref: '#/definitions/data-parsoid'
-        '404':
-          description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/parsoid/data-parsoid/{title}
-              headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
-      x-monitor: true
-      x-amples:
-        - title: Get data-parsoid by title
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Foobar
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: application/json
-            body:
-              counter: /\d+/
-              ids: /.*/
-              sectionOffsets: /.*/
+#  /{module:page}/data-parsoid/{title}:
+#    get:
+#      tags:
+#        - Page content
+#      summary: Get latest data-parsoid metadata for a title.
+#      description: |
+#        Data-parsoid is metadata used by
+#        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
+#        round-tripping conversions between HTML and Wikitext. Among other
+#        things, it contains the original Wikitext offsets of each HTML
+#        element, keyed by element ID. The format is unstable.
+#
+#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+#      parameters:
+#        - name: title
+#          in: path
+#          description: the title of page content
+#          type: string
+#          required: true
+#      produces:
+#        - application/json
+#      responses:
+#        '200':
+#          description: data-parsoid JSON blob
+#          schema:
+#            $ref: '#/definitions/data-parsoid'
+#        '404':
+#          description: Unknown page title
+#          schema:
+#            $ref: '#/definitions/problem'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: /{domain}/sys/parsoid/data-parsoid/{title}
+#              headers:
+#                cache-control: '{cache-control}'
+#                if-unmodified-since: '{if-unmodified-since}'
+#                x-restbase-mode: '{x-restbase-mode}'
+#                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+#      x-monitor: true
+#      x-amples:
+#        - title: Get data-parsoid by title
+#          request:
+#            params:
+#              domain: en.wikipedia.org
+#              title: Foobar
+#          response:
+#            status: 200
+#            headers:
+#              etag: /.+/
+#              content-type: application/json
+#            body:
+#              counter: /\d+/
+#              ids: /.*/
+#              sectionOffsets: /.*/
 
   /{module:page}/data-parsoid/{title}/:
     get:
       tags:
         - Page content
+      summary: List data-parsoid revisions for a page.
       description: |
-        List data-parsoid revisions for a page. This currently only lists
-        revisions stored in RESTBase.
+        This currently only lists revisions stored in RESTBase.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
@@ -628,7 +650,7 @@ paths:
           required: true
         - name: page
           in: query
-          description: The next page token
+          description: Next page token, provided by _links.next.href property.
           type: string
           required: false
       responses:
@@ -657,12 +679,21 @@ paths:
               page: '{page}'
       x-monitor: false
 
-  /{module:page}/data-parsoid/{title}/{revision}{/tid}:
+  /{module:page}/data-parsoid/{title}/{revision}/{tid}:
     get:
       tags:
         - Page content
+      summary: Get data-parsoid metadata for a specific title/revision/tid.
       description: |
-        Retrieve data-parsoid (internal Parsoid metadata) for a given page & revision
+        Data-parsoid is metadata used by
+        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
+        round-tripping conversions between HTML and Wikitext. Among other
+        things, it contains the original Wikitext offsets of each HTML
+        element, keyed by element ID. The format is unstable.
+
+        To retrieve the precise data-parsoid corresponding to a HTML revision,
+        you should supply the exact `revision` and `tid` as provided in the
+        `ETag` header of the HTML response.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
@@ -688,6 +719,10 @@ paths:
           description: The latest Parsoid data for the given page
           schema:
             $ref: '#/definitions/data-parsoid'
+          headers:
+            ETag:
+              description: 'Revision / tid: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"'
+              type: string
         '400':
           description: Invalid revision
           schema:
@@ -719,16 +754,16 @@ paths:
     get:
       tags:
         - Page content
+      summary: List all page revisions.
       description: |
-        List revisions. This currently only lists revisions stored in RESTBase.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental).
+        Don't rely on this.
       produces:
         - application/json
       parameters:
         - name: page
           in: query
-          description: The next page token
+          description: Next page token, provided by _links.next.href property.
           type: string
           required: false
       responses:
@@ -752,9 +787,8 @@ paths:
     get:
       tags:
         - Page content
+      summary: Get metadata about a specific revision.
       description: |
-        Get metadata about a specific revision.
-
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
@@ -815,15 +849,14 @@ paths:
     post:
       tags:
         - Page content
+      summary: Save a new revision of a page using Wikitext.
       description: |
-        Save a new revision of a page.
-
         For new pages, or when editting the latest revision of a page,
         the `base_etag` parameter should be left empty.
         For editing old revisions, it should contain the ETag header
         of the revision the edit is derived from.
 
-        The latest page revision ETag header could be provided in the If-Match header
+        The latest page revision ETag header should be provided in the If-Match header
         to detect edit conflicts. If the new page is created, appropriate user cookies
         must be provided.
 
@@ -844,6 +877,7 @@ paths:
           description: The wikitext source of the page to save
           type: string
           required: true
+          x-textarea: true
         - name: csrf_token
           in: formData
           description: The CRSF edit token provided by the MW API
@@ -873,6 +907,15 @@ paths:
           description: The existing revision of the page matches the sent text
         '201':
           description: A new revision of the page has been created
+          schema:
+            type: string
+          headers:
+            ETag:
+              description: |
+                ETag header indicating the new revision and timeuuid,
+                separated by a slash:
+                "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              type: string
         '400':
           description: Invalid request - lack of required parameters, bad ETags etc.
           schema:
@@ -900,8 +943,10 @@ paths:
     post:
       tags:
         - Transforms
+      summary: Transform HTML to Wikitext
       description: |
-        Transform HTML to wikitext
+        Transform [Parsoid HTML](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
+        to Wikitext.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
@@ -932,7 +977,9 @@ paths:
           required: false
       responses:
         '200':
-          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+          description: MediaWiki Wikitext.
+          schema:
+            type: string
         '403':
           description: Access to the specific revision is restricted
           schema:
@@ -968,9 +1015,10 @@ paths:
     post:
       tags:
         - Transforms
+      summary: Transform Wikitext to HTML
       description: |
         Transform wikitext to HTML. Note that if you set `stash: true`, you
-          also need to supply the title.
+        also need to supply the title.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
@@ -1007,6 +1055,8 @@ paths:
       responses:
         '200':
           description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+          schema:
+            type: string
         '403':
           description: access to the specific revision is restricted
           schema:
@@ -1051,80 +1101,85 @@ paths:
               content-type: /^text\/html.+/
             body: /^<h2.*> Heading <\/h2>$/
 
-  /{module:transform}/html/to/html{/title}{/revision}:
-    post:
-      tags:
-        - Transforms
-      description: |
-        Update / refresh / sanitize HTML
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      consumes:
-        - multipart/form-data
-      produces:
-        - text/html; profile="mediawiki.org/specs/html/1.1.0"
-      parameters:
-        - name: title
-          in: path
-          description: The page title
-          type: string
-          required: false
-        - name: revision
-          in: path
-          description: The page revision
-          type: integer
-          required: false
-        - name: html
-          in: formData
-          description: The HTML to transform
-          type: string
-          required: true
-          x-textarea: true
-        - name: body_only
-          in: formData
-          description: Return only `body.innerHTML`
-          type: boolean
-          required: false
-      responses:
-        '200':
-          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
-        '403':
-          description: access to the specific revision is restricted
-          schema:
-            $ref: '#/definitions/problem'
-        '404':
-          description: Unknown page title or revision
-          schema:
-            $ref: '#/definitions/problem'
-        '409':
-          description: Revision was restricted
-          schema:
-            $ref: '#/definitions/problem'
-        '410':
-          description: Page was deleted
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
-              headers:
-                if-match: '{if-match}'
-              body:
-                html: '{html}'
-                body_only: '{body_only}'
-      x-monitor: false
+#  /{module:transform}/html/to/html{/title}{/revision}:
+#    post:
+#      tags:
+#        - Transforms
+#
+#      description: |
+#        Update / refresh / sanitize HTML
+#
+#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+#      consumes:
+#        - multipart/form-data
+#      produces:
+#        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+#      parameters:
+#        - name: title
+#          in: path
+#          description: The page title
+#          type: string
+#          required: false
+#        - name: revision
+#          in: path
+#          description: The page revision
+#          type: integer
+#          required: false
+#        - name: html
+#          in: formData
+#          description: The HTML to transform
+#          type: string
+#          required: true
+#          x-textarea: true
+#        - name: body_only
+#          in: formData
+#          description: Return only `body.innerHTML`
+#          type: boolean
+#          required: false
+#      responses:
+#        '200':
+#          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+#        '403':
+#          description: access to the specific revision is restricted
+#          schema:
+#            $ref: '#/definitions/problem'
+#        '404':
+#          description: Unknown page title or revision
+#          schema:
+#            $ref: '#/definitions/problem'
+#        '409':
+#          description: Revision was restricted
+#          schema:
+#            $ref: '#/definitions/problem'
+#        '410':
+#          description: Page was deleted
+#          schema:
+#            $ref: '#/definitions/problem'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+#              headers:
+#                if-match: '{if-match}'
+#              body:
+#                html: '{html}'
+#                body_only: '{body_only}'
+#      x-monitor: false
 
   /{module:transform}/sections/to/wikitext/{title}/{revision}:
     post:
       tags:
         - Transforms
+
+      summary: Transform modified HTML sections to Wikitext.
       description: |
-        Transform sections representation to wikitext
+        This entry point provides efficient HTML section edit functionality.
+        The client can send back only modified HTML sections, and retrieve the
+        full Wikitext of the page.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
@@ -1156,7 +1211,9 @@ paths:
               - sections
       responses:
         '200':
-          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+          description: Wikitext of the full page.
+          schema:
+            type: string
         '400':
           description: Illegal JSON provided or section id does not exist
           schema:
@@ -1211,7 +1268,7 @@ definitions:
     properties:
       items:
         type: array
-        $ref: revisionIdentifier
+        $ref: '#/definitions/revisionIdentifier'
 
   listing:
     description: The result format for listings
@@ -1222,6 +1279,15 @@ definitions:
         type: array
         items:
           type: string
+      _links:
+        type: object
+        properties:
+          next:
+            type: object
+            properties:
+              href:
+                type: string
+                description: Relative link to next result page.
 
   data-parsoid:
     description: Result format for Parsoid data queries
@@ -1246,7 +1312,7 @@ definitions:
         format: int32
       items:
         type: array
-        $ref: revisionInfo
+        $ref: '#/definitions/revisionInfo'
 
   revisionInfo:
     description: Complete information about the revision

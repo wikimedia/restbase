@@ -16,6 +16,7 @@ paths:
     get:
       tags:
         - Page content
+      summary: Get a text extract & thumb summary of a page.
       description: |
         Returns the summary of the latest page content available in storage.
         Currently the summary includes the text for the first several sentences and
@@ -45,6 +46,11 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
 
       x-setup-handler:
         # Set up a simple key-value bucket.
