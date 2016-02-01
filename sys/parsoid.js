@@ -111,7 +111,6 @@ function ensureCharsetInContentType(res) {
 function ParsoidService(options) {
     var self = this;
     this.options = options = options || {};
-    this.log = options.log || function() {};
     this.parsoidHost = options.parsoidHost;
 
     // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
@@ -199,7 +198,7 @@ PSP._dependenciesUpdate = function(hyper, req) {
     }
     summaryPromise = summaryPromise.catch(function(e) {
         if (e.status !== 501 && e.status !== 404) {
-            self.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
+            hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
             'summary' : 'definition', e);
         }
     });
@@ -209,7 +208,7 @@ PSP._dependenciesUpdate = function(hyper, req) {
             uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
                 'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
         }).catch(function(e) {
-            self.log('warn/mobileapps', e);
+            hyper.log('warn/mobileapps', e);
         })
     );
 };
@@ -960,9 +959,8 @@ PSP.makeTransform = function(from, to) {
             delete res.headers['content-length'];
             // Log remaining scrubWikitext flag uses / users before removing it from the API
             if (originalScrubWikitext) {
-                self.log('warn/parsoid/scrubWikitext', {
-                    msg: 'Client-supplied scrubWikitext flag encountered',
-                    req_headers: hyper._rootReq && hyper._rootReq.headers
+                hyper.log('warn/parsoid/scrubWikitext', {
+                    msg: 'Client-supplied scrubWikitext flag encountered'
                 });
             }
             return res;
