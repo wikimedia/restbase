@@ -23,6 +23,12 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     var contentTypes = server.config.conf.test.content_types;
 
+    /**
+     * Disabled, as there is really not much of a use case for fetching
+     * data-parsoid without also fetching the corresponding HTML, and we have
+     * made the tid compulsory to avoid clients making the mistake of
+     * requesting a different render of data-parsoid.
+     *
     it('should transparently create revision A via Parsoid', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
@@ -36,6 +42,7 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.remoteRequests(slice, true);
         });
     });
+    */
 
     it('should transparently create revision B via Parsoid', function () {
         var slice = server.config.logStream.slice();
@@ -51,6 +58,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         });
     });
 
+    var revBETag;
     it('should retrieve html revision B from storage', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
@@ -62,13 +70,14 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(typeof res.body, 'string');
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
+            revBETag = res.headers.etag.replace(/^"(.*)"$/, '$1');
         });
     });
 
     it('should retrieve data-parsoid revision B from storage', function () {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: pageUrl + '/data-parsoid/' + title + '/' + revB,
+            uri: pageUrl + '/data-parsoid/' + title + '/' + revBETag
         })
         .then(function (res) {
             slice.halt();
@@ -99,6 +108,10 @@ describe('on-demand generation of html and data-parsoid', function() {
         });
     });
 
+    /**
+     * We always update html as the primary content, and have made the tid
+     * mandatory for data-parsoid requests. Hence, disable this test.
+     *
     it('should pass (stored) revision B content to Parsoid for template update',
     function () {
         // Start watching for new log entries
@@ -130,6 +143,7 @@ describe('on-demand generation of html and data-parsoid', function() {
             }
         });
     });
+    */
 
     it('should pass (stored) revision B content to Parsoid for image update',
     function () {

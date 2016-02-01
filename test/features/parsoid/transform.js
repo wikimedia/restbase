@@ -33,6 +33,10 @@ describe('transform api', function() {
 
     var contentTypes = server.config.conf.test.content_types;
 
+    /**
+     * I don't think these have ever really worked.
+     * Blocked on https://phabricator.wikimedia.org/T114413 (provide html2html
+     * end point in Parsoid).
     it('html2html', function () {
         return preq.post({
             uri: server.config.labsURL
@@ -73,6 +77,7 @@ describe('transform api', function() {
             assert.contentType(res, contentTypes.html);
         });
     });
+    */
 
     it('wt2html', function () {
         return preq.post({
@@ -236,7 +241,7 @@ describe('transform api', function() {
                 '<meta content="cc8ba6b3-636c-11e5-b601-24b4f65ab671" property="mw:TimeUuid" />');
         return preq.post({
             uri: server.config.labsURL
-                    + '/transform/html/to/html/' + testPage.title
+                    + '/transform/html/to/wikitext/' + testPage.title
                     + '/' + testPage.revision,
             body: {
                 html: newHtml
@@ -244,12 +249,12 @@ describe('transform api', function() {
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
-            var pattern = /<div id="bar">Selser test<\/div>/;
+            var pattern = /Selser test/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
                 + '\nSaw: ' + JSON.stringify(res, null, 2));
             }
-            assert.contentType(res, contentTypes.html);
+            assert.contentType(res, contentTypes.wikitext);
         });
     });
 
