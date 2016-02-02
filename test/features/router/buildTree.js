@@ -20,61 +20,6 @@ var rootSpec = {
     }
 };
 
-// x-subspec and x-subspecs is no longer supported.
-var faultySpec = {
-    paths: {
-        '/{domain:en.wikipedia.org}': {
-            'x-subspecs': [],
-            'x-subspec': {}
-        }
-    }
-};
-
-var additionalMethodSpec = {
-    paths: {
-        '/{domain:en.wikipedia.org}/v1': {
-            'x-modules': {
-                '/': [{
-                    path: 'test/features/router/subspec1.yaml',
-                },
-                {
-                    path: 'test/features/router/subspec2.yaml',
-                }],
-            }
-        }
-    }
-};
-
-var overlappingMethodSpec = {
-    paths: {
-        '/{domain:en.wikipedia.org}/v1': {
-            'x-modules': {
-                '/': [{
-                    path: 'test/features/router/subspec1.yaml',
-                },
-                {
-                    path: 'test/features/router/subspec1.yaml',
-                }]
-            }
-        }
-    }
-};
-
-
-var nestedSecuritySpec = {
-    paths: {
-        '/{domain:en.wikipedia.org}/v1': {
-            'x-modules': {
-                '/': [{
-                    path: 'test/features/router/secure_subspec.yaml'
-                }],
-            },
-            security: ['first'],
-        }
-    }
-};
-
-
 var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
 var fakeHyperSwitch = { config: {} };
@@ -84,7 +29,9 @@ describe('tree building', function() {
     before(function() { server.start(); });
 
     it('should build a simple spec tree', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(rootSpec, fakeHyperSwitch)
         .then(function() {
             //console.log(JSON.stringify(router.tree, null, 2));
@@ -97,7 +44,9 @@ describe('tree building', function() {
     });
 
     it('should build the example config spec tree', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         var resourceRequests = [];
         return router.loadSpec(fullSpec.spec_root, {
             request: function(req) {
