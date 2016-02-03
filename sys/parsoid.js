@@ -751,13 +751,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             body2[from] = req.body[from];
         }
 
-        // For now, simply pass this through.
-        // See https://phabricator.wikimedia.org/T106909 for the discussion
-        // about the longer term plan.
-        if (req.body.scrubWikitext || req.body.scrub_wikitext) {
-            body2.scrubWikitext = true;
-        }
-
+        body2.scrub_wikitext = req.body.scrub_wikitext;
         body2.body_only = req.body.body_only;
 
         // Let the stash flag through as well
@@ -848,12 +842,6 @@ PSP.callParsoidTransform = function callParsoidTransform(hyper, req, from, to) {
     var parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
     if (parsoidExtraPath) { parsoidExtraPath = '/' + parsoidExtraPath; }
 
-    // ensure scrub_wikitext has been translated
-    if (req.body.scrub_wikitext || req.body.scrubWikitext) {
-        req.body.scrubWikitext = true;
-        delete req.body.scrub_wikitext;
-    }
-
     var parsoidReq = {
         uri: this.parsoidHost + '/' + rp.domain + '/v3/transform/'
             + from + '/to/' + parsoidTo + parsoidExtraPath,
@@ -919,7 +907,6 @@ PSP.makeTransform = function(from, to) {
             }
         }
 
-        var originalScrubWikitext = req.body.scrubWikitext;
         var transform;
         if (rp.revision && rp.revision !== '0') {
             transform = self.transformRevision(hyper, req, from, to);
@@ -957,12 +944,6 @@ PSP.makeTransform = function(from, to) {
             // remove the content-length header since that
             // is added automatically
             delete res.headers['content-length'];
-            // Log remaining scrubWikitext flag uses / users before removing it from the API
-            if (originalScrubWikitext) {
-                hyper.log('warn/parsoid/scrubWikitext', {
-                    msg: 'Client-supplied scrubWikitext flag encountered'
-                });
-            }
             return res;
         });
     };
