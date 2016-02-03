@@ -13,7 +13,6 @@ var stringify = require('json-stable-stringify');
 var URI = require('swagger-router').URI;
 
 function PostDataBucket(options) {
-    this.log = options.log || function() {};
 }
 
 PostDataBucket.prototype.createBucket = function(hyper, req) {

@@ -16,7 +16,6 @@ var fs = require('fs');
 var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_value.yaml'));
 
 function KVBucket(options) {
-    this.log = options.log || function() {};
 }
 
 KVBucket.prototype.getBucketInfo = function(hyper, req, options) {
@@ -118,7 +117,7 @@ KVBucket.prototype.listBucket = function(hyper, req, options) {
         };
     })
     .catch(function(error) {
-        self.log('error/kv/listBucket', error);
+        hyper.log('error/kv/listBucket', error);
         throw new HTTPError({ status: 404 });
     });
 };

@@ -16,7 +16,6 @@ var TimeUuid = require('cassandra-uuid').TimeUuid;
 
 function PageSave(options) {
     var self = this;
-    this.log = options.log || function() {};
     this.spec = {
         paths: {
             '/wikitext/{title}': {

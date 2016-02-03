@@ -19,7 +19,6 @@ var backend;
 var config;
 
 function KRVBucket(options) {
-    this.log = options.log || function() {};
 }
 
 KRVBucket.prototype.getBucketInfo = function(hyper, req, options) {
@@ -120,7 +119,7 @@ KRVBucket.prototype.listBucket = function(hyper, req, options) {
         };
     })
     .catch(function(error) {
-        self.log('error/kv/listBucket', error);
+        hyper.log('error/kv/listBucket', error);
         throw new HTTPError({ status: 404 });
     });
 };

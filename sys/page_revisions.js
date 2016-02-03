@@ -26,7 +26,6 @@ var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/page_revisions.yaml'));
 // Title Revision Service
 function PRS(options) {
     this.options = options;
-    this.log = options.log || function() {};
 }
 
 

@@ -18,7 +18,6 @@ var HTTPError = require('../lib/exports').HTTPError;
 // Pageviews Service
 function PJVS(options) {
     this.options = options;
-    this.log = options.log || function() {};
 }
 
 
