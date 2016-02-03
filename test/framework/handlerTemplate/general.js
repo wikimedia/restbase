@@ -9,8 +9,21 @@ var nock   = require('nock');
 /* global describe, it, before, beforeEach, after, afterEach */
 
 describe('Handler Template', function() {
-    var server = new Server('test/framework/handlerTemplate/test_config.yaml');
-    before(function() { return server.start(); });
+    var server;
+
+    it('Runs the setup handler', function() {
+        var api = nock('http://mocked_domain_for_tests.com', {
+            reqheaders: {
+                test: 'test_value'
+            }
+        })
+        .get('/test').reply(200, '');
+
+        server = new Server('test/framework/handlerTemplate/test_config.yaml');
+        return server.start()
+        .then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
 
     it('Retrieve content from backend service', function () {
         var mockReply = '<html><head><title>1</title></head><body></body></html>';
@@ -27,7 +40,7 @@ describe('Handler Template', function() {
         .finally(function() { nock.cleanAll(); });
     });
 
-    it('Retrieve content from backend service innparallel', function () {
+    it('Retrieve content from backend service in parallel', function () {
         var mockReply1 = '<html><head><title>1</title></head><body></body></html>';
         var mockReply2 = '<html><head><title>2</title></head><body></body></html>';
         var api = nock('http://mocked_domain_for_tests.com')
@@ -109,6 +122,19 @@ describe('Handler Template', function() {
         }, function(e) {
             assert.deepEqual(e.status, 500);
             assert.deepEqual(e.headers['content-type'], 'text/plain');
+        })
+        .then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
+
+    it('Supports non-status conditions', function() {
+        var api = nock('http://mocked_domain_for_tests.com')
+        .get('/TestTitle').reply(200, { test: 'test' }, { 'Content-Type': 'application/json' });
+
+        return preq.get({ uri: server.hostPort + '/service/non_status_catch/TestTitle' })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, { test: 'test'});
         })
         .then(function() { api.done(); })
         .finally(function() { nock.cleanAll(); });
