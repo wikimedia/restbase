@@ -16,4 +16,15 @@ function deepEqual(result, expected, message) {
     }
 }
 
+function notDeepEqual(result, expected, message) {
+    try {
+        assert.notDeepEqual(result, expected, message);
+    } catch (e) {
+        console.log('Not expected:\n' + JSON.stringify(expected,null,2));
+        console.log('Result:\n' + JSON.stringify(result,null,2));
+        throw e;
+    }
+}
+
 module.exports.deepEqual = deepEqual;
+module.exports.notDeepEqual = notDeepEqual;
