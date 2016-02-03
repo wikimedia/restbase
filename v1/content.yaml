@@ -930,11 +930,6 @@ paths:
           description: Normalise the DOM to yield cleaner wikitext?
           type: boolean
           required: false
-        - name: scrubWikitext
-          in: formData
-          description: Deprecated, use `scrub_wikitext` instead.
-          type: boolean
-          required: false
       responses:
         '200':
           description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
@@ -966,7 +961,6 @@ paths:
                 if-match: '{if-match}'
               body:
                 html: '{html}'
-                scrubWikitext: '{scrubWikitext}'
                 scrub_wikitext: '{scrub_wikitext}'
       x-monitor: false
 
