@@ -2,7 +2,6 @@
   "name": "restbase",
   "version": "0.10.0",
   "description": "REST storage and service dispatcher",
-  "main": "lib/server.js",
   "scripts": {
     "start": "service-runner",
     "test": "sh test/utils/run_tests.sh test",
@@ -32,21 +31,17 @@
   },
   "homepage": "https://github.com/wikimedia/restbase",
   "dependencies": {
-    "core-js": "^2.0.3",
     "bluebird": "^3.1.1",
-    "busboy": "^0.2.12",
     "js-yaml": "^3.5.2",
-    "jsonwebtoken": "^5.5.4",
     "cassandra-uuid": "^0.0.2",
     "preq": "^0.4.8",
     "restbase-mod-table-cassandra": "^0.8.15",
     "service-runner": "^1.1.0",
     "swagger-router": "^0.3.4",
-    "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "htcp-purge": "^0.1.2",
-    "ajv": "^3.4.0",
-    "content-type": "git+https://github.com/wikimedia/content-type#master"
+    "content-type": "git+https://github.com/wikimedia/content-type#master",
+    "hyperswitch": "/Users/pchelko/sandbox/wiki/hyperswitch"
   },
   "devDependencies": {
     "bunyan": "^1.5.1",
