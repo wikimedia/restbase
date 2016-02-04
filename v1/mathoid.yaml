@@ -27,6 +27,7 @@ paths:
           enum:
             - tex
             - inline-tex
+            - chem
         - name: q
           in: formData
           description: The formula to check
