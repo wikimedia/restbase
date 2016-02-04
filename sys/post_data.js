@@ -4,13 +4,12 @@
  * Key-value bucket handler
  */
 
-// TODO: move to separate spec package
-var yaml = require('js-yaml');
-var fs = require('fs');
-var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/post_data.yaml'));
+var HyperSwitch = require('hyperswitch');
 var crypto = require('crypto');
 var stringify = require('json-stable-stringify');
-var URI = require('swagger-router').URI;
+var URI = HyperSwitch.URI;
+
+var spec = HyperSwitch.utils.loadSpec(__dirname + '/post_data.yaml');
 
 function PostDataBucket(options) {
 }

@@ -5,7 +5,7 @@
 
 var assert = require('assert');
 var preq   = require('preq');
-var Router = require('../../../lib/router');
+var Router = require('hyperswitch/lib/router');
 var server = require('../../utils/server');
 
 var rootSpec = {

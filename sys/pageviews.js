@@ -6,14 +6,11 @@
  * This API serves pre-aggregated pageview statistics from Cassandra
  */
 
-var URI = require('swagger-router').URI;
+var HyperSwitch = require('hyperswitch');
+var HTTPError = HyperSwitch.HTTPError;
+var URI = HyperSwitch.URI;
 
-var fs = require('fs');
-var yaml = require('js-yaml');
-var path = require('path');
-var spec = yaml.safeLoad(fs.readFileSync(path.join(__dirname, '/pageviews.yaml')));
-var HTTPError = require('../lib/exports').HTTPError;
-
+var spec = HyperSwitch.utils.loadSpec(__dirname + '/pageviews.yaml');
 
 // Pageviews Service
 function PJVS(options) {

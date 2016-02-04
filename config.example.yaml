@@ -18,7 +18,7 @@
 
 services:
   - name: restbase
-    module: ./lib/server
+    module: hyperswitch
     conf: 
       port: 7231
       salt: secret

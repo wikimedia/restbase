@@ -9,9 +9,10 @@
 
 
 var P = require('bluebird');
-var URI = require('swagger-router').URI;
+var HyperSwitch = require('hyperswitch');
+var URI = HyperSwitch.URI;
+var HTTPError = HyperSwitch.HTTPError;
 var mwUtil = require('../lib/mwUtil');
-var HTTPError = require('../lib/exports').HTTPError;
 var TimeUuid = require('cassandra-uuid').TimeUuid;
 
 function PageSave(options) {

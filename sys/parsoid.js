@@ -5,21 +5,19 @@
  */
 
 var P = require('bluebird');
-var URI = require('swagger-router').URI;
+var HyperSwitch = require('hyperswitch');
+var URI = HyperSwitch.URI;
+var HTTPError = HyperSwitch.HTTPError;
+
 var uuid   = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
-var framework = require('../lib/exports');
-var HTTPError = framework.HTTPError;
 
-// TODO: move tests & spec to separate npm module!
-var yaml = require('js-yaml');
-var fs = require('fs');
-var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/parsoid.yaml'));
+var spec = HyperSwitch.utils.loadSpec(__dirname + '/parsoid.yaml');
 
 // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
 // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
 var Purger = require('htcp-purge');
-var Template = require('swagger-router').Template;
+var Template = HyperSwitch.Template;
 var cacheURIs = [
     // /page/mobile-html/{title}
     new Template({
@@ -542,7 +540,7 @@ PSP.getFormat = function(format, hyper, req) {
     return contentReq
     .then(function(res) {
         mwUtil.normalizeContentType(res);
-        framework.misc.addCSPHeaders(res, {
+        HyperSwitch.misc.addCSPHeaders(res, {
             domain: rp.domain,
             allowInline: true,
         });

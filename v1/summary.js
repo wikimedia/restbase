@@ -1,8 +1,7 @@
 'use strict';
 
-var yaml = require('js-yaml');
-var fs = require('fs');
-var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/summary.yaml'));
+var HyperSwitch = require('hyperswitch');
+var spec = HyperSwitch.utils.loadSpec(__dirname + '/summary.yaml');
 
 module.exports = function(options, templates) {
     return {
