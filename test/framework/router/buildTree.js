@@ -77,7 +77,9 @@ var nestedSecuritySpec = {
 describe('Router', function() {
 
     it('should fail loading a faulty spec', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(faultySpec, fakeHyperSwitch)
         .then(function() {
             throw new Error("Should throw an exception!");
@@ -89,7 +91,9 @@ describe('Router', function() {
     });
 
     it('should allow adding methods to existing paths', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(additionalMethodSpec, fakeHyperSwitch)
         .then(function() {
             var handler = router.route('/en.wikipedia.org/v1/page/Foo/html');
@@ -99,7 +103,9 @@ describe('Router', function() {
     });
 
     it('should error on overlapping methods on the same path', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(overlappingMethodSpec, fakeHyperSwitch)
         .then(function() {
             throw new Error("Should throw an exception!");
@@ -110,7 +116,9 @@ describe('Router', function() {
     });
 
     it('should pass permission along the path to endpoint', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(nestedSecuritySpec, fakeHyperSwitch)
         .then(function() {
             var handler = router.route('/en.wikipedia.org/v1/page/secure');
@@ -123,7 +131,9 @@ describe('Router', function() {
         });
     });
     it('should fail when no handler found for method', function() {
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(noHandlerSpec, fakeHyperSwitch)
         .then(function() {
             throw new Error("Should throw an exception!");
@@ -136,7 +146,9 @@ describe('Router', function() {
 
     it('should not modify top-level spec-root', function() {
         var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/multi_domain_spec.yaml'));
-        var router = new Router();
+        var router = new Router({
+            appBasePath: __dirname + '/../../..'
+        });
         return router.loadSpec(spec, fakeHyperSwitch)
         .then(function() {
             var node = router.route('/test2');
