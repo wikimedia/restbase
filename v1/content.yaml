@@ -178,37 +178,37 @@ paths:
                 page: '{page}'
       x-monitor: false
 
-#  /{module:page}/html/:
-#    get:
-#      tags:
-#        - Page content
-#      summary: List titles available as HTML.
-#      description: |
-#        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-#      produces:
-#        - application/json
-#      parameters:
-#        - name: page
-#          in: query
-#          description: Next page token, provided by _links.next.href property.
-#          type: string
-#          required: false
-#      responses:
-#        '200':
-#          description: A list of page titles.
-#          schema:
-#            $ref: '#/definitions/listing'
-#        default:
-#          description: Error
-#          schema:
-#            $ref: '#/definitions/problem'
-#      x-request-handler:
-#        - get_from_backend:
-#            request:
-#              uri: /{domain}/sys/page_revisions/page/
-#              query:
-#                page: '{page}'
-#      x-monitor: false
+  /{module:page}/html/:
+    get:
+      tags:
+        - Page content
+      summary: List titles available as HTML.
+      description: |
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: page
+          in: query
+          description: Next page token, provided by _links.next.href property.
+          type: string
+          required: false
+      responses:
+        '200':
+          description: A list of page titles.
+          schema:
+            $ref: '#/definitions/listing'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/page/
+              query:
+                page: '{page}'
+      x-monitor: false
 
   /{module:page}/html/{title}:
     get:
@@ -530,106 +530,106 @@ paths:
                 sections: '{sections}'
       x-monitor: false
 
-#  /{module:page}/data-parsoid/:
-#    get:
-#      tags:
-#        - Page content
-#      summary: List titles for which data-parsoid is available.
-#      description: |
-#        Data-parsoid is metadata used by
-#        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
-#        round-tripping conversions between HTML and Wikitext. Besides other
-#        things, it contains the original Wikitext offsets of each HTML
-#        element, indexed by HTML element `id` attribute in the `ids` property.
-#        The format is private to Parsoid and unstable.
-#
-#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-#      produces:
-#        - application/json
-#      parameters:
-#        - name: page
-#          in: query
-#          description: Next page token, provided by _links.next.href property.
-#          type: string
-#          required: false
-#      responses:
-#        '200':
-#          description: The queriable list of page titles
-#          schema:
-#            $ref: '#/definitions/listing'
-#        default:
-#          description: Error
-#          schema:
-#            $ref: '#/definitions/problem'
-#      x-request-handler:
-#        - get_from_backend:
-#            request:
-#              # Fixme: only list pages that have at least one revision with content
-#              # model 'wikitext'
-#              uri: /{domain}/sys/page_revisions/page/
-#              query:
-#                page: '{page}'
-#      x-monitor: false
+  /{module:page}/data-parsoid/:
+    get:
+      tags:
+        - Page content
+      summary: List titles for which data-parsoid is available.
+      description: |
+        Data-parsoid is metadata used by
+        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
+        round-tripping conversions between HTML and Wikitext. Besides other
+        things, it contains the original Wikitext offsets of each HTML
+        element, indexed by HTML element `id` attribute in the `ids` property.
+        The format is private to Parsoid and unstable.
 
-#  /{module:page}/data-parsoid/{title}:
-#    get:
-#      tags:
-#        - Page content
-#      summary: Get latest data-parsoid metadata for a title.
-#      description: |
-#        Data-parsoid is metadata used by
-#        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
-#        round-tripping conversions between HTML and Wikitext. Among other
-#        things, it contains the original Wikitext offsets of each HTML
-#        element, keyed by element ID. The format is unstable.
-#
-#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-#      parameters:
-#        - name: title
-#          in: path
-#          description: the title of page content
-#          type: string
-#          required: true
-#      produces:
-#        - application/json
-#      responses:
-#        '200':
-#          description: data-parsoid JSON blob
-#          schema:
-#            $ref: '#/definitions/data-parsoid'
-#        '404':
-#          description: Unknown page title
-#          schema:
-#            $ref: '#/definitions/problem'
-#        default:
-#          description: Error
-#          schema:
-#            $ref: '#/definitions/problem'
-#      x-request-handler:
-#        - get_from_backend:
-#            request:
-#              uri: /{domain}/sys/parsoid/data-parsoid/{title}
-#              headers:
-#                cache-control: '{cache-control}'
-#                if-unmodified-since: '{if-unmodified-since}'
-#                x-restbase-mode: '{x-restbase-mode}'
-#                x-restbase-parentrevision: '{x-restbase-parentrevision}'
-#      x-monitor: true
-#      x-amples:
-#        - title: Get data-parsoid by title
-#          request:
-#            params:
-#              domain: en.wikipedia.org
-#              title: Foobar
-#          response:
-#            status: 200
-#            headers:
-#              etag: /.+/
-#              content-type: application/json
-#            body:
-#              counter: /\d+/
-#              ids: /.*/
-#              sectionOffsets: /.*/
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json
+      parameters:
+        - name: page
+          in: query
+          description: Next page token, provided by _links.next.href property.
+          type: string
+          required: false
+      responses:
+        '200':
+          description: The queriable list of page titles
+          schema:
+            $ref: '#/definitions/listing'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              # Fixme: only list pages that have at least one revision with content
+              # model 'wikitext'
+              uri: /{domain}/sys/page_revisions/page/
+              query:
+                page: '{page}'
+      x-monitor: false
+
+  /{module:page}/data-parsoid/{title}:
+    get:
+      tags:
+        - Page content
+      summary: Get latest data-parsoid metadata for a title.
+      description: |
+        Data-parsoid is metadata used by
+        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
+        round-tripping conversions between HTML and Wikitext. Among other
+        things, it contains the original Wikitext offsets of each HTML
+        element, keyed by element ID. The format is unstable.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: title
+          in: path
+          description: the title of page content
+          type: string
+          required: true
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: data-parsoid JSON blob
+          schema:
+            $ref: '#/definitions/data-parsoid'
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/data-parsoid/{title}
+              headers:
+                cache-control: '{cache-control}'
+                if-unmodified-since: '{if-unmodified-since}'
+                x-restbase-mode: '{x-restbase-mode}'
+                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+      x-monitor: true
+      x-amples:
+        - title: Get data-parsoid by title
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Foobar
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              counter: /\d+/
+              ids: /.*/
+              sectionOffsets: /.*/
 
   /{module:page}/data-parsoid/{title}/:
     get:
@@ -679,7 +679,7 @@ paths:
               page: '{page}'
       x-monitor: false
 
-  /{module:page}/data-parsoid/{title}/{revision}/{tid}:
+  /{module:page}/data-parsoid/{title}/{revision}{/tid}:
     get:
       tags:
         - Page content
@@ -1101,6 +1101,7 @@ paths:
               content-type: /^text\/html.+/
             body: /^<h2.*> Heading <\/h2>$/
 
+# Keeping this in, as we'll re-introduce a html2html end point later.
 #  /{module:transform}/html/to/html{/title}{/revision}:
 #    post:
 #      tags:
