@@ -368,7 +368,8 @@ paths:
         '200':
           description: The content was not changed, and no new version was created.
           schema:
-            type: string
+            type: object
+            # FIXME: document
         '201':
           description: A new revision of the page has been created
           headers:
@@ -489,7 +490,11 @@ paths:
             [/transform/html/to/wikitext{/title}{/revision}](#!/Transforms/transform_html_to_wikitext__title___revision__post)
             entry point.
           schema:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                  patternProperties:
+                    "^mw\w+$": string
           headers:
             ETag:
               description: |
@@ -908,7 +913,8 @@ paths:
         '201':
           description: A new revision of the page has been created
           schema:
-            type: string
+            type: object
+            # FIXME: document
           headers:
             ETag:
               description: |
