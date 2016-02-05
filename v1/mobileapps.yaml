@@ -29,7 +29,7 @@ paths:
           headers:
             ETag:
               description: >
-                Syntax: "{revision}/{tid}". 
+                Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
         '404':
           description: Unknown page title
@@ -65,7 +65,7 @@ paths:
     get:
       tags:
         - Mobile
-      summary: Get mobile-optimized HTML lead section and metadata for a title. 
+      summary: Get mobile-optimized HTML lead section and metadata for a title.
       description: |
         Retrieve the lead section of the latest HTML for a page title optimised
         for viewing with native mobile applications.
@@ -84,10 +84,11 @@ paths:
           description: The HTML for the given page title.
           schema:
             type: object
+            # FIXME!
           headers:
             ETag:
               description: >
-                Syntax: "{revision}/{tid}". 
+                Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
         '404':
           description: Unknown page title
@@ -130,10 +131,11 @@ paths:
           description: JSON wrapping HTML sections for the given page title.
           schema:
             type: object
+            # FIXME!
           headers:
             ETag:
               description: >
-                Syntax: "{revision}/{tid}". 
+                Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
         '404':
           description: Unknown page title
@@ -179,7 +181,7 @@ paths:
           headers:
             ETag:
               description: >
-                Syntax: "{revision}/{tid}". 
+                Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
 
         '404':

@@ -34,8 +34,11 @@ paths:
           description: The PNG render of the requested graph.
           schema:
             type: blob
-          headers:
-            ETag: {}
+          # FIXME: Actually return a decent ETag from graphoid & document it here!
+          # See https://phabricator.wikimedia.org/T125924
+          #headers:
+          #  ETag:
+          #    type: string
         '403':
           description: access to the specific revision is restricted
           schema:
