@@ -493,8 +493,8 @@ paths:
             oneOf:
               - type: string
               - type: object
-                  patternProperties:
-                    "^mw\w+$": string
+                patternProperties:
+                  '^mw\w+$': string
           headers:
             ETag:
               description: |
