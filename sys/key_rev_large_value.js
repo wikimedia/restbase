@@ -59,7 +59,7 @@ ChunkedBucket.prototype._joinData = function(dataParts) {
 };
 
 ChunkedBucket.prototype._metaTableName = function(req) {
-    return req.params.bucket + '_meta';
+    return req.params.bucket + '_index';
 };
 
 ChunkedBucket.prototype._chunksTableName = function(req) {
@@ -184,26 +184,11 @@ function coerceTid(tidString) {
     throw new HTTPError({
         status: 400,
         body: {
-            type: 'key_rev_value/invalid_tid',
+            type: 'key_rev_large_value/invalid_tid',
             title: 'Invalid tid parameter',
             tid: tidString
         }
     });
-}
-
-function parseRevision(rev) {
-    if (!/^[0-9]+/.test(rev)) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'key_rev_value/invalid_revision',
-                title: 'Invalid revision parameter',
-                rev: rev
-            }
-        });
-    }
-
-    return parseInt(rev);
 }
 
 ChunkedBucket.prototype._getMetadata = function(hyper, req) {
@@ -219,7 +204,7 @@ ChunkedBucket.prototype._getMetadata = function(hyper, req) {
         }
     };
     if (rp.revision) {
-        metadataReq.body.attributes.rev = parseRevision(rp.revision);
+        metadataReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_large_value');
         if (rp.tid) {
             metadataReq.body.attributes.tid = coerceTid(rp.tid);
         }
@@ -263,15 +248,6 @@ ChunkedBucket.prototype.getRevision = function(hyper, req) {
     });
 };
 
-function getLimit(hyper, req) {
-    if (req.body && req.body.limit) {
-        return req.body.limit;
-    } else if (req.query && req.query.limit) {
-        return req.query.limit;
-    }
-    return hyper.rb_config.default_page_size;
-}
-
 ChunkedBucket.prototype.listRevisions = function(hyper, req) {
     var rp = req.params;
     return hyper.get({
@@ -282,7 +258,7 @@ ChunkedBucket.prototype.listRevisions = function(hyper, req) {
                 key: req.params.key
             },
             proj: ['rev', 'tid'],
-            limit: getLimit(hyper, req)
+            limit: mwUtil.getLimit(hyper, req)
         }
     })
     .then(function(res) {
@@ -371,7 +347,7 @@ ChunkedBucket.prototype._retentionPolicyUpdate = function(hyper, req, key, rev, 
 ChunkedBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var self = this;
-    var rev = parseRevision(rp.revision);
+    var rev = mwUtil.parseRevision(rp.revision, 'key_rev_large_value');
     var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
     if (req.headers['last-modified']) {
         // XXX: require elevated rights for passing in the revision time

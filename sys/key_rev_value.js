@@ -71,47 +71,6 @@ KRVBucket.prototype.createBucket = function(hyper, req) {
 };
 
 
-KRVBucket.prototype.getListQuery = function(options, bucket) {
-    return {
-        table: bucket,
-        distinct: true,
-        proj: 'key',
-        limit: 1000
-    };
-};
-
-
-
-KRVBucket.prototype.listBucket = function(hyper, req, options) {
-    var self = this;
-    // XXX: check params!
-    var rp = req.params;
-
-    var listQuery = this.getListQuery(options, rp.bucket);
-    return hyper.get({
-        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
-        body: listQuery
-    })
-    .then(function(result) {
-        var listing = result.body.items.map(function(row) {
-            return row.key;
-        });
-        return {
-            status: 200,
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: {
-                items: listing
-            }
-        };
-    })
-    .catch(function(error) {
-        hyper.log('error/kv/listBucket', error);
-        throw new HTTPError({ status: 404 });
-    });
-};
-
 // Format a revision response. Shared between different ways to retrieve a
 // revision (latest & with explicit revision).
 function returnRevision(req) {
@@ -163,21 +122,6 @@ function coerceTid(tidString) {
     });
 }
 
-function parseRevision(rev) {
-    if (!/^[0-9]+/.test(rev)) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'key_rev_value/invalid_revision',
-                title: 'Invalid revision parameter',
-                rev: rev
-            }
-        });
-    }
-
-    return parseInt(rev);
-}
-
 KRVBucket.prototype.getRevision = function(hyper, req) {
     var rp = req.params;
     var storeReq = {
@@ -191,22 +135,13 @@ KRVBucket.prototype.getRevision = function(hyper, req) {
         }
     };
     if (rp.revision) {
-        storeReq.body.attributes.rev = parseRevision(rp.revision);
+        storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
         if (rp.tid) {
             storeReq.body.attributes.tid = coerceTid(rp.tid);
         }
     }
     return hyper.get(storeReq).then(returnRevision(req));
 };
-
-function getLimit(hyper, req) {
-    if (req.body && req.body.limit) {
-        return req.body.limit;
-    } else if (req.query && req.query.limit) {
-        return req.query.limit;
-    }
-    return hyper.config.default_page_size;
-}
 
 KRVBucket.prototype.listRevisions = function(hyper, req) {
     var rp = req.params;
@@ -218,7 +153,7 @@ KRVBucket.prototype.listRevisions = function(hyper, req) {
                 key: req.params.key
             },
             proj: ['rev', 'tid'],
-            limit: getLimit(hyper, req)
+            limit: mwUtil.getLimit(hyper, req)
         }
     })
     .then(function(res) {
@@ -240,7 +175,7 @@ KRVBucket.prototype.listRevisions = function(hyper, req) {
 
 KRVBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
-    var rev = parseRevision(rp.revision);
+    var rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
     var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
     if (req.headers['last-modified']) {
         // XXX: require elevated rights for passing in the revision time
