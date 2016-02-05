@@ -4,7 +4,6 @@
  * Key-value bucket handler
  */
 
-var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
 var HTTPError = require('../lib/exports').HTTPError;
@@ -17,14 +16,6 @@ var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_value.yaml'));
 
 function KVBucket(options) {
 }
-
-KVBucket.prototype.getBucketInfo = function(hyper, req, options) {
-    var self = this;
-    return P.resolve({
-        status: 200,
-        body: options
-    });
-};
 
 KVBucket.prototype.makeSchema = function(opts) {
     var schemaVersionMajor = 5;
@@ -284,9 +275,7 @@ module.exports = function(options) {
     return {
         spec: spec, // Re-export from spec module
         operations: {
-            getBucketInfo: kvBucket.getBucketInfo.bind(kvBucket),
             createBucket: kvBucket.createBucket.bind(kvBucket),
-            listBucket: kvBucket.listBucket.bind(kvBucket),
             listRevisions: kvBucket.listRevisions.bind(kvBucket),
             getRevision: kvBucket.getRevision.bind(kvBucket),
             putRevision: kvBucket.putRevision.bind(kvBucket)

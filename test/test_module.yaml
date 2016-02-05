@@ -113,3 +113,12 @@ paths:
                 request:
                   uri: /{domain}/sys/post_data/post.test/{hash}
           x-monitor: false
+
+      /buckets:
+        x-modules:
+          /key_rev_large_value:
+            - path: sys/key_rev_large_value.js
+          /key_rev_value:
+            - path: sys/key_rev_value.js
+          /key_value:
+            - path: sys/key_value.js
