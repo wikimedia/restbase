@@ -144,29 +144,6 @@ function returnRevision(req) {
     };
 }
 
-function coerceTid(tidString) {
-    if (uuid.test(tidString)) {
-        return tidString;
-    }
-
-    if (/^\d{4}-\d{2}-\d{2}/.test(tidString)) {
-        // Timestamp
-        try {
-            return mwUtil.tidFromDate(tidString);
-        } catch (e) {} // Fall through
-    }
-
-    // Out of luck
-    throw new HTTPError({
-        status: 400,
-        body: {
-            type: 'key_value/invalid_tid',
-            title: 'Invalid tid parameter',
-            tid: tidString
-        }
-    });
-}
-
 KVBucket.prototype.getRevision = function(hyper, req) {
     if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
         throw new HTTPError({
@@ -186,7 +163,7 @@ KVBucket.prototype.getRevision = function(hyper, req) {
         }
     };
     if (rp.tid) {
-        storeReq.body.attributes.tid = coerceTid(rp.tid);
+        storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_value');
     }
     return hyper.get(storeReq).then(returnRevision(req));
 };
@@ -225,7 +202,7 @@ KVBucket.prototype.listRevisions = function(hyper, req) {
 KVBucket.prototype.putRevision = function(hyper, req) {
     // TODO: support other formats! See cassandra backend getRevision impl.
     var rp = req.params;
-    var tid = rp.tid && coerceTid(rp.tid);
+    var tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value');
 
     if (!tid) {
         tid = (mwUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
