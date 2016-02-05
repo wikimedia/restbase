@@ -3,6 +3,7 @@ paths:
     get:
       tags:
         - Page content
+      summary: Get PNG graph images referenced in page revisions.
       description: |
         Retrieve PNG graph images embedded in specific revisions of a
         page. See [the Graphoid
@@ -31,6 +32,13 @@ paths:
       responses:
         '200':
           description: The PNG render of the requested graph.
+          schema:
+            type: blob
+          # FIXME: Actually return a decent ETag from graphoid & document it here!
+          # See https://phabricator.wikimedia.org/T125924
+          #headers:
+          #  ETag:
+          #    type: string
         '403':
           description: access to the specific revision is restricted
           schema:

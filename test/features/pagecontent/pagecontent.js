@@ -51,26 +51,29 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
         });
     });
+
+    var rev2Etag;
     it('should transparently create data-parsoid with id 241155, rev 2', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Foobar/241155'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            rev2Etag = res.headers.etag.replace(/^"(.*)"$/, '$1');
         });
     });
-    it('should return HTML just created by revision 241155', function() {
+
+    it('should return HTML and data-parsoid just created by revision 241155', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Foobar/241155'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-        });
-    });
-    it('should return data-parsoid just created by revision 241155, rev 2', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/Foobar/241155'
+            return preq.get({
+                uri: server.config.labsBucketURL + '/data-parsoid/Foobar/'
+                    + res.headers.etag.replace(/^"(.*)"$/, '$1')
+            });
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -80,7 +83,7 @@ describe('item requests', function() {
 
     it('should return data-parsoid just created with revision 252937, rev 2', function() {
         return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/Foobar/252937'
+            uri: server.config.labsBucketURL + '/data-parsoid/Foobar/' + rev2Etag
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
@@ -339,10 +342,16 @@ describe('page content access', function() {
     });
 
     it('should deny access to the data-parsoid of a restricted revision', function() {
-        return preq.get({ uri: contentURI('data-parsoid') }).then(function(res) {
-            throw new Error('Expected status 403, but gotten ' + res.status);
-        }, function(res) {
-            assert.deepEqual(res.status, 403);
+        var listURL = [server.config.bucketURL, 'data-parsoid', deniedTitle, deniedRev, ''].join('/');
+        return preq.get({ uri: listURL })
+        .then(function(res) {
+            var deniedRevisions = res.body.items.filter(function(item) {
+                return item.revision === deniedRev;
+            });
+
+            if (deniedRevisions.length > 0) {
+                throw new Error('Expected no suppressed data-parsoid revisions to be stored');
+            }
         });
     });
 

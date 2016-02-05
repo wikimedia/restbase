@@ -149,56 +149,6 @@ paths:
             headers:
                 content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
 
-  /{domain}/v1/page/data-parsoid/{title}/{revision}:
-    get:
-      tags:
-        - Page content
-      description: Returns the Parsoid data for the given revision
-      operationId: getDataParsoidRevision
-      produces:
-        - text/html
-      parameters:
-        - name: domain
-          in: path
-          description: The domain under which the data resides'
-          type: string
-          required: true
-          default: en.wikipedia.beta.wmflabs.org
-        - name: title
-          in: path
-          description: The title of page content
-          type: string
-          required: true
-        - name: revision
-          in: path
-          description: The revision
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The latest Parsoid data for the given page
-        '400':
-          description: Invalid revision
-          schema:
-            $ref: '#/definitions/invalidRevision'
-        '404':
-          description: Unknown table, bucket, page, or domain
-          schema:
-            $ref: '#/definitions/notFound'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/defaultError'
-      x-amples:
-        - request:
-            params:
-                domain: en.wikipedia.beta.wmflabs.org
-                title: Foobar
-                revision: 252937
-          response:
-            status: 200
-            headers:
-              content-type: application/json; charset=utf-8; profile="mediawiki.org/specs/data-parsoid/0.0.1"
 definitions:
   defaultError:
     required:
