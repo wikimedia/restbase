@@ -175,22 +175,6 @@ function returnRevision(req, metadata) {
     };
 }
 
-function coerceTid(tidString) {
-    if (uuid.test(tidString)) {
-        return tidString;
-    }
-
-    // Out of luck
-    throw new HTTPError({
-        status: 400,
-        body: {
-            type: 'key_rev_large_value/invalid_tid',
-            title: 'Invalid tid parameter',
-            tid: tidString
-        }
-    });
-}
-
 ChunkedBucket.prototype._getMetadata = function(hyper, req) {
     var rp = req.params;
     var metadataReq = {
@@ -206,7 +190,7 @@ ChunkedBucket.prototype._getMetadata = function(hyper, req) {
     if (rp.revision) {
         metadataReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_large_value');
         if (rp.tid) {
-            metadataReq.body.attributes.tid = coerceTid(rp.tid);
+            metadataReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_rev_large_value');
         }
     }
     return hyper.get(metadataReq)
@@ -348,11 +332,7 @@ ChunkedBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var self = this;
     var rev = mwUtil.parseRevision(rp.revision, 'key_rev_large_value');
-    var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
-    if (req.headers['last-modified']) {
-        // XXX: require elevated rights for passing in the revision time
-        tid = mwUtil.tidFromDate(req.headers['last-modified']);
-    }
+    var tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_large_value') || uuid.now().toString();
 
     var chunks = this._sliceData(req.body);
     return P.all(chunks.map(function(chunk, index) {

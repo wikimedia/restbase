@@ -99,29 +99,6 @@ function returnRevision(req) {
     };
 }
 
-function coerceTid(tidString) {
-    if (uuid.test(tidString)) {
-        return tidString;
-    }
-
-    if (/^\d{4}-\d{2}-\d{2}/.test(tidString)) {
-        // Timestamp
-        try {
-            return mwUtil.tidFromDate(tidString);
-        } catch (e) {} // Fall through
-    }
-
-    // Out of luck
-    throw new HTTPError({
-        status: 400,
-        body: {
-            type: 'key_rev_value/invalid_tid',
-            title: 'Invalid tid parameter',
-            tid: tidString
-        }
-    });
-}
-
 KRVBucket.prototype.getRevision = function(hyper, req) {
     var rp = req.params;
     var storeReq = {
@@ -137,7 +114,7 @@ KRVBucket.prototype.getRevision = function(hyper, req) {
     if (rp.revision) {
         storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
         if (rp.tid) {
-            storeReq.body.attributes.tid = coerceTid(rp.tid);
+            storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_rev_value');
         }
     }
     return hyper.get(storeReq).then(returnRevision(req));
@@ -176,11 +153,7 @@ KRVBucket.prototype.listRevisions = function(hyper, req) {
 KRVBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-    var tid = rp.tid && coerceTid(rp.tid) || uuid.now().toString();
-    if (req.headers['last-modified']) {
-        // XXX: require elevated rights for passing in the revision time
-        tid = mwUtil.tidFromDate(req.headers['last-modified']);
-    }
+    var tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') || uuid.now().toString();
 
     var storeReq = {
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
