@@ -4,10 +4,11 @@ var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
 var preq = require('preq');
 
-var mwUtil = require('../lib/mwUtil');
 var HyperSwitch = require('hyperswitch');
 var HTTPError = HyperSwitch.HTTPError;
 var URI = HyperSwitch.URI;
+
+var mwUtil = require('../lib/mwUtil');
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
