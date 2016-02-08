@@ -13,7 +13,7 @@ paths:
     x-host-basePath: /api/rest_v1
 
     x-modules:
-      /metrics:
+      /:
         - path: v1/pageviews.yaml
 
   /{api:sys}:
