@@ -9,7 +9,7 @@ paths:
       title: Wikimedia testing APIs
       x-is-api-root: true
     paths:
-      /metrics/pageviews/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
+      /pageviews/insert-per-article-flat/{project}/{article}/{granularity}/{timestamp}/{views}:
         post:
           x-request-handler:
             - put_to_storage:
@@ -41,7 +41,7 @@ paths:
                       mwu: '{$.request.params.views}16'
           x-monitor: false
 
-      /metrics/pageviews/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
+      /pageviews/insert-aggregate/{project}/{access}/{agent}/{granularity}/{timestamp}/{views}:
         post:
           x-request-handler:
             - put_to_storage:
@@ -59,7 +59,7 @@ paths:
                       views: '{$.request.params.views}'
           x-monitor: false
 
-      /metrics/pageviews/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
+      /pageviews/insert-aggregate-long/{project}/{access}/{agent}/{granularity}/{timestamp}/{v}:
         post:
           x-request-handler:
             - put_to_storage:
@@ -77,7 +77,7 @@ paths:
                       v: '{$.request.params.v}'
           x-monitor: false
 
-      /metrics/pageviews/insert-top/{project}/{access}/{year}/{month}/{day}:
+      /pageviews/insert-top/{project}/{access}/{year}/{month}/{day}:
         post:
           x-request-handler:
             - put_to_storage:
