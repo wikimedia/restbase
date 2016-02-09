@@ -3,6 +3,7 @@
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
 var preq = require('preq');
+var stream = require('stream');
 
 var HyperSwitch = require('hyperswitch');
 var HTTPError = HyperSwitch.HTTPError;
@@ -17,7 +18,7 @@ var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
  * @type {number}
  * @const
  */
-var CHUNK_SIZE = 31000;
+var CHUNK_SIZE = 1800000;
 
 /**
  * The grace_ttl parameter for a revision policy
@@ -76,7 +77,7 @@ ChunkedBucket.prototype._makeMetaSchema = function(opts) {
             compression: opts.compression || [
                 {
                     algorithm: 'deflate',
-                    block_size: 128
+                    block_size: 256
                 }
             ]
         },
@@ -104,7 +105,7 @@ ChunkedBucket.prototype._makeChunksSchema = function(opts) {
             compression: opts.compression || [
                 {
                     algorithm: 'deflate',
-                    block_size: 1024
+                    block_size: 256
                 }
             ]
         },
@@ -158,11 +159,6 @@ function returnRevision(req, metadata) {
     return function(dbResult) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             var row = dbResult.body.items[0];
-            return {
-                status: 200,
-                headers: metadata.headers,
-                body: row.value
-            };
         } else {
             throw new HTTPError({
                 status: 404,
@@ -203,13 +199,16 @@ ChunkedBucket.prototype._getMetadata = function(hyper, req) {
 ChunkedBucket.prototype.getRevision = function(hyper, req) {
     var rp = req.params;
     var self = this;
+    var chunksTable = self._chunksTableName(req);
+    var chunkURI = new URI([rp.domain, 'sys', 'table', chunksTable, '']);
     return this._getMetadata(hyper, req)
     .then(function(metadata) {
-        return P.all(range(metadata.num_chunks).map(function(chunkId) {
+        var byteStream = new stream.PassThrough();
+        P.each(range(metadata.num_chunks), function(chunkId) {
             return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'table', self._chunksTableName(req), '']),
+                uri: chunkURI,
                 body: {
-                    table: self._chunksTableName(req),
+                    table: chunksTable,
                     attributes: {
                         key: rp.key,
                         chunk_id: chunkId,
@@ -217,19 +216,18 @@ ChunkedBucket.prototype.getRevision = function(hyper, req) {
                     },
                     limit: 1
                 }
+            })
+            .then(function(res) {
+                byteStream.write(res.body.items[0].value);
             });
-        }))
-        .map(function(res) { return res.body.items[0].value; })
-        .then(function(sections) {
-            metadata.value = self._joinData(sections);
-            return {
-                status: 200,
-                body: {
-                    items: [ metadata ]
-                }
-            };
         })
-        .then(returnRevision(req, metadata));
+        .then(function() { return byteStream.end(); });
+
+        return {
+            status: 200,
+            headers: metadata.headers,
+            body: byteStream
+        };
     });
 };
 
