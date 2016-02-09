@@ -217,7 +217,13 @@ ChunkedBucket.prototype.getRevision = function(hyper, req) {
                 byteStream.write(res.body.items[0].value);
             });
         })
-        .then(function() { return byteStream.end(); });
+        .then(function() { byteStream.end(); })
+        .catch(function(e) {
+            hyper.log('error/key_rev_large_value/body', e);
+            // FIXME: Figure out a way to abort the response, but don't signal
+            // success via .end().
+        });
+
 
         return {
             status: 200,
