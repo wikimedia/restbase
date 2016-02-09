@@ -3,7 +3,7 @@
 var preq   = require('preq');
 var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
-var URI    = require('swagger-router').URI;
+var URI    = require('hyperswitch').URI;
 var P      = require('bluebird');
 
 function constructTestCase(title, path, method, request, response) {

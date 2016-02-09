@@ -6,13 +6,10 @@
 
 var uuid = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
-var HTTPError = require('../lib/exports').HTTPError;
-var URI = require('swagger-router').URI;
-
-// TODO: move to separate spec package
-var yaml = require('js-yaml');
-var fs = require('fs');
-var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/key_rev_value.yaml'));
+var HyperSwitch = require('hyperswitch');
+var HTTPError = HyperSwitch.HTTPError;
+var URI = HyperSwitch.URI;
+var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
 function KRVBucket(options) {
 }

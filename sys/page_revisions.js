@@ -10,18 +10,14 @@
  * - detect edit conflicts
  */
 
-
-var HTTPError = require('../lib/exports').HTTPError;
-var URI = require('swagger-router').URI;
+var HyperSwitch = require('hyperswitch');
+var HTTPError = HyperSwitch.HTTPError;
+var URI = HyperSwitch.URI;
 var uuid = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
 var stringify = require('json-stable-stringify');
 
-// TODO: move to module
-var fs = require('fs');
-var yaml = require('js-yaml');
-var spec = yaml.safeLoad(fs.readFileSync(__dirname + '/page_revisions.yaml'));
-
+var spec = HyperSwitch.utils.loadSpec(__dirname + '/page_revisions.yaml');
 
 // Title Revision Service
 function PRS(options) {

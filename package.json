@@ -32,23 +32,18 @@
   },
   "homepage": "https://github.com/wikimedia/restbase",
   "dependencies": {
-    "core-js": "^2.0.3",
     "bluebird": "^3.1.1",
-    "busboy": "^0.2.12",
-    "js-yaml": "^3.5.2",
-    "jsonwebtoken": "^5.5.4",
     "cassandra-uuid": "^0.0.2",
-    "preq": "^0.4.8",
     "restbase-mod-table-cassandra": "^0.8.15",
     "service-runner": "^1.1.0",
-    "swagger-router": "^0.3.4",
-    "swagger-ui": "git+https://github.com/wikimedia/swagger-ui#master",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "htcp-purge": "^0.1.2",
-    "ajv": "^3.4.0",
-    "content-type": "git+https://github.com/wikimedia/content-type#master"
+    "content-type": "git+https://github.com/wikimedia/content-type#master",
+    "hyperswitch": "^0.1.1"
   },
   "devDependencies": {
+    "js-yaml": "^3.5.2",
+    "preq": "^0.4.8",
     "bunyan": "^1.5.1",
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.2",
@@ -59,7 +54,6 @@
     "nock": "^5.2.1",
     "restbase-mod-table-sqlite": "^0.1.14",
     "swagger-test": "0.3.0",
-    "url-template": "^2.0.6",
     "temp": "^0.8.3"
   },
   "deploy": {

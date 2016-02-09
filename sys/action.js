@@ -4,8 +4,10 @@
  * Simple wrapper for the PHP action API
  */
 
-var HTTPError = require('../lib/exports').HTTPError;
-var Template = require('swagger-router').Template;
+var HyperSwitch = require('hyperswitch');
+var HTTPError = HyperSwitch.HTTPError;
+var Template = HyperSwitch.Template;
+
 /**
  * Error translation
  */

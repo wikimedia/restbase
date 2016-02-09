@@ -1,15 +1,13 @@
 'use strict';
 
+var HyperSwitch = require('hyperswitch');
 var yaml = require('js-yaml');
 var http = require('http');
-var template = require('url-template');
-var fs = require('fs');
 
 var specUrl = 'http://wikimedia.github.io/restbase/v1/swagger.yaml';
 
 function getLocalSpec() {
-    var buffer = fs.readFileSync(__dirname + '/../features/specification/swagger.yaml');
-    return yaml.safeLoad(buffer);
+    return HyperSwitch.utils.loadSpec(__dirname + '/../features/specification/swagger.yaml');
 }
 
 function getRemoteSpec(url, k) {
