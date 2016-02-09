@@ -14,7 +14,6 @@ var temp      = require('temp').track();
 var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/en.wikipedia.org/v1';
 var globalURL = hostPort + '/wikimedia.org/v1';
-var aqsURL    = hostPort + '/aqs.wikimedia.org/v1';
 var bucketURL = baseURL + '/page';
 var secureURL = hostPort + '/fr.wikipedia.org/v1/page';
 var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
@@ -45,7 +44,6 @@ var config = {
     hostPort: hostPort,
     baseURL: baseURL,
     globalURL: globalURL,
-    aqsURL: aqsURL,
     bucketURL: bucketURL,
     apiURL: 'https://en.wikipedia.org/w/api.php',
     makeBucketURL: function(domain) {

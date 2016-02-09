@@ -58,14 +58,6 @@ wiktionary_project: &wiktionary_project
       - path: projects/wmf_wiktionary.yaml
         options: *default_options
 
-# A synthetic domain to test pageviews module data
-aqs.wikimedia.org: &aqs.wikimedia.org
-  x-modules:
-    /:
-      - path: test/aqs_test_module.yaml
-      - path: projects/aqs_default.yaml
-        options: *default_options
-
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   content_types:
@@ -86,7 +78,6 @@ spec_root: &spec_root
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *labs_project
-    /{domain:aqs.wikimedia.org}: *aqs.wikimedia.org
 
     # For security testing we rely on mocks, so it's OK to use French wiki.
     /{domain:fr.wikipedia.org}:
