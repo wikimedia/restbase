@@ -69,48 +69,6 @@ KVBucket.prototype.createBucket = function(hyper, req) {
     return hyper.put(storeRequest);
 };
 
-
-KVBucket.prototype.getListQuery = function(options, bucket) {
-    return {
-        table: bucket,
-        distinct: true,
-        proj: 'key',
-        limit: 1000
-    };
-};
-
-
-
-KVBucket.prototype.listBucket = function(hyper, req, options) {
-    var self = this;
-    // XXX: check params!
-    var rp = req.params;
-
-    var listQuery = this.getListQuery(options, rp.bucket);
-    return hyper.get({
-        uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
-        body: listQuery
-    })
-    .then(function(result) {
-        var listing = result.body.items.map(function(row) {
-            return row.key;
-        });
-        return {
-            status: 200,
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: {
-                items: listing
-            }
-        };
-    })
-    .catch(function(error) {
-        hyper.log('error/kv/listBucket', error);
-        throw new HTTPError({ status: 404 });
-    });
-};
-
 // Format a revision response. Shared between different ways to retrieve a
 // revision (latest & with explicit revision).
 function returnRevision(req) {
