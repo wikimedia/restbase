@@ -152,25 +152,6 @@ ChunkedBucket.prototype.createBucket = function(hyper, req) {
     .then(function() { return { status: 201 }; });
 };
 
-// Format a revision response. Shared between different ways to retrieve a
-// revision (latest & with explicit revision).
-function returnRevision(req, metadata) {
-    return function(dbResult) {
-        if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
-            var row = dbResult.body.items[0];
-        } else {
-            throw new HTTPError({
-                status: 404,
-                body: {
-                    type: 'not_found',
-                    uri: req.uri,
-                    method: req.method
-                }
-            });
-        }
-    };
-}
-
 function coerceTid(tidString) {
     if (uuid.test(tidString)) {
         return tidString;
