@@ -232,11 +232,11 @@ ChunkedBucket.prototype.getRevision = function(hyper, req) {
                     limit: 1
                 }
             })
-            .then(res => {
+            .then(function(res) {
                 byteStream.write(res.body.items[0].value);
             });
         })
-        .then(() => byteStream.end());
+        .then(function() { return byteStream.end(); });
 
         return {
             status: 200,
