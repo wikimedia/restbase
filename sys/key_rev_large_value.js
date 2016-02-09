@@ -200,6 +200,8 @@ ChunkedBucket.prototype.getRevision = function(hyper, req) {
     return this._getMetadata(hyper, req)
     .then(function(metadata) {
         var byteStream = new stream.PassThrough();
+
+        // Start off the body stream in the background.
         P.each(range(metadata.num_chunks), function(chunkId) {
             return hyper.get({
                 uri: chunkURI,
@@ -224,7 +226,7 @@ ChunkedBucket.prototype.getRevision = function(hyper, req) {
             // success via .end().
         });
 
-
+        // Return the response, with the stream as the body.
         return {
             status: 200,
             headers: metadata.headers,
