@@ -82,7 +82,7 @@ function cmp(result, expected, errMsg) {
 
 
 function validateTestResponse(testCase, res) {
-    console.log('RES', res);
+    console.log('RES', JSON.stringify(res));
     var expRes = testCase.response;
     assert.deepEqual(res.status, expRes.status);
     Object.keys(expRes.headers).forEach(function(key) {
