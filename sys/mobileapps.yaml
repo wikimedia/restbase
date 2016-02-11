@@ -1,47 +1,7 @@
 info:
   title: Mobileapps sys API module
 paths:
-  /v1/handling/rev/{route}/{title}:
-    get:
-      x-request-handler:
-        - get_rev:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          cache_branch:
-            request:
-              method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/content/{route}/{$$.default($.request.headers.cache-control, 'none-given')}/{title}
-              headers:
-                cache-control: '{cache-control}'
-            return: '{$.cache_branch}'
-
-  /v1/handling/content/mobile-sections/no-cache/{title}:
-    get:
-      x-request-handler:
-        - get_mobileapps:
-            request:
-              method: get
-              uri: '{+$$.options.host}/{domain}/v1/page/mobile-sections/{title}'
-        - store_lead:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
-              headers: '{$.get_mobileapps.headers}'
-              body: '{$.get_mobileapps.body.lead}'
-          store_remaining:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
-              headers: '{$.get_mobileapps.headers}'
-              body: '{$.get_mobileapps.body.remaining}'
-        - return:
-            return:
-              status: 200
-              headers: '{$.get_mobileapps.headers}'
-              body: '{$.get_mobileapps.body}'
-
-  /v1/handling/content/mobile-sections/{cache-default}/{title}:
+  /mobile-sections/{title}:
     get:
       x-setup-handler:
         - init-lead:
@@ -67,32 +27,59 @@ paths:
               updates:
                 pattern: timeseries
       x-request-handler:
-        - check_storage_lead:
+        - from_storage:
             request:
-              method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
-            catch:
-              status: 404
-        - check_storage_remaining:
-            request:
-              method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
+              headers: '{{request.headers}}'
+              uri: /{domain}/sys/mobileapps/mobile-sections_from_storage/{title}
             catch:
               status: 404
             return_if:
               status: '2xx'
-            return:
-              status: 200
-              headers: '{$.check_storage_lead.headers}'
-              body:
-                lead: '{$.check_storage_lead.body}'
-                remaining: '{$.check_storage_remaining.body}'
-        - render:
+        - from_service:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
+              uri: '{+options.host}/{domain}/v1/page/mobile-sections/{title}'
+        - store_lead:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
+              headers: '{{from_service.headers}}'
+              body: '{{from_service.body.lead}}'
+          store_remaining:
+            request:
+              method: put
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
+              headers: '{{from_service.headers}}'
+              body: '{{from_service.body.remaining}}'
+        - return:
+            return:
+              status: 200
+              headers: '{{from_service.headers}}'
+              body: '{{from_service.body}}'
 
-  /v1/handling/content/mobile-sections-lead/{cache-default}/{title}:
+
+  /mobile-sections_from_storage/{title}:
+    get:
+      x-request-handler:
+        - stored_lead:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
+              headers: '{{request.headers}}'
+          stored_remaining:
+            request:
+              method: get
+              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
+        - return:
+            return:
+              status: 200
+              headers: '{{stored_lead.headers}}'
+              body:
+                lead: '{{stored_lead.body}}'
+                remaining: '{{stored_remaining.body}}'
+
+
+  /mobile-sections-lead/{title}:
     get:
       x-request-handler:
         - check_storage:
@@ -106,13 +93,15 @@ paths:
         - get_sections:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
+              headers:
+                cache-control: no-cache
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
             return:
               status: 200
               headers: '{$.get_sections.headers}'
               body: '{$.get_sections.body.lead}'
 
-  /v1/handling/content/mobile-sections-remaining/{cache-default}/{title}:
+  /mobile-sections-remaining/{title}:
     get:
       x-request-handler:
         - check_storage:
@@ -126,7 +115,9 @@ paths:
         - get_sections:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/content/mobile-sections/no-cache/{title}
+              headers:
+                cache-control: no-cache
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
             return:
               status: 200
               headers: '{$.get_sections.headers}'
