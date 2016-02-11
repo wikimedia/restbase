@@ -203,8 +203,10 @@ PSP._dependenciesUpdate = function(hyper, req) {
     return P.join(
         summaryPromise,
         hyper.get({
-            uri: new URI([rp.domain, 'sys', 'mobileapps', 'v1',
-                'handling', 'content', 'mobile-sections', 'no-cache', rp.title])
+            uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
+            headers: {
+                'cache-control': 'no-cache',
+            }
         }).catch(function(e) {
             hyper.log('warn/mobileapps', e);
         })

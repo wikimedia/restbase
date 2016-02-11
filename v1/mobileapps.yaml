@@ -40,12 +40,22 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - get_from_backend:
+        - access_check:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/rev/mobile-sections/{title}
+              uri: /{domain}/sys/page_revisions/page/{title}
+          from_backend:
+            request:
+              method: get
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
               headers:
-                cache-control: '{cache-control}'
+                cache-control: '{{cache-control}}'
+            return: 
+              status: '{{from_backend.status}}'
+              headers:
+                content-type: '{{content-type}}'
+                cache-control: 's-maxage: 3600, max-age: 3600'
+              body: '{{from_backend.body}}'
       x-monitor: true
       x-amples:
         - title: Get MobileApps Foobar page
@@ -99,12 +109,20 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - get_from_backend:
+        - access_check:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/rev/mobile-sections-lead/{title}
+              uri: /{domain}/sys/page_revisions/page/{title}
+          from_backend:
+            request:
+              method: get
+              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
+            return: 
+              status: '{{from_backend.status}}'
               headers:
-                cache-control: '{cache-control}'
+                content-type: '{{content-type}}'
+                cache-control: 's-maxage: 3600, max-age: 3600'
+              body: '{{from_backend.body}}'
       x-monitor: false
 
   /mobile-sections-remaining/{title}:
@@ -146,12 +164,20 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - get_from_backend:
+        - access_check:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/v1/handling/rev/mobile-sections-remaining/{title}
+              uri: /{domain}/sys/page_revisions/page/{title}
+          from_backend:
+            request:
+              method: get
+              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}
+            return: 
+              status: '{{from_backend.status}}'
               headers:
-                cache-control: '{cache-control}'
+                content-type: '{{content-type}}'
+                cache-control: 's-maxage: 3600, max-age: 3600'
+              body: '{{from_backend.body}}'
       x-monitor: false
 
   /mobile-text/{title}:
@@ -193,10 +219,16 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - get_from_backend:
+        - from_backend:
             request:
               method: get
               uri: '{+$$.options.host}/{domain}/v1/page/mobile-text/{title}'
               headers:
                 cache-control: '{cache-control}'
+            return:
+              status: '{{from_backend.status}}'
+              headers:
+                content-type: '{{content-type}}'
+                cache-control: 's-maxage: 3600, max-age: 3600'
+              body: '{{from_backend.body}}'
       x-monitor: false
