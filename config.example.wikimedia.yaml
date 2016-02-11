@@ -4,43 +4,40 @@
 # in the root_spec further down.
 default_project: &default_project
   x-modules:
-    /:
-      - path: projects/wmf_default.yaml
-        options: &default_options
-          table:
-            hosts: [localhost]
-            keyspace: system
-            username: cassandra
-            password: cassandra
-            defaultConsistency: one # or 'localQuorum' for production
-            storage_groups:
-              - name: default.group.local
-                domains: /./
-          parsoid:
-            host: http://parsoid-beta.wmflabs.org
-          action:
-            apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
-          graphoid:
-            host: http://graphoid.wikimedia.org
-          mathoid:
-            host: http://mathoid-tester.wmflabs.org
-            # 10 days Varnish caching, one day client-side
-            cache-control: s-maxage=864000, max-age=86400
-          mobileapps:
-            host: http://appservice.wmflabs.org
+    - path: projects/wmf_default.yaml
+      options: &default_options
+        table:
+          hosts: [localhost]
+          keyspace: system
+          username: cassandra
+          password: cassandra
+          defaultConsistency: one # or 'localQuorum' for production
+          storage_groups:
+            - name: default.group.local
+              domains: /./
+        parsoid:
+          host: http://parsoid-beta.wmflabs.org
+        action:
+          apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+        graphoid:
+          host: http://graphoid.wikimedia.org
+        mathoid:
+          host: http://mathoid-tester.wmflabs.org
+          # 10 days Varnish caching, one day client-side
+          cache-control: s-maxage=864000, max-age=86400
+        mobileapps:
+          host: http://appservice.wmflabs.org
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
   x-modules:
-    /:
-      - path: projects/wikimedia.org.yaml
-        options: *default_options
+    - path: projects/wikimedia.org.yaml
+      options: *default_options
 
 wiktionary_project: &wiktionary_project
   x-modules:
-    /:
-      - path: projects/wmf_wiktionary.yaml
-        options: *default_options
+    - path: projects/wmf_wiktionary.yaml
+      options: *default_options
 
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.

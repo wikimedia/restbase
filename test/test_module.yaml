@@ -3,133 +3,133 @@
 swagger: 2.0
 paths:
   /{api:v1}:
-    swagger: '2.0'
-    info:
-      version: 1.0.0-beta
-      title: Wikimedia testing APIs
-      x-is-api-root: true
-    securityDefinitions: &wp/content-security/1.0.0
-      header_match:
-        description: Checks client ip against one of the predefined whitelists
-        x-error-message: This client is not allowed to use the endpoint
-        x-whitelists:
-          internal:
-            - /^(?:::ffff:)?(?:10|127)\./
-        x-is-api: true
-    paths:
-      /service/test/{title}{/revision}:
-        get:
-          x-setup-handler:
-            - init_storage:
-                uri: /{domain}/sys/key_value/testservice.test
+    x-modules:
+      - spec:
+          info:
+            version: 1.0.0-beta
+            title: Wikimedia testing APIs
+            x-is-api-root: true
+          securityDefinitions: &wp/content-security/1.0.0
+            header_match:
+              description: Checks client ip against one of the predefined whitelists
+              x-error-message: This client is not allowed to use the endpoint
+              x-whitelists:
+                internal:
+                  - /^(?:::ffff:)?(?:10|127)\./
+              x-is-api: true
+          paths:
+            /service/test/{title}{/revision}:
+              get:
+                x-setup-handler:
+                  - init_storage:
+                      uri: /{domain}/sys/key_value/testservice.test
 
-          x-request-handler:
-            - get_from_storage:
-                request:
-                  uri: /{domain}/sys/key_value/testservice.test/{title}
-                  headers:
-                    'cache-control': '{{cache-control}}'
-                catch:
-                  status: 404
-                return_if:
-                  status: 200
-            - get_from_api:
-                request:
-                  uri: http://en.wikipedia.org/wiki/{+title}
-                  body: '{{request.body}}'
-            - store:
-                request:
-                  method: put
-                  uri: /{domain}/sys/key_value/testservice.test/{title}
-                  headers: '{{get_from_api.headers}}'
-                  body: '{{get_from_api.body}}'
-            - return_response:
-                return:
-                  status: '{{get_from_api.status}}'
-                  headers:
-                    'content-type': '{{get_from_api.headers.content-type}}'
-                    'etag': '{{store.headers.etag}}'
-                  body: '{{get_from_api.body}}'
+                x-request-handler:
+                  - get_from_storage:
+                      request:
+                        uri: /{domain}/sys/key_value/testservice.test/{title}
+                        headers:
+                          'cache-control': '{{cache-control}}'
+                      catch:
+                        status: 404
+                      return_if:
+                        status: 200
+                  - get_from_api:
+                      request:
+                        uri: http://en.wikipedia.org/wiki/{+title}
+                        body: '{{request.body}}'
+                  - store:
+                      request:
+                        method: put
+                        uri: /{domain}/sys/key_value/testservice.test/{title}
+                        headers: '{{get_from_api.headers}}'
+                        body: '{{get_from_api.body}}'
+                  - return_response:
+                      return:
+                        status: '{{get_from_api.status}}'
+                        headers:
+                          'content-type': '{{get_from_api.headers.content-type}}'
+                          'etag': '{{store.headers.etag}}'
+                        body: '{{get_from_api.body}}'
 
-          x-monitor: false
+                x-monitor: false
 
-      /service/test_parallel/{key1}/{key2}:
-        get:
-          x-request-handler:
-            - get_from_api1:
-                request:
-                  uri: http://en.wikipedia.org/wiki/{+key1}
-              get_from_api2:
-                request:
-                  uri: http://en.wikipedia.org/wiki/{+key2}
-            - return_response:
-                return:
-                  status: 200
-                  body:
-                    first: '{{global.get_from_api1}}'
-                    second: '{{global.get_from_api2}}'
-          x-monitor: true
-          x-amples:
-            - title: Retreives parallel content with simple service
-              request:
-                params:
-                  key1: User:GWicke/Date
-                  key2: User:GWicke/Date
-              response:
-                status: 200
-                body:
-                  first:
-                    status: 200
-                    headers:
-                      content-type: /^text\/html.+/
-                  second:
-                    status: 200
-                    headers:
-                      content-type: /^text\/html.+/
+            /service/test_parallel/{key1}/{key2}:
+              get:
+                x-request-handler:
+                  - get_from_api1:
+                      request:
+                        uri: http://en.wikipedia.org/wiki/{+key1}
+                    get_from_api2:
+                      request:
+                        uri: http://en.wikipedia.org/wiki/{+key2}
+                  - return_response:
+                      return:
+                        status: 200
+                        body:
+                          first: '{{global.get_from_api1}}'
+                          second: '{{global.get_from_api2}}'
+                x-monitor: true
+                x-amples:
+                  - title: Retreives parallel content with simple service
+                    request:
+                      params:
+                        key1: User:GWicke/Date
+                        key2: User:GWicke/Date
+                    response:
+                      status: 200
+                      body:
+                        first:
+                          status: 200
+                          headers:
+                            content-type: /^text\/html.+/
+                        second:
+                          status: 200
+                          headers:
+                            content-type: /^text\/html.+/
 
-      /post_data/:
-        post:
-          security:
-            - header_match:
-                - header: 'x-client-ip'
-                  patterns:
-                    - internal
-          x-request-handler:
-            - put_to_storage:
-                request:
-                  method: put
-                  uri: /{domain}/sys/post_data/post.test/
-                  headers: '{{request.headers}}'
-                  body: '{{request.body}}'
-          x-monitor: false
+            /post_data/:
+              post:
+                security:
+                  - header_match:
+                      - header: 'x-client-ip'
+                        patterns:
+                          - internal
+                x-request-handler:
+                  - put_to_storage:
+                      request:
+                        method: put
+                        uri: /{domain}/sys/post_data/post.test/
+                        headers: '{{request.headers}}'
+                        body: '{{request.body}}'
+                x-monitor: false
 
-      /post_data/{hash}:
-        get:
-          x-setup-handler:
-            - init_storage:
-                uri: /{domain}/sys/post_data/post.test
-          x-request-handler:
-            - get_from_storage:
-                request:
-                  uri: /{domain}/sys/post_data/post.test/{hash}
-          x-monitor: false
+            /post_data/{hash}:
+              get:
+                x-setup-handler:
+                  - init_storage:
+                      uri: /{domain}/sys/post_data/post.test
+                x-request-handler:
+                  - get_from_storage:
+                      request:
+                        uri: /{domain}/sys/post_data/post.test/{hash}
+                x-monitor: false
 
-      /buckets:
-        x-modules:
-          /key_rev_large_value:
-            - path: sys/key_rev_large_value.js
-          /key_rev_value:
-            - path: sys/key_rev_value.js
-          /key_value:
-            - path: sys/key_value.js
+            /buckets/key_rev_large_value:
+              x-modules:
+                - path: sys/key_rev_large_value.js
+            /buckets/key_rev_value:
+              x-modules:
+                - path: sys/key_rev_value.js
+            /buckets/key_value:
+              x-modules:
+                - path: sys/key_value.js
 
-      /events:
-        x-modules:
-          /:
-            - path: sys/events.js
-              options: '{{options.events}}'
-
-      /events_no_config:
-        x-modules:
-          /:
-            - path: sys/events.js
+            /events:
+              x-modules:
+                - path: sys/events.js
+                  options: '{{options.events}}'
+            /events_no_config:
+              x-modules:
+                - path: sys/events.js
+        options: '{{options}}'

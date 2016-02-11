@@ -10,12 +10,12 @@ var server = require('../../utils/server');
 
 var rootSpec = {
     paths: {
-        '/{domain:en.wikipedia.org}': {
-            'x-modules': {
-                '/v1': [{
-                    path: 'v1/content.yaml',
-                }]
-            }
+        '/{domain:en.wikipedia.org}/{api:v1}/page': {
+            'x-modules': [
+                {
+                    path: 'v1/content.yaml'
+                }
+            ]
         }
     }
 };
@@ -34,9 +34,7 @@ describe('tree building', function() {
         });
         return router.loadSpec(rootSpec, fakeHyperSwitch)
         .then(function() {
-            //console.log(JSON.stringify(router.tree, null, 2));
             var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
-            //console.log(handler);
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.org');
             assert.equal(handler.params.title, 'Foo');
