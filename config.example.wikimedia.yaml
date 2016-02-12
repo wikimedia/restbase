@@ -17,7 +17,7 @@ default_project: &default_project
               - name: default.group.local
                 domains: /./
           parsoid:
-            host: http://parsoid-lb.eqiad.wikimedia.org
+            host: http://parsoid-beta.wmflabs.org
           action:
             apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           graphoid:
