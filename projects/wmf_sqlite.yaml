@@ -33,7 +33,6 @@ paths:
         name: cookie
         x-internal-request-whitelist:
           - /https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-          - http://parsoid-lb.eqiad.wikimedia.org
           - http://parsoid-beta.wmflabs.org
       header_match:
         description: Checks client ip against one of the predefined whitelists
