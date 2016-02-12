@@ -52,9 +52,7 @@ paths:
                 cache-control: '{{cache-control}}'
             return: 
               status: '{{from_backend.status}}'
-              headers:
-                content-type: '{{content-type}}'
-                cache-control: 's-maxage: 3600, max-age: 3600'
+              headers: '{{ merge({"cache-control": "s-maxage: 3600, max-age: 3600"}, from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: true
       x-amples:
@@ -119,9 +117,7 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
             return: 
               status: '{{from_backend.status}}'
-              headers:
-                content-type: '{{content-type}}'
-                cache-control: 's-maxage: 3600, max-age: 3600'
+              headers: '{{ merge({"cache-control": "s-maxage: 3600, max-age: 3600"}, from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
@@ -174,9 +170,7 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}
             return: 
               status: '{{from_backend.status}}'
-              headers:
-                content-type: '{{content-type}}'
-                cache-control: 's-maxage: 3600, max-age: 3600'
+              headers: '{{ merge({"cache-control": "s-maxage: 3600, max-age: 3600"}, from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
@@ -227,8 +221,6 @@ paths:
                 cache-control: '{cache-control}'
             return:
               status: '{{from_backend.status}}'
-              headers:
-                content-type: '{{content-type}}'
-                cache-control: 's-maxage: 3600, max-age: 3600'
+              headers: '{{ merge({"cache-control": "s-maxage: 3600, max-age: 3600"}, from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
