@@ -14,34 +14,6 @@ var mwUtil = require('../lib/mwUtil');
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/parsoid.yaml');
 
-// THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
-// SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
-var Purger = require('htcp-purge');
-var Template = HyperSwitch.Template;
-var cacheURIs = [
-    // /page/mobile-html/{title}
-    new Template({
-        uri: 'https://{domain}/api/rest_v1/page/mobile-html/{title}'
-    }),
-    // /page/mobile-html-sections/{title}
-    new Template({
-        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections/{title}'
-    }),
-    // /page/mobile-html-sections-lead/{title}
-    new Template({
-        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-lead/{title}'
-    }),
-    // /page/mobile-html-sections-remaining/{title}
-    new Template({
-        uri: 'https://{domain}/api/rest_v1/page/mobile-html-sections-remaining/{title}'
-    }),
-    // /page/mobile-text/{title}
-    new Template({
-        uri: 'https://{domain}/api/rest_v1/page/mobile-text/{title}'
-    })
-
-];
-
 // Temporary work-around for Parsoid issue
 // https://phabricator.wikimedia.org/T93715
 function normalizeHtml(html) {
@@ -111,20 +83,6 @@ function ParsoidService(options) {
     this.options = options = options || {};
     this.parsoidHost = options.parsoidHost;
 
-    // THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
-    // SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
-    self.purgeOnUpdate = !!options.purge;
-    if (self.purgeOnUpdate) {
-        self.purger = new Purger({
-            routes: [
-                {
-                    host: options.purge.host || '239.128.0.112',
-                    port: options.purge.port || 4827
-                }
-            ]
-        });
-    }
-
     // Set up operations
     this.operations = {
         getPageBundle: self.pagebundle.bind(self),
@@ -146,30 +104,6 @@ function ParsoidService(options) {
 
 // Short alias
 var PSP = ParsoidService.prototype;
-
-/**
- * THIS IS EXPERIMENTAL AND ADDED FOR TESTING PURPOSE!
- * SHOULD BE REWRITTEN WHEN DEPENDENCY TRACKING SYSTEM IS IMPLEMENTED!
- *
- * Sends HTCP purge messages to varnishes to invalidate all cached endpoints
- * dependent on the update.
- *
- * @param domain updated page domain
- * @param title updated page title
- */
-PSP.purgeCaches = function(domain, title) {
-    this.purger.purge(cacheURIs.map(function(template) {
-        return template.eval({
-            request: {
-                params: {
-                    domain: domain,
-                    title: title
-                }
-            }
-        }).uri.toString();
-    }));
-};
-
 
 // TEMP TEMP TEMP!!!
 // Wiktionary / summary invalidation and mobileapps pregeneration
@@ -472,7 +406,7 @@ PSP.getFormat = function(format, hyper, req) {
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
-            var revInfoPromise = self.getRevisionInfo(hyper, req)
+            return self.getRevisionInfo(hyper, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
                 if (revInfo.title !== rp.title) {
@@ -484,13 +418,6 @@ PSP.getFormat = function(format, hyper, req) {
                     return self.generateAndSave(hyper, req, format, storageRes);
                 }
             });
-            if (self.purgeOnUpdate) {
-                revInfoPromise = revInfoPromise.then(function(res) {
-                    self.purgeCaches(rp.domain, rp.title);
-                    return res;
-                });
-            }
-            return revInfoPromise;
         } else {
             // Don't generate content if there's some other error.
             throw storageRes;
