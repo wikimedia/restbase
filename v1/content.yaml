@@ -61,7 +61,7 @@ paths:
             request:
               uri: /{domain}/sys/page_revisions/page/
               query:
-                page: '{page}'
+                page: '{{page}}'
       x-monitor: false
 
   /{module:page}/title/{title}:
@@ -99,7 +99,7 @@ paths:
               headers:
                 # FIXME: Temporary work-around (see T120212).
                 cache-control: 'no-cache'
-                if-unmodified-since: '{if-unmodified-since}'
+                if-unmodified-since: '{{if-unmodified-since}}'
       x-monitor: true
       x-amples:
         #- title: Get rev of by title from MW
@@ -175,7 +175,7 @@ paths:
             request:
               uri: /{domain}/sys/page_revisions/page/{title}/
               query:
-                page: '{page}'
+                page: '{{page}}'
       x-monitor: false
 
   /{module:page}/html/:
@@ -207,7 +207,7 @@ paths:
             request:
               uri: /{domain}/sys/page_revisions/page/
               query:
-                page: '{page}'
+                page: '{{page}}'
       x-monitor: false
 
   /{module:page}/html/{title}:
@@ -268,12 +268,12 @@ paths:
               # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
               uri: /{domain}/sys/parsoid/html/{title}
               headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
               query:
-                sections: '{sections}'
+                sections: '{{sections}}'
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
@@ -398,8 +398,8 @@ paths:
         - post_to_backend:
             request:
               uri: /{domain}/sys/page_save/html/{title}
-              headers: '{$.request.headers}'
-              body: '{$.request.body}'
+              headers: '{{request.headers}}'
+              body: '{{request.body}}'
       x-monitor: false
 
   /{module:page}/html/{title}/:
@@ -438,12 +438,12 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/html/{title}/
               headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
               query:
-                page: '{page}'
+                page: '{{page}}'
       x-monitor: false
 
   /{module:page}/html/{title}/{revision}{/tid}:
@@ -527,12 +527,12 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
               headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
               query:
-                sections: '{sections}'
+                sections: '{{sections}}'
       x-monitor: false
 
   /{module:page}/data-parsoid/:
@@ -573,7 +573,7 @@ paths:
               # model 'wikitext'
               uri: /{domain}/sys/page_revisions/page/
               query:
-                page: '{page}'
+                page: '{{page}}'
       x-monitor: false
 
   /{module:page}/data-parsoid/{title}:
@@ -615,10 +615,10 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/data-parsoid/{title}
               headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
       x-monitor: true
       x-amples:
         - title: Get data-parsoid by title
@@ -676,12 +676,12 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/data-parsoid/{title}/
               headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
             query:
-              page: '{page}'
+              page: '{{page}}'
       x-monitor: false
 
   /{module:page}/data-parsoid/{title}/{revision}{/tid}:
@@ -749,10 +749,10 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
               headers:
-                cache-control: '{cache-control}'
-                if-unmodified-since: '{if-unmodified-since}'
-                x-restbase-mode: '{x-restbase-mode}'
-                x-restbase-parentrevision: '{x-restbase-parentrevision}'
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
       x-monitor: false
 
   /{module:page}/revision/:
@@ -785,7 +785,7 @@ paths:
             request:
               uri: /{domain}/sys/page_revisions/rev/
               query:
-                page: '{page}'
+                page: '{{page}}'
       x-monitor: false
 
   /{module:page}/revision/{revision}:
@@ -941,8 +941,8 @@ paths:
         - post_to_backend:
             request:
               uri: /{domain}/sys/page_save/wikitext/{title}
-              headers: '{$.request.headers}'
-              body: '{$.request.body}'
+              headers: '{{request.headers}}'
+              body: '{{request.body}}'
       x-monitor: false
 
   /{module:transform}/html/to/wikitext{/title}{/revision}:
@@ -1011,10 +1011,10 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
               headers:
-                if-match: '{if-match}'
+                if-match: '{{if-match}}'
               body:
-                html: '{html}'
-                scrub_wikitext: '{scrub_wikitext}'
+                html: '{{html}}'
+                scrub_wikitext: '{{scrub_wikitext}}'
       x-monitor: false
 
   /{module:transform}/wikitext/to/html{/title}{/revision}:
@@ -1088,9 +1088,9 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
               body:
-                wikitext: '{wikitext}'
-                body_only: '{body_only}'
-                stash: '{stash}'
+                wikitext: '{{wikitext}}'
+                body_only: '{{body_only}}'
+                stash: '{{stash}}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -1171,10 +1171,10 @@ paths:
 #            request:
 #              uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
 #              headers:
-#                if-match: '{if-match}'
+#                if-match: '{{if-match}}'
 #              body:
-#                html: '{html}'
-#                body_only: '{body_only}'
+#                html: '{{html}}'
+#                body_only: '{{body_only}}'
 #      x-monitor: false
 
   /{module:transform}/sections/to/wikitext/{title}/{revision}:
@@ -1250,7 +1250,7 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
               body:
-                sections: '{sections}'
+                sections: '{{sections}}'
       x-monitor: false
 
 definitions:

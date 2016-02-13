@@ -98,8 +98,8 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}
             return:
               status: 200
-              headers: '{$.get_sections.headers}'
-              body: '{$.get_sections.body.lead}'
+              headers: '{{get_sections.headers}}'
+              body: '{{get_sections.body.lead}}'
 
   /mobile-sections-remaining/{title}:
     get:
@@ -120,6 +120,6 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}
             return:
               status: 200
-              headers: '{$.get_sections.headers}'
-              body: '{$.get_sections.body.remaining}'
+              headers: '{{get_sections.headers}}'
+              body: '{{get_sections.body.remaining}}'
 

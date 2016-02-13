@@ -172,7 +172,7 @@ paths:
               method: put
               uri: /wikimedia.org/sys/key_value/mathoid.svg/{$.request.params.hash}
               headers: "{{ merge(mathoid.body.svg.headers, { 'x-resource-location': request.params.hash }) }}"
-              body: '{$.mathoid.body.svg.body}'
+              body: '{{mathoid.body.svg.body}}'
           store_mml:
             request:
               method: put
