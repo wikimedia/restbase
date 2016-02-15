@@ -1,24 +1,45 @@
 "use strict";
 
-var Purger = require('htcp-purge');
-var P      = require('bluebird');
+var Purger    = require('htcp-purge');
+var P         = require('bluebird');
+var HTTPError = require('hyperswitch').HTTPError;
 
 var EventService = function(options) {
     this.options = options;
 
-    if (options && options.host && options.port) {
-        this.purger = new Purger({ routes: [ options ] });
+    if (options && options.purge) {
+        this.purger = new Purger({ routes: [ options.purge ] });
     }
 };
 
 EventService.prototype.emitEvent = function(hyper, req) {
     var self = this;
     if (this.purger) {
-        self.purger.purge(req.body.map(function(event) {
-            return event.uri.toString();
-        }))
+        P.try(function() {
+            if (!Array.isArray(req.body)) {
+                throw new HTTPError({
+                    status: 400,
+                    body: {
+                        type: 'events',
+                        description: 'Invalid request for event service.'
+                    }
+                });
+            }
+
+            return self.purger.purge(req.body.map(function(event) {
+                if (!/^\/\/[^\/]+/.test(event.uri)) {
+                    hyper.log('error/events/purge', {
+                        message: 'Invalid event URI',
+                        event: event
+                    });
+                } else {
+                    return event.uri.toString();
+                }
+            })
+            .filter(function(event) { return !!event; }));
+        })
         .catch(function(e) {
-            hyper.log('error/purge', e);
+            hyper.log('error/events/purge', e);
         });
     }
     return P.resolve({ status: 200 });

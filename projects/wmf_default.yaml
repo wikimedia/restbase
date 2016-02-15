@@ -129,4 +129,4 @@ paths:
           options: '{{options.mobileapps}}'
       /events:
         - path: sys/events.js
-          options: '{{options.purge}}'
+          options: '{{options.events}}'

@@ -69,4 +69,4 @@ paths:
           options: '{{options.pageviews}}'
       /events:
         - path: sys/events.js
-          options: '{{options.purge}}'
+          options: '{{options.events}}'
