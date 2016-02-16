@@ -56,9 +56,12 @@ paths:
               method: post
               uri: /{domain}/sys/events/
               body:
-                - uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections/{request.params.title}
-                - uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections-lead/{request.params.title}
-                - uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections-remaining/{request.params.title}
+                - meta:
+                    uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections/{request.params.title}
+                - meta:
+                    uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections-lead/{request.params.title}
+                - meta:
+                    uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections-remaining/{request.params.title}
             catch:
               status: 404
             return:

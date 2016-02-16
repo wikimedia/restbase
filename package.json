@@ -39,7 +39,7 @@
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "htcp-purge": "^0.1.2",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
-    "hyperswitch": "^0.1.1"
+    "hyperswitch": "^0.1.4"
   },
   "devDependencies": {
     "js-yaml": "^3.5.2",

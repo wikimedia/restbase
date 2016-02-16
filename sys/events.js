@@ -27,13 +27,13 @@ EventService.prototype.emitEvent = function(hyper, req) {
             }
 
             return self.purger.purge(req.body.map(function(event) {
-                if (!/^\/\/[^\/]+/.test(event.uri)) {
+                if (!event.meta || !/^\/\/[^\/]+/.test(event.meta.uri)) {
                     hyper.log('error/events/purge', {
                         message: 'Invalid event URI',
                         event: event
                     });
                 } else {
-                    return event.uri.toString();
+                    return event.meta.uri.toString();
                 }
             })
             .filter(function(event) { return !!event; }));
