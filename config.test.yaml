@@ -6,6 +6,11 @@ default_project: &default_project
   x-modules:
     /:
       - path: test/test_module.yaml
+        options:
+          events:
+            purge:
+              host: 127.0.0.1
+              port: 4321
       - path: projects/wmf_default.yaml
         options: &default_options
           table:

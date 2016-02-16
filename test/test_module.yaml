@@ -122,3 +122,14 @@ paths:
             - path: sys/key_rev_value.js
           /key_value:
             - path: sys/key_value.js
+
+      /events:
+        x-modules:
+          /:
+            - path: sys/events.js
+              options: '{{options.events}}'
+
+      /events_no_config:
+        x-modules:
+          /:
+            - path: sys/events.js
