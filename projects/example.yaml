@@ -72,4 +72,3 @@ paths:
         - path: sys/parsoid.js
           options:
             parsoidHost: '{{options.parsoid.host}}'
-

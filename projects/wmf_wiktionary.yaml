@@ -93,3 +93,6 @@ paths:
       /mobileapps:
         - path: sys/mobileapps.yaml
           options: '{{options.mobileapps}}'
+      /events:
+        - path: sys/events.js
+          options: '{{options.events}}'

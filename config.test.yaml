@@ -6,6 +6,11 @@ default_project: &default_project
   x-modules:
     /:
       - path: test/test_module.yaml
+        options:
+          events:
+            purge:
+              host: 127.0.0.1
+              port: 4321
       - path: projects/wmf_default.yaml
         options: &default_options
           table:
@@ -30,6 +35,10 @@ default_project: &default_project
             cache-control: s-maxage=864000, max-age=86400
           mobileapps:
             host: http://appservice.wmflabs.org
+          events:
+            purge:
+              host: 127.0.0.1
+              port: 4321
 
 labs_project: &labs_project
   x-modules:

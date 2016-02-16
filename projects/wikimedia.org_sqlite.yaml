@@ -67,3 +67,6 @@ paths:
       /pageviews:
         - path: sys/pageviews_proxy.yaml
           options: '{{options.pageviews}}'
+      /events:
+        - path: sys/events.js
+          options: '{{options.events}}'
