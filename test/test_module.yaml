@@ -45,11 +45,11 @@ paths:
                   body: '{{get_from_api.body}}'
             - return_response:
                 return:
-                  status: '{$.get_from_api.status}'
+                  status: '{{get_from_api.status}}'
                   headers:
-                    'content-type': '{$.get_from_api.headers.content-type}'
-                    'etag': '{$.store.headers.etag}'
-                  body: '{$.get_from_api.body}'
+                    'content-type': '{{get_from_api.headers.content-type}}'
+                    'etag': '{{store.headers.etag}}'
+                  body: '{{get_from_api.body}}'
 
           x-monitor: false
 
@@ -99,8 +99,8 @@ paths:
                 request:
                   method: put
                   uri: /{domain}/sys/post_data/post.test/
-                  headers: '{$.request.headers}'
-                  body: '{$.request.body}'
+                  headers: '{{request.headers}}'
+                  body: '{{request.body}}'
           x-monitor: false
 
       /post_data/{hash}:
