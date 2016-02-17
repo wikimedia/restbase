@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "REST storage and service dispatcher",
   "main": "lib/server.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "htcp-purge": "^0.1.2",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
-    "hyperswitch": "git+https://github.com/Pchelolo/hyperswitch#router"
+    "hyperswitch": "^0.2.0"
   },
   "devDependencies": {
     "js-yaml": "^3.5.2",
