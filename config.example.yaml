@@ -28,21 +28,20 @@ services:
         paths:
           /{domain:localhost}:
             x-modules:
-              /:
-                - path: projects/example.yaml
-                  options:
-                    action:
-                      # XXX Check API URL!
-                      apiUriTemplate: http://localhost/w/api.php
-                    parsoid:
-                      # XXX Check Parsoid URL!
-                      host: http://localhost:8142
-                    table:
-                      dbname: db.sqlite3
-                      pool_idle_timeout: 20000
-                      retry_delay: 250
-                      retry_limit: 10
-                      show_sql: false
+              - path: projects/example.yaml
+                options:
+                  action:
+                    # XXX Check API URL!
+                    apiUriTemplate: http://localhost/w/api.php
+                  parsoid:
+                    # XXX Check Parsoid URL!
+                    host: http://localhost:8142
+                  table:
+                    dbname: db.sqlite3
+                    pool_idle_timeout: 20000
+                    retry_delay: 250
+                    retry_limit: 10
+                    show_sql: false
 
 # Finally, a standard service-runner config.
 info:

@@ -1,0 +1,336 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki Content API
+  description: Basic MediaWiki content api.
+  termsofservice: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: Services
+    email: services@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/Services
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /html/to/wikitext{/title}{/revision}:
+    post:
+      tags:
+        - Transforms
+      summary: Transform HTML to Wikitext
+      description: |
+        Transform [Parsoid HTML](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
+        to Wikitext.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - multipart/form-data
+      produces:
+        - text/plain; profile="mediawiki.org/specs/wikitext/1.0.0"
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: false
+        - name: html
+          in: formData
+          description: The HTML to transform
+          type: string
+          required: true
+          x-textarea: true
+        - name: scrub_wikitext
+          in: formData
+          description: Normalise the DOM to yield cleaner wikitext?
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: MediaWiki Wikitext.
+          schema:
+            type: string
+        '403':
+          description: Access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        '409':
+          description: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          description: Page was deleted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+              headers:
+                if-match: '{{if-match}}'
+              body:
+                html: '{{html}}'
+                scrub_wikitext: '{{scrub_wikitext}}'
+      x-monitor: false
+
+  /wikitext/to/html{/title}{/revision}:
+    post:
+      tags:
+        - Transforms
+      summary: Transform Wikitext to HTML
+      description: |
+        Transform wikitext to HTML. Note that if you set `stash: true`, you
+        also need to supply the title.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - multipart/form-data
+      produces:
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: false
+        - name: wikitext
+          in: formData
+          description: The Wikitext to transform to HTML
+          type: string
+          required: true
+          x-textarea: true
+        - name: body_only
+          in: formData
+          description: Return only `body.innerHTML`
+          type: boolean
+          required: false
+        - name: stash
+          in: formData
+          description: Whether to temporarily stash the result of the transformation
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+          schema:
+            type: string
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        '409':
+          description: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          description: Page was deleted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+              body:
+                wikitext: '{{wikitext}}'
+                body_only: '{{body_only}}'
+                stash: '{{stash}}'
+      x-monitor: true
+      x-amples:
+        - title: Transform wikitext to html
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Foobar
+            body:
+              wikitext: == Heading ==
+              body_only: true
+          response:
+            status: 200
+            headers:
+              content-type: /^text\/html.+/
+            body: /^<h2.*> Heading <\/h2>$/
+
+# Keeping this in, as we'll re-introduce a html2html end point later.
+#  /html/to/html{/title}{/revision}:
+#    post:
+#      tags:
+#        - Transforms
+#
+#      description: |
+#        Update / refresh / sanitize HTML
+#
+#        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+#      consumes:
+#        - multipart/form-data
+#      produces:
+#        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+#      parameters:
+#        - name: title
+#          in: path
+#          description: The page title
+#          type: string
+#          required: false
+#        - name: revision
+#          in: path
+#          description: The page revision
+#          type: integer
+#          required: false
+#        - name: html
+#          in: formData
+#          description: The HTML to transform
+#          type: string
+#          required: true
+#          x-textarea: true
+#        - name: body_only
+#          in: formData
+#          description: Return only `body.innerHTML`
+#          type: boolean
+#          required: false
+#      responses:
+#        '200':
+#          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+#        '403':
+#          description: access to the specific revision is restricted
+#          schema:
+#            $ref: '#/definitions/problem'
+#        '404':
+#          description: Unknown page title or revision
+#          schema:
+#            $ref: '#/definitions/problem'
+#        '409':
+#          description: Revision was restricted
+#          schema:
+#            $ref: '#/definitions/problem'
+#        '410':
+#          description: Page was deleted
+#          schema:
+#            $ref: '#/definitions/problem'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: /{domain}/sys/parsoid/transform/html/to/html{/title}{/revision}
+#              headers:
+#                if-match: '{if-match}'
+#              body:
+#                html: '{html}'
+#                body_only: '{body_only}'
+#      x-monitor: false
+
+  /sections/to/wikitext/{title}/{revision}:
+    post:
+      tags:
+        - Transforms
+
+      summary: Transform modified HTML sections to Wikitext.
+      description: |
+        This entry point provides efficient HTML section edit functionality.
+        The client can send back only modified HTML sections, and retrieve the
+        full Wikitext of the page.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - application/json
+        - multipart/form-data
+      produces:
+        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+      parameters:
+        - name: title
+          in: path
+          description: The page title
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: true
+        - name: sections
+          in: body
+          description: Sections to transform
+          required: true
+          schema:
+            type: 'object'
+            properties:
+              sections:
+                example: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
+            required:
+              - sections
+      responses:
+        '200':
+          description: Wikitext of the full page.
+          schema:
+            type: string
+        '400':
+          description: Illegal JSON provided or section id does not exist
+          schema:
+            $ref: '#/definitions/problem'
+        '403':
+          description: access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page title or revision
+          schema:
+            $ref: '#/definitions/problem'
+        '409':
+          description: Revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          description: Page was deleted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+              body:
+                sections: '{{sections}}'
+      x-monitor: false
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string

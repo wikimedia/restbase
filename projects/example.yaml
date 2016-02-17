@@ -20,55 +20,71 @@
 # between domains in the root_spec further down.
 paths:
   /{api:v1}:
-    info:
-      version: 1.0.0-beta
-      title: Wikimedia REST API
-      description: Welcome to your RESTBase API.
-
-    securityDefinitions:
-      mediawiki_auth:
-        description: Checks permissions using MW api
-        type: apiKey
-        in: header
-        name: cookie
-        x-internal-request-whitelist:
-          - http://localhost/w/api.php
-          - http://localhost:8142
-      header_match:
-        description: Checks client ip against one of the predefined whitelists
-        x-error-message: This client is not allowed to use the endpoint
-        x-whitelists:
-          internal:
-            - /^(?:localhost)|(?:127\.)/
-
     x-modules:
-      /: 
-        # The main content module, defining page/* and transform entry
-        # points.
-        - path: v1/content.yaml
+      - spec:
+          info:
+            version: 1.0.0-beta
+            title: Wikimedia REST API
+            description: Welcome to your RESTBase API.
+
+          securityDefinitions:
+            mediawiki_auth:
+              description: Checks permissions using MW api
+              type: apiKey
+              in: header
+              name: cookie
+              x-internal-request-whitelist:
+                - http://localhost/w/api.php
+                - http://localhost:8142
+            header_match:
+              description: Checks client ip against one of the predefined whitelists
+              x-error-message: This client is not allowed to use the endpoint
+              x-whitelists:
+                internal:
+                  - /^(?:localhost)|(?:127\.)/
+
+          paths:
+            /page:
+              x-modules:
+                - path: v1/content.yaml
+            /transform:
+              x-modules:
+                - path: v1/transform.yaml
 
   /{api:sys}:
     x-modules:
-      /table:
-        - type: npm
-          name: restbase-mod-table-sqlite
-          version: 1.0.0
-          options: 
-            conf: '{{options.table}}'
-      /key_value:
-        - path: sys/key_value.js
-      /key_rev_value:
-        - path: sys/key_rev_value.js
-      /page_revisions:
-        - path: sys/page_revisions.js
-      /post_data:
-        - path: sys/post_data.js
-      /action:
-        - path: sys/action.js
-          options: '{{options.action}}'
-      /page_save:
-        - path: sys/page_save.js
-      /parsoid:
-        - path: sys/parsoid.js
-          options:
-            parsoidHost: '{{options.parsoid.host}}'
+      - spec:
+          paths:
+            /table:
+              x-modules:
+                - type: npm
+                  name: restbase-mod-table-sqlite
+                  version: 1.0.0
+                  options:
+                    conf: '{{options.table}}'
+            /key_value:
+              x-modules:
+                - path: sys/key_value.js
+            /key_rev_value:
+              x-modules:
+                - path: sys/key_rev_value.js
+            /page_revisions:
+              x-modules:
+                - path: sys/page_revisions.js
+            /post_data:
+              x-modules:
+                - path: sys/post_data.js
+            /action:
+              x-modules:
+                - path: sys/action.js
+                  options: '{{options.action}}'
+            /page_save:
+              x-modules:
+                - path: sys/page_save.js
+            /parsoid:
+              x-modules:
+                - path: sys/parsoid.js
+                  options:
+                    parsoidHost: '{{options.parsoid.host}}'
+        options: '{{options}}'
+

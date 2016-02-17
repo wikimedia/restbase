@@ -44,6 +44,7 @@ describe('Change event emitting', function() {
         .delay(100)
         .finally(function() {
             udpServer.close();
+            done(new Error('Timeout!'));
         });
     });
 
@@ -96,6 +97,7 @@ describe('Change event emitting', function() {
         .delay(100)
         .finally(function() {
             udpServer.close();
+            done(new Error('Timeout!'));
         });
     });
 });

@@ -31,10 +31,6 @@ function constructTests(spec, options) {
     Object.keys(paths).forEach(function(pathStr) {
         if (!pathStr) return;
         Object.keys(paths[pathStr]).filter(function(method) {
-            if (paths[pathStr][method]['x-monitor'] === undefined) {
-                throw new Error('x-monitor not specified for endpoint.'
-                    + ' Path: ' + pathStr + ' Method: ' + method)
-            }
             return paths[pathStr][method]['x-monitor'];
         })
         .forEach(function(method) {
