@@ -22,9 +22,9 @@ describe('Change event emitting', function() {
                         return message.slice(22, 22 + message.readInt16BE(20)).toString();
                     }).sort();
                     assert.deepEqual(receivedMessages,
-                    [ '//en.wikipedia.org/api/rest_v1/page/mobile-sections-lead/User%3APchelolo',
-                        '//en.wikipedia.org/api/rest_v1/page/mobile-sections-remaining/User%3APchelolo',
-                        '//en.wikipedia.org/api/rest_v1/page/mobile-sections/User%3APchelolo' ]);
+                    [ 'http://en.wikipedia.org/api/rest_v1/page/mobile-sections-lead/User%3APchelolo',
+                        'http://en.wikipedia.org/api/rest_v1/page/mobile-sections-remaining/User%3APchelolo',
+                        'http://en.wikipedia.org/api/rest_v1/page/mobile-sections/User%3APchelolo' ]);
                     udpServer.close();
                     done();
                 }
@@ -70,7 +70,7 @@ describe('Change event emitting', function() {
         udpServer.on("message", function(msg) {
             try {
                 var uri = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
-                assert.deepEqual(uri, '//en.wikipedia.org');
+                assert.deepEqual(uri, 'https://en.wikipedia.org');
                 udpServer.close();
                 done();
             } catch (e) {
@@ -87,7 +87,7 @@ describe('Change event emitting', function() {
             },
             body: [
                 { meta: {
-                        uri: '//en.wikipedia.org'
+                        uri: 'https://en.wikipedia.org'
                     }
                 },
                 { meta: { } },
