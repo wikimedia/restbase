@@ -27,6 +27,8 @@ default_project: &default_project
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
           host: http://appservice.wmflabs.org
+        # 10 days Varnish caching, one day client-side
+        purged_cache_control: s-maxage=864000, max-age=86400
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
@@ -99,7 +101,7 @@ logging:
   #  port: <%= @logstash_port %>
 
 metrics:
-  type: statsd
-  host: localhost
-  port: 8125
-  batch: true
+  #type: txstatsd
+  #host: localhost
+  #port: 8125
+  #batch: true

@@ -103,6 +103,7 @@ paths:
                 - path: sys/parsoid.js
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
+                    response_cache_control: '{{options.purged_cache_control}}'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml

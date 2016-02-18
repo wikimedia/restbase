@@ -134,7 +134,24 @@ PSP._dependenciesUpdate = function(hyper, req) {
             'summary' : 'definition', e);
         }
     });
+
+
+    // Emit resource change events
+    var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
+    var resourceChangePromise = hyper.post({
+        uri: new URI([rp.domain, 'sys', 'events', '']),
+        body: [
+            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
+            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
+                        + '/' + rp.revision } },
+            { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title) } },
+            { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title)
+                        + '/' + rp.revision } },
+        ]
+    });
+
     return P.join(
+        resourceChangePromise,
         summaryPromise,
         hyper.get({
             uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
@@ -346,6 +363,9 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                     body: res.body[format].body
                 };
                 resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
+                if (self.options.response_cache_control) {
+                    resp.headers['cache-control'] = self.options.response_cache_control;
+                }
                 return self.wrapContentReq(hyper, req, P.resolve(resp), format, tid);
             });
         } else {
