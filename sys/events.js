@@ -27,7 +27,7 @@ EventService.prototype.emitEvent = function(hyper, req) {
             }
 
             return self.purger.purge(req.body.map(function(event) {
-                if (!event.meta || !event.meta.uri) {
+                if (!event.meta || !event.meta.uri || /^\/\/:/.test(event.meta.uri)) {
                     hyper.log('error/events/purge', {
                         message: 'Invalid event URI',
                         event: event
