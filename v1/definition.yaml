@@ -16,11 +16,13 @@ paths:
     get:
       tags:
         - Page content
+      summary: Get term definitions based on Wiktionary content.
       description: |
-        Returns the definition of the term based on the latest wikitionary page content
-        available in storage.
-
-        Provide a `Cache-Control: no-cache` header to request the latest data.
+        Experimental end point providing term definitions extracted from
+        Wiktionary content. Currently, only English Wiktionary is supported.
+        See [this wiki
+        page](https://www.mediawiki.org/wiki/Wikimedia_Apps/Wiktionary_definition_popups_in_the_Android_Wikipedia_Beta_app)
+        for background and considerations for further development.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
