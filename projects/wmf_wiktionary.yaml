@@ -59,7 +59,7 @@ paths:
                   options: '{{options.graphoid}}'
                 - path: v1/definition.yaml
                   options:
-                    response_cache-control: 'max-age=3600, s-maxage=3600'
+                    response_cache_control: '{{options.purged_cache_control}}'
                     host: '{{options.mobileapps.host}}'
             /transform:
               x-modules:
