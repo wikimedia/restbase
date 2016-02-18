@@ -70,7 +70,7 @@ describe('Change event emitting', function() {
         udpServer.on("message", function(msg) {
             try {
                 var uri = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
-                assert.deepEqual(uri, 'https://en.wikipedia.org');
+                assert.deepEqual(uri, 'http://en.wikipedia.org');
                 udpServer.close();
                 done();
             } catch (e) {
@@ -87,7 +87,7 @@ describe('Change event emitting', function() {
             },
             body: [
                 { meta: {
-                        uri: 'https://en.wikipedia.org'
+                        uri: '//en.wikipedia.org'
                     }
                 },
                 { meta: { } },
