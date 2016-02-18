@@ -363,9 +363,6 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                     body: res.body[format].body
                 };
                 resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                if (self.options.response_cache_control) {
-                    resp.headers['cache-control'] = self.options.response_cache_control;
-                }
                 return self.wrapContentReq(hyper, req, P.resolve(resp), format, tid);
             });
         } else {
@@ -489,6 +486,9 @@ PSP.getFormat = function(format, hyper, req) {
     return contentReq
     .then(function(res) {
         mwUtil.normalizeContentType(res);
+        if (self.options.response_cache_control) {
+            res.headers['cache-control'] = self.options.response_cache_control;
+        }
         HyperSwitch.misc.addCSPHeaders(res, {
             domain: rp.domain,
             allowInline: true,
