@@ -57,7 +57,7 @@ paths:
                   options: '{{options.graphoid}}'
                 - path: v1/summary.js
                   options:
-                    response_cache-control: 'max-age: 3600, s-maxage: 3600'
+                    response_cache-control: 'max-age=3600, s-maxage=3600'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
