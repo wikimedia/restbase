@@ -32,7 +32,11 @@ default_project: &default_project
 wikimedia.org: &wikimedia.org
   x-modules:
     - path: projects/wikimedia.org.yaml
-      options: *default_options
+      options:
+        <<: *default_options
+        pageviews:
+          host: https://wikimedia.org/api/rest_v1/metrics
+
 
 wiktionary_project: &wiktionary_project
   x-modules:

@@ -53,6 +53,7 @@ paths:
             /metrics:
               x-modules:
                 - path: v1/pageviews.yaml
+                  options: '{{options.pageviews}}'
         options: '{{options}}'
 
   /{api:sys}:
@@ -74,10 +75,6 @@ paths:
             /post_data: &sys_post_data
               x-modules:
                 - path: sys/post_data.js
-            /pageviews:
-              x-modules:
-                - path: sys/pageviews_proxy.yaml
-                  options: '{{options.pageviews}}'
             /events:
               x-modules:
                 - path: sys/events.js
