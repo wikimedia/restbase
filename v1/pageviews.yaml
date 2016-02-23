@@ -93,7 +93,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}
+              uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}'
       x-monitor: false
 
   /pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}:
@@ -151,7 +151,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/pageviews/per-project/{project}/{access}/{agent}/{granularity}/{start}/{end}
+              uri: '{{options.host}}/pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}'
       x-monitor: true
       x-amples:
         - title: Get aggregate page views
@@ -225,7 +225,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri:  /{domain}/sys/pageviews/top/{project}/{access}/{year}/{month}/{day}
+              uri: '{{options.host}}/pageviews/top/{project}/{access}/{year}/{month}/{day}'
       x-monitor: false
 
 definitions:
