@@ -113,9 +113,110 @@ PSP._dependenciesUpdate = function(hyper, req) {
     });
 };
 
-PSP.getBucketURI = function(rp, format, tid, useKeyRevValue) {
-    var bucket = useKeyRevValue ? 'key_rev_value' : this.options.bucket_type;
-    var path = [rp.domain, 'sys', bucket, 'parsoid.' + format, rp.title];
+/**
+ * Wraps a request for getting content (the promise) into a
+ * P.all() call, bundling it with a request for revision
+ * info, so that a 403 error gets raised overall if access to
+ * the revision should be denied
+ * @param {HyperSwitch} hyper the HyperSwitch router object
+ * @param {Object} req the user request
+ * @param {Object} promise the promise object to wrap
+ * @private
+ */
+PSP._wrapInAccessCheck = function(hyper, req, promise) {
+    // TODO: Enable new checking style when the restrictions table is filled
+    /*var rp = req.params;
+    var checkURIParts = [rp.domain, 'sys', 'page_revisions', 'restriction', rp.title];
+    if (rp.revision) {
+        checkURIParts.push(rp.revision);
+    }
+
+    return P.join(
+        promise,
+        hyper.get({ uri: new URI(checkURIParts) })
+    )
+    .spread(function(content, restriction) {
+        if (restriction.body && restriction.body.items && restriction.body.items.length) {
+            var revInfo = mwUtil.parseETag(content.headers.etag);
+            mwUtil.applyAccessChecks(restriction.body.items[0], revInfo.rev, revInfo.tid);
+        }
+        return content;
+    });*/
+    return P.props({
+        content: promise,
+        revisionInfo: this.getRevisionInfo(hyper, req)
+    })
+    .then(function(responses) { return responses.content; });
+};
+
+/**
+ * Wrap content request with sections request if needed
+ * and ensures charset in the response
+ *
+ * @param {HyperSwitch} hyper the HyperSwitch router object
+ * @param {Object} req the user request
+ * @param {Object} promise the promise object to wrap
+ * @param {String} format the requested format
+ * @param {String} tid time ID of the requested render
+ */
+PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
+    var rp = req.params;
+    var reqs = { content: promise };
+
+    // If the format is HTML and sections were requested, also request section
+    // offsets
+    if (format === 'html' && req.query.sections) {
+        reqs.sectionOffsets = hyper.get({
+            uri: this.getBucketURI(rp, 'section.offsets', tid)
+        });
+    }
+
+    return P.props(reqs)
+    .then(function(responses) {
+        // If we have reached this point, it means access is not denied, and
+        // sections (if requested) were found
+        if (format === 'html' && req.query.sections) {
+            // Handle section requests
+            var sectionOffsets = responses.sectionOffsets.body;
+            var sections = req.query.sections.split(',').map(function(id) {
+                return id.trim();
+            });
+
+            return mwUtil.decodeBody(responses.content).then(function(content) {
+                var body = cheapBodyInnerHTML(content.body);
+                var chunks = {};
+                sections.forEach(function(id) {
+                    var offsets = sectionOffsets[id];
+                    if (!offsets) {
+                        throw new HTTPError({
+                            status: 400,
+                            body: {
+                                type: 'invalid_request',
+                                detail: 'Unknown section id: ' + id
+                            }
+                        });
+                    }
+                    // Offsets as returned by Parsoid are relative to body.innerHTML
+                    chunks[id] = body.substring(offsets.html[0], offsets.html[1]);
+                });
+
+                return {
+                    status: 200,
+                    headers: {
+                        etag: responses.content.headers.etag,
+                        'content-type': 'application/json'
+                    },
+                    body: chunks
+                };
+            });
+        } else {
+            return ensureCharsetInContentType(responses.content);
+        }
+    });
+};
+
+PSP.getBucketURI = function(rp, format, tid) {
+    var path = [rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {

@@ -300,7 +300,7 @@ describe('Access checks', function() {
             }
         })
         .then(function(res) {
-            assert.deepEqual(res.status, 200)
+            assert.deepEqual(res.status, 200);
             return preq.get({
                 uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev,
             });
