@@ -183,7 +183,9 @@ describe('Access checks', function() {
     }
 
     testAccess('html', 'deleted', deletedPageTitle);
-    // TODO testAccess('html', 'deleted', deletedPageTitle, deletedPageOlderRevision);
+    testAccess('data-parsoid', 'deleted', deletedPageTitle);
+    testAccess('html', 'deleted', deletedPageTitle, deletedPageOlderRevision);
+    testAccess('data-parsoid', 'deleted', deletedPageTitle, deletedPageOlderRevision);
     testAccess('mobile-sections', 'deleted', deletedPageTitle);
     testAccess('mobile-sections-lead', 'deleted', deletedPageTitle);
     testAccess('mobile-sections-remaining', 'deleted', deletedPageTitle);
@@ -278,7 +280,19 @@ describe('Access checks', function() {
         });
     });
 
-    it('should allow to view content if restrictions disappeared', function() {
+    it('should restrict access to restricted revision data-parsoid', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/data-parsoid/' + encodeURIComponent(pageTitle) + '/' + pageRev
+        })
+        .then(function() {
+            throw new Error('403 should have been returned for a deleted page');
+        }, function(e) {
+            assert.deepEqual(e.status, 403);
+            assert.contentType(e, 'application/problem+json');
+        });
+    });
+
+    it('should allow to veiw content if restrictions disappeared', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
             headers: {
@@ -286,7 +300,7 @@ describe('Access checks', function() {
             }
         })
         .then(function(res) {
-            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.status, 200)
             return preq.get({
                 uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev,
             });
