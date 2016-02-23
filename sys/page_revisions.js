@@ -34,7 +34,7 @@ PRS.prototype.tableURI = function(domain) {
 PRS.prototype.getTableSchema = function() {
     return {
         table: this.tableName,
-        version: 3,
+        version: 4,
         attributes: {
             // Listing: /titles.rev/Barack_Obama/master/
             // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
@@ -60,13 +60,15 @@ PRS.prototype.getTableSchema = function() {
             user_text: 'string',
             timestamp: 'timestamp',
             comment: 'string',
-            redirect: 'boolean'
+            redirect: 'boolean',
+            page_deleted: 'timeuuid'
         },
         index: [
             { attribute: 'title', type: 'hash' },
             { attribute: 'rev', type: 'range', order: 'desc' },
             { attribute: 'latest_rev', type: 'static' },
-            { attribute: 'tid', type: 'range', order: 'desc' }
+            { attribute: 'tid', type: 'range', order: 'desc' },
+            { attribute: 'page_deleted', type: 'static'}
         ],
         secondaryIndexes: {
             by_rev: [
@@ -92,8 +94,23 @@ PRS.prototype.getTableSchema = function() {
  * @throws HTTPError if access to the revision should be denied
  */
 PRS.prototype._checkRevReturn = function(item) {
+    // Page was deleted - new version of tracking
+    if (item.page_deleted) {
+        var deletionTime = uuid.fromString(item.page_deleted).getDate();
+        var revisionTime = uuid.fromString(item.tid).getDate();
+        if (revisionTime <= deletionTime) {
+            throw new HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found#page_revisions',
+                    description: 'Page was deleted'
+                }
+            });
+        }
+    }
+
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
-        // Page was deleted
+        // Page was deleted - old version of tracking
         if (item.restrictions.indexOf('page_deleted') >= 0) {
             throw new HTTPError({
                 status: 404,
@@ -346,10 +363,10 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
                 return getLatestTitleRevision()
                 // In case 404 is returned by MW api, the page is deleted
                 .then(function(result) {
+                    var tid = uuid.now().toString();
                     result = result.body.items[0];
-                    result.tid = uuid.now().toString();
-                    result.restrictions = result.restrictions || [];
-                    result.restrictions.push('page_deleted');
+                    result.tid = tid;
+                    result.page_deleted = tid;
                     return hyper.put({
                         uri: self.tableURI(rp.domain),
                         body: {
