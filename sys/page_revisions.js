@@ -16,6 +16,7 @@ var URI = HyperSwitch.URI;
 var uuid = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
 var stringify = require('json-stable-stringify');
+var P = require('bluebird');
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/page_revisions.yaml');
 
@@ -68,7 +69,7 @@ PRS.prototype.getTableSchema = function() {
             { attribute: 'rev', type: 'range', order: 'desc' },
             { attribute: 'latest_rev', type: 'static' },
             { attribute: 'tid', type: 'range', order: 'desc' },
-            { attribute: 'page_deleted', type: 'static'}
+            { attribute: 'page_deleted', type: 'static' }
         ],
         secondaryIndexes: {
             by_rev: [
@@ -82,6 +83,115 @@ PRS.prototype.getTableSchema = function() {
 };
 
 /**
+ * The name of the suppression table
+ * @type {string}
+ * @const
+ */
+PRS.prototype.restrictionsTableName = 'restrictions';
+
+/**
+ * Suppression table schema
+ *
+ * @type {Object}
+ * @const
+ */
+PRS.prototype.restrictionsTableSchema = function() {
+    return {
+        table: this.tableName,
+        version: 1,
+        attributes: {
+            title: 'string',
+            rev: 'int',
+            restrictions: 'set<string>',
+            page_deleted: 'timeuuid'
+        },
+        index: [
+            { attribute: 'title', type: 'hash' },
+            { attribute: 'rev', type: 'range', order: 'desc' },
+            { attribute: 'page_deleted', type: 'static' }
+        ]
+    };
+};
+
+/**
+ * Returns the suppression table URI for a given domain
+ * @param {string} domain the domain
+ * @returns {URI} suppression table URI
+ */
+PRS.prototype.restrictionsTableURI = function(domain) {
+    return new URI([domain, 'sys', 'table', this.restrictionsTableName, '']);
+};
+
+PRS.prototype.getRestriction = function(hyper, req) {
+    var self = this;
+    var rp = req.params;
+    var attributes = { title: rp.title };
+    if (rp.revision) {
+        attributes.rev = rp.revision;
+    }
+    return hyper.get({
+            uri: self.restrictionsTableURI(rp.domain),
+            body: {
+                table: self.restrictionsTableName,
+                attributes: attributes,
+                limit: 1
+            }
+        })
+        .catch({ status: 404 }, function() {
+            if (rp.revision) {
+                // Ok, this specific revision wasn't restricted,
+                // but the page still might be deleted.
+                // Fetch some latest restrictions to verify page deletion
+                return hyper.get({
+                    uri: self.restrictionsTableURI(rp.domain),
+                    body: {
+                        table: self.restrictionsTableName,
+                        attributes: { title: rp.title },
+                        limit: 1
+                    }
+                })
+                .catch({ status: 404 }, function() { return { status: 200 }; });
+            }
+            return { status: 200 };
+        });
+};
+
+PRS.prototype.storeRestrictions = function(hyper, req, revision) {
+    var self = this;
+    var rp = req.params;
+    if (revision && revision.restrictions && revision.restrictions.length) {
+        return hyper.put({
+            uri: self.restrictionsTableURI(rp.domain),
+            body: {
+                table: self.restrictionsTableName,
+                attributes: {
+                    title: revision.title,
+                    rev: revision.rev,
+                    restrictions: revision.restrictions
+                }
+            }
+        });
+    }
+    return P.resolve({ status: 200 });
+};
+
+PRS.prototype.storePageDeletion = function(hyper, req, revision) {
+    var self = this;
+    var rp = req.params;
+    return hyper.put({
+        uri: self.restrictionsTableURI(rp.domain),
+        body: {
+            table: self.restrictionsTableName,
+            attributes: {
+                title: revision.title,
+                rev: revision.rev,
+                page_deleted: revision.page_deleted
+            }
+        }
+    });
+};
+
+/**
  * Checks the revision info returned from the storage/MW API
  * for restrictions, and if there are any, acts appropriately:
  *  - page_deleted: raise 404 error
@@ -90,49 +200,11 @@ PRS.prototype.getTableSchema = function() {
  *  - userhidden: remove user information from response
  *
  * @param item Object the revision item
- * @return true
  * @throws HTTPError if access to the revision should be denied
  */
 PRS.prototype._checkRevReturn = function(item) {
-    // Page was deleted - new version of tracking
-    if (item.page_deleted) {
-        var deletionTime = uuid.fromString(item.page_deleted).getDate();
-        var revisionTime = uuid.fromString(item.tid).getDate();
-        if (revisionTime <= deletionTime) {
-            throw new HTTPError({
-                status: 404,
-                body: {
-                    type: 'not_found#page_revisions',
-                    description: 'Page was deleted'
-                }
-            });
-        }
-    }
-
+    mwUtil.applyAccessChecks(item);
     if (item && Array.isArray(item.restrictions) && item.restrictions.length > 0) {
-        // Page was deleted - old version of tracking
-        if (item.restrictions.indexOf('page_deleted') >= 0) {
-            throw new HTTPError({
-                status: 404,
-                body: {
-                    type: 'not_found#page_revisions',
-                    description: 'Page was deleted'
-                }
-            });
-        }
-        // Revision restricted
-        if (item.restrictions.indexOf('sha1hidden') >= 0
-                || item.restrictions.indexOf('texthidden') >= 0) {
-            throw new HTTPError({
-                status: 403,
-                body: {
-                    type: 'access_denied#revision',
-                    title: 'Access to resource denied',
-                    description: 'Access is restricted for revision ' + item.rev,
-                    restrictions: item.restrictions
-                }
-            });
-        }
         // Check if user/comment data should be removed from response
         if (item.restrictions.indexOf('userhidden') >= 0) {
             delete item.user_id;
@@ -142,7 +214,6 @@ PRS.prototype._checkRevReturn = function(item) {
             delete item.comment;
         }
     }
-    return true;
 };
 
 // /page/
@@ -285,17 +356,21 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
         };
 
         // Check if the same revision is already in storage
-        return hyper.get({
-            uri: self.tableURI(rp.domain),
-            body: {
-                table: self.tableName,
-                attributes: {
-                    title: mwUtil.normalizeTitle(dataResp.title),
-                    rev: parseInt(apiRev.revid)
+        return P.join(hyper.get({
+                uri: self.tableURI(rp.domain),
+                body: {
+                    table: self.tableName,
+                    attributes: {
+                        title: mwUtil.normalizeTitle(dataResp.title),
+                        rev: parseInt(apiRev.revid)
+                    }
                 }
-            }
-        })
-        .then(function(res) {
+            }),
+            // TODO: Before we fill in the restrictions table we need
+            // to store the restriction regardless of the revision change
+
+            self.storeRestrictions(hyper, req, revision))
+        .spread(function(res) {
             var sameRev = res && res.body.items
                     && res.body.items.length > 0
                     && self._checkSameRev(revision, res.body.items[0]);
@@ -367,13 +442,17 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
                     result = result.body.items[0];
                     result.tid = tid;
                     result.page_deleted = tid;
-                    return hyper.put({
-                        uri: self.tableURI(rp.domain),
-                        body: {
-                            table: self.tableName,
-                            attributes: result
-                        }
-                    }).throw(e);
+                    return P.join(hyper.put({
+                            uri: self.tableURI(rp.domain),
+                            body: {
+                                table: self.tableName,
+                                attributes: Object.assign({}, result)
+                            }
+                        }),
+                        // TODO: Object.assign here is to avoid a bug in sqlite
+                        // backend that modifies original attribute.
+                        self.storePageDeletion(hyper, req, Object.assign({}, result))
+                    ).throw(e);
                 });
             });
         } else {
@@ -545,13 +624,18 @@ module.exports = function(options) {
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
             listRevisions: prs.listRevisions.bind(prs),
-            getRevision: prs.getRevision.bind(prs)
+            getRevision: prs.getRevision.bind(prs),
+            getRestriction: prs.getRestriction.bind(prs)
         },
         resources: [
             {
                 // Revision table
                 uri: '/{domain}/sys/table/' + prs.tableName,
                 body: prs.getTableSchema()
+            },
+            {
+                uri: '/{domain}/sys/table/' + prs.restrictionsTableName,
+                body: prs.restrictionsTableSchema()
             }
         ]
     };
