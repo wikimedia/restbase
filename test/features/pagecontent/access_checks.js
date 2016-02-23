@@ -261,10 +261,9 @@ describe('Access checks', function() {
     });
 
 
-    // FIXME: Test disabled until cached responses are once again used (see: T120212).
-    it.skip('should store updated restrictions', function() {
+    it('should store updated restrictions', function() {
         return preq.get({
-            uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle)
+            uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle)
         })
         .then(function() {
             throw new Error('403 should be thrown');
@@ -297,7 +296,7 @@ describe('Access checks', function() {
         });
     });
 
-    it('should allow to veiw content if restrictions disappeared', function() {
+    it('should allow to view content if restrictions disappeared', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
             headers: {
