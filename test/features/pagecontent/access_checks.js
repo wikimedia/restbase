@@ -292,7 +292,7 @@ describe('Access checks', function() {
         });
     });
 
-    it('should allow to veiw content if restrictions disappeared', function() {
+    it('should allow to view content if restrictions disappeared', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
             headers: {

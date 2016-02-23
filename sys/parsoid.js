@@ -138,7 +138,7 @@ PSP._wrapInAccessCheck = function(hyper, req, promise) {
     .spread(function(content, restriction) {
         if (restriction.body && restriction.body.items && restriction.body.items.length) {
             var revInfo = mwUtil.parseETag(content.headers.etag);
-            mwUtil.applyAccessChecks(restriction.body.items[0], revInfo.rev, revInfo.tid);
+            mwUtil.applyAccessChecks(restriction.body.items[0], revInfo.tid);
         }
         return content;
     });*/

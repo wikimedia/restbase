@@ -150,6 +150,14 @@ PRS.prototype.getRestriction = function(hyper, req) {
                         limit: 1
                     }
                 })
+                .then(function(res) {
+                    // Remove possible revision restrictions as here we just need
+                    // the page deletion info
+                    if (res && res.body && res.body.items.length) {
+                        res.body.items[0].restrictions = [];
+                    }
+                    return res;
+                })
                 .catch({ status: 404 }, function() { return { status: 200 }; });
             }
             return { status: 200 };
@@ -159,7 +167,7 @@ PRS.prototype.getRestriction = function(hyper, req) {
 PRS.prototype.storeRestrictions = function(hyper, req, revision) {
     var self = this;
     var rp = req.params;
-    if (revision && revision.restrictions && revision.restrictions.length) {
+    if (revision.restrictions && revision.restrictions.length) {
         return hyper.put({
             uri: self.restrictionsTableURI(rp.domain),
             body: {
@@ -171,8 +179,37 @@ PRS.prototype.storeRestrictions = function(hyper, req, revision) {
                 }
             }
         });
+    } else {
+        // New restrictions are not specified. To avoid filling the
+        // table with useless data first check whether there were
+        // some restrictions stored before and overwrite only if needed
+        return self.getRestriction(hyper, {
+            params: {
+                domain: rp.domain,
+                title: revision.title
+            }
+        })
+        .then(function(res) {
+            if (res.body && res.body.items.length) {
+                var oldRestriction = res.body.items[0];
+                if (oldRestriction.restrictions
+                        && oldRestriction.restrictions.length) {
+                    return hyper.put({
+                        uri: self.restrictionsTableURI(rp.domain),
+                        body: {
+                            table: self.restrictionsTableName,
+                            attributes: {
+                                title: revision.title,
+                                rev: revision.rev,
+                                restrictions: revision.restrictions
+                            }
+                        }
+                    });
+                }
+            }
+            return P.resolve({ status: 200 });
+        });
     }
-    return P.resolve({ status: 200 });
 };
 
 PRS.prototype.storePageDeletion = function(hyper, req, revision) {
