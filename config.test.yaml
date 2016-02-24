@@ -66,8 +66,8 @@ wiktionary_project: &wiktionary_project
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   content_types:
-    html: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
-    data-parsoid: application/json; charset=utf-8; profile="mediawiki.org/specs/data-parsoid/0.0.1"
+    html: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.2.0"
+    data-parsoid: application/json; charset=utf-8; profile="mediawiki.org/specs/data-parsoid/0.0.2"
     wikitext: text/plain; charset=utf-8; profile="mediawiki.org/specs/wikitext/1.0.0"
 
 
