@@ -185,6 +185,7 @@ PSP._dependenciesUpdate = function(hyper, req) {
  */
 PSP._wrapInAccessCheck = function(hyper, req, promise) {
     // TODO: Enable new checking style when the restrictions table is filled
+    // TODO: move to a request filter
     /*var rp = req.params;
     var checkURIParts = [rp.domain, 'sys', 'page_revisions', 'restriction', rp.title];
     if (rp.revision) {
@@ -198,7 +199,7 @@ PSP._wrapInAccessCheck = function(hyper, req, promise) {
     .spread(function(content, restriction) {
         if (restriction.body && restriction.body.items && restriction.body.items.length) {
             var revInfo = mwUtil.parseETag(content.headers.etag);
-            mwUtil.applyAccessChecks(restriction.body.items[0], revInfo.tid);
+            mwUtil.applyAccessChecks(restriction.body.items[0], revInfo.rev);
         }
         return content;
     });*/
