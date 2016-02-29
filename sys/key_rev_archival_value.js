@@ -101,7 +101,7 @@ ArchivalBucket.prototype._updateNewerRev = function(hyper, req, rev, tid) {
     .then(function(res) {
         if (res) {
             var etagInfo = mwUtil.parseETag(res.headers.etag);
-            if (Number.parseInt(etagInfo.rev) > Number.parseInt(rp.revision)) {
+            if (parseInt(etagInfo.rev) > parseInt(rp.revision)) {
                 return P.resolve({ status: 200 });
             }
         }
