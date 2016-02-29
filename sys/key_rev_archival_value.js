@@ -20,7 +20,7 @@ ArchivalBucket.prototype._latestName = function(bucket) {
 };
 
 ArchivalBucket.prototype._archiveName = function(bucket) {
-    return bucket + '.archive';
+    return bucket;
 };
 
 ArchivalBucket.prototype.createBucket = function(hyper, req) {
@@ -56,7 +56,7 @@ ArchivalBucket.prototype.getRevision = function(hyper, req) {
     .then(function(res) {
         if (rp.revision) {
             var etagInfo = mwUtil.parseETag(res.headers.etag);
-            if (Number.parseInt(etagInfo.rev) !== Number.parseInt(rp.revision)
+            if (parseInt(etagInfo.rev) !== parseInt(rp.revision)
                 || (rp.tid && rp.tid !== etagInfo.tid)) {
                 throw new HTTPError({ status: 404 });
             }
