@@ -165,7 +165,7 @@ KVBucket.prototype.putRevision = function(hyper, req) {
         tid = tid || uuid.now().toString();
     }
 
-    var storeReq = {
+    return hyper.put({
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
         body: {
             table: rp.bucket,
@@ -178,8 +178,7 @@ KVBucket.prototype.putRevision = function(hyper, req) {
                 // TODO: include other data!
             }
         }
-    };
-    return hyper.put(storeReq)
+    })
     .then(function(res) {
         if (res.status === 201) {
             return {

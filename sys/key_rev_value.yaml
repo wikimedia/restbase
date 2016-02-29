@@ -15,5 +15,6 @@ paths:
   /{bucket}/{key}{/revision}{/tid}:
     get:
       operationId: getRevision
+  /{bucket}/{key}/{revision}{/tid}:
     put:
       operationId: putRevision

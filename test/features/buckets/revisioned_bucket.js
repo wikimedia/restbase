@@ -6,6 +6,8 @@ var server = require('../../utils/server.js');
 var uuid = require('cassandra-uuid').TimeUuid;
 var P = require('bluebird');
 
+var mwUtils = require('../../../lib/mwUtil');
+
 describe('Revisioned buckets', function() {
 
     before(function() {
@@ -109,7 +111,7 @@ describe('Revisioned buckets', function() {
                 return preq.put({
                     uri: bucketBaseURI + '/Test4/' + revNumber,
                     body: new Buffer(testData)
-                })
+                });
             })
             .then(function() {
                 return preq.get({
@@ -162,8 +164,75 @@ describe('Revisioned buckets', function() {
                 assert.deepEqual(e.status, 404);
             });
         });
+
+        it('gets older revision', function() {
+            var olderUUID = uuid.now().toString();
+            var newerUUID = uuid.now().toString();
+            return preq.put({
+                uri: bucketBaseURI + '/Older_Test/1000/' + olderUUID,
+                body: new Buffer('Older_Revision')
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 201);
+                return preq.put({
+                    uri: bucketBaseURI + '/Older_Test/1001/' + newerUUID,
+                    body: new Buffer('Newer_Revision')
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 201);
+                return preq.get({
+                    uri: bucketBaseURI + '/Older_Test/1000'
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.body.toString(), 'Older_Revision');
+                assert.deepEqual(res.headers.etag, mwUtils.makeETag(1000, olderUUID));
+                return preq.get({
+                    uri: bucketBaseURI + '/Older_Test/1001'
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.body.toString(), 'Newer_Revision');
+                assert.deepEqual(res.headers.etag, mwUtils.makeETag(1001, newerUUID));
+            });
+        });
+
+        it('gets older revision - out of order write', function() {
+            var olderUUID = uuid.now().toString();
+            var newerUUID = uuid.now().toString();
+            return preq.put({
+                uri: bucketBaseURI + '/Older_Test/1001/' + newerUUID,
+                body: new Buffer('Newer_Revision')
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 201);
+                return preq.put({
+                    uri: bucketBaseURI + '/Older_Test/1000/' + olderUUID,
+                    body: new Buffer('Older_Revision')
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 201);
+                return preq.get({
+                    uri: bucketBaseURI + '/Older_Test/1000'
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.body.toString(), 'Older_Revision');
+                assert.deepEqual(res.headers.etag, mwUtils.makeETag(1000, olderUUID));
+                return preq.get({
+                    uri: bucketBaseURI + '/Older_Test/1001'
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.body.toString(), 'Newer_Revision');
+                assert.deepEqual(res.headers.etag, mwUtils.makeETag(1001, newerUUID));
+            });
+        });
     }
 
     describe('key_rev_value', function() { runTests('key_rev_value') });
     describe('key_rev_large_value', function() { runTests('key_rev_large_value'); });
+    describe('key_rev_archival_value', function() { runTests('key_rev_archival_value'); });
 });
