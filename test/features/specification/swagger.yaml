@@ -96,7 +96,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
+                content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.2.0"
 
   /{domain}/v1/page/html/{title}/{revision}:
     get:
@@ -147,7 +147,7 @@ paths:
           response:
             status: 200
             headers:
-                content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.1.0"
+                content-type: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.2.0"
 
 definitions:
   defaultError:
