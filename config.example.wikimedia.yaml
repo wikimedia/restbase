@@ -101,7 +101,7 @@ logging:
   #  port: <%= @logstash_port %>
 
 metrics:
-  #type: txstatsd
-  #host: localhost
-  #port: 8125
-  #batch: true
+  type: statsd
+  host: localhost
+  port: 8125
+  batch: true

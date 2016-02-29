@@ -52,7 +52,7 @@ paths:
               x-modules:
                 - path: v1/content.yaml
                 - path: v1/mobileapps.yaml
-                  options: '{{merge({"response_cache_control": options.purged_cache_control}, 
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
@@ -137,7 +137,7 @@ paths:
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
-                  options: '{{merge({"response_cache_control": options.purged_cache_control}, 
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
             /events:
               x-modules:
