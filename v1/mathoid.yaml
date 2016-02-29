@@ -6,6 +6,7 @@ paths:
   /math/check/{type}:
     post:
       tags: ['Math']
+      summary: Check and normalize a TeX formula.
       description: |
         Checks the supplied TeX formula for correctness and returns the
         normalised formula representation as well as information about
@@ -94,6 +95,7 @@ paths:
   /math/render/{format}/{hash}:
     get:
       tags: ['Math']
+      summary: Get rendered formula in the given format.
       description: |
         Given a request hash, renders a TeX formula into its mathematic
         representation in the given format. When a request is issued to the
