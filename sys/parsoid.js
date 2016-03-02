@@ -486,13 +486,13 @@ PSP.getFormat = function(format, hyper, req) {
     return contentReq
     .then(function(res) {
         mwUtil.normalizeContentType(res);
-        if (self.options.response_cache_control) {
-            res.headers['cache-control'] = self.options.response_cache_control;
-        }
         HyperSwitch.misc.addCSPHeaders(res, {
             domain: rp.domain,
             allowInline: true,
         });
+        if (self.options.response_cache_control) {
+            res.headers['cache-control'] = self.options.response_cache_control;
+        }
         return res;
     });
 };
