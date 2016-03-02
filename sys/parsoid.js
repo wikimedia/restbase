@@ -634,6 +634,9 @@ PSP.transformRevision = function(hyper, req, from, to) {
         } else if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
             tid = extractTidMeta(req.body.html);
+            hyper.log('warn/parsoid/etag', {
+                msg: 'Client did not supply etag, fallback to mw:TimeUuid meta element'
+            });
         }
         if (!tid) {
             throw new HTTPError({

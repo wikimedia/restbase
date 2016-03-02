@@ -48,6 +48,13 @@ paths:
           description: Normalise the DOM to yield cleaner wikitext?
           type: boolean
           required: false
+        - name: if-match
+          in: header
+          description: |
+            The `ETag` header of the original render indicating it's revision and timeuuid.
+            Required if both `title` and `revision` parameters are present.
+          type: string
+          required: false
       responses:
         '200':
           description: MediaWiki Wikitext.
