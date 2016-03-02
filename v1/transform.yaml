@@ -51,8 +51,8 @@ paths:
         - name: if-match
           in: header
           description: |
-            An `ETag` header of the original render indicating it's revision and timeuuid.
-            Required if the `title` and `revision` parameters are present.
+            The `ETag` header of the original render indicating it's revision and timeuuid.
+            Required if both `title` and `revision` parameters are present.
           type: string
           required: false
       responses:
