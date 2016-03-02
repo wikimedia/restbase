@@ -143,7 +143,7 @@ PRS.prototype.listTitles = function(hyper, req, options) {
     };
 
     if (req.query.page) {
-        Object.assign(listReq.body, hyper.decodeToken(req.query.page));
+        Object.assign(listReq.body, mwUtil.decodePagingToken(hyper, req.query.page));
     }
 
     return hyper.get(listReq)
@@ -160,7 +160,7 @@ PRS.prototype.listTitles = function(hyper, req, options) {
         if (res.body.next) {
             next = {
                 next: {
-                    href: "?page=" + hyper.encodeToken(res.body.next)
+                    href: "?page=" + mwUtil.encodePagingToken(hyper, res.body.next)
                 }
             };
         }
@@ -412,7 +412,7 @@ PRS.prototype.listTitleRevisions = function(hyper, req) {
         limit: hyper.config.default_page_size
     };
     if (req.query.page) {
-        revisionRequest.next = hyper.decodeToken(req.query.page);
+        revisionRequest.next = mwUtil.decodePagingToken(hyper, req.query.page);
     }
     return hyper.get({
         uri: this.tableURI(rp.domain),
@@ -432,7 +432,7 @@ PRS.prototype.listTitleRevisions = function(hyper, req) {
         if (res.body.next) {
             res.body._links = {
                 next: {
-                    href: "?page=" + hyper.encodeToken(res.body.next)
+                    href: "?page=" + mwUtil.encodePagingToken(hyper, res.body.next)
                 }
             };
         }
@@ -456,7 +456,7 @@ PRS.prototype.listRevisions = function(hyper, req) {
         }
     };
     if (req.query.page) {
-        Object.assign(listReq.body, hyper.decodeToken(req.query.page));
+        Object.assign(listReq.body, mwUtil.decodePagingToken(hyper, req.query.page));
     }
     return hyper.get(listReq)
     .then(function(res) {
@@ -470,7 +470,7 @@ PRS.prototype.listRevisions = function(hyper, req) {
         if (res.body.next) {
             next = {
                 next: {
-                    href: "?page=" + hyper.encodeToken(res.body.next)
+                    href: "?page=" + mwUtil.encodePagingToken(hyper, res.body.next)
                 }
             };
         }

@@ -489,7 +489,7 @@ PSP.listRevisions = function(format, hyper, req) {
     };
 
     if (req.query.page) {
-        revReq.body.next = hyper.decodeToken(req.query.page);
+        revReq.body.next = mwUtil.decodePagingToken(hyper, req.query.page);
     }
 
     return hyper.get(revReq)
@@ -497,7 +497,7 @@ PSP.listRevisions = function(format, hyper, req) {
         if (res.body.next) {
             res.body._links = {
                 next: {
-                    href: "?page=" + hyper.encodeToken(res.body.next)
+                    href: "?page=" + mwUtil.encodePagingToken(hyper, res.body.next)
                 }
             };
         }
