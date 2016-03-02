@@ -86,7 +86,7 @@ paths:
               headers:
                 content-type: '{{storage.headers.content-type}}'
                 etag: '{{storage.headers.etag}}'
-                cache-control: '{{options.response_cache-control}}'
+                cache-control: '{{options.response_cache_control}}'
               body: '{{storage.body}}'
 
         # Storage miss. Call mobile content service to get the definition.
@@ -99,18 +99,26 @@ paths:
               headers:
                 content-type: application/json
               body: '{{extract.body}}'
-        - store_and_return:
+        - store:
             request:
               method: put
               uri: /{domain}/sys/key_value/term.definition/{request.params.term}
               headers: '{{extract.headers}}'
               body: '{{extract.body}}'
+        - emit_change_event:
+            request:
+              method: post
+              uri: /{domain}/sys/events/
+              body:
+                - meta:
+                    uri: //{request.params.domain}/api/rest_v1/page/definition/{request.params.title}
+          response:
             return:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
-                cache-control: '{{options.response_cache-control}}'
+                etag: '{{store.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
 
       x-monitor: true

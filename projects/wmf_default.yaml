@@ -52,12 +52,13 @@ paths:
               x-modules:
                 - path: v1/content.yaml
                 - path: v1/mobileapps.yaml
-                  options: '{{options.mobileapps}}'
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
                 - path: v1/summary.js
                   options:
-                    response_cache-control: 'max-age=3600, s-maxage=3600'
+                    response_cache_control: '{{options.purged_cache_control}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
@@ -102,11 +103,7 @@ paths:
                 - path: sys/parsoid.js
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
-                    # To enable mobileApps purging - add these to the config.
-                    # (TODO: remove after actual purging is implemented
-                    #purge:
-                    #  host: '239.128.0.112'
-                    #  port: 4827
+                    response_cache_control: '{{options.purged_cache_control}}'
 
                     # A list of pages that we don't currently want to re-render on
                     # each edit. Most of these are huge bot-edited pages, which are
@@ -141,7 +138,8 @@ paths:
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
-                  options: '{{options.mobileapps}}'
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
             /events:
               x-modules:
                 - path: sys/events.js

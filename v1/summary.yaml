@@ -18,11 +18,9 @@ paths:
         - Page content
       summary: Get a text extract & thumb summary of a page.
       description: |
-        Returns the summary of the latest page content available in storage.
-        Currently the summary includes the text for the first several sentences and
-        the thumbnail URL.
-
-        Provide a `Cache-Control: no-cache` header to request the latest data.
+        The summary response includes a text extract of the first several
+        sentences, as well as information about a thumbnail that represents
+        the page.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -88,7 +86,7 @@ paths:
               headers:
                 content-type: '{{storage.headers.content-type}}'
                 etag: '{{storage.headers.etag}}'
-                cache-control: '{{options.response_cache-control}}'
+                cache-control: '{{options.response_cache_control}}'
               body: '{{storage.body}}'
 
         # Storage miss. Call the Action API to get the textextract.
@@ -118,7 +116,14 @@ paths:
                 # See https://phabricator.wikimedia.org/T117082#1787617.
                 #timestamp: '{{request.params.timestamp}}'
 
-        - store_and_return:
+        - emit_change_event:
+            request:
+              method: post
+              uri: /{domain}/sys/events/
+              body:
+                - meta:
+                    uri: //{request.params.domain}/api/rest_v1/page/summary/{request.params.title}
+          store_and_return:
             request:
               method: put
               uri: /{domain}/sys/key_value/summary/{request.params.title}
@@ -130,7 +135,7 @@ paths:
               headers:
                 content-type: '{{extract.headers.content-type}}'
                 etag: '{{store_and_return.headers.etag}}'
-                cache-control: '{{options.response_cache-control}}'
+                cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
 
       x-monitor: true

@@ -53,12 +53,13 @@ paths:
               x-modules:
                 - path: v1/content.yaml
                 - path: v1/mobileapps.yaml
-                  options: '{{options.mobileapps}}'
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                    options.mobileapps)}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
                 - path: v1/definition.yaml
                   options:
-                    response_cache-control: 'max-age=3600, s-maxage=3600'
+                    response_cache_control: '{{options.purged_cache_control}}'
                     host: '{{options.mobileapps.host}}'
             /transform:
               x-modules:
@@ -103,10 +104,12 @@ paths:
                 - path: sys/parsoid.js
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
+                    response_cache_control: '{{options.purged_cache_control}}'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
-                  options: '{{options.mobileapps}}'
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
             /events:
               x-modules:
               - path: sys/events.js

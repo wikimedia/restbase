@@ -134,7 +134,24 @@ PSP._dependenciesUpdate = function(hyper, req) {
             'summary' : 'definition', e);
         }
     });
+
+
+    // Emit resource change events
+    var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
+    var resourceChangePromise = hyper.post({
+        uri: new URI([rp.domain, 'sys', 'events', '']),
+        body: [
+            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
+            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
+                        + '/' + rp.revision } },
+            { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title) } },
+            { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title)
+                        + '/' + rp.revision } },
+        ]
+    });
+
     return P.join(
+        resourceChangePromise,
         summaryPromise,
         hyper.get({
             uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
@@ -469,6 +486,9 @@ PSP.getFormat = function(format, hyper, req) {
     return contentReq
     .then(function(res) {
         mwUtil.normalizeContentType(res);
+        if (self.options.response_cache_control) {
+            res.headers['cache-control'] = self.options.response_cache_control;
+        }
         HyperSwitch.misc.addCSPHeaders(res, {
             domain: rp.domain,
             allowInline: true,
