@@ -1,0 +1,133 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki Related Pages API
+  description: Related pages API
+  termsofservice: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: Services
+    email: services@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/Services
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /related/{title}:
+    get:
+      tags:
+        - Page content
+      summary: Get pages related to the given title
+      description: |
+        Returns summaries for 5 pages related to the given page. Summaries include
+        page title, namespace and id along with short text description of the page
+        and a thumbnail.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: The page title.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The related pages
+          schema:
+            $ref: '#/definitions/related'
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-request-handler:
+        # Storage miss. Call the Action API to get the textextract.
+        - api_request:
+            request:
+              method: 'post'
+              uri: /{domain}/sys/action/query
+              body:
+                format: 'json'
+                prop: 'pageterms|pageimages|pageprops'
+                ppprop: 'mainpage|disambiguation'
+                wbptterms: 'description'
+                generator: 'search'
+                gsrsearch: 'morelike:{request.params.title}'
+                gsrnamespace: 0
+                gsrwhat: 'text'
+                gsrinfo: ''
+                gsrprop: 'redirecttitle'
+                gsrlimit: 5
+                piprop: 'thumbnail'
+                pithumbsize: 640
+            response:
+              status: 200
+              headers:
+                content-type: application/json
+                cache-control: '{{options.cache-control}}'
+              body:
+                items: '{{httpsSource(api_request.body.items)}}'
+      x-monitor: false
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  related:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            pageid:
+              type: integer
+              description: Page ID
+            title:
+              type: string
+              description: Page title
+            ns:
+              type: integer
+              description: The page namespace number
+            index:
+              type: integer
+              description: Relevance index of this result
+            term:
+              type: object
+              properties:
+                description:
+                  type: array
+                  items:
+                    type: string
+                    description: First several sentences of an article in plain text
+            thumbnail:
+              type: object
+              properties:
+                source:
+                  type: string
+                  description: Thumbnail image URI
+                width:
+                  type: integer
+                  description: Thumbnail width
+                height:
+                  type: integer
+                  description: Thumnail height
+              required: ['source', 'width', 'height']
+          required: ['title', 'ns']
