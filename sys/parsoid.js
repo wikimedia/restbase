@@ -430,7 +430,12 @@ PSP.getFormat = function(format, hyper, req) {
                     // Re-try to retrieve from storage with the
                     // normalized title & revision
                     rp.title = revInfo.title;
-                    return self.getFormat(format, hyper, req);
+                    return self.getFormat(format, hyper, req)
+                    .then(function(res) {
+                        // Disable caching for non-canonical requests, as
+                        // those are not purged.
+                        res.headers['cache-control'] = 'no-cache, must-revalidate';
+                    });
                 } else {
                     return self.generateAndSave(hyper, req, format, storageRes);
                 }
@@ -490,7 +495,7 @@ PSP.getFormat = function(format, hyper, req) {
             domain: rp.domain,
             allowInline: true,
         });
-        if (self.options.response_cache_control) {
+        if (self.options.response_cache_control && !res.headers['cache-control']) {
             res.headers['cache-control'] = self.options.response_cache_control;
         }
         return res;
