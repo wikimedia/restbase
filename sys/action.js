@@ -140,8 +140,8 @@ function buildQueryResponse(apiReq, res) {
         throw new HTTPError({
             status: 404,
             body: {
-                type: 'not_found#page_revisions',
-                description: 'Page or revision not found.',
+                type: 'not_found',
+                description: 'Requested resource is not found.',
                 apiRequest: apiReq
             }
         });
