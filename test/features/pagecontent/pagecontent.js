@@ -353,6 +353,18 @@ describe('page content access', function() {
             }
         });
     });
+
+    it('Should throw error for invalid title access', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/[asdf]'
+        })
+        .then(function() {
+            throw new Error('Error should be thrown')
+        }, function(e) {
+            assert.deepEqual(e.status, 400);
+            assert.deepEqual(e.body.detail, 'title-invalid-characters');
+        });
+    });
 });
 
 describe('page content hierarchy', function() {
