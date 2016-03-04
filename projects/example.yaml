@@ -42,7 +42,7 @@ paths:
               x-whitelists:
                 internal:
                   - /^(?:localhost)|(?:127\.)/
-          x-request-filters:
+          x-route-filters:
             - path: ./lib/normalize_title_filter.js
           paths:
             /page:

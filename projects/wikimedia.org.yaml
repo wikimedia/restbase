@@ -44,7 +44,7 @@ paths:
           # Override the base path for host-based (proxied) requests. In our case,
           # we proxy https://{domain}/api/rest_v1/ to the API.
           x-host-basePath: /api/rest_v1
-          x-request-filters:
+          x-route-filters:
             - path: ./lib/normalize_title_filter.js
           paths:
             /media:
