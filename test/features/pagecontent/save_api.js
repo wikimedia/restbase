@@ -50,6 +50,12 @@ describe('page save api', function() {
                     oldETag = res.headers.etag;
                 })
             ]);
+        })
+        .then(function() {
+            // Do a preparation request to force siteinfo fetch so that we don't need to mock it
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/Main_Page'
+            });
         });
     });
 

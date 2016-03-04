@@ -11,7 +11,15 @@ var nock   = require('nock');
 describe('router - security', function() {
     this.timeout(20000);
 
-    before(function () { return server.start(); });
+    before(function () {
+        return server.start()
+        .then(function() {
+            // Do a preparation request to force siteinfo fetch so that we don't need to mock it
+            return preq.get({
+                uri: server.config.bucketURL + '/html/Main_Page'
+            });
+        });
+    });
 
     var sampleRightsResponse = {
         batchcomplete: '',

@@ -11,7 +11,18 @@ var nock = require('nock');
 describe('Access checks', function() {
 
     before(function() {
-        return server.start();
+        return server.start()
+        .then(function() {
+            // Do a preparation request to force siteinfo fetch so that we don't need to mock it
+            return preq.get({
+                uri: server.config.bucketURL + '/html/Main_Page'
+            });
+        })
+        .then(function() {
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/Main_Page'
+            });
+        });
     });
 
     var deletedPageTitle = 'User:Pchelolo/Access_Check_Tests';
@@ -20,6 +31,7 @@ describe('Access checks', function() {
     var emptyResponse = {'batchcomplete': '', 'query': {'badrevids': {'292466': {'revid': '292466'}}}};
 
     it('should understand the page was deleted', function() {
+        // Do a preparation request to force siteinfo fetch
 
         var api = nock(server.config.apiURL)
         // The first request should return a page so that we store it.
