@@ -184,6 +184,7 @@ ActionService.prototype._doRequest = function(hyper, req, defBody, cont) {
     apiRequest.body.action = defBody.action;
     apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
     apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
+    apiRequest.body.meta = apiRequest.body.meta || defBody.meta;
     if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
         apiRequest.body.continue = '';
     }
@@ -205,6 +206,14 @@ ActionService.prototype.edit = function(hyper, req) {
     }, buildEditResponse);
 };
 
+ActionService.prototype.siteinfo = function(hyper, req) {
+    return this._doRequest(hyper, req, {
+        action: 'query',
+        meta: 'siteinfo',
+        format: 'json'
+    }, function(res) { return res; });
+};
+
 
 module.exports = function(options) {
     var actionService = new ActionService(options);
@@ -216,6 +225,11 @@ module.exports = function(options) {
                         operationId: 'mwApiQuery'
                     }
                 },
+                '/siteinfo': {
+                    all: {
+                        operationId: 'mwApiSiteInfo'
+                    }
+                },
                 '/edit': {
                     post: {
                         operationId: 'mwApiEdit'
@@ -225,7 +239,8 @@ module.exports = function(options) {
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
-            mwApiEdit: actionService.edit.bind(actionService)
+            mwApiEdit: actionService.edit.bind(actionService),
+            mwApiSiteInfo: actionService.siteinfo.bind(actionService)
         }
     };
 };
