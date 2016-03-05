@@ -10,7 +10,9 @@
     "catch"
   ],
   "validateIndentation": 4,
-  "requireCamelCaseOrUpperCaseIdentifiers": "ignoreProperties",
+  "requireCamelCaseOrUpperCaseIdentifiers": {
+    "ignoreProperties": true
+  },
   "requireCapitalizedComments": null,
   "maximumLineLength": 100,
   "validateQuoteMarks": null,
