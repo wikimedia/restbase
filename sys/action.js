@@ -218,7 +218,7 @@ ActionService.prototype.siteinfo = function(hyper, req) {
         action: 'query',
         meta: 'siteinfo',
         format: 'json'
-    }, function(res) { return res; });
+    }, function(apiReq, res) { return res; });
 };
 
 
