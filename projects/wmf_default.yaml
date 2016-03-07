@@ -60,6 +60,8 @@ paths:
                 - path: v1/summary.js
                   options:
                     response_cache_control: '{{options.purged_cache_control}}'
+                - path: v1/related.yaml
+                  options: '{{options.related}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml

@@ -128,7 +128,7 @@ function ActionService(options) {
     }
 }
 
-function buildQueryResponse(res) {
+function buildQueryResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
             info: 'Unexpected response status ('
@@ -137,7 +137,14 @@ function buildQueryResponse(res) {
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
     } else if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
-        throw apiError({ info: 'Missing query pages from the PHP action API response.' });
+        throw new HTTPError({
+            status: 404,
+            body: {
+                type: 'not_found',
+                description: 'Requested resource is not found.',
+                apiRequest: apiReq
+            }
+        });
     }
 
     if (res.body.query.pages) {
@@ -161,7 +168,7 @@ function buildQueryResponse(res) {
     }
 }
 
-function buildEditResponse(res) {
+function buildEditResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
             info: 'Unexpected response status ('
@@ -188,7 +195,7 @@ ActionService.prototype._doRequest = function(hyper, req, defBody, cont) {
     if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
         apiRequest.body.continue = '';
     }
-    return hyper.request(apiRequest).then(cont);
+    return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
 };
 
 ActionService.prototype.query = function(hyper, req) {
