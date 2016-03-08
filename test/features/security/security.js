@@ -82,11 +82,15 @@ describe('router - security', function() {
         .reply(200, function() {
             return {
                 'html': {
-                    'headers': {},
+                    'headers': {
+                        'content-type': 'text/html'
+                    },
                     'body': '<html></html>'
                 },
                 'data-parsoid': {
-                    'headers': {},
+                    'headers': {
+                        'content-type': 'application/json'
+                    },
                     'body': {
                         'counter': 1,
                         'ids': {

@@ -12,6 +12,7 @@ var HTTPError = HyperSwitch.HTTPError;
 
 var uuid   = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
+var gunzip = P.promisify(require('zlib').gunzip);
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/parsoid.yaml');
 
@@ -191,6 +192,24 @@ PSP._wrapInAccessCheck = function(hyper, req, promise) {
     .then(function(responses) { return responses.content; });
 };
 
+function bodyToString(contentResponse) {
+    var prepare;
+    if (contentResponse.headers
+            && contentResponse.headers['content-encoding'] === 'gzip') {
+        delete contentResponse.headers['content-encoding'];
+        prepare = gunzip(contentResponse.body);
+    } else {
+        prepare = P.resolve(contentResponse.body);
+    }
+    return prepare.then(function(body) {
+        if (body && Buffer.isBuffer(body)) {
+            body = body.toString();
+        }
+        contentResponse.body = body;
+        return contentResponse;
+    });
+}
+
 /**
  * Wrap content request with sections request if needed
  * and ensures charset in the response
@@ -223,31 +242,34 @@ PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
             var sections = req.query.sections.split(',').map(function(id) {
                 return id.trim();
             });
-            var body = cheapBodyInnerHTML(responses.content.body.toString());
-            var chunks = {};
-            sections.forEach(function(id) {
-                var offsets = sectionOffsets[id];
-                if (!offsets) {
-                    throw new HTTPError({
-                        status: 400,
-                        body: {
-                            type: 'invalid_request',
-                            detail: 'Unknown section id: ' + id
-                        }
-                    });
-                }
-                // Offsets as returned by Parsoid are relative to body.innerHTML
-                chunks[id] = body.substring(offsets.html[0], offsets.html[1]);
-            });
 
-            return {
-                status: 200,
-                headers: {
-                    etag: responses.content.headers.etag,
-                    'content-type': 'application/json'
-                },
-                body: chunks
-            };
+            return bodyToString(responses.content).then(function(content) {
+                var body = cheapBodyInnerHTML(content.body);
+                var chunks = {};
+                sections.forEach(function(id) {
+                    var offsets = sectionOffsets[id];
+                    if (!offsets) {
+                        throw new HTTPError({
+                            status: 400,
+                            body: {
+                                type: 'invalid_request',
+                                detail: 'Unknown section id: ' + id
+                            }
+                        });
+                    }
+                    // Offsets as returned by Parsoid are relative to body.innerHTML
+                    chunks[id] = body.substring(offsets.html[0], offsets.html[1]);
+                });
+
+                return {
+                    status: 200,
+                    headers: {
+                        etag: responses.content.headers.etag,
+                        'content-type': 'application/json'
+                    },
+                    body: chunks
+                };
+            });
         } else {
             return ensureCharsetInContentType(responses.content);
         }
@@ -348,8 +370,8 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
         parsoidReq = hyper.get({ uri: pageBundleUri });
     }
 
-    return parsoidReq
-    .then(function(res) {
+    return P.join(parsoidReq, bodyToString(currentContentRes))
+    .spread(function(res, currentContentRes) {
         var tid = uuid.now().toString();
         res.body.html.body = insertTidMeta(res.body.html.body, tid);
 
@@ -544,20 +566,7 @@ PSP._getOriginalContent = function(hyper, req, revision, tid) {
             path.push(tid);
         }
 
-        return hyper.get({
-            uri: new URI(path)
-        })
-        .then(function(res) {
-            if (res.body && Buffer.isBuffer(res.body)) {
-                res.body = res.body.toString();
-            }
-            return {
-                headers: {
-                    'content-type': res.headers['content-type']
-                },
-                body: res.body
-            };
-        });
+        return hyper.get({ uri: new URI(path) }).then(bodyToString);
     }
 
     return P.props({
@@ -579,12 +588,8 @@ PSP._getStashedContent = function(hyper, req, etag) {
     function getStash(format) {
         return hyper.get({
             uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
-        }).then(function(fRes) {
-            if (fRes.body && Buffer.isBuffer(fRes.body)) {
-                fRes.body = fRes.body.toString();
-            }
-            return fRes;
-        });
+        })
+        .then(bodyToString);
     }
 
     return P.props({

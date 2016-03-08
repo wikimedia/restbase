@@ -1,5 +1,6 @@
 "use strict";
 
+var zlib = require('zlib');
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
 var preq = require('preq');
@@ -7,6 +8,7 @@ var preq = require('preq');
 var HyperSwitch = require('hyperswitch');
 var URI = HyperSwitch.URI;
 
+var gzip = P.promisify(zlib.gzip);
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
 function ArchivalBucket(options) {
@@ -23,11 +25,18 @@ ArchivalBucket.prototype._archiveName = function(bucket) {
 ArchivalBucket.prototype.createBucket = function(hyper, req) {
     var self = this;
     var rp = req.params;
+    var latestConfig = Object.assign({}, req.body, {
+        revisionRetentionPolicy: { type: 'latest_hash' }
+    });
+    if (latestConfig.valueType !== 'json') {
+        latestConfig.options = latestConfig.options || {};
+        latestConfig.options.compression = [];
+    }
     return P.join(
         hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_rev_value', self._latestName(rp.bucket)]),
             headers: req.headers,
-            body: Object.assign({}, req.body, { revisionRetentionPolicy: { type: 'latest_hash' } })
+            body: latestConfig
         }),
         hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_rev_value', self._archiveName(rp.bucket)]),
@@ -57,6 +66,12 @@ ArchivalBucket.prototype.getRevision = function(hyper, req) {
         uri: requestURI(rp, self._latestName(rp.bucket)),
         headers: req.headers
     })
+    .then(function(res) {
+        if (!/^application\/json/.test(res.headers['content-type'])) {
+            res.headers = Object.assign(res.headers, { 'content-encoding': 'gzip' });
+        }
+        return res;
+    })
     .catch({ status: 404 }, function() {
         return hyper.get({
             uri: requestURI(rp, self._archiveName(rp.bucket)),
@@ -77,11 +92,19 @@ ArchivalBucket.prototype.listRevisions = function(hyper, req) {
 ArchivalBucket.prototype.putRevision = function(hyper, req) {
     var self = this;
     var rp = req.params;
+    var prepare;
+    if (/^application\/json/.test(req.headers['content-type'])) {
+        prepare = P.resolve(req.body);
+    } else {
+        prepare = gzip(req.body, { level: 6 });
+    }
     return P.join(
-        hyper.put({
-            uri: requestURI(rp, self._latestName(rp.bucket)),
-            headers: req.headers,
-            body: req.body
+        prepare.then(function(data) {
+            return hyper.put({
+                uri: requestURI(rp, self._latestName(rp.bucket)),
+                headers: req.headers,
+                body: data
+            });
         }),
         hyper.put({
             uri: requestURI(rp, self._archiveName(rp.bucket)),
