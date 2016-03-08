@@ -178,38 +178,6 @@ paths:
                 page: '{{page}}'
       x-monitor: false
 
-  /html/:
-    get:
-      tags:
-        - Page content
-      summary: List titles available as HTML.
-      description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: A list of page titles.
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/page/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
   /html/{title}:
     get:
       tags:
@@ -535,47 +503,6 @@ paths:
                 sections: '{{sections}}'
       x-monitor: false
 
-  /data-parsoid/:
-    get:
-      tags:
-        - Page content
-      summary: List titles for which data-parsoid is available.
-      description: |
-        Data-parsoid is metadata used by
-        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
-        round-tripping conversions between HTML and Wikitext. Besides other
-        things, it contains the original Wikitext offsets of each HTML
-        element, indexed by HTML element `id` attribute in the `ids` property.
-        The format is private to Parsoid and unstable.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The queriable list of page titles
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              # Fixme: only list pages that have at least one revision with content
-              # model 'wikitext'
-              uri: /{domain}/sys/page_revisions/page/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
   /data-parsoid/{title}:
     get:
       tags:
@@ -684,7 +611,7 @@ paths:
               page: '{{page}}'
       x-monitor: false
 
-  /data-parsoid/{title}/{revision}{/tid}:
+  /data-parsoid/{title}/{revision}/{tid}:
     get:
       tags:
         - Page content
@@ -696,9 +623,9 @@ paths:
         things, it contains the original Wikitext offsets of each HTML
         element, keyed by element ID. The format is unstable.
 
-        To retrieve the precise data-parsoid corresponding to a HTML revision,
-        you should supply the exact `revision` and `tid` as provided in the
-        `ETag` header of the HTML response.
+        The metadata in data-parsoid is specific to a specific HTML render.
+        For this reason, you need to supply the exact `revision` and `tid` as
+        provided in the `ETag` header of the HTML response.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
@@ -718,7 +645,7 @@ paths:
           in: path
           description: The revision's time ID
           type: string
-          required: false
+          required: true
       responses:
         '200':
           description: The latest Parsoid data for the given page
