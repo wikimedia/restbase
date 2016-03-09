@@ -8,7 +8,6 @@ var preq = require('preq');
 var HyperSwitch = require('hyperswitch');
 var URI = HyperSwitch.URI;
 
-var gzip = P.promisify(zlib.gzip);
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
 function ArchivalBucket(options) {
@@ -96,7 +95,19 @@ ArchivalBucket.prototype.putRevision = function(hyper, req) {
     if (/^application\/json/.test(req.headers['content-type'])) {
         prepare = P.resolve(req.body);
     } else {
-        prepare = gzip(req.body, { level: 6 });
+        var gzip = zlib.createGzip({ level: 6 });
+        prepare = new P(function(resolve, reject) {
+            var chunks = [];
+            gzip.on('data', function(chunk) {
+                chunks.push(chunk);
+            });
+            gzip.on('end', function() {
+                resolve(Buffer.concat(chunks));
+            });
+            gzip.on('error', reject);
+            
+            gzip.end(req.body);
+        });
     }
     return P.join(
         prepare.then(function(data) {
