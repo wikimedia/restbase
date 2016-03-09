@@ -64,7 +64,7 @@ paths:
                 gsrprop: 'redirecttitle'
                 gsrlimit: 5
                 piprop: 'thumbnail'
-                pithumbsize: 640
+                pithumbsize: 320
             return:
               status: 200
               headers:
