@@ -95,6 +95,9 @@ ArchivalBucket.prototype.putRevision = function(hyper, req) {
     if (/^application\/json/.test(req.headers['content-type'])) {
         prepare = P.resolve(req.body);
     } else {
+        // Custom impl for 0.10 compatibility.
+        // When we drop it following lines can be replaced with
+        // a promisified convenience method
         var gzip = zlib.createGzip({ level: 6 });
         prepare = new P(function(resolve, reject) {
             var chunks = [];
@@ -105,7 +108,7 @@ ArchivalBucket.prototype.putRevision = function(hyper, req) {
                 resolve(Buffer.concat(chunks));
             });
             gzip.on('error', reject);
-            
+
             gzip.end(req.body);
         });
     }
