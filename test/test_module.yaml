@@ -9,14 +9,6 @@ paths:
             version: 1.0.0-beta
             title: Wikimedia testing APIs
             x-is-api-root: true
-          securityDefinitions: &wp/content-security/1.0.0
-            header_match:
-              description: Checks client ip against one of the predefined whitelists
-              x-error-message: This client is not allowed to use the endpoint
-              x-whitelists:
-                internal:
-                  - /^(?:::ffff:)?(?:10|127)\./
-              x-is-api: true
           paths:
             /service/test/{title}{/revision}:
               get:
@@ -90,11 +82,13 @@ paths:
 
             /post_data/:
               post:
-                security:
-                  - header_match:
-                      - header: 'x-client-ip'
-                        patterns:
-                          - internal
+                x-route-filters:
+                  - type: 'default'
+                    name: 'header_match'
+                    options:
+                      whitelist:
+                        x-client-ip:
+                          - /^(?:::ffff:)?(?:10|127)\./
                 x-request-handler:
                   - put_to_storage:
                       request:

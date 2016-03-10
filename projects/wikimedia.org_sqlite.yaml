@@ -35,13 +35,6 @@ paths:
               name: cookie
               x-internal-request-whitelist:
                 - /http:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-            header_match:
-              description: Checks client ip against one of the predefined whitelists
-              x-error-message: This client is not allowed to use the endpoint
-              x-whitelists:
-                internal:
-                  - /^(?:::ffff:)?(?:10|127)\./
-              x-is-api: true
           # Override the base path for host-based (proxied) requests. In our case,
           # we proxy https://{domain}/api/rest_v1/ to the API.
           x-host-basePath: /api/rest_v1

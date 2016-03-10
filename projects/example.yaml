@@ -36,12 +36,6 @@ paths:
               x-internal-request-whitelist:
                 - http://localhost/w/api.php
                 - http://localhost:8142
-            header_match:
-              description: Checks client ip against one of the predefined whitelists
-              x-error-message: This client is not allowed to use the endpoint
-              x-whitelists:
-                internal:
-                  - /^(?:localhost)|(?:127\.)/
           x-route-filters:
             - path: ./lib/normalize_title_filter.js
           paths:
