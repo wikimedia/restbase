@@ -77,11 +77,15 @@ spec_root: &spec_root
   title: "The RESTBase root"
   # Some more general RESTBase info
   x-sub-request-filters:
-    - path: ./lib/header_forward_filter.js
+    - type: default
+      name: http
       options:
-        forward_headers_to:
-          - /https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-          - /^https?://parsoid-beta.wmflabs.org.+/
+        allow:
+          - uri: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+            forward_headers: true
+          - uri: /^https?:\/\/parsoid-beta.wmflabs.org.+/
+            forward_headers: true
+          - uri: /^https?:\/\//
   paths:
     /{domain:en.wikipedia.org}: *default_project
     /{domain:test.wikipedia.org}: *default_project

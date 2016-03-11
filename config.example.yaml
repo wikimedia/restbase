@@ -24,7 +24,17 @@ services:
       salt: secret
       default_page_size: 125
       user_agent: RESTBase
-      spec: 
+      spec:
+        x-sub-request-filters:
+          - type: default
+            name: http
+            options:
+            allow:
+              - uri: http://localhost/w/api.php
+                forward_headers: true
+              - uri: http://localhost:8142
+                forward_headers: true
+              - uri: /^https?:\/\//
         paths:
           /{domain:localhost}:
             x-modules:
