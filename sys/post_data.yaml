@@ -15,3 +15,7 @@ paths:
   /{bucket}/{key}{/tid}:
     get:
       operationId: getRevision
+
+  /{bucket}/hash:
+    post:
+      operationId: calculateHash
