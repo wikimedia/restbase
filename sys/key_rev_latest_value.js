@@ -27,10 +27,8 @@ ArchivalBucket.prototype.createBucket = function(hyper, req) {
     var latestConfig = Object.assign({}, req.body, {
         revisionRetentionPolicy: { type: 'latest_hash' }
     });
-    if (latestConfig.valueType !== 'json') {
-        latestConfig.options = latestConfig.options || {};
-        latestConfig.options.compression = [];
-    }
+    latestConfig.options = latestConfig.options || {};
+    latestConfig.options.compression = [];
     return P.join(
         hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_rev_value', self._latestName(rp.bucket)]),
@@ -91,6 +89,7 @@ ArchivalBucket.prototype.listRevisions = function(hyper, req) {
 ArchivalBucket.prototype.putRevision = function(hyper, req) {
     var self = this;
     var rp = req.params;
+    rp.tid = rp.tid || uuid.now().toString();
     var prepare;
     if (/^application\/json/.test(req.headers['content-type'])) {
         prepare = P.resolve(req.body);
