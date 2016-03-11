@@ -63,34 +63,13 @@ paths:
             body:
               success: true
               checked: /.+/
-      x-setup-handler:
-        - init:
-            uri: /wikimedia.org/sys/post_data/mathoid.input
       x-request-handler:
-        - check_input:
+        - get_from_sys:
             request:
-              uri: '{{ options.host }}/texvcinfo'
-              headers:
-                content-type: application/json
-              body:
-                q: '{{ request.body.q }}'
-                type: '{{ request.params.type }}'
-        - post_store:
-            request:
-              method: put
-              uri: /wikimedia.org/sys/post_data/mathoid.input/
-              headers:
-                content-type: application/json
-              body:
-                q: '{{ check_input.body.checked }}'
-                type: '{{ request.params.type }}'
-            return:
-              status: 200
-              headers:
-                content-type: application/json
-                cache-control: '{{ options.cache-control }}'
-                x-resource-location: '{{ post_store.body }}'
-              body: '{{ check_input.body }}'
+              method: post
+              uri: /wikimedia.org/sys/mathoid/check/{type}
+              headers: '{{ request.headers }}'
+              body: '{{ request.body }}'
 
   /math/render/{format}/{hash}:
     get:

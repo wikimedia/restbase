@@ -55,6 +55,10 @@ paths:
     x-modules:
       - spec:
           paths:
+            /mathoid:
+              x-modules:
+                - path: sys/mathoid.js
+                  options: '{{options.mathoid}}'
             /table:
               x-modules:
                 - type: npm
