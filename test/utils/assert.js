@@ -147,6 +147,14 @@ function fails(promise, onRejected) {
     return promise.catch(trackFailure).then(check);
 }
 
+function checkString(result, expected, message) {
+    if (expected.constructor === RegExp) {
+        assert.ok(expected.test(result), '' + expected + '.test(' + result + ') fails');
+    } else {
+        assert.deepStrictEqual(result, expected, expected + ' !== ' + result);
+    }
+}
+
 module.exports.ok             = assert.ok;
 module.exports.fails          = fails;
 module.exports.deepEqual      = deepEqual;
@@ -157,4 +165,4 @@ module.exports.contentType    = contentType;
 module.exports.localRequests  = localRequests;
 module.exports.remoteRequests = remoteRequests;
 module.exports.findParsoidRequest = findParsoidRequest;
-
+module.exports.checkString    = checkString;

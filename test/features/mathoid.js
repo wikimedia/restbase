@@ -27,6 +27,7 @@ describe('Mathoid', function() {
             slice.halt();
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
+            assert.checkString(res.headers['cache-control'], 'no-cache');
         });
     });
 
@@ -40,6 +41,7 @@ describe('Mathoid', function() {
             slice.halt();
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
+            assert.checkString(res.headers['cache-control'], 'no-cache');
         });
     });
 
@@ -53,6 +55,7 @@ describe('Mathoid', function() {
             slice.halt();
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
+            assert.checkString(res.headers['cache-control'], 'no-cache');
         });
     });
 
@@ -69,6 +72,7 @@ describe('Mathoid', function() {
             slice.halt();
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
+            assert.checkString(res.headers['cache-control'], 'no-cache');
         });
     });
 
