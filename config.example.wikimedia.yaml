@@ -51,6 +51,16 @@ wiktionary_project: &wiktionary_project
 # using YAML references.
 spec_root: &spec_root
   title: "The RESTBase root"
+  x-sub-request-filters:
+    - path: ./lib/header_forward_filter.js
+      options:
+        allow:
+          - uri: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+            forward_headers: true
+            ....
+          - uri: /^https?:\/\//
+            forward_headers: false
+#          - /^https?://parsoid-beta.wmflabs.org.+/
   paths:
     /{domain:en.wikipedia.org}: *default_project
     /{domain:fr.wikipedia.org}: *default_project
