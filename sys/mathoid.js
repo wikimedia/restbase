@@ -89,17 +89,18 @@ MathoidService.prototype.checkInput = function(hyper, req) {
                 'content-type': 'application/json',
                 'x-resource-location': hash
             };
-            return P.all([
+            return P.join(
                 hyper.put({
                     uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash]),
                     headers: checkRes.headers,
                     body: checkRes.body
                 }),
-                indirectionP
-            ]);
-        }).then(function() {
-            checkRes.headers['cache-control'] = self.options['cache-control'];
-            return checkRes;
+                indirectionP,
+                function() {
+                    checkRes.headers['cache-control'] = self.options['cache-control'];
+                    return checkRes;
+                }
+            );
         });
     });
 
