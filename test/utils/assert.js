@@ -151,7 +151,8 @@ function checkString(result, expected, message) {
     if (expected.constructor === RegExp) {
         assert.ok(expected.test(result), '' + expected + '.test(' + result + ') fails');
     } else {
-        assert.deepStrictEqual(result, expected, expected + ' !== ' + result);
+        var de = assert.deepStrictEqual || assert.deepEqual;
+        de(result, expected, expected + ' !== ' + result);
     }
 }
 
