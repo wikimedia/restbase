@@ -17,13 +17,24 @@ function contentType(res, expected) {
  * slice were routed to local recipients
  */
 function localRequests(slice, expected) {
+    var hasRec = false;
+    var localReqs = !slice.get().some(function(line) {
+        var entry = JSON.parse(line);
+        if (!entry.req) {
+            return false;
+        }
+        hasRec = true;
+        // if the URI starts with a slash,
+        // it's a local request
+        return !/^\//.test(entry.req.uri);
+    });
+    if (!hasRec) {
+        // there were no records in the slice, so
+        // we cannot really decide what that means
+        return;
+    }
     deepEqual(
-        !slice.get().some(function(line) {
-            var entry = JSON.parse(line);
-            // if the URI starts with a slash,
-            // it's a local request
-            return entry.req && !/^\//.test(entry.req.uri);
-        }),
+        localReqs,
         expected,
         expected ?
           'Should not have made local request' :
@@ -36,11 +47,22 @@ function localRequests(slice, expected) {
  * slice were made to remote entities
  */
 function remoteRequests(slice, expected) {
+    var hasRec = false;
+    var remoteReqs = slice.get().some(function(line) {
+        var entry = JSON.parse(line);
+        if (!entry.req) {
+            return false;
+        }
+        hasRec = true;
+        return entry.req && /^http/.test(entry.req.uri);
+    });
+    if (!hasRec) {
+        // there were no records in the slice, so
+        // we cannot really decide what that means
+        return;
+    }
     deepEqual(
-        slice.get().some(function(line) {
-            var entry = JSON.parse(line);
-            return entry.req && /^http/.test(entry.req.uri);
-        }),
+        remoteReqs,
         expected,
         expected ?
           'Should have made a remote request' :
