@@ -27,16 +27,6 @@ paths:
             license:
               name: Apache2
               url: http://www.apache.org/licenses/LICENSE-2.0
-
-          securityDefinitions: &wp/content-security/1.0.0
-            mediawiki_auth:
-              description: Checks permissions using MW api
-              type: apiKey
-              in: header
-              name: cookie
-              x-internal-request-whitelist:
-                - /https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-                - http://parsoid-beta.wmflabs.org
           # Override the base path for host-based (proxied) requests. In our case,
           # we proxy https://{domain}/api/rest_v1/ to the API.
           x-host-basePath: /api/rest_v1

@@ -26,16 +26,6 @@ paths:
             version: 1.0.0-beta
             title: Wikimedia REST API
             description: Welcome to your RESTBase API.
-
-          securityDefinitions:
-            mediawiki_auth:
-              description: Checks permissions using MW api
-              type: apiKey
-              in: header
-              name: cookie
-              x-internal-request-whitelist:
-                - http://localhost/w/api.php
-                - http://localhost:8142
           x-route-filters:
             - path: ./lib/normalize_title_filter.js
           paths:
