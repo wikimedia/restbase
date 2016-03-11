@@ -64,18 +64,6 @@ describe('Access checks', function() {
                 }
             }
         })
-        // TEMP: summary also needs update
-        .post('').reply(200, {
-            'batchcomplete': '',
-            'query': {
-                'pages': {
-                    '11089416': {
-                        'title': deletedPageTitle,
-                        'extract': 'test'
-                    }
-                }
-            }
-        })
         // Other requests return nothing as if the page is deleted.
         .post('').reply(200, emptyResponse);
         // Fetch the page
