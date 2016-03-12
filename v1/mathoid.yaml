@@ -70,10 +70,6 @@ paths:
               uri: /wikimedia.org/sys/mathoid/check/{type}
               headers: '{{ request.headers }}'
               body: '{{ request.body }}'
-            return:
-              status: 200
-              headers: "{{ merge({ 'cache-control': 'no-cache' }, get_from_sys.headers) }}"
-              body: '{{ get_from_sys.body }}'
 
   /math/render/{format}/{hash}:
     get:

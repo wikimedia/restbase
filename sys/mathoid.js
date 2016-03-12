@@ -48,10 +48,6 @@ MathoidService.prototype.checkInput = function(hyper, req) {
                 });
             });
         });
-    }).then(function(res) {
-        // we have a record, return that
-        res.headers['cache-control'] = self.options['cache-control'];
-        return res;
     }).catch({ status: 404 }, function() {
         // if we are here, it means this is a new input formula
         // so call mathoid
@@ -87,6 +83,7 @@ MathoidService.prototype.checkInput = function(hyper, req) {
             // store the result
             checkRes.headers = {
                 'content-type': 'application/json',
+                'cache-control': 'no-cache',
                 'x-resource-location': hash
             };
             return P.join(
@@ -97,7 +94,6 @@ MathoidService.prototype.checkInput = function(hyper, req) {
                 }),
                 indirectionP,
                 function() {
-                    checkRes.headers['cache-control'] = self.options['cache-control'];
                     return checkRes;
                 }
             );
