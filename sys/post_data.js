@@ -45,6 +45,16 @@ function calculateHash(storedData) {
                  .digest('hex');
 }
 
+PostDataBucket.prototype.calculateHash = function(hyper, req) {
+    return {
+        status: 200,
+        headers: {
+            'content-type': 'text/plain'
+        },
+        body: calculateHash(req.body || {})
+    };
+};
+
 PostDataBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var storedData = req.body || {};
@@ -89,7 +99,8 @@ module.exports = function(options) {
         operations: {
             createBucket: postDataBucket.createBucket.bind(postDataBucket),
             getRevision: postDataBucket.getRevision.bind(postDataBucket),
-            putRevision: postDataBucket.putRevision.bind(postDataBucket)
+            putRevision: postDataBucket.putRevision.bind(postDataBucket),
+            calculateHash: postDataBucket.calculateHash.bind(postDataBucket)
         }
     };
 };
