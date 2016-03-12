@@ -7,6 +7,9 @@ var URI = HyperSwitch.URI;
 var HTTPError = HyperSwitch.HTTPError;
 
 
+var FORMATS = ['mml', 'svg', 'png'];
+
+
 function MathoidService(options) {
 
     this.options = options;
@@ -103,6 +106,69 @@ MathoidService.prototype.checkInput = function(hyper, req) {
 };
 
 
+MathoidService.prototype._storeRenders = function(hyper, domain, hash, completeBody) {
+
+    var idx;
+    var len = FORMATS.length;
+    var reqs = new Array(len);
+
+    for (idx = 0; idx < len; idx++) {
+        var format = FORMATS[idx];
+        // ensure that we have a proper response for a given format
+        if (!completeBody[format] || !completeBody[format].headers || !completeBody[format].body) {
+            return P.reject(new HTTPError({
+                status: 504,
+                message: 'Math: missing or malformed response for format ' + format
+            }));
+        }
+        // construct the request object that will be emitted
+        var reqObj = {
+            uri: new URI([domain, 'sys', 'key_value', 'mathoid.' + format, hash]),
+            headers: Object.assign(
+                completeBody[format].headers, { 'x-resource-location': hash }),
+            body: completeBody[format].body
+        };
+        if (format === 'png' && reqObj.body && reqObj.body.type === 'Buffer') {
+            // for png, we need to convert the encoded data manually
+            // because we are receiving it wrapped inside a JSON
+            reqObj.body = new Buffer(reqObj.body.data);
+            completeBody[format].body = reqObj.body;
+        }
+        // store the emit Promise
+        reqs[idx] = hyper.put(reqObj);
+    }
+
+    // now do them all
+    return P.all(reqs).then(function() { return completeBody; });
+
+};
+
+
+MathoidService.prototype.requestAndStore = function(hyper, req) {
+
+    var self = this;
+    var rp = req.params;
+    var hash = req.headers['x-resource-location'];
+
+    // first ask for all the renders from Mathoid
+    return hyper.post({
+        uri: self.options.host + '/complete',
+        headers: { 'content-type': 'application/json' },
+        body: req.body
+    }).then(function(res) {
+        // now store all of the renders
+        return self._storeRenders(hyper, rp.domain, hash, res.body);
+    }).then(function(res) {
+        // and return a proper response
+        var ret = res[rp.format];
+        ret.status = 200;
+        Object.assign(ret.headers, { 'cache-control': self.options['cache-control'] });
+        return ret;
+    });
+
+};
+
+
 module.exports = function(options) {
 
     var mathoidSrv = new MathoidService(options);
@@ -114,11 +180,17 @@ module.exports = function(options) {
                     post: {
                         operationId: 'checkInput'
                     }
+                },
+                '/render/{format}': {
+                    post: {
+                        operationId: 'requestAndStore'
+                    }
                 }
             }
         },
         operations: {
-            checkInput: mathoidSrv.checkInput.bind(mathoidSrv)
+            checkInput: mathoidSrv.checkInput.bind(mathoidSrv),
+            requestAndStore: mathoidSrv.requestAndStore.bind(mathoidSrv)
         },
         resources: [
             {

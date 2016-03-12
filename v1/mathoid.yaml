@@ -86,6 +86,7 @@ paths:
       produces:
         - image/svg+xml
         - application/mathml+xml
+        - image/png
       parameters:
         - name: format
           in: path
@@ -150,25 +151,8 @@ paths:
         - mathoid:
             request:
               method: post
-              uri: '{{options.host}}/complete'
+              uri: /wikimedia.org/sys/mathoid/render/{request.params.format}
               headers:
                 content-type: application/json
+                x-resource-location: '{{ request.params.hash }}'
               body: '{{postdata.body}}'
-        - store_svg:
-            request:
-              method: put
-              uri: /wikimedia.org/sys/key_value/mathoid.svg/{$.request.params.hash}
-              headers: "{{ merge(mathoid.body.svg.headers, { 'x-resource-location': request.params.hash }) }}"
-              body: '{{mathoid.body.svg.body}}'
-          store_mml:
-            request:
-              method: put
-              uri: /wikimedia.org/sys/key_value/mathoid.mml/{$.request.params.hash}
-              headers: "{{ merge(mathoid.body.mml.headers, { 'x-resource-location': request.params.hash }) }}"
-              body: '{{ mathoid.body.mml.body }}'
-        - return:
-            return:
-              status: 200
-              headers: "{{ merge(mathoid.body[request.params.format].headers, { 'x-resource-location': request.params.hash, 'cache-control': options.cache-control }) }}"
-              body: '{{ mathoid.body[request.params.format].body }}'
-

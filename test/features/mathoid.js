@@ -12,6 +12,8 @@ describe('Mathoid', function() {
     var f = 'c^2 = a^2 + b^2';
     var nf = 'c^{2}=a^{2}+b^{2}';
     var uri = server.config.hostPort + '/wikimedia.org/v1/media/math';
+    var formats = ['mml', 'svg', 'png'];
+    var hash;
 
     this.timeout(20000);
 
@@ -25,6 +27,7 @@ describe('Mathoid', function() {
             body: { q: f }
         }).then(function(res) {
             slice.halt();
+            hash = res.headers['x-resource-location'];
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
             assert.checkString(res.headers['cache-control'], 'no-cache');
@@ -75,5 +78,17 @@ describe('Mathoid', function() {
             assert.checkString(res.headers['cache-control'], 'no-cache');
         });
     });
+
+    for (var i = 0; i < formats.length; i++) {
+        var format = formats[i];
+        it('gets the render in ' + format, function() {
+            return preq.get({
+                uri: uri + '/render/' + format + '/' + hash
+            }).then(function(res) {
+                assert.checkString(res.headers['content-type'], new RegExp(format));
+                assert.ok(res.body);
+            });
+        });
+    }
 
 });
