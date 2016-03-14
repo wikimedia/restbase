@@ -30,11 +30,11 @@ services:
             name: http
             options:
             allow:
-              - uri: http://localhost/w/api.php
+              - pattern: http://localhost/w/api.php
                 forward_headers: true
-              - uri: http://localhost:8142
+              - pattern: http://localhost:8142
                 forward_headers: true
-              - uri: /^https?:\/\//
+              - pattern: /^https?:\/\//
         paths:
           /{domain:localhost}:
             x-modules:
