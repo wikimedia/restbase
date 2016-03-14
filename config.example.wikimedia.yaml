@@ -56,11 +56,11 @@ spec_root: &spec_root
       name: http
       options:
         allow:
-          - uri: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
             forward_headers: true
-          - uri: /^https?:\/\/parsoid-beta.wmflabs.org.+/
+          - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
             forward_headers: true
-          - uri: /^https?:\/\//
+          - pattern: /^https?:\/\//
   paths:
     /{domain:en.wikipedia.org}: *default_project
     /{domain:fr.wikipedia.org}: *default_project
