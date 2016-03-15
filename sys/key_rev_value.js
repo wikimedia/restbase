@@ -150,9 +150,9 @@ KRVBucket.prototype.listRevisions = function(hyper, req) {
 KRVBucket.prototype.putRevision = function(hyper, req) {
     var rp = req.params;
     var rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-    var tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') || uuid.now().toString();
 
-    var storeReq = {
+    var tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') || uuid.now().toString();
+    return hyper.put({
         uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
         body: {
             table: rp.bucket,
@@ -165,8 +165,7 @@ KRVBucket.prototype.putRevision = function(hyper, req) {
                 // TODO: include other data!
             }
         }
-    };
-    return hyper.put(storeReq)
+    })
     .then(function(res) {
         if (res.status === 201) {
             return {

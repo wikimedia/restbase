@@ -115,6 +115,9 @@ paths:
             /buckets/key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
+            /buckets/key_rev_latest_value:
+              x-modules:
+                - path: sys/key_rev_latest_value.js
             /buckets/key_value:
               x-modules:
                 - path: sys/key_value.js
