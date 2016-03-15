@@ -8,6 +8,8 @@ var preq = require('preq');
 var HyperSwitch = require('hyperswitch');
 var URI = HyperSwitch.URI;
 
+var mwUtil = require('../lib/mwUtil');
+
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
 function ArchivalBucket(options) {
@@ -29,6 +31,8 @@ ArchivalBucket.prototype.createBucket = function(hyper, req) {
     });
     latestConfig.options = latestConfig.options || {};
     latestConfig.options.compression = [];
+    latestConfig.valueType = 'blob';
+
     return P.join(
         hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_rev_value', self._latestName(rp.bucket)]),
@@ -64,8 +68,13 @@ ArchivalBucket.prototype.getRevision = function(hyper, req) {
         headers: req.headers
     })
     .then(function(res) {
-        if (!/^application\/json/.test(res.headers['content-type'])) {
-            res.headers = Object.assign(res.headers, { 'content-encoding': 'gzip' });
+        res.headers['content-encoding'] = 'gzip';
+        if (/^application\/json/.test(res.headers['content-type'])) {
+            return mwUtil.decodeBody(res)
+            .then(function(res) {
+                res.body = JSON.parse(res.body);
+                return res;
+            });
         }
         return res;
     })
@@ -90,27 +99,27 @@ ArchivalBucket.prototype.putRevision = function(hyper, req) {
     var self = this;
     var rp = req.params;
     rp.tid = rp.tid || uuid.now().toString();
-    var prepare;
     if (/^application\/json/.test(req.headers['content-type'])) {
-        prepare = P.resolve(req.body);
-    } else {
-        // Custom impl for 0.10 compatibility.
-        // When we drop it following lines can be replaced with
-        // a promisified convenience method
-        var gzip = zlib.createGzip({ level: 6 });
-        prepare = new P(function(resolve, reject) {
-            var chunks = [];
-            gzip.on('data', function(chunk) {
-                chunks.push(chunk);
-            });
-            gzip.on('end', function() {
-                resolve(Buffer.concat(chunks));
-            });
-            gzip.on('error', reject);
-
-            gzip.end(req.body);
-        });
+        req.body = JSON.stringify(req.body);
     }
+
+    // Custom impl for 0.10 compatibility.
+    // When we drop it following lines can be replaced with
+    // a promisified convenience method
+    var gzip = zlib.createGzip({ level: 6 });
+    var prepare = new P(function(resolve, reject) {
+        var chunks = [];
+        gzip.on('data', function(chunk) {
+            chunks.push(chunk);
+        });
+        gzip.on('end', function() {
+            resolve(Buffer.concat(chunks));
+        });
+        gzip.on('error', reject);
+
+        gzip.end(req.body);
+    });
+
     return P.join(
         prepare.then(function(data) {
             return hyper.put({

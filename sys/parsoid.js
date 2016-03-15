@@ -12,7 +12,6 @@ var HTTPError = HyperSwitch.HTTPError;
 
 var uuid   = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
-var gunzip = P.promisify(require('zlib').gunzip);
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/parsoid.yaml');
 
@@ -192,24 +191,6 @@ PSP._wrapInAccessCheck = function(hyper, req, promise) {
     .then(function(responses) { return responses.content; });
 };
 
-function bodyToString(contentResponse) {
-    var prepare;
-    if (contentResponse.headers
-            && contentResponse.headers['content-encoding'] === 'gzip') {
-        delete contentResponse.headers['content-encoding'];
-        prepare = gunzip(contentResponse.body);
-    } else {
-        prepare = P.resolve(contentResponse.body);
-    }
-    return prepare.then(function(body) {
-        if (body && Buffer.isBuffer(body)) {
-            body = body.toString();
-        }
-        contentResponse.body = body;
-        return contentResponse;
-    });
-}
-
 /**
  * Wrap content request with sections request if needed
  * and ensures charset in the response
@@ -243,7 +224,7 @@ PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
                 return id.trim();
             });
 
-            return bodyToString(responses.content).then(function(content) {
+            return mwUtil.decodeBody(responses.content).then(function(content) {
                 var body = cheapBodyInnerHTML(content.body);
                 var chunks = {};
                 sections.forEach(function(id) {
@@ -277,7 +258,7 @@ PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
 };
 
 PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format, rp.title];
+    var path = [rp.domain, 'sys', 'key_rev_latest_value', 'parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {
@@ -370,7 +351,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
         parsoidReq = hyper.get({ uri: pageBundleUri });
     }
 
-    return P.join(parsoidReq, bodyToString(currentContentRes))
+    return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
     .spread(function(res, currentContentRes) {
         var tid = uuid.now().toString();
         res.body.html.body = insertTidMeta(res.body.html.body, tid);
@@ -532,7 +513,7 @@ PSP.listRevisions = function(format, hyper, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
-        uri: new URI([rp.domain, 'sys', 'key_rev_value', 'parsoid.' + format,
+        uri: new URI([rp.domain, 'sys', 'key_rev_latest_value', 'parsoid.' + format,
                         mwUtil.normalizeTitle(rp.title), '']),
         body: {
             limit: hyper.config.default_page_size
@@ -566,7 +547,7 @@ PSP._getOriginalContent = function(hyper, req, revision, tid) {
             path.push(tid);
         }
 
-        return hyper.get({ uri: new URI(path) }).then(bodyToString);
+        return hyper.get({ uri: new URI(path) }).then(mwUtil.decodeBody);
     }
 
     return P.props({
@@ -589,7 +570,7 @@ PSP._getStashedContent = function(hyper, req, etag) {
         return hyper.get({
             uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
         })
-        .then(bodyToString);
+        .then(mwUtil.decodeBody);
     }
 
     return P.props({
@@ -913,7 +894,6 @@ PSP.makeTransform = function(from, to) {
     };
 };
 
-
 module.exports = function(options) {
     var ps = new ParsoidService(options);
 
@@ -923,7 +903,7 @@ module.exports = function(options) {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.html',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.html',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -935,13 +915,13 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.wikitext',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.wikitext',
                 body: {
                     valueType: 'blob'
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.data-parsoid',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -953,7 +933,7 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.section.offsets',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.section.offsets',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -965,14 +945,14 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.data-mw',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.data-mw',
                 body: {
                     valueType: 'json'
                 }
             },
             // stashing resources for HTML, wikitext and data-parsoid
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.stash.html',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
@@ -983,7 +963,7 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.stash.wikitext',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
@@ -994,7 +974,7 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
+                uri: '/{domain}/sys/key_rev_latest_value/parsoid.stash.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',

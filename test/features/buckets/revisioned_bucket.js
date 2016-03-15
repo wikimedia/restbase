@@ -47,7 +47,7 @@ describe('Revisioned buckets', function() {
                 assert.deepEqual(res.body, new Buffer(testData));
             });
         });
-
+        
         it('stores a content in a bucket and gets it back with small content', function() {
             var testData = randomString(10);
             return preq.put({
@@ -195,9 +195,6 @@ describe('Revisioned buckets', function() {
             .then(function(res) {
                 assert.deepEqual(res.body.toString(), 'Newer_Revision');
                 assert.deepEqual(res.headers.etag, mwUtils.makeETag(1001, newerUUID));
-            })
-            .catch(function(e) {
-                console.log(e);
             });
         });
 
