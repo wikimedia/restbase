@@ -59,7 +59,7 @@ describe('router - security', function() {
         .reply(200, sampleRightsResponse);
 
         return preq.get({
-            uri: server.config.secureURL + '/title/',
+            uri: server.config.secureBucketURL + '/title/',
             headers: {
                 'Cookie': 'test=test_cookie'
             }
@@ -101,7 +101,7 @@ describe('router - security', function() {
         });
 
         return preq.get({
-            uri: server.config.secureURL + '/html/' + title + '/' + revision,
+            uri: server.config.secureBucketURL + '/html/' + title + '/' + revision,
             headers: {
                 'Cookie': 'test=test_cookie',
                 'Cache-control': 'no-cache'
@@ -110,6 +110,26 @@ describe('router - security', function() {
         .then(function() { api.done(); })
         .finally(function() { nock.cleanAll(); });
     });
+
+    it('should not forward cookies to external domains', function() {
+        var externalURI = 'https://www.mediawiki.org';
+        nock.enableNetConnect();
+        var api = nock(externalURI, {
+            badheaders: ['cookie'],
+        })
+        .get('/')
+        .reply(200);
+
+        return preq.get({
+            uri: server.config.secureURL + '/http/' + encodeURIComponent(externalURI),
+            headers: {
+                'cookie': 'test=test_cookie'
+            }
+        })
+        .then(function() { api.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
+
 
     it ('should not send cookies to non-restricted domains', function() {
         var apiURI = server.config.apiURL;
@@ -176,7 +196,7 @@ describe('router - security', function() {
             }
         });
         return preq.get({
-            uri: server.config.secureURL + '/title/' + title,
+            uri: server.config.secureBucketURL + '/title/' + title,
             headers: {
                 'cache-control': 'no-cache'
             }

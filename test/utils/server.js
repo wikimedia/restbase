@@ -15,7 +15,8 @@ var hostPort  = 'http://localhost:7231';
 var baseURL   = hostPort + '/en.wikipedia.org/v1';
 var globalURL = hostPort + '/wikimedia.org/v1';
 var bucketURL = baseURL + '/page';
-var secureURL = hostPort + '/fr.wikipedia.org/v1/page';
+var secureURL = hostPort + '/fr.wikipedia.org/v1';
+var secureBucketURL = secureURL + '/page';
 var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
 var labsBucketURL = labsURL + '/page';
 
@@ -50,6 +51,7 @@ var config = {
         return hostPort + '/' + domain + '/v1/page';
     },
     secureURL: secureURL,
+    secureBucketURL: secureBucketURL,
     secureApiURL: 'https://fr.wikipedia.org/w/api.php',
     labsURL: labsURL,
     labsBucketURL: labsBucketURL,
