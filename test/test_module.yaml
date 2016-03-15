@@ -126,4 +126,11 @@ paths:
             /events_no_config:
               x-modules:
                 - path: sys/events.js
+
+            /http/{uri}:
+              get:
+                x-request-handler:
+                  - request_url:
+                      request:
+                        uri: '{{uri}}'
         options: '{{options}}'
