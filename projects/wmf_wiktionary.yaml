@@ -32,6 +32,8 @@ paths:
           x-host-basePath: /api/rest_v1
           x-route-filters:
             - path: ./lib/normalize_title_filter.js
+              options:
+                redirect_cache_control: '{{options.purged_cache_control}}'
           paths:
             /page:
               x-modules:

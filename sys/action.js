@@ -216,7 +216,7 @@ ActionService.prototype.edit = function(hyper, req) {
 ActionService.prototype.siteinfo = function(hyper, req) {
     return this._doRequest(hyper, req, {
         action: 'query',
-        meta: 'siteinfo',
+        meta: 'siteinfo|filerepoinfo',
         format: 'json'
     }, function(apiReq, res) { return res; });
 };
