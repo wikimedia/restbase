@@ -90,6 +90,7 @@ spec_root: &spec_root
     /{domain:en.wikipedia.org}: *default_project
     /{domain:test.wikipedia.org}: *default_project
     /{domain:test2.wikipedia.org}: *default_project
+    /{domain:commons.wikimedia.org}: *default_project
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *labs_project

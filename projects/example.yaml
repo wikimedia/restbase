@@ -28,6 +28,8 @@ paths:
             description: Welcome to your RESTBase API.
           x-route-filters:
             - path: ./lib/normalize_title_filter.js
+              options:
+                redirect_cache_control: '{{options.purged_cache_control}}'
           paths:
             /page:
               x-modules:
@@ -35,6 +37,7 @@ paths:
             /transform:
               x-modules:
                 - path: v1/transform.yaml
+        options: '{{options}}'
 
   /{api:sys}:
     x-modules:
