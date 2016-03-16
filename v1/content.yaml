@@ -76,7 +76,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: Page title.
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
       responses:
@@ -153,7 +153,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: Page title.
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: page
@@ -188,7 +188,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: Page title.
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: sections
@@ -292,7 +292,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: Page title.
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: base_etag
@@ -384,7 +384,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: The page title
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: page
@@ -427,7 +427,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: The page title
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: revision
@@ -503,114 +503,6 @@ paths:
                 sections: '{{sections}}'
       x-monitor: false
 
-  /data-parsoid/{title}:
-    get:
-      tags:
-        - Page content
-      summary: Get latest data-parsoid metadata for a title.
-      description: |
-        Data-parsoid is metadata used by
-        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) to support clean
-        round-tripping conversions between HTML and Wikitext. Among other
-        things, it contains the original Wikitext offsets of each HTML
-        element, keyed by element ID. The format is unstable.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      parameters:
-        - name: title
-          in: path
-          description: the title of page content
-          type: string
-          required: true
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: data-parsoid JSON blob
-          schema:
-            $ref: '#/definitions/data-parsoid'
-        '404':
-          description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/parsoid/data-parsoid/{title}
-              headers:
-                cache-control: '{{cache-control}}'
-                if-unmodified-since: '{{if-unmodified-since}}'
-                x-restbase-mode: '{{x-restbase-mode}}'
-                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-      x-monitor: true
-      x-amples:
-        - title: Get data-parsoid by title
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Foobar
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: application/json
-            body:
-              counter: /\d+/
-              ids: /.*/
-              sectionOffsets: /.*/
-
-  /data-parsoid/{title}/:
-    get:
-      tags:
-        - Page content
-      summary: List data-parsoid revisions for a page.
-      description: |
-        This currently only lists revisions stored in RESTBase.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-      parameters:
-        - name: title
-          in: path
-          description: The page title
-          type: string
-          required: true
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The list of revisions
-          schema:
-            $ref: '#/definitions/revisions'
-        '404':
-          description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/parsoid/data-parsoid/{title}/
-              headers:
-                cache-control: '{{cache-control}}'
-                if-unmodified-since: '{{if-unmodified-since}}'
-                x-restbase-mode: '{{x-restbase-mode}}'
-                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-            query:
-              page: '{{page}}'
-      x-monitor: false
-
   /data-parsoid/{title}/{revision}/{tid}:
     get:
       tags:
@@ -633,7 +525,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: The page title
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: revision
@@ -796,7 +688,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: The page title.
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: base_etag

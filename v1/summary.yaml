@@ -28,7 +28,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: The page title.
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
       responses:
