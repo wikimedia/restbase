@@ -6,10 +6,14 @@ default_project: &default_project
   x-modules:
     - path: test/test_module.yaml
       options:
-        events:
+        events_purge:
           purge:
             host: 127.0.0.1
             port: 4321
+        events_emit:
+          eventlogging_service:
+            uri: http://127.0.0.1:8085/v1/events
+            topic: resource_change
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
