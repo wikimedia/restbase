@@ -258,7 +258,7 @@ PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
 };
 
 PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain, 'sys', 'key_rev_latest_value', 'parsoid.' + format, rp.title];
+    var path = [rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {
@@ -513,7 +513,7 @@ PSP.listRevisions = function(format, hyper, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
-        uri: new URI([rp.domain, 'sys', 'key_rev_latest_value', 'parsoid.' + format,
+        uri: new URI([rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format,
                         mwUtil.normalizeTitle(rp.title), '']),
         body: {
             limit: hyper.config.default_page_size
@@ -895,6 +895,9 @@ PSP.makeTransform = function(from, to) {
 };
 
 module.exports = function(options) {
+    options = options || {};
+    // Default to key_rev_value for now, switch to key_rev_latest_value later.
+    options.bucket_type = options.bucket_type || 'key_rev_value';
     var ps = new ParsoidService(options);
 
     return {
@@ -903,7 +906,7 @@ module.exports = function(options) {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.html',
+                uri: '/{domain}/sys/' + options.bucket_type + '/parsoid.html',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -915,13 +918,13 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.wikitext',
+                uri: '/{domain}/sys/' + options.bucket_type + '/parsoid.wikitext',
                 body: {
                     valueType: 'blob'
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.data-parsoid',
+                uri: '/{domain}/sys/' + options.bucket_type + '/parsoid.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -933,7 +936,7 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.section.offsets',
+                uri: '/{domain}/sys/' + options.bucket_type + '/parsoid.section.offsets',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -945,14 +948,14 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.data-mw',
+                uri: '/{domain}/sys/' + options.bucket_type + '/parsoid.data-mw',
                 body: {
                     valueType: 'json'
                 }
             },
             // stashing resources for HTML, wikitext and data-parsoid
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.stash.html',
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
@@ -963,7 +966,7 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.stash.wikitext',
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
@@ -974,7 +977,7 @@ module.exports = function(options) {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_latest_value/parsoid.stash.data-parsoid',
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
