@@ -56,8 +56,7 @@
     "mocha-lcov-reporter": "^1.0.0",
     "nock": "^5.2.1",
     "restbase-mod-table-sqlite": "^0.1.14",
-    "swagger-test": "0.3.0",
-    "temp": "^0.8.3"
+    "swagger-test": "0.3.0"
   },
   "deploy": {
     "node": "4.3.0",

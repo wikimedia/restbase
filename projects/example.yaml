@@ -45,9 +45,7 @@ paths:
           paths:
             /table:
               x-modules:
-                - type: npm
-                  name: restbase-mod-table-sqlite
-                  version: 1.0.0
+                - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
             /key_value:

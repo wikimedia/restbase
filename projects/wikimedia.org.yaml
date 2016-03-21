@@ -63,8 +63,7 @@ paths:
                   options: '{{options.mathoid}}'
             /table:
               x-modules:
-                - type: npm
-                  name: restbase-mod-table-cassandra
+                - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
             /key_value:

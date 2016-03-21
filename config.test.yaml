@@ -13,6 +13,7 @@ default_project: &default_project
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
+          backend: cassandra
           hosts: [localhost]
           keyspace: system
           username: cassandra
