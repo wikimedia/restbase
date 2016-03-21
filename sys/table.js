@@ -1,5 +1,9 @@
 "use strict";
 
+/*
+ * A simple wrapper module over storage modules which allows to switch between storage
+ * implementation using a config option.
+ */
 
 module.exports = function(options) {
     options.conf.backend = options.conf.backend || 'cassandra';
