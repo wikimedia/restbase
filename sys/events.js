@@ -78,6 +78,10 @@ EventService.prototype._emit = function(hyper, req) {
                 event.meta.id = uuid.now().toString();
                 event.meta.dt = new Date().toISOString();
                 event.meta.domain = req.params.domain;
+                event.tags = event.tags || [];
+                if (event.tags.indexOf('restbase') < 0) {
+                    event.tags.push('restbase');
+                }
                 return event;
             })
             .filter(function(event) { return !!event; });
