@@ -44,18 +44,6 @@ describe('Access checks', function() {
                     }
                 }
             }
-        })
-        // TEMP: summary also needs update
-        .post('').reply(200, {
-            'batchcomplete': '',
-            'query': {
-                'pages': {
-                    '11089416': {
-                        'title': title,
-                        'extract': 'test'
-                    }
-                }
-            }
         });
     }
 
@@ -275,18 +263,6 @@ describe('Access checks', function() {
     it('should restrict access to restricted revision html', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev
-        })
-        .then(function() {
-            throw new Error('403 should have been returned for a deleted page');
-        }, function(e) {
-            assert.deepEqual(e.status, 403);
-            assert.contentType(e, 'application/problem+json');
-        });
-    });
-
-    it('should restrict access to restricted revision data-parsoid', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/' + encodeURIComponent(pageTitle) + '/' + pageRev
         })
         .then(function() {
             throw new Error('403 should have been returned for a deleted page');
