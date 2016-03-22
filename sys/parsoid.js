@@ -257,8 +257,9 @@ PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
     });
 };
 
-PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format, rp.title];
+PSP.getBucketURI = function(rp, format, tid, useKeyRevValue) {
+    var bucket = useKeyRevValue ? 'key_rev_value' : this.options.bucket_type;
+    var path = [rp.domain, 'sys', bucket, 'parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {
@@ -568,7 +569,7 @@ PSP._getStashedContent = function(hyper, req, etag) {
     rp.title = mwUtil.normalizeTitle(rp.title);
     function getStash(format) {
         return hyper.get({
-            uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
+            uri: self.getBucketURI(rp, 'stash.' + format, etag.tid, true)
         })
         .then(mwUtil.decodeBody);
     }
@@ -739,12 +740,12 @@ PSP.stashTransform = function(hyper, req, transformPromise) {
         // the wikitext sent by the client
         return P.all([
             hyper.put({
-                uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
+                uri: self.getBucketURI(rp, 'stash.data-parsoid', tid, true),
                 headers: original.body['data-parsoid'].headers,
                 body: original.body['data-parsoid'].body
             }),
             hyper.put({
-                uri: self.getBucketURI(rp, 'stash.wikitext', tid),
+                uri: self.getBucketURI(rp, 'stash.wikitext', tid, true),
                 headers: { 'content-type': wtType },
                 body: req.body.wikitext
             })
@@ -753,7 +754,7 @@ PSP.stashTransform = function(hyper, req, transformPromise) {
         // HTML.
         .then(function() {
             return hyper.put({
-                uri: self.getBucketURI(rp, 'stash.html', tid),
+                uri: self.getBucketURI(rp, 'stash.html', tid, true),
                 headers: original.body.html.headers,
                 body: original.body.html.body
             });
