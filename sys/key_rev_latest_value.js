@@ -3,7 +3,6 @@
 var zlib = require('zlib');
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
-var preq = require('preq');
 
 var HyperSwitch = require('hyperswitch');
 var URI = HyperSwitch.URI;
