@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.11.4",
+  "version": "0.12.0",
   "description": "REST storage and service dispatcher",
   "main": "lib/server.js",
   "scripts": {
@@ -31,6 +31,7 @@
     "url": "https://phabricator.wikimedia.org/tag/restbase/"
   },
   "homepage": "https://github.com/wikimedia/restbase",
+	"readme": "README.md",
   "dependencies": {
     "bluebird": "^3.1.1",
     "cassandra-uuid": "^0.0.2",
