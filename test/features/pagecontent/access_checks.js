@@ -280,18 +280,6 @@ describe('Access checks', function() {
         });
     });
 
-    it('should restrict access to restricted revision data-parsoid', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/' + encodeURIComponent(pageTitle) + '/' + pageRev
-        })
-        .then(function() {
-            throw new Error('403 should have been returned for a deleted page');
-        }, function(e) {
-            assert.deepEqual(e.status, 403);
-            assert.contentType(e, 'application/problem+json');
-        });
-    });
-
     it('should allow to view content if restrictions disappeared', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
