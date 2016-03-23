@@ -77,6 +77,11 @@ test:
 spec_root: &spec_root
   title: "The RESTBase root"
   # Some more general RESTBase info
+  x-request-filters:
+    - path: test/utils/uri_dump_filter.js
+      options:
+        dump_test_uris: false
+        filepath: uri_dump
   x-sub-request-filters:
     - type: default
       name: http
