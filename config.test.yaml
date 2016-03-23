@@ -88,8 +88,10 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
-    /{domain:en.wikipedia.org}: *default_project
     /{domain:test.wikipedia.org}: *default_project
+    # The order is important for tests.
+    # For example redirect tests require en.wiki being not the first wiki in the list.
+    /{domain:en.wikipedia.org}: *default_project
     /{domain:test2.wikipedia.org}: *default_project
     /{domain:commons.wikimedia.org}: *default_project
 
