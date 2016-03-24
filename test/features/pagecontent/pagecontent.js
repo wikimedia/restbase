@@ -310,7 +310,10 @@ describe('item requests', function() {
 
     it('should redirect to commons for missing file pages', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg'
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
+            headers: {
+                'user-agent': 'WikipediaApp/2.1.141-beta-2016-02-10 (Android 5.0.2; Phone) Google Play Beta Channel'
+            }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
