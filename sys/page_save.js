@@ -44,7 +44,7 @@ PageSave.prototype._getStartTimestamp = function(req) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     title: 'Bad ETag in If-Match',
                     description: 'The supplied base_etag is invalid'
                 }
@@ -65,7 +65,7 @@ PageSave.prototype._getBaseRevision = function(req) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     title: 'Bad base_etag',
                     description: 'The supplied base_etag is invalid'
                 }
@@ -83,7 +83,7 @@ PageSave.prototype._getRevInfo = function(hyper, req, revision) {
         throw new HTTPError({
             status: 400,
             body: {
-                type: 'invalid_request',
+                type: 'bad_request',
                 title: 'Bad revision',
                 description: 'The supplied revision ID is invalid'
             }
@@ -110,7 +110,7 @@ PageSave.prototype._checkParams = function(params) {
         throw new HTTPError({
             status: 400,
             body: {
-                type: 'invalid_request',
+                type: 'bad_request',
                 title: 'Missing parameters',
                 description: 'The html/wikitext and csrf_token parameters are required'
             }

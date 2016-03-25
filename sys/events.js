@@ -20,7 +20,7 @@ EventService.prototype.emitEvent = function(hyper, req) {
                 throw new HTTPError({
                     status: 400,
                     body: {
-                        type: 'events',
+                        type: 'bad_request',
                         description: 'Invalid request for event service.'
                     }
                 });

@@ -233,7 +233,7 @@ PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
                         throw new HTTPError({
                             status: 400,
                             body: {
-                                type: 'invalid_request',
+                                type: 'bad_request',
                                 detail: 'Unknown section id: ' + id
                             }
                         });
@@ -461,7 +461,7 @@ PSP.getFormat = function(format, hyper, req) {
             throw new HTTPError({
                 status: 403,
                 body: {
-                    type: 'rerenders_disabled',
+                    type: 'bad_request#rerenders_disabled',
                     description: "Rerenders for this article are blacklisted in the config."
                 }
             });
@@ -600,7 +600,7 @@ function replaceSections(original, sectionsJson) {
         throw new HTTPError({
             status: 400,
             body: {
-                type: 'invalid_request',
+                type: 'bad_request',
                 description: 'Invalid section ids'
             }
         });
@@ -627,7 +627,7 @@ function parseSections(req) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'Invalid JSON provided in the request'
                 }
             });
@@ -658,7 +658,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'No or invalid If-Match header supplied, '
                         + 'or missing mw:TimeUuid meta element in the supplied HTML.',
                 }
@@ -680,7 +680,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'The page/revision has no associated Parsoid data'
                 }
             });
@@ -831,7 +831,7 @@ PSP.makeTransform = function(from, to) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'Missing request parameter: ' + from
                 }
             });
@@ -842,9 +842,8 @@ PSP.makeTransform = function(from, to) {
                 throw new HTTPError({
                     status: 400,
                     body: {
-                        type: 'invalid_request',
-                        description: 'Data can be stashed only for a specific' +
-                                ' title.'
+                        type: 'bad_request',
+                        description: 'Data can be stashed only for a specific title.'
                     }
                 });
             }
@@ -871,7 +870,7 @@ PSP.makeTransform = function(from, to) {
                 throw new HTTPError({
                     status: pageDeleted ? 410 : 409,
                     body: {
-                        type: 'revision#conflict',
+                        type: 'conflict',
                         title: 'Conflict detected',
                         description: e.body.description
                     }

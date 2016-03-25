@@ -98,7 +98,7 @@ PRS.prototype._checkRevReturn = function(item) {
             throw new HTTPError({
                 status: 404,
                 body: {
-                    type: 'not_found#page_revisions',
+                    type: 'not_found',
                     description: 'Page was deleted'
                 }
             });
@@ -109,7 +109,7 @@ PRS.prototype._checkRevReturn = function(item) {
             throw new HTTPError({
                 status: 403,
                 body: {
-                    type: 'access_denied#revision',
+                    type: 'forbidden#revision',
                     title: 'Access to resource denied',
                     description: 'Access is restricted for revision ' + item.rev,
                     restrictions: item.restrictions
@@ -230,7 +230,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
             throw new HTTPError({
                 status: 404,
                 body: {
-                    type: 'not_found#page_revisions',
+                    type: 'not_found',
                     description: 'Page or revision not found.',
                     apiResponse: apiRes
                 }
@@ -478,8 +478,9 @@ PRS.prototype.getRevision = function(hyper, req) {
         throw new HTTPError({
             status: 400,
             body: {
-                type: 'invalidRevision',
-                description: 'Invalid revision specified.'
+                type: 'bad_request#invalid_revision',
+                description: 'Invalid revision specified',
+                rev: rp.revision
             }
         });
     }

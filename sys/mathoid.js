@@ -117,8 +117,11 @@ MathoidService.prototype._storeRenders = function(hyper, domain, hash, completeB
         // ensure that we have a proper response for a given format
         if (!completeBody[format] || !completeBody[format].headers || !completeBody[format].body) {
             return P.reject(new HTTPError({
-                status: 504,
-                message: 'Math: missing or malformed response for format ' + format
+                status: 500,
+                body: {
+                    type: 'server_error#empty_response',
+                    description: 'Math: missing or malformed response for format ' + format
+                }
             }));
         }
         // construct the request object that will be emitted
