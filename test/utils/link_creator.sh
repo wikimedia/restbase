@@ -1,11 +1,13 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+cd ${DIR}/../../
 
 rm -f uri_dump;
 
 # Enable logging in config
-sed -i.bak 's/dump_test_uris:\ false/dump_test_uris:\ true/' config.test.yaml
+sed 's/dump_test_uris:\ false/dump_test_uris:\ true/' config.test.yaml > temp.config.test.yaml
+export RB_TEST_CONFIG=${DIR}/../../temp.config.test.yaml
 
 # Run tests
 sh $DIR/run_tests.sh test sqlite
@@ -28,5 +30,4 @@ sed -i.bak 's/^\/\([[:alnum:]\.]*\)\/v1/https:\/\/\1\/api\/rest_v1/' uri_dump
 # Report and clean up.
 echo "Collected uris: `cat uri_dump | wc -l`"
 echo "The list of URIs could be found in 'uri_dump' file"
-sed -i.bak 's/dump_test_uris:\ true/dump_test_uris:\ false/' config.test.yaml
-rm -f config.test.yaml.bak uri_dump.bak
+rm -f temp.config.test.yaml uri_dump.bak
