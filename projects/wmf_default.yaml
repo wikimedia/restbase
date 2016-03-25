@@ -114,6 +114,16 @@ paths:
                         User:Nolelover: true
                         User:Calmer_Waters: true
                         User:Technical_13/dashboard: true
+                        Template:Cratstats: true
+                        # Cyberbot is creating 90% of null edits
+                        User:Cyberbot_I/Status: true
+                        User:Cyberbot_II/Status: true
+                        صارف:Cyberbot_I/Run/Adminstats: true
+                        User:Cyberbot_I/Run/Adminstats: true
+                        Defnyddiwr:Cyberbot_I/Run/Adminstats: true
+                        User:Cyberbot_I/Run/Datefixer: true
+                        User:Cyberbot_I/adminrights-admins.js: true
+                        User:Cyberpower678/Tally: true
                       ur.wikipedia.org:
                         نام_مقامات_ایل: true
                         نام_مقامات_ڈی: true
