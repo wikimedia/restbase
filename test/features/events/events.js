@@ -128,7 +128,7 @@ describe('Change event emitting', function() {
                             assert.deepEqual(!!new Date(event.meta.dt), true);
                             assert.deepEqual(uuid.test(event.meta.id), true);
                             assert.deepEqual(!!event.meta.request_id, true);
-                            assert.deepEqual(event.meta.topic, 'wmf.resource_change');
+                            assert.deepEqual(event.meta.topic, 'resource_change');
                             assert.deepEqual(event.meta.uri, 'http://en.wikipedia.org/wiki/User:Pchelolo');
                             assert.deepEqual(event.tags, ['test', 'restbase']);
                             really_done();
