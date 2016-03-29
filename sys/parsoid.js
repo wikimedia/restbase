@@ -366,17 +366,26 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
             // being wrapped & throwing an error if access is denied
             return self.wrapContentReq(hyper, req, P.resolve(currentContentRes), format, rp.tid);
         } else if (res.status === 200) {
+            var resp = {
+                status: res.status,
+                headers: res.body[format].headers,
+                body: res.body[format].body
+            };
+            resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
+            var responsePromise = self.wrapContentReq(hyper, req,
+                    P.resolve(resp), format, tid);
             return self.saveParsoidResult(hyper, req, format, tid, res)
             .then(function() {
-                return self._dependenciesUpdate(hyper, req); })
-            .then(function() {
-                var resp = {
-                    status: res.status,
-                    headers: res.body[format].headers,
-                    body: res.body[format].body
-                };
-                resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                return self.wrapContentReq(hyper, req, P.resolve(resp), format, tid);
+                var dependencyUpdate = self._dependenciesUpdate(hyper, req);
+                if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
+                    // Finish background updates before returning
+                    return dependencyUpdate
+                    .then(function() {
+                        return responsePromise;
+                    });
+                } else {
+                    return responsePromise;
+                }
             });
         } else {
             return res;
