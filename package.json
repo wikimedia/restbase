@@ -35,7 +35,7 @@
   "dependencies": {
     "bluebird": "^3.1.1",
     "cassandra-uuid": "^0.0.2",
-    "restbase-mod-table-cassandra": "^0.8.15",
+    "restbase-mod-table-cassandra": "^0.9.0",
     "service-runner": "^1.1.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "htcp-purge": "^0.1.2",
