@@ -49,7 +49,7 @@ var config = {
     labsBucketURL: labsBucketURL,
     labsApiURL: 'http://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
-    conf: loadConfig(__dirname + '/../../config.test.yaml')
+    conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : __dirname + '/../../config.test.yaml')
 };
 
 config.conf.num_workers = 0;
