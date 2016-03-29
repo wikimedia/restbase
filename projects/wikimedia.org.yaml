@@ -49,8 +49,8 @@ paths:
                   options: '{{options.mathoid}}'
             /metrics:
               x-modules:
-                - path: v1/pageviews.yaml
-                  options: '{{options.pageviews}}'
+                - path: v1/metrics.yaml
+                  options: '{{options.metrics}}'
         options: '{{options}}'
 
   /{api:sys}:
