@@ -62,7 +62,7 @@ paths:
           type: string
           enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
-        - name: title
+        - name: article
           in: path
           description: 'The title of any article in the specified project. Any spaces should be replaced with underscores. It also should be URI-encoded, so that non-URI-safe characters like %, / or ? are accepted. Example: Are_You_the_One%3F'
           type: string
@@ -95,7 +95,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{title}/{granularity}/{start}/{end}'
+              uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}'
       x-monitor: false
 
   /pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}:
