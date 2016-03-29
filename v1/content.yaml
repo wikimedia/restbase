@@ -196,7 +196,7 @@ paths:
           description: Comma-separated list of section IDs.
           type: string
       produces:
-        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
       responses:
         '200':
           description: |
@@ -423,7 +423,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       operationId: getFormatRevision
       produces:
-        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
       parameters:
         - name: title
           in: path
