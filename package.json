@@ -36,11 +36,11 @@
     "bluebird": "^3.1.1",
     "cassandra-uuid": "^0.0.2",
     "restbase-mod-table-cassandra": "^0.9.0",
-    "service-runner": "^1.1.0",
+    "service-runner": "^1.2.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "htcp-purge": "^0.1.2",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
-    "hyperswitch": "^0.4.0",
+    "hyperswitch": "^0.4.1",
     "jsonwebtoken": "^5.5.4",
     "mediawiki-title": "^0.4.0"
   },
