@@ -393,11 +393,12 @@ describe('page content access', function() {
 
     it('Should redirect to a normalized version of a title', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Main Page'
+            uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'], server.config.bucketURL + '/html/Main_Page');
+            assert.deepEqual(res.headers['content-location'], server.config.bucketURL
+                + '/html/Main_Page?test=mwAQ');
         });
     });
 });
