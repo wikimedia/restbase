@@ -276,7 +276,7 @@ PSP.pagebundle = function(hyper, req) {
     if (!newReq.method) { newReq.method = 'get'; }
     var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
     newReq.uri = this.parsoidHost + '/' + domain + '/v3/' + path + '/pagebundle/'
-        + encodeURIComponent(mwUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
+        + encodeURIComponent(rp.title) + '/' + rp.revision;
     return hyper.request(newReq);
 };
 
@@ -310,8 +310,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
 
-    var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
-                mwUtil.normalizeTitle(rp.title), rp.revision]);
+    var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle', rp.title, rp.revision]);
 
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
@@ -396,8 +395,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
 // Get / check the revision metadata for a request
 PSP.getRevisionInfo = function(hyper, req) {
     var rp = req.params;
-    var path = [rp.domain, 'sys', 'page_revisions', 'page',
-                    mwUtil.normalizeTitle(rp.title)];
+    var path = [rp.domain, 'sys', 'page_revisions', 'page', rp.title];
     if (/^(?:[0-9]+)$/.test(rp.revision)) {
         path.push(rp.revision);
     } else if (rp.revision) {
@@ -441,21 +439,13 @@ PSP._okayToRerender = function(req) {
 PSP.getFormat = function(format, hyper, req) {
     var self = this;
     var rp = req.params;
-    rp.title = mwUtil.normalizeTitle(rp.title);
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
             return self.getRevisionInfo(hyper, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
-                if (revInfo.title !== rp.title) {
-                    // Re-try to retrieve from storage with the
-                    // normalized title & revision
-                    rp.title = revInfo.title;
-                    return self.getFormat(format, hyper, req);
-                } else {
-                    return self.generateAndSave(hyper, req, format, storageRes);
-                }
+                return self.generateAndSave(hyper, req, format, storageRes);
             });
         } else {
             // Don't generate content if there's some other error.
@@ -523,8 +513,8 @@ PSP.listRevisions = function(format, hyper, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
-        uri: new URI([rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format,
-                        mwUtil.normalizeTitle(rp.title), '']),
+        uri: new URI([rp.domain, 'sys', this.options.bucket_type,
+                'parsoid.' + format, rp.title, '']),
         body: {
             limit: hyper.config.default_page_size
         }
@@ -551,8 +541,7 @@ PSP._getOriginalContent = function(hyper, req, revision, tid) {
     var rp = req.params;
 
     function get(format) {
-        var path = [rp.domain, 'sys', 'parsoid', format,
-                mwUtil.normalizeTitle(rp.title), revision];
+        var path = [rp.domain, 'sys', 'parsoid', format, rp.title, revision];
         if (tid) {
             path.push(tid);
         }
@@ -574,8 +563,6 @@ PSP._getOriginalContent = function(hyper, req, revision, tid) {
 PSP._getStashedContent = function(hyper, req, etag) {
     var self = this;
     var rp = req.params;
-
-    rp.title = mwUtil.normalizeTitle(rp.title);
     function getStash(format) {
         return hyper.get({
             uri: self.getBucketURI(rp, 'stash.' + format, etag.tid, true)
@@ -716,7 +703,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
 
         var path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
         if (rp.title) {
-            path.push(mwUtil.normalizeTitle(rp.title));
+            path.push(rp.title);
             if (rp.revision) {
                 path.push(rp.revision);
             }
@@ -786,7 +773,7 @@ PSP.callParsoidTransform = function callParsoidTransform(hyper, req, from, to) {
 
     var parsoidExtras = [];
     if (rp.title) {
-        parsoidExtras.push(mwUtil.normalizeTitle(rp.title));
+        parsoidExtras.push(rp.title);
     } else {
         // Fake title to avoid Parsoid error: <400/No title or wikitext was provided>
         parsoidExtras.push('Main_Page');

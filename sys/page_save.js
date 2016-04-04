@@ -77,8 +77,7 @@ PageSave.prototype._getBaseRevision = function(req) {
 
 PageSave.prototype._getRevInfo = function(hyper, req, revision) {
     var rp = req.params;
-    var path = [rp.domain, 'sys', 'page_revisions', 'page',
-                    mwUtil.normalizeTitle(rp.title)];
+    var path = [rp.domain, 'sys', 'page_revisions', 'page', rp.title];
     if (!/^(?:[0-9]+)$/.test(revision)) {
         throw new HTTPError({
             status: 400,
@@ -99,7 +98,7 @@ PageSave.prototype._getRevInfo = function(hyper, req, revision) {
         // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit
-        return { title: mwUtil.normalizeTitle(rp.title) };
+        return { title: rp.title };
     });
 };
 
@@ -121,7 +120,6 @@ PageSave.prototype._checkParams = function(params) {
 PageSave.prototype.saveWikitext = function(hyper, req) {
     var self = this;
     var rp = req.params;
-    var title = mwUtil.normalizeTitle(rp.title);
     var promise = P.resolve({});
     this._checkParams(req.body);
     var baseRevision = this._getBaseRevision(req);
@@ -130,7 +128,7 @@ PageSave.prototype.saveWikitext = function(hyper, req) {
     }
     return promise.then(function(revInfo) {
         var body = {
-            title: title,
+            title: rp.title,
             text: req.body.wikitext,
             summary: req.body.comment || req.body.wikitext.substr(0, 100),
             minor: !!req.body.is_minor,
@@ -162,10 +160,9 @@ PageSave.prototype.saveWikitext = function(hyper, req) {
 PageSave.prototype.saveHtml = function(hyper, req) {
     var self = this;
     var rp = req.params;
-    var title = mwUtil.normalizeTitle(rp.title);
     this._checkParams(req.body);
     // First transform the HTML to wikitext via the parsoid module
-    var path = [rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', title];
+    var path = [rp.domain, 'sys', 'parsoid', 'transform', 'html', 'to', 'wikitext', rp.title];
     var baseRevision = this._getBaseRevision(req);
     if (baseRevision) {
         path.push(baseRevision);

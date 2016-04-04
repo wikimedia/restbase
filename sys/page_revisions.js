@@ -247,13 +247,15 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
             return /hidden$/.test(key);
         });
 
+        // MW API returns title in text format with spaces,
+        // while we store them in DBKey format with underscore
+        dataResp.title = dataResp.title.replace(/ /g, '_');
         // Get the redirect property, it's inclusion means true
+        // FIXME: Figure out redirect strategy: https://phabricator.wikimedia.org/T87393
         var redirect = dataResp.redirect !== undefined;
+
         var revision = {
-            // FIXME: if a title has been given, check it
-            // matches the one returned by the MW API
-            // cf. https://phabricator.wikimedia.org/T87393
-            title: mwUtil.normalizeTitle(dataResp.title),
+            title: dataResp.title,
             page_id: parseInt(dataResp.pageid),
             rev: parseInt(apiRev.revid),
             tid: uuid.now().toString(),
@@ -273,7 +275,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: mwUtil.normalizeTitle(dataResp.title),
+                    title: dataResp.title,
                     rev: parseInt(apiRev.revid)
                 }
             }
@@ -316,7 +318,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: mwUtil.normalizeTitle(rp.title)
+                    title: rp.title
                 },
                 limit: 1
             }
@@ -330,7 +332,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             body: {
                 table: this.tableName,
                 attributes: {
-                    title: mwUtil.normalizeTitle(rp.title),
+                    title: rp.title,
                     rev: parseInt(rp.revision)
                 },
                 limit: 1
@@ -391,7 +393,7 @@ PRS.prototype.listTitleRevisions = function(hyper, req) {
     var revisionRequest = {
         table: this.tableName,
         attributes: {
-            title: mwUtil.normalizeTitle(rp.title)
+            title: rp.title
         },
         proj: ['rev'],
         limit: hyper.config.default_page_size
