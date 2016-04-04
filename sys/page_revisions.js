@@ -204,8 +204,7 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
     return stringify(normalizeRev(firstRev)) === stringify(normalizeRev(secondRev));
 };
 
-PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
-    var self = this;
+PRS.prototype.fetchMWRevision = function(hyper, req) {
     var rp = req.params;
     // Try to resolve MW oldids to tids
     var apiReq = {
@@ -238,45 +237,66 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
         }
         // The response item
         var dataResp = apiRes.body.items[0];
-        // The revision info
-        var apiRev = dataResp.revisions[0];
-        // Are there any restrictions set?
-        // FIXME: test for the precise attributes instead, this can easily
-        // break if new keys are added.
-        var restrictions = Object.keys(apiRev).filter(function(key) {
-            return /hidden$/.test(key);
+
+        // Re-normalize title returned by MW.
+        // - Gendered namespaces converted to gender-neutral version
+        // - Title text format with spaces converted to underscores
+        // - Check whether it's still the same title to avoid non-needed
+        //   normalizations like + => space
+        return mwUtil.normalizeTitle(hyper, req, dataResp.title)
+        .then(function(normTitle) {
+            normTitle = normTitle.getPrefixedDBKey();
+            if (rp.title && rp.title !== normTitle) {
+                throw new HTTPError({
+                    status: 404,
+                    body: {
+                        type: 'not_found',
+                        description: 'Requested page does not exist.'
+                    }
+                });
+            }
+            // The revision info
+            var apiRev = dataResp.revisions[0];
+            // Are there any restrictions set?
+            // FIXME: test for the precise attributes instead, this can easily
+            // break if new keys are added.
+            var restrictions = Object.keys(apiRev).filter(function(key) {
+                return /hidden$/.test(key);
+            });
+
+            return {
+                title: normTitle,
+                page_id: parseInt(dataResp.pageid),
+                rev: parseInt(apiRev.revid),
+                tid: uuid.now().toString(),
+                namespace: parseInt(dataResp.ns),
+                user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
+                user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
+                timestamp: apiRev.timestamp,
+                comment: restrictions.indexOf('commenthidden') < 0 ? apiRev.comment : null,
+                tags: apiRev.tags,
+                restrictions: restrictions,
+                // Get the redirect property, it's inclusion means true
+                // FIXME: Figure out redirect strategy: https://phabricator.wikimedia.org/T87393
+                redirect: dataResp.redirect !== undefined
+            };
         });
+    });
+};
 
-        // MW API returns title in text format with spaces,
-        // while we store them in DBKey format with underscore
-        dataResp.title = dataResp.title.replace(/ /g, '_');
-        // Get the redirect property, it's inclusion means true
-        // FIXME: Figure out redirect strategy: https://phabricator.wikimedia.org/T87393
-        var redirect = dataResp.redirect !== undefined;
-
-        var revision = {
-            title: dataResp.title,
-            page_id: parseInt(dataResp.pageid),
-            rev: parseInt(apiRev.revid),
-            tid: uuid.now().toString(),
-            namespace: parseInt(dataResp.ns),
-            user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
-            user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
-            timestamp: apiRev.timestamp,
-            comment: restrictions.indexOf('commenthidden') < 0 ? apiRev.comment : null,
-            tags: apiRev.tags,
-            restrictions: restrictions,
-            redirect: redirect
-        };
-
+PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
+    var self = this;
+    var rp = req.params;
+    return self.fetchMWRevision(hyper, req)
+    .then(function(revision) {
         // Check if the same revision is already in storage
         return hyper.get({
             uri: self.tableURI(rp.domain),
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: dataResp.title,
-                    rev: parseInt(apiRev.revid)
+                    title: revision.title,
+                    rev: revision.rev
                 }
             }
         })
@@ -300,8 +320,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
         .then(function() {
             self._checkRevReturn(revision);
             // No restrictions, continue
-            rp.revision = apiRev.revid + '';
-            rp.title = dataResp.title;
+            rp.revision = revision.rev + '';
+            rp.title = revision.title;
             return self.getTitleRevision(hyper, req);
         });
     });
