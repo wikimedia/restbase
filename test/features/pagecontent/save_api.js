@@ -416,7 +416,7 @@ describe('page save api', function() {
                 edit: {
                     result: "Success",
                     pageid: 46950417,
-                    title: "User:Mobrovac-WMF/RB Save Api Test",
+                    title: "Save_Test",
                     contentmodel: "wikitext",
                     oldrevid: 680525605,
                     newrevid: 680525800,

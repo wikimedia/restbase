@@ -333,11 +333,22 @@ describe('item requests', function() {
             assert.deepEqual(e.status, 404);
         });
     });
+
+    it('should result in 404 if + is normalized by MW API', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2FOnDemand+Test'
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
+        });
+    });
 });
 
 describe('page content access', function() {
 
-    var deniedTitle = 'User%20talk:DivineAlpha';
+    var deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
     var deniedRev = '645504917';
 
     this.timeout(30000);

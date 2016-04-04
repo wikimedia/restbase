@@ -154,6 +154,7 @@ function buildQueryResponse(apiReq, res) {
         var newBody = Object.keys(pages).map(function(key) {
             return pages[key];
         });
+
         // XXX: Clean this up!
         res.body = {
             items: newBody,
