@@ -124,10 +124,9 @@ PSP._dependenciesUpdate = function(hyper, req) {
                 }
             });
         } else if (/en.wiktionary/.test(rp.domain)) {
-            var namespace = Title.newFromText(rp.title, siteInfo).getNamespace();
-            if (namespace.isMain() || namespace.isProject()) {
+            if (Title.newFromText(rp.title, siteInfo).getNamespace().isMain()) {
                 // wiktionary update, we are interested only in en.wiktionary
-                // and only in Main and Project namespaces
+                // and only in Main namespaces
                 summaryPromise = hyper.get({
                     uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
                     headers: {
