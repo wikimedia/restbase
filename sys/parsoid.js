@@ -113,20 +113,21 @@ PSP._dependenciesUpdate = function(hyper, req) {
     return mwUtil.getSiteInfo(hyper, req)
     .then(function(siteInfo) {
         var rp = req.params;
-        var isMainNamespace = Title.newFromText(rp.title, siteInfo).getNamespace().isMain();
         var updates = [];
-        if (isMainNamespace) {
-            var summaryPromise = P.resolve();
-            if (rp.domain.indexOf('wiktionary') === -1) {
-                // non-wiktionary, update summary
-                summaryPromise = hyper.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                });
-            } else if (/en.wiktionary/.test(rp.domain)) {
+        var summaryPromise = P.resolve();
+        if (rp.domain.indexOf('wiktionary') === -1) {
+            // non-wiktionary, update summary
+            summaryPromise = hyper.get({
+                uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            });
+        } else if (/en.wiktionary/.test(rp.domain)) {
+            var namespace = Title.newFromText(rp.title, siteInfo).getNamespace();
+            if (namespace.isMain() || namespace.isProject()) {
                 // wiktionary update, we are interested only in en.wiktionary
+                // and only in Main and Project namespaces
                 summaryPromise = hyper.get({
                     uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
                     headers: {
@@ -134,14 +135,14 @@ PSP._dependenciesUpdate = function(hyper, req) {
                     }
                 });
             }
-            summaryPromise = summaryPromise.catch(function(e) {
-                if (e.status !== 501 && e.status !== 404) {
-                    hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
-                    'summary' : 'definition', e);
-                }
-            });
-            updates.push(summaryPromise);
         }
+        summaryPromise = summaryPromise.catch(function(e) {
+            if (e.status !== 501 && e.status !== 404) {
+                hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
+                        'summary' : 'definition', e);
+            }
+        });
+        updates.push(summaryPromise);
 
         // Emit resource change events
         var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
@@ -150,21 +151,19 @@ PSP._dependenciesUpdate = function(hyper, req) {
             body: [
                 { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
                 { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
-                + '/' + rp.revision } },
+                    + '/' + rp.revision } },
                 { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title) } },
                 { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title)
-                + '/' + rp.revision } },
+                    + '/' + rp.revision } }
             ]
         }));
 
-        if (isMainNamespace) {
-            updates.push(hyper.get({
-                uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
-                headers: {
-                    'cache-control': 'no-cache',
-                }
-            }));
-        }
+        updates.push(hyper.get({
+            uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        }));
 
         return P.all(updates);
     })
