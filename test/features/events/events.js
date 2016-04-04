@@ -14,19 +14,20 @@ describe('Change event emitting', function() {
 
     it('should purge caches on mobileapps update', function(done) {
         var udpServer = dgram.createSocket('udp4');
-
         var receivedMessages = [];
         udpServer.on("message", function(msg) {
             try {
-                receivedMessages.push(msg);
+                msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
+                if (msg.indexOf('User%3APchelolo%2FEventTest') >= 0) {
+                    receivedMessages.push(msg);
+                }
                 if (receivedMessages.length === 3) {
-                    receivedMessages = receivedMessages.map(function(message) {
-                        return message.slice(22, 22 + message.readInt16BE(20)).toString();
-                    }).sort();
-                    assert.deepEqual(receivedMessages,
-                    [ 'http://en.wikipedia.org/api/rest_v1/page/mobile-sections-lead/User%3APchelolo',
-                        'http://en.wikipedia.org/api/rest_v1/page/mobile-sections-remaining/User%3APchelolo',
-                        'http://en.wikipedia.org/api/rest_v1/page/mobile-sections/User%3APchelolo' ]);
+                    assert.deepEqual(receivedMessages.sort(function(s1, s2) { return s2.length - s1.length; }),
+                    [
+                        "http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/mobile-sections-remaining/User%3APchelolo%2FEventTest",
+                        "http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/mobile-sections-lead/User%3APchelolo%2FEventTest",
+                        "http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/mobile-sections/User%3APchelolo%2FEventTest"
+                    ]);
                     udpServer.close();
                     done();
                 }
@@ -37,8 +38,9 @@ describe('Change event emitting', function() {
         });
         udpServer.bind(4321);
 
+        // Start from a deplay to get all of the ongoing messages pass
         return preq.get({
-            uri: server.config.bucketURL + '/mobile-sections/User:Pchelolo',
+            uri: server.config.labsBucketURL + '/mobile-sections/User:Pchelolo%2FEventTest',
             headers: {
                 'cache-control': 'no-cache'
             }
