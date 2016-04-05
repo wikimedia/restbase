@@ -150,9 +150,6 @@ PSP._dependenciesUpdate = function(hyper, req) {
             body: [
                 { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
                 { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
-                    + '/' + rp.revision } },
-                { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title) } },
-                { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title)
                     + '/' + rp.revision } }
             ]
         }));
