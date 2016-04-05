@@ -179,6 +179,8 @@ paths:
       x-monitor: false
 
   /html/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
     get:
       tags:
         - Page content
@@ -415,6 +417,8 @@ paths:
       x-monitor: false
 
   /html/{title}/{revision}{/tid}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
     get:
       tags:
         - Page content
@@ -504,6 +508,8 @@ paths:
       x-monitor: false
 
   /data-parsoid/{title}/{revision}/{tid}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
     get:
       tags:
         - Page content

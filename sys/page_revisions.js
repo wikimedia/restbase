@@ -301,11 +301,14 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
             }
         })
         .then(function(res) {
-            var sameRev = res && res.body.items
-                    && res.body.items.length > 0
-                    && self._checkSameRev(revision, res.body.items[0]);
-            if (!sameRev) {
-                throw new HTTPError({ status: 404 });
+            if (res && res.body.items && res.body.items.length > 0) {
+                var storedRev = res.body.items[0];
+                // The redirect in MW API is based on the latest revision,
+                // so for older revisions it must never be updated.
+                revision.redirect = storedRev.redirect;
+                if (!self._checkSameRev(revision, res.body.items[0])) {
+                    throw new HTTPError({ status: 404 });
+                }
             }
         })
         .catch({ status: 404 }, function() {

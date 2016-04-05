@@ -159,24 +159,6 @@ PSP._dependenciesUpdate = function(hyper, req) {
     });
 };
 
-/**
- * Wraps a request for getting content (the promise) into a
- * P.all() call, bundling it with a request for revision
- * info, so that a 403 error gets raised overall if access to
- * the revision should be denied
- * @param {HyperSwitch} hyper the HyperSwitch router object
- * @param {Object} req the user request
- * @param {Object} promise the promise object to wrap
- * @private
- */
-PSP._wrapInAccessCheck = function(hyper, req, promise) {
-    return P.props({
-        content: promise,
-        revisionInfo: this.getRevisionInfo(hyper, req)
-    })
-    .then(function(responses) { return responses.content; });
-};
-
 PSP.getBucketURI = function(rp, format, tid, useKeyRevValue) {
     var bucket = useKeyRevValue ? 'key_rev_value' : this.options.bucket_type;
     var path = [rp.domain, 'sys', bucket, 'parsoid.' + format, rp.title];
@@ -457,10 +439,7 @@ PSP.getFormat = function(format, hyper, req) {
             generateContent);
     } else {
         // Only (possibly) generate content if there was an error
-        contentReq = contentReq.catch(generateContent)
-        .then(function(res) {
-            return self._wrapInAccessCheck(hyper, req, P.resolve(res));
-        });
+        contentReq = contentReq.catch(generateContent);
     }
     return contentReq
     .then(function(res) {

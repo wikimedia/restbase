@@ -3,6 +3,8 @@
 swagger: 2.0
 paths:
   /mobile-sections/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
     get:
       tags:
         - Mobile
@@ -40,11 +42,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - access_check:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          from_backend:
+        - from_backend:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}
@@ -71,6 +69,8 @@ paths:
               remaining: /.+/
 
   /mobile-sections-lead/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
     get:
       tags:
         - Mobile
@@ -108,11 +108,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - access_check:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          from_backend:
+        - from_backend:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
@@ -124,6 +120,8 @@ paths:
       x-monitor: false
 
   /mobile-sections-remaining/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
     get:
       tags:
         - Mobile
@@ -162,11 +160,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - access_check:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          from_backend:
+        - from_backend:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}

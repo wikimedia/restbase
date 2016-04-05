@@ -13,6 +13,10 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /definition/{term}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          title: term
     get:
       tags:
         - Page content
@@ -60,17 +64,7 @@ paths:
               valueType: 'json'
 
       x-request-handler:
-        # Get the revision metadata for access control (will return an error
-        # if there's no access), and so that we can use the normalized title &
-        # other info in case we have a storage miss.
-        - rev_info:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{term}
-            response:
-              body: '{{rev_info.body.items[0]}}'
-
-          storage:
+        - storage:
             request:
               method: get
               headers:
