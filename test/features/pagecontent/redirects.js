@@ -72,6 +72,17 @@ describe('Redirects', function() {
         });
     });
 
+    it('should return 302 for redirect pages html, hash', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test_Hash',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 302);
+            assert.deepEqual(res.headers.location, 'Main_Page');
+        });
+    });
+
     it('should return 200 for redirect pages html with redirect=no', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test?redirect=no',
