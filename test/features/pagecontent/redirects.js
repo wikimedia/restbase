@@ -56,6 +56,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
         });
     });
@@ -68,6 +69,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%26');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
         });
     });
@@ -80,6 +82,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'Main_Page');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
     });
 
@@ -103,6 +106,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, '../User%3APchelolo%2FRedirect_Target_%25/331630');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
         });
     });
@@ -127,6 +131,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body, {
                 title: 'User:Pchelolo/Redirect Test',
                 extract: '',

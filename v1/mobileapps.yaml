@@ -5,6 +5,8 @@ paths:
   /mobile-sections/{title}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Mobile
@@ -81,6 +83,8 @@ paths:
   /mobile-sections-lead/{title}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Mobile
@@ -142,6 +146,8 @@ paths:
   /mobile-sections-remaining/{title}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Mobile

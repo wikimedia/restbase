@@ -17,6 +17,7 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           title: term
+          redirect_cache_control: '{{options.response_cache_control}}'
     get:
       tags:
         - Page content

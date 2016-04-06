@@ -38,6 +38,8 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
                 - path: v1/mobileapps.yaml
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                     options.mobileapps)}}'

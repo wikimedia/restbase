@@ -43,6 +43,7 @@ default_project: &default_project
           purge:
             host: 127.0.0.1
             port: 4321
+        purged_cache_control: test_purged_cache_control
 
 labs_project: &labs_project
   x-modules:
