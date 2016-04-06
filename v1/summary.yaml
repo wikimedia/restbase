@@ -38,11 +38,10 @@ paths:
         - name: redirect
           in: query
           description: >
-            By default for redirect pages HTTP status 302 is returned with a location header,
-            pointing to the redirect target. The response body contains html for a redirect
-            page. In case the client cannot disable following redirects automatically, supply
-            `false` or `no` to the redirect parameter, and normal 200 response with redirect
-            page html will be returned.
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
       responses:
