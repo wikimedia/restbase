@@ -37,6 +37,16 @@ paths:
           description: The term to define
           type: string
           required: true
+        - name: redirect
+          in: query
+          description: >
+            By default for redirect pages HTTP status 302 is returned with a location header,
+            pointing to the redirect target. The response body contains html for a redirect
+            page. In case the client cannot disable following redirects automatically, supply
+            `false` or `no` to the redirect parameter, and normal 200 response with redirect
+            page html will be returned.
+          type: boolean
+          required: false
       responses:
         '200':
           description: The definition for the given term
