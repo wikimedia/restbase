@@ -103,6 +103,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
                     || !body['mp-lang']) {
@@ -118,6 +119,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string') {
                 throw new Error('Missing section content!');
@@ -138,6 +140,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
             || !body['mp-lang']) {

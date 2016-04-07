@@ -362,7 +362,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             return self.fetchAndStoreMWRevision(hyper, req);
         });
     } else if (!rp.revision) {
-        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+        if (mwUtil.isNoCacheRequest(req)) {
             revisionRequest = self.fetchAndStoreMWRevision(hyper, req)
             .catch({ status: 404 }, function(e) {
                 return getLatestTitleRevision()
@@ -506,7 +506,7 @@ PRS.prototype.getRevision = function(hyper, req) {
             }
         });
     }
-    if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+    if (mwUtil.isNoCacheRequest(req)) {
         // Ask the MW API directly and
         // store and return its result
         return this.fetchAndStoreMWRevision(hyper, req);
