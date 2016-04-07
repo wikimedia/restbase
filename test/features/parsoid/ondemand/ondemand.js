@@ -266,6 +266,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             assert.deepEqual(/Second Revision/.test(res.body.mwAQ), true);
         })
     });
