@@ -182,7 +182,7 @@ paths:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
-          redirect_cache_control: '{{options.response_cache_control}}'
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Page content
@@ -431,7 +431,7 @@ paths:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
-          redirect_cache_control: '{{options.response_cache_control}}'
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Page content
@@ -533,7 +533,7 @@ paths:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
-          redirect_cache_control: '{{options.response_cache_control}}'
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Page content

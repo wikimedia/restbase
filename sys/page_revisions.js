@@ -305,6 +305,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
                 var storedRev = res.body.items[0];
                 // The redirect in MW API is based on the latest revision,
                 // so for older revisions it must never be updated.
+                // TODO: redirects for old revision might be incorrect
                 revision.redirect = storedRev.redirect;
                 if (!self._checkSameRev(revision, res.body.items[0])) {
                     throw new HTTPError({ status: 404 });
