@@ -409,7 +409,7 @@ describe('page save api', function() {
                     'x-client-ip': '123.123.123.123',
                     'x-forwarded-for': function(headerValue) {
                         return headerValue.indexOf('127.0.0.1') >= 0;
-                    }
+                    },
                     cookie: 'test'
                 }
             })
