@@ -407,20 +407,23 @@ describe('page save api', function() {
             var api = nock(labsApiURL, {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
-                    'x-forwarded-for': '::ffff:127.0.0.1',
+                    //'x-forwarded-for': '::ffff:127.0.0.1',
                     cookie: 'test'
                 }
             })
             .post('')
-            .reply(200, {
-                edit: {
-                    result: "Success",
-                    pageid: 46950417,
-                    title: "Save_Test",
-                    contentmodel: "wikitext",
-                    oldrevid: 680525605,
-                    newrevid: 680525800,
-                    newtimestamp: new Date().toISOString()
+            .reply(200, function() {
+                console.log('headers:', this.req.headers);
+                return {
+                    edit: {
+                        result: "Success",
+                        pageid: 46950417,
+                        title: "Save_Test",
+                        contentmodel: "wikitext",
+                        oldrevid: 680525605,
+                        newrevid: 680525800,
+                        newtimestamp: new Date().toISOString()
+                    }
                 }
             });
 
