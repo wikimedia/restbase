@@ -407,7 +407,7 @@ describe('page save api', function() {
             var api = nock(labsApiURL, {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
-                    'x-forwarded-for': '123.123.123.123',
+                    'x-forwarded-for': '::ffff:127.0.0.1',
                     cookie: 'test'
                 }
             })
