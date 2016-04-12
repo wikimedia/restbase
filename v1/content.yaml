@@ -183,6 +183,7 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
+          attach_body_to_redirect: true
     get:
       tags:
         - Page content
@@ -432,6 +433,7 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
+          attach_body_to_redirect: true
     get:
       tags:
         - Page content
@@ -534,6 +536,7 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
+          attach_body_to_redirect: true
     get:
       tags:
         - Page content
