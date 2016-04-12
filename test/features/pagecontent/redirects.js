@@ -13,15 +13,23 @@ describe('Redirects', function() {
 
     it('should redirect to commons for missing file pages', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
-            headers: {
-                'user-agent': 'WikipediaApp/2.1.141-beta-2016-02-10 (Android 5.0.2; Phone) Google Play Beta Channel'
-            }
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-location'],
-            'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
+                'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
+        });
+    });
+
+    it('should not redirect to commons for missing file pages, redirect=false', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg?redirect=false'
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
         });
     });
 
