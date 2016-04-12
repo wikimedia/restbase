@@ -34,6 +34,8 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
+                  options:
+                    purged_cache_control: '{{options.purged_cache_control}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
