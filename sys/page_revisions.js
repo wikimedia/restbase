@@ -325,8 +325,7 @@ PRS.prototype._checkSameRev = function(firstRev, secondRev) {
     return stringify(normalizeRev(firstRev)) === stringify(normalizeRev(secondRev));
 };
 
-PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
-    var self = this;
+PRS.prototype.fetchMWRevision = function(hyper, req) {
     var rp = req.params;
     // Try to resolve MW oldids to tids
     var apiReq = {
@@ -351,7 +350,7 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
             throw new HTTPError({
                 status: 404,
                 body: {
-                    type: 'not_found#page_revisions',
+                    type: 'not_found',
                     description: 'Page or revision not found.',
                     apiResponse: apiRes
                 }
@@ -359,43 +358,66 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
         }
         // The response item
         var dataResp = apiRes.body.items[0];
-        // The revision info
-        var apiRev = dataResp.revisions[0];
-        // Are there any restrictions set?
-        // FIXME: test for the precise attributes instead, this can easily
-        // break if new keys are added.
-        var restrictions = Object.keys(apiRev).filter(function(key) {
-            return /hidden$/.test(key);
+
+        // Re-normalize title returned by MW.
+        // - Gendered namespaces converted to gender-neutral version
+        // - Title text format with spaces converted to underscores
+        // - Check whether it's still the same title to avoid non-needed
+        //   normalizations like + => space
+        return mwUtil.normalizeTitle(hyper, req, dataResp.title)
+        .then(function(normTitle) {
+            normTitle = normTitle.getPrefixedDBKey();
+            if (rp.title && rp.title !== normTitle) {
+                throw new HTTPError({
+                    status: 404,
+                    body: {
+                        type: 'not_found',
+                        description: 'Requested page does not exist.'
+                    }
+                });
+            }
+            // The revision info
+            var apiRev = dataResp.revisions[0];
+            // Are there any restrictions set?
+            // FIXME: test for the precise attributes instead, this can easily
+            // break if new keys are added.
+            var restrictions = Object.keys(apiRev).filter(function(key) {
+                return /hidden$/.test(key);
+            });
+
+            return {
+                title: normTitle,
+                page_id: parseInt(dataResp.pageid),
+                rev: parseInt(apiRev.revid),
+                tid: uuid.now().toString(),
+                namespace: parseInt(dataResp.ns),
+                user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
+                user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
+                timestamp: apiRev.timestamp,
+                comment: restrictions.indexOf('commenthidden') < 0 ? apiRev.comment : null,
+                tags: apiRev.tags,
+                restrictions: restrictions,
+                // Get the redirect property, it's inclusion means true
+                // FIXME: Figure out redirect strategy: https://phabricator.wikimedia.org/T87393
+                redirect: dataResp.redirect !== undefined
+            };
         });
+    });
+};
 
-        // Get the redirect property, it's inclusion means true
-        var redirect = dataResp.redirect !== undefined;
-        var revision = {
-            // FIXME: if a title has been given, check it
-            // matches the one returned by the MW API
-            // cf. https://phabricator.wikimedia.org/T87393
-            title: mwUtil.normalizeTitle(dataResp.title),
-            page_id: parseInt(dataResp.pageid),
-            rev: parseInt(apiRev.revid),
-            tid: uuid.now().toString(),
-            namespace: parseInt(dataResp.ns),
-            user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
-            user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
-            timestamp: apiRev.timestamp,
-            comment: restrictions.indexOf('commenthidden') < 0 ? apiRev.comment : null,
-            tags: apiRev.tags,
-            restrictions: restrictions,
-            redirect: redirect
-        };
-
+PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
+    var self = this;
+    var rp = req.params;
+    return self.fetchMWRevision(hyper, req)
+    .then(function(revision) {
         // Check if the same revision is already in storage
         return P.join(hyper.get({
                 uri: self.tableURI(rp.domain),
                 body: {
                     table: self.tableName,
                     attributes: {
-                        title: mwUtil.normalizeTitle(dataResp.title),
-                        rev: parseInt(apiRev.revid)
+                        title: revision.title,
+                        rev: revision.rev
                     }
                 }
             }),
@@ -404,11 +426,15 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
 
             self.storeRestrictions(hyper, req, revision))
         .spread(function(res) {
-            var sameRev = res && res.body.items
-                    && res.body.items.length > 0
-                    && self._checkSameRev(revision, res.body.items[0]);
-            if (!sameRev) {
-                throw new HTTPError({ status: 404 });
+            if (res && res.body.items && res.body.items.length > 0) {
+                var storedRev = res.body.items[0];
+                // The redirect in MW API is based on the latest revision,
+                // so for older revisions it must never be updated.
+                // TODO: redirects for old revision might be incorrect
+                revision.redirect = storedRev.redirect;
+                if (!self._checkSameRev(revision, res.body.items[0])) {
+                    throw new HTTPError({ status: 404 });
+                }
             }
         })
         .catch({ status: 404 }, function() {
@@ -423,8 +449,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
         .then(function() {
             self._checkRevReturn(revision);
             // No restrictions, continue
-            rp.revision = apiRev.revid + '';
-            rp.title = dataResp.title;
+            rp.revision = revision.rev + '';
+            rp.title = revision.title;
             return self.getTitleRevision(hyper, req);
         });
     });
@@ -441,7 +467,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             body: {
                 table: self.tableName,
                 attributes: {
-                    title: mwUtil.normalizeTitle(rp.title)
+                    title: rp.title
                 },
                 limit: 1
             }
@@ -455,7 +481,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             body: {
                 table: this.tableName,
                 attributes: {
-                    title: mwUtil.normalizeTitle(rp.title),
+                    title: rp.title,
                     rev: parseInt(rp.revision)
                 },
                 limit: 1
@@ -465,7 +491,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             return self.fetchAndStoreMWRevision(hyper, req);
         });
     } else if (!rp.revision) {
-        if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+        if (mwUtil.isNoCacheRequest(req)) {
             revisionRequest = self.fetchAndStoreMWRevision(hyper, req)
             .catch({ status: 404 }, function(e) {
                 return getLatestTitleRevision()
@@ -519,7 +545,7 @@ PRS.prototype.listTitleRevisions = function(hyper, req) {
     var revisionRequest = {
         table: this.tableName,
         attributes: {
-            title: mwUtil.normalizeTitle(rp.title)
+            title: rp.title
         },
         proj: ['rev'],
         limit: hyper.config.default_page_size
@@ -606,12 +632,13 @@ PRS.prototype.getRevision = function(hyper, req) {
         throw new HTTPError({
             status: 400,
             body: {
-                type: 'invalidRevision',
-                description: 'Invalid revision specified.'
+                type: 'bad_request#invalid_revision',
+                description: 'Invalid revision specified',
+                rev: rp.revision
             }
         });
     }
-    if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+    if (mwUtil.isNoCacheRequest(req)) {
         // Ask the MW API directly and
         // store and return its result
         return this.fetchAndStoreMWRevision(hyper, req);

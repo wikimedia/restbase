@@ -122,13 +122,17 @@ paths:
               x-modules:
                 - path: sys/key_value.js
 
-            /events:
+            /events_purge:
               x-modules:
                 - path: sys/events.js
-                  options: '{{options.events}}'
+                  options: '{{options.events_purge}}'
             /events_no_config:
               x-modules:
                 - path: sys/events.js
+            /events_emit:
+              x-modules:
+                - path: sys/events.js
+                  options: '{{options.events_emit}}'
 
             /http/{uri}:
               get:

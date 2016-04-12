@@ -12,9 +12,9 @@ var Template = HyperSwitch.Template;
  * Error translation
  */
 var errDefs = {
-    400: { status: 400, type: 'invalid_request' },
+    400: { status: 400, type: 'bad_request' },
     401: { status: 401, type: 'unauthorized' },
-    403: { status: 403, type: 'access_denied#edit' },
+    403: { status: 403, type: 'forbidden#edit' },
     409: { status: 409, type: 'conflict' },
     413: { status: 413, type: 'too_large' },
     429: { status: 429, type: 'rate_exceeded' },
@@ -154,6 +154,7 @@ function buildQueryResponse(apiReq, res) {
         var newBody = Object.keys(pages).map(function(key) {
             return pages[key];
         });
+
         // XXX: Clean this up!
         res.body = {
             items: newBody,

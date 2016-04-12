@@ -1,8 +1,8 @@
 swagger: '2.0'
 info:
   version: '1.0.0-beta'
-  title: Analytics Pageview API
-  description: Analytics Pageview API
+  title: Analytics Metrics API
+  description: Analytics Metrics API
   termsofservice: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Analytics
@@ -62,7 +62,7 @@ paths:
           type: string
           enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
-        - name: title
+        - name: article
           in: path
           description: 'The title of any article in the specified project. Any spaces should be replaced with underscores. It also should be URI-encoded, so that non-URI-safe characters like %, / or ? are accepted. Example: Are_You_the_One%3F'
           type: string
@@ -95,7 +95,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{title}/{granularity}/{start}/{end}'
+              uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}'
       x-monitor: false
 
   /pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}:
@@ -122,9 +122,9 @@ paths:
           required: true
         - name: agent
           in: path
-          description: If you want to filter by agent type, use one of user, bot or spider. If you are interested in pageviews regardless of agent type, use all-agents
+          description: If you want to filter by agent type, use one of user or spider. If you are interested in pageviews regardless of agent type, use all-agents
           type: string
-          enum: ['all-agents', 'user', 'spider', 'bot']
+          enum: ['all-agents', 'user', 'spider']
           required: true
         - name: granularity
           in: path
@@ -134,12 +134,12 @@ paths:
           required: true
         - name: start
           in: path
-          description: The timestamp of the first day to include, in YYYYMMDDHH format
+          description: The timestamp of the first hour/day/month to include, in YYYYMMDDHH format
           type: string
           required: true
         - name: end
           in: path
-          description: The timestamp of the first day to include, in YYYYMMDDHH format
+          description: The timestamp of the last hour/day/month to include, in YYYYMMDDHH format
           type: string
           required: true
       responses:
@@ -186,7 +186,7 @@ paths:
         - Pageviews data
       summary: Get the most viewed articles for a project.
       description: |
-        Lists the 1000 most viewed articles for a given project and timespan (year, month or day). You can filter by access method
+        Lists the 1000 most viewed articles for a given project and timespan (month or day). You can filter by access method
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
@@ -204,7 +204,7 @@ paths:
           required: true
         - name: year
           in: path
-          description: The year of the date for which to retrieve top articles, in YYYY format. If you want to get the top articles of a whole year, the month and day parameters should be all-months and all-days respectively
+          description: The year of the date for which to retrieve top articles, in YYYY format.
           type: string
           required: true
         - name: month
@@ -230,6 +230,59 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/top/{project}/{access}/{year}/{month}/{day}'
+      x-monitor: false
+
+  /unique-devices/{project}/{access-site}/{granularity}/{start}/{end}:
+    get:
+      tags:
+        - Unique devices data
+      summary: Get unique devices count per project
+      description: |
+        Given a project and a date range, returns a timeseries of unique devices counts. You need to specify a project, and can filter by accessed site (mobile or desktop). You can choose between daily and hourly granularity as well
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: The name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off. For projects like commons without language codes, use commons.wikimedia
+          type: string
+          required: true
+        - name: access-site
+          in: path
+          description: If you want to filter by accessed site, use one of desktop-site or mobile-site. If you are interested in unique devices regardless of accessed site, use or all-sites
+          type: string
+          enum: ['all-sites', 'desktop-site', 'mobile-site']
+          required: true
+        - name: granularity
+          in: path
+          description: The time unit for the response data. As of today, the supported granularities for this endpoint are daily and monthly
+          type: string
+          enum: ['daily', 'monthly']
+          required: true
+        - name: start
+          in: path
+          description: The timestamp of the first day/month to include, in YYYYMMDD format
+          type: string
+          required: true
+        - name: end
+          in: path
+          description: The timestamp of the last day/month to include, in YYYYMMDD format
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of values
+          schema:
+            $ref: '#/definitions/unique-devices'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/unique-devices/{project}/{access-site}/{granularity}/{start}/{end}'
       x-monitor: false
 
 definitions:
@@ -320,3 +373,23 @@ definitions:
             articles:
               # format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
               type: string
+
+  unique-devices:
+    properties:
+      items:
+        type: array
+        items:
+          properties:
+            project:
+              type : string
+            access-site:
+              type : string
+            granularity:
+              type: string
+            timestamp:
+              # the daily timestamp will be stored as YYYYMMDD
+              type: string
+            devices:
+              type: integer
+              format: int64
+

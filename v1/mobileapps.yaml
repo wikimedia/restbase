@@ -3,6 +3,10 @@
 swagger: 2.0
 paths:
   /mobile-sections/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Mobile
@@ -20,6 +24,15 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
       responses:
         '200':
           description: JSON containing HTML sections and metadata for the given page title.
@@ -40,11 +53,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - access_check:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          from_backend:
+        - from_backend:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}
@@ -71,6 +80,10 @@ paths:
               remaining: /.+/
 
   /mobile-sections-lead/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Mobile
@@ -88,6 +101,15 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
       responses:
         '200':
           description: The HTML for the given page title.
@@ -108,11 +130,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - access_check:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          from_backend:
+        - from_backend:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
@@ -124,6 +142,10 @@ paths:
       x-monitor: false
 
   /mobile-sections-remaining/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Mobile
@@ -142,6 +164,15 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
       responses:
         '200':
           description: JSON wrapping HTML sections for the given page title.
@@ -162,11 +193,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       x-request-handler:
-        - access_check:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-          from_backend:
+        - from_backend:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}

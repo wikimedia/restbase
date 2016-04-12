@@ -6,10 +6,14 @@ default_project: &default_project
   x-modules:
     - path: test/test_module.yaml
       options:
-        events:
+        events_purge:
           purge:
             host: 127.0.0.1
             port: 4321
+        events_emit:
+          eventlogging_service:
+            uri: http://127.0.0.1:8085/v1/events
+            topic: resource_change
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
@@ -30,7 +34,7 @@ default_project: &default_project
         graphoid:
           host: http://graphoid-beta.wmflabs.org
         mathoid:
-          host: http://mathoid-tester.wmflabs.org
+          host: http://mathoid-beta.wmflabs.org
           # 10 days Varnish caching, one day client-side
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
@@ -39,6 +43,7 @@ default_project: &default_project
           purge:
             host: 127.0.0.1
             port: 4321
+        purged_cache_control: test_purged_cache_control
 
 labs_project: &labs_project
   x-modules:
@@ -67,9 +72,9 @@ wiktionary_project: &wiktionary_project
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   content_types:
-    html: text/html; charset=utf-8; profile="mediawiki.org/specs/html/1.2.0"
-    data-parsoid: application/json; charset=utf-8; profile="mediawiki.org/specs/data-parsoid/0.0.2"
-    wikitext: text/plain; charset=utf-8; profile="mediawiki.org/specs/wikitext/1.0.0"
+    html: text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
+    data-parsoid: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/0.0.2"
+    wikitext: text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
 
 
 # The root of the spec tree. Domains tend to share specs by referencing them
@@ -77,6 +82,11 @@ test:
 spec_root: &spec_root
   title: "The RESTBase root"
   # Some more general RESTBase info
+  x-request-filters:
+    - path: test/utils/uri_dump_filter.js
+      options:
+        dump_test_uris: false
+        filepath: uri_dump
   x-sub-request-filters:
     - type: default
       name: http
@@ -88,8 +98,10 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
-    /{domain:en.wikipedia.org}: *default_project
     /{domain:test.wikipedia.org}: *default_project
+    # The order is important for tests.
+    # Redirect tests require en.wiki being not the first wiki in the list.
+    /{domain:en.wikipedia.org}: *default_project
     /{domain:test2.wikipedia.org}: *default_project
     /{domain:commons.wikimedia.org}: *default_project
 

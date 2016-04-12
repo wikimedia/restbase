@@ -101,10 +101,8 @@ function returnRevision(req) {
 }
 
 KVBucket.prototype.getRevision = function(hyper, req) {
-    if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
-        throw new HTTPError({
-            status: 404
-        });
+    if (mwUtil.isNoCacheRequest(req)) {
+        throw new HTTPError({ status: 404 });
     }
 
     var rp = req.params;

@@ -179,6 +179,10 @@ paths:
       x-monitor: false
 
   /html/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Page content
@@ -195,8 +199,17 @@ paths:
           in: query
           description: Comma-separated list of section IDs.
           type: string
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
       produces:
-        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
       responses:
         '200':
           description: |
@@ -415,6 +428,10 @@ paths:
       x-monitor: false
 
   /html/{title}/{revision}{/tid}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Page content
@@ -423,7 +440,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       operationId: getFormatRevision
       produces:
-        - text/html; profile="mediawiki.org/specs/html/1.1.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
       parameters:
         - name: title
           in: path
@@ -443,6 +460,15 @@ paths:
           in: query
           description: Comma-separated list of section IDs
           type: string
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
       responses:
         '200':
           description: |
@@ -504,6 +530,10 @@ paths:
       x-monitor: false
 
   /data-parsoid/{title}/{revision}/{tid}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.purged_cache_control}}'
     get:
       tags:
         - Page content
@@ -538,6 +568,15 @@ paths:
           description: The revision's time ID
           type: string
           required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
       responses:
         '200':
           description: The latest Parsoid data for the given page

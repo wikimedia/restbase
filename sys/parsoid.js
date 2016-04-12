@@ -70,15 +70,6 @@ function isModifiedSince(req, res) {
     return false;
 }
 
-function ensureCharsetInContentType(res) {
-    var cType = res.headers['content-type'];
-    if (/^text\/html\b/.test(cType) && !/charset=/.test(cType)) {
-        // Make sure a charset is set
-        res.headers['content-type'] = cType + ';charset=utf-8';
-    }
-    return res;
-}
-
 function ParsoidService(options) {
     var self = this;
     this.options = options = options || {};
@@ -113,20 +104,20 @@ PSP._dependenciesUpdate = function(hyper, req) {
     return mwUtil.getSiteInfo(hyper, req)
     .then(function(siteInfo) {
         var rp = req.params;
-        var isMainNamespace = Title.newFromText(rp.title, siteInfo).getNamespace().isMain();
         var updates = [];
-        if (isMainNamespace) {
-            var summaryPromise = P.resolve();
-            if (rp.domain.indexOf('wiktionary') === -1) {
-                // non-wiktionary, update summary
-                summaryPromise = hyper.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                });
-            } else if (/en.wiktionary/.test(rp.domain)) {
+        var summaryPromise = P.resolve();
+        if (rp.domain.indexOf('wiktionary') === -1) {
+            // non-wiktionary, update summary
+            summaryPromise = hyper.get({
+                uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            });
+        } else if (/en.wiktionary/.test(rp.domain)) {
+            if (Title.newFromText(rp.title, siteInfo).getNamespace().isMain()) {
                 // wiktionary update, we are interested only in en.wiktionary
+                // and only in Main namespaces
                 summaryPromise = hyper.get({
                     uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
                     headers: {
@@ -134,14 +125,14 @@ PSP._dependenciesUpdate = function(hyper, req) {
                     }
                 });
             }
-            summaryPromise = summaryPromise.catch(function(e) {
-                if (e.status !== 501 && e.status !== 404) {
-                    hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
-                    'summary' : 'definition', e);
-                }
-            });
-            updates.push(summaryPromise);
         }
+        summaryPromise = summaryPromise.catch(function(e) {
+            if (e.status !== 501 && e.status !== 404) {
+                hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
+                        'summary' : 'definition', e);
+            }
+        });
+        updates.push(summaryPromise);
 
         // Emit resource change events
         var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
@@ -150,21 +141,16 @@ PSP._dependenciesUpdate = function(hyper, req) {
             body: [
                 { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
                 { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
-                + '/' + rp.revision } },
-                { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title) } },
-                { meta: { uri: publicBaseURI + '/data-parsoid/' + encodeURIComponent(rp.title)
-                + '/' + rp.revision } },
+                    + '/' + rp.revision } }
             ]
         }));
 
-        if (isMainNamespace) {
-            updates.push(hyper.get({
-                uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
-                headers: {
-                    'cache-control': 'no-cache',
-                }
-            }));
-        }
+        updates.push(hyper.get({
+            uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        }));
 
         return P.all(updates);
     })
@@ -173,92 +159,9 @@ PSP._dependenciesUpdate = function(hyper, req) {
     });
 };
 
-/**
- * Wraps a request for getting content (the promise) into a
- * P.all() call, bundling it with a request for revision
- * info, so that a 403 error gets raised overall if access to
- * the revision should be denied
- * @param {HyperSwitch} hyper the HyperSwitch router object
- * @param {Object} req the user request
- * @param {Object} promise the promise object to wrap
- * @private
- */
-PSP._wrapInAccessCheck = function(hyper, req, promise) {
-    return P.props({
-        content: promise,
-        revisionInfo: this.getRevisionInfo(hyper, req)
-    })
-    .then(function(responses) { return responses.content; });
-};
-
-/**
- * Wrap content request with sections request if needed
- * and ensures charset in the response
- *
- * @param {HyperSwitch} hyper the HyperSwitch router object
- * @param {Object} req the user request
- * @param {Object} promise the promise object to wrap
- * @param {String} format the requested format
- * @param {String} tid time ID of the requested render
- */
-PSP.wrapContentReq = function(hyper, req, promise, format, tid) {
-    var rp = req.params;
-    var reqs = { content: promise };
-
-    // If the format is HTML and sections were requested, also request section
-    // offsets
-    if (format === 'html' && req.query.sections) {
-        reqs.sectionOffsets = hyper.get({
-            uri: this.getBucketURI(rp, 'section.offsets', tid)
-        });
-    }
-
-    return P.props(reqs)
-    .then(function(responses) {
-        // If we have reached this point, it means access is not denied, and
-        // sections (if requested) were found
-        if (format === 'html' && req.query.sections) {
-            // Handle section requests
-            var sectionOffsets = responses.sectionOffsets.body;
-            var sections = req.query.sections.split(',').map(function(id) {
-                return id.trim();
-            });
-
-            return mwUtil.decodeBody(responses.content).then(function(content) {
-                var body = cheapBodyInnerHTML(content.body);
-                var chunks = {};
-                sections.forEach(function(id) {
-                    var offsets = sectionOffsets[id];
-                    if (!offsets) {
-                        throw new HTTPError({
-                            status: 400,
-                            body: {
-                                type: 'invalid_request',
-                                detail: 'Unknown section id: ' + id
-                            }
-                        });
-                    }
-                    // Offsets as returned by Parsoid are relative to body.innerHTML
-                    chunks[id] = body.substring(offsets.html[0], offsets.html[1]);
-                });
-
-                return {
-                    status: 200,
-                    headers: {
-                        etag: responses.content.headers.etag,
-                        'content-type': 'application/json'
-                    },
-                    body: chunks
-                };
-            });
-        } else {
-            return ensureCharsetInContentType(responses.content);
-        }
-    });
-};
-
-PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format, rp.title];
+PSP.getBucketURI = function(rp, format, tid, useKeyRevValue) {
+    var bucket = useKeyRevValue ? 'key_rev_value' : this.options.bucket_type;
+    var path = [rp.domain, 'sys', bucket, 'parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {
@@ -275,7 +178,7 @@ PSP.pagebundle = function(hyper, req) {
     if (!newReq.method) { newReq.method = 'get'; }
     var path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
     newReq.uri = this.parsoidHost + '/' + domain + '/v3/' + path + '/pagebundle/'
-        + encodeURIComponent(mwUtil.normalizeTitle(rp.title)) + '/' + rp.revision;
+        + encodeURIComponent(rp.title) + '/' + rp.revision;
     return hyper.request(newReq);
 };
 
@@ -309,8 +212,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
 
-    var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
-                mwUtil.normalizeTitle(rp.title), rp.revision]);
+    var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle', rp.title, rp.revision]);
 
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
@@ -360,22 +262,23 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                 && sameHtml(res.body.html.body, currentContentRes.body)) {
             // New render is the same as the previous one, no need to store it.
             hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
-
-            // No need to check access again here, as we rely on the pagebundle request
-            // being wrapped & throwing an error if access is denied
-            return self.wrapContentReq(hyper, req, P.resolve(currentContentRes), format, rp.tid);
+            return currentContentRes;
         } else if (res.status === 200) {
+            var resp = {
+                status: res.status,
+                headers: res.body[format].headers,
+                body: res.body[format].body
+            };
+            resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
             return self.saveParsoidResult(hyper, req, format, tid, res)
             .then(function() {
-                return self._dependenciesUpdate(hyper, req); })
-            .then(function() {
-                var resp = {
-                    status: res.status,
-                    headers: res.body[format].headers,
-                    body: res.body[format].body
-                };
-                resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                return self.wrapContentReq(hyper, req, P.resolve(resp), format, tid);
+                var dependencyUpdate = self._dependenciesUpdate(hyper, req);
+                if (mwUtil.isNoCacheRequest(req)) {
+                    // Finish background updates before returning
+                    return dependencyUpdate.thenReturn(resp);
+                } else {
+                    return resp;
+                }
             });
         } else {
             return res;
@@ -383,11 +286,61 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
     });
 };
 
+PSP.getSections = function(hyper, req) {
+    var self = this;
+    var rp = req.params;
+
+    var sections = req.query.sections.split(',').map(function(id) {
+        return id.trim();
+    });
+    delete req.query.sections;
+
+    return self.getFormat('html', hyper, req)
+    .then(function(htmlRes) {
+        var etagInfo = htmlRes.headers.etag;
+        var sectionsRP = Object.assign({}, rp, {
+            revision: etagInfo.rev,
+            tid: etagInfo.tid
+        });
+        return hyper.get({
+            uri: self.getBucketURI(sectionsRP, 'section.offsets', sectionsRP.tid)
+        })
+        .then(function(sectionOffsets) {
+            return mwUtil.decodeBody(htmlRes).then(function(content) {
+                var body = cheapBodyInnerHTML(content.body);
+                var chunks = sections.reduce(function(result, id) {
+                    var offsets = sectionOffsets.body[id];
+                    if (!offsets) {
+                        throw new HTTPError({
+                            status: 400,
+                            body: {
+                                type: 'bad_request',
+                                detail: 'Unknown section id: ' + id
+                            }
+                        });
+                    }
+                    // Offsets as returned by Parsoid are relative to body.innerHTML
+                    result[id] = body.substring(offsets.html[0], offsets.html[1]);
+                    return result;
+                }, {});
+                return {
+                    status: 200,
+                    headers: {
+                        etag: htmlRes.headers.etag,
+                        'cache-control': 'no-cache',
+                        'content-type': 'application/json'
+                    },
+                    body: chunks
+                };
+            });
+        });
+    });
+};
+
 // Get / check the revision metadata for a request
 PSP.getRevisionInfo = function(hyper, req) {
     var rp = req.params;
-    var path = [rp.domain, 'sys', 'page_revisions', 'page',
-                    mwUtil.normalizeTitle(rp.title)];
+    var path = [rp.domain, 'sys', 'page_revisions', 'page', rp.title];
     if (/^(?:[0-9]+)$/.test(rp.revision)) {
         path.push(rp.revision);
     } else if (rp.revision) {
@@ -418,7 +371,7 @@ PSP.getRevisionInfo = function(hyper, req) {
  * @return {boolean} Whether re-rendering this title is okay.
  */
 PSP._okayToRerender = function(req) {
-    if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
+    if (mwUtil.isNoCacheRequest(req)) {
         var blackList = this.options.rerenderBlacklist;
         if (blackList) {
             return !blackList[req.params.domain]
@@ -431,21 +384,18 @@ PSP._okayToRerender = function(req) {
 PSP.getFormat = function(format, hyper, req) {
     var self = this;
     var rp = req.params;
-    rp.title = mwUtil.normalizeTitle(rp.title);
+
+
+    if (format === 'html' && req.query.sections) {
+        return self.getSections(hyper, req);
+    }
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
             return self.getRevisionInfo(hyper, req)
             .then(function(revInfo) {
                 rp.revision = revInfo.rev + '';
-                if (revInfo.title !== rp.title) {
-                    // Re-try to retrieve from storage with the
-                    // normalized title & revision
-                    rp.title = revInfo.title;
-                    return self.getFormat(format, hyper, req);
-                } else {
-                    return self.generateAndSave(hyper, req, format, storageRes);
-                }
+                return self.generateAndSave(hyper, req, format, storageRes);
             });
         } else {
             // Don't generate content if there's some other error.
@@ -460,7 +410,7 @@ PSP.getFormat = function(format, hyper, req) {
             throw new HTTPError({
                 status: 403,
                 body: {
-                    type: 'rerenders_disabled',
+                    type: 'bad_request#rerenders_disabled',
                     description: "Rerenders for this article are blacklisted in the config."
                 }
             });
@@ -471,7 +421,7 @@ PSP.getFormat = function(format, hyper, req) {
         uri: self.getBucketURI(rp, format, rp.tid)
     });
 
-    if (req.headers && /no-cache/i.test(req.headers['cache-control'])) {
+    if (mwUtil.isNoCacheRequest(req)) {
         // Check content generation either way
         contentReq = contentReq.then(function(res) {
                 if (isModifiedSince(req, res)) {
@@ -489,11 +439,7 @@ PSP.getFormat = function(format, hyper, req) {
             generateContent);
     } else {
         // Only (possibly) generate content if there was an error
-        contentReq = self.wrapContentReq(hyper, req, contentReq, format)
-        .catch(generateContent)
-        .then(function(res) {
-            return self._wrapInAccessCheck(hyper, req, P.resolve(res));
-        });
+        contentReq = contentReq.catch(generateContent);
     }
     return contentReq
     .then(function(res) {
@@ -513,8 +459,8 @@ PSP.listRevisions = function(format, hyper, req) {
     var self = this;
     var rp = req.params;
     var revReq = {
-        uri: new URI([rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format,
-                        mwUtil.normalizeTitle(rp.title), '']),
+        uri: new URI([rp.domain, 'sys', this.options.bucket_type,
+                'parsoid.' + format, rp.title, '']),
         body: {
             limit: hyper.config.default_page_size
         }
@@ -541,8 +487,7 @@ PSP._getOriginalContent = function(hyper, req, revision, tid) {
     var rp = req.params;
 
     function get(format) {
-        var path = [rp.domain, 'sys', 'parsoid', format,
-                mwUtil.normalizeTitle(rp.title), revision];
+        var path = [rp.domain, 'sys', 'parsoid', format, rp.title, revision];
         if (tid) {
             path.push(tid);
         }
@@ -564,11 +509,9 @@ PSP._getOriginalContent = function(hyper, req, revision, tid) {
 PSP._getStashedContent = function(hyper, req, etag) {
     var self = this;
     var rp = req.params;
-
-    rp.title = mwUtil.normalizeTitle(rp.title);
     function getStash(format) {
         return hyper.get({
-            uri: self.getBucketURI(rp, 'stash.' + format, etag.tid)
+            uri: self.getBucketURI(rp, 'stash.' + format, etag.tid, true)
         })
         .then(mwUtil.decodeBody);
     }
@@ -599,7 +542,7 @@ function replaceSections(original, sectionsJson) {
         throw new HTTPError({
             status: 400,
             body: {
-                type: 'invalid_request',
+                type: 'bad_request',
                 description: 'Invalid section ids'
             }
         });
@@ -626,7 +569,7 @@ function parseSections(req) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'Invalid JSON provided in the request'
                 }
             });
@@ -657,7 +600,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'No or invalid If-Match header supplied, '
                         + 'or missing mw:TimeUuid meta element in the supplied HTML.',
                 }
@@ -679,7 +622,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'The page/revision has no associated Parsoid data'
                 }
             });
@@ -706,7 +649,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
 
         var path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
         if (rp.title) {
-            path.push(mwUtil.normalizeTitle(rp.title));
+            path.push(rp.title);
             if (rp.revision) {
                 path.push(rp.revision);
             }
@@ -739,12 +682,12 @@ PSP.stashTransform = function(hyper, req, transformPromise) {
         // the wikitext sent by the client
         return P.all([
             hyper.put({
-                uri: self.getBucketURI(rp, 'stash.data-parsoid', tid),
+                uri: self.getBucketURI(rp, 'stash.data-parsoid', tid, true),
                 headers: original.body['data-parsoid'].headers,
                 body: original.body['data-parsoid'].body
             }),
             hyper.put({
-                uri: self.getBucketURI(rp, 'stash.wikitext', tid),
+                uri: self.getBucketURI(rp, 'stash.wikitext', tid, true),
                 headers: { 'content-type': wtType },
                 body: req.body.wikitext
             })
@@ -753,7 +696,7 @@ PSP.stashTransform = function(hyper, req, transformPromise) {
         // HTML.
         .then(function() {
             return hyper.put({
-                uri: self.getBucketURI(rp, 'stash.html', tid),
+                uri: self.getBucketURI(rp, 'stash.html', tid, true),
                 headers: original.body.html.headers,
                 body: original.body.html.body
             });
@@ -776,7 +719,7 @@ PSP.callParsoidTransform = function callParsoidTransform(hyper, req, from, to) {
 
     var parsoidExtras = [];
     if (rp.title) {
-        parsoidExtras.push(mwUtil.normalizeTitle(rp.title));
+        parsoidExtras.push(rp.title);
     } else {
         // Fake title to avoid Parsoid error: <400/No title or wikitext was provided>
         parsoidExtras.push('Main_Page');
@@ -830,7 +773,7 @@ PSP.makeTransform = function(from, to) {
             throw new HTTPError({
                 status: 400,
                 body: {
-                    type: 'invalid_request',
+                    type: 'bad_request',
                     description: 'Missing request parameter: ' + from
                 }
             });
@@ -841,9 +784,8 @@ PSP.makeTransform = function(from, to) {
                 throw new HTTPError({
                     status: 400,
                     body: {
-                        type: 'invalid_request',
-                        description: 'Data can be stashed only for a specific' +
-                                ' title.'
+                        type: 'bad_request',
+                        description: 'Data can be stashed only for a specific title.'
                     }
                 });
             }
@@ -870,7 +812,7 @@ PSP.makeTransform = function(from, to) {
                 throw new HTTPError({
                     status: pageDeleted ? 410 : 409,
                     body: {
-                        type: 'revision#conflict',
+                        type: 'conflict',
                         title: 'Conflict detected',
                         description: e.body.description
                     }

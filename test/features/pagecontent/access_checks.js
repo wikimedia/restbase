@@ -44,6 +44,18 @@ describe('Access checks', function() {
                     }
                 }
             }
+        })
+        // TEMP: summary also needs update		
+        .post('').reply(200, {
+            'batchcomplete': '',
+            'query': {
+                'pages': {
+                    '11089416': {
+                        'title': title,
+                        'extract': 'test'
+                    }
+                }
+            }
         });
     }
 
@@ -66,17 +78,25 @@ describe('Access checks', function() {
             api = setUpNockResponse(api, deletedPageTitle, deletedPageOlderRevision);
             api = setUpNockResponse(api, deletedPageTitle, deletedPageRevision);
 
+            // Need to supply no-cache header to make the summary update synchronous
+            // to avoid races on mocks. Can remove when switched to change propagation
             return preq.get({
                 uri: server.config.bucketURL + '/html/'
-                    + encodeURIComponent(deletedPageTitle)
-                    + '/' + deletedPageOlderRevision
+                        + encodeURIComponent(deletedPageTitle)
+                        + '/' + deletedPageOlderRevision,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
                     uri: server.config.bucketURL + '/html/'
-                        + encodeURIComponent(deletedPageTitle)
-                        + '/' + deletedPageRevision
+                            + encodeURIComponent(deletedPageTitle)
+                            + '/' + deletedPageRevision,
+                    headers: {
+                        'cache-control': 'no-cache'
+                    }
                 });
             })
             .then(function (res) {

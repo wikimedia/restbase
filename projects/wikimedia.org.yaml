@@ -49,7 +49,7 @@ paths:
                   options: '{{options.mathoid}}'
             /metrics:
               x-modules:
-                - path: v1/pageviews.yaml
+                - path: v1/metrics.yaml
                   options: '{{options.pageviews}}'
         options: '{{options}}'
 

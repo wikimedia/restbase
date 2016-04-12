@@ -103,6 +103,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
                     || !body['mp-lang']) {
@@ -118,6 +119,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string') {
                 throw new Error('Missing section content!');
@@ -138,6 +140,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
             || !body['mp-lang']) {
@@ -330,11 +333,22 @@ describe('item requests', function() {
             assert.deepEqual(e.status, 404);
         });
     });
+
+    it('should result in 404 if + is normalized by MW API', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2FOnDemand+Test'
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
+        });
+    });
 });
 
 describe('page content access', function() {
 
-    var deniedTitle = 'User%20talk:DivineAlpha';
+    var deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
     var deniedRev = '645504917';
 
     this.timeout(30000);
@@ -390,11 +404,12 @@ describe('page content access', function() {
 
     it('Should redirect to a normalized version of a title', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/Main Page'
+            uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ'
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'], server.config.bucketURL + '/html/Main_Page');
+            assert.deepEqual(res.headers['content-location'], server.config.bucketURL
+                + '/html/Main_Page?test=mwAQ');
         });
     });
 });
