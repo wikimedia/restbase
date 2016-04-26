@@ -416,8 +416,8 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
                 body: {
                     table: self.tableName,
                     attributes: {
-                        title: mwUtil.normalizeTitle(dataResp.title),
-                        rev: parseInt(apiRev.revid)
+                        title: revision.title,
+                        rev: revision.rev
                     }
                 }
             }),
