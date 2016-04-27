@@ -83,8 +83,7 @@ describe('Redirects', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 302);
-            assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25/'
-                + renderInfo.rev + '/' + renderInfo.tid);
+            assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-type'], server.config.conf.test.content_types['data-parsoid']);
             assert.deepEqual(Object.keys(res.body).length > 0, true);
@@ -138,7 +137,7 @@ describe('Redirects', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 302);
-            assert.deepEqual(res.headers.location, '../User%3APchelolo%2FRedirect_Target_%25/331630');
+            assert.deepEqual(res.headers.location, '../User%3APchelolo%2FRedirect_Target_%25');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body.length > 0, true);
             assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
