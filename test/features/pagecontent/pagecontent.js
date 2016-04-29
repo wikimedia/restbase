@@ -310,40 +310,6 @@ describe('item requests', function() {
     //        assert.deepEqual(res.status, 200);
     //    });
     //});
-
-    it('should redirect to commons for missing file pages', function() {
-        return preq.get({
-            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg'
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
-                'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
-        });
-    });
-
-    it('should not redirect if file is missing on commons', function() {
-        return preq.get({
-            uri: server.config.hostPort +
-                '/commons.wikimedia.org/v1/html/File:Some_File_That_Does_Not_Exist.jpg'
-        })
-        .then(function() {
-            throw new Error('Error should be thrown');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-        });
-    });
-
-    it('should result in 404 if + is normalized by MW API', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2FOnDemand+Test'
-        })
-        .then(function() {
-            throw new Error('Error should be thrown');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-        });
-    });
 });
 
 describe('page content access', function() {
@@ -399,17 +365,6 @@ describe('page content access', function() {
         }, function(e) {
             assert.deepEqual(e.status, 400);
             assert.deepEqual(e.body.detail, 'title-invalid-characters');
-        });
-    });
-
-    it('Should redirect to a normalized version of a title', function() {
-        return preq.get({
-            uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ'
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'], server.config.bucketURL
-                + '/html/Main_Page?test=mwAQ');
         });
     });
 });
