@@ -12,6 +12,29 @@ var nock = require('nock');
 describe('Redirects', function() {
     before(function() { return server.start(); });
 
+    it('should redirect to a normalized version of a title', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 301);
+            assert.deepEqual(res.headers['location'], 'Main_Page?test=mwAQ');
+        });
+    });
+
+    it('should not redirect to a normalized version of a title, no-cache', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ',
+            headers: {
+                'cache-control': 'no-cache'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+        });
+    });
     it('should redirect to commons for missing file pages', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg'
@@ -26,6 +49,20 @@ describe('Redirects', function() {
     it('should not redirect to commons for missing file pages, redirect=false', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg?redirect=false'
+        })
+        .then(function() {
+            throw new Error('Error should be thrown');
+        }, function(e) {
+            assert.deepEqual(e.status, 404);
+        });
+    });
+
+    it('should not redirect to commons for missing file pages, no-cache', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
+            headers: {
+                'cache-control': 'no-cache'
+            }
         })
         .then(function() {
             throw new Error('Error should be thrown');
@@ -120,6 +157,22 @@ describe('Redirects', function() {
     it('should return 200 for redirect pages html with redirect=no', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test?redirect=no',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.location, undefined);
+            assert.deepEqual(res.body.length > 0, true);
+            assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
+        });
+    });
+
+    it('should return 200 for redirect pages html with no-cache', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test',
+            headers: {
+                'cache-control': 'no-cache'
+            },
             followRedirect: false
         })
         .then(function(res) {
