@@ -13,7 +13,7 @@
 var HyperSwitch = require('hyperswitch');
 var HTTPError = HyperSwitch.HTTPError;
 var URI = HyperSwitch.URI;
-var uuid = require('cassandra-uuid').TimeUuid;
+var TimeUuid = require('cassandra-uuid').TimeUuid;
 var mwUtil = require('../lib/mwUtil');
 var stringify = require('json-stable-stringify');
 var P = require('bluebird');
@@ -98,11 +98,12 @@ PRS.prototype.restrictionsTableName = 'restrictions';
 PRS.prototype.restrictionsTableSchema = function() {
     return {
         table: this.tableName,
-        version: 1,
+        version: 2,
         attributes: {
             title: 'string',
             rev: 'int',
             restrictions: 'set<string>',
+            redirect: 'string',
             page_deleted: 'int'
         },
         index: [
@@ -122,7 +123,7 @@ PRS.prototype.restrictionsTableURI = function(domain) {
     return new URI([domain, 'sys', 'table', this.restrictionsTableName, '']);
 };
 
-PRS.prototype.getRestriction = function(hyper, req) {
+PRS.prototype.getRestrictions = function(hyper, req) {
     var self = this;
     var rp = req.params;
     var attributes = { title: rp.title };
@@ -142,85 +143,126 @@ PRS.prototype.getRestriction = function(hyper, req) {
     .then(function(res) {
         // Remove possible revision restrictions as here we just need
         // the page deletion info
-        if (res && res.body && res.body.items.length
-                    && res.body.items[0].rev !== rp.revision) {
-            res.body.items[0].restrictions = [];
+        var restrictions = res.body && res.body.items && res.body.items[0] || null;
+        if (restrictions) {
+            if (restrictions.rev !== rp.revision && restrictions.restrictions) {
+                restrictions.restrictions = [];
+            }
+            res.body = restrictions;
+        } else {
+            res.body = null;
         }
         return res;
-    })
-    .catch({ status: 404 }, function() {
-        return { status: 200 };
     });
 };
+
+/**
+ * Update restrictions for a title & revision. Used primarily by the parsoid
+ * module to update redirects on save.
+ */
+PRS.prototype.postRestrictions = function(hyper, req) {
+    var rp = req.params;
+    // Validate the request body
+    var body = req.body;
+    if (!body || !(body.restrictions || body.redirect)) {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'bad_request',
+                description: 'Expected restrictions or redirect in the POST body.',
+            }
+        });
+    }
+    var revision = {
+        title: rp.title,
+        rev: rp.revision,
+    };
+    Object.assign(revision, body);
+    return this.storeRestrictions(hyper, req, revision);
+};
+
+// Const TimeUuid to enable partial restriction updates.
+var tidNode = new Buffer([0x01, 0x23, 0x45, 0x67, 0x89, 0xab]);
+var tidClock = new Buffer([0x12, 0x34]);
+var restrictionsTid = new TimeUuid(new Date(0), 0, tidNode, tidClock).toString();
 
 PRS.prototype.storeRestrictions = function(hyper, req, revision) {
     var self = this;
     var rp = req.params;
+    // Do not even define attributes we don't want to overwrite.
+    var restrictionObject = {};
     if (revision.restrictions && revision.restrictions.length) {
+        restrictionObject.restrictions = revision.restrictions;
+    }
+    if (revision.redirect !== true && revision.redirect) {
+        restrictionObject.redirect = revision.redirect;
+    }
+    if (revision.page_deleted) {
+        restrictionObject.page_deleted = revision.page_deleted;
+    }
+    if (Object.keys(restrictionObject).length) {
+        // Have restrictions or a redirect. Update storage.
+        var attributes = {
+            title: revision.title,
+            rev: revision.rev,
+            // Always use the same tid to allow partial updates.
+            _tid: restrictionsTid,
+        };
+        Object.assign(attributes, restrictionObject);
         return hyper.put({
             uri: self.restrictionsTableURI(rp.domain),
             body: {
                 table: self.restrictionsTableName,
-                attributes: {
-                    title: revision.title,
-                    rev: revision.rev,
-                    restrictions: revision.restrictions
-                }
+                attributes: attributes
             }
         });
     } else {
         // New restrictions are not specified. To avoid filling the
         // table with useless data first check whether there were
         // some restrictions stored before and overwrite only if needed
-        return self.getRestriction(hyper, {
+        return self.getRestrictions(hyper, {
             params: {
                 domain: rp.domain,
-                title: revision.title
+                title: revision.title,
+                rev: revision.rev
             }
         })
         .then(function(res) {
-            if (res.body && res.body.items.length) {
-                var oldRestriction = res.body.items[0];
-                if (oldRestriction.restrictions
-                        && oldRestriction.restrictions.length) {
-                    return hyper.put({
-                        uri: self.restrictionsTableURI(rp.domain),
-                        body: {
-                            table: self.restrictionsTableName,
-                            attributes: {
-                                title: revision.title,
-                                rev: revision.rev,
-                                restrictions: revision.restrictions
-                            }
+            var oldRestriction = res.body;
+            if (oldRestriction.restrictions && oldRestriction.restrictions.length
+                    || oldRestriction.page_deleted) {
+                // There were restrictions before. Record absence of
+                // restrictions.
+                return hyper.put({
+                    uri: self.restrictionsTableURI(rp.domain),
+                    body: {
+                        table: self.restrictionsTableName,
+                        attributes: {
+                            title: revision.title,
+                            rev: revision.rev,
+                            _tid: restrictionsTid,
+                            restrictions: [],
+                            // TODO: Reset page_deleted to actual start
+                            // revision!
+                            page_deleted: null,
                         }
-                    });
-                }
+                    }
+                });
             }
             return P.resolve({ status: 200 });
+        })
+        .catch({ status: 404 }, function() {
+            // No restrictions before & after. Nothing to do.
+            return { status: 200 };
         });
     }
 };
 
 PRS.prototype.storePageDeletion = function(hyper, req, revision) {
-    var self = this;
-    var rp = req.params;
-    return self.getRestriction(hyper, req)
-    .then(function(res) {
-        if (res.body && res.body.items.length
-                && res.body.items[0].page_deleted >= revision.page_deleted) {
-            return P.resolve({ status: 200 });
-        }
-        return hyper.put({
-            uri: self.restrictionsTableURI(rp.domain),
-            body: {
-                table: self.restrictionsTableName,
-                attributes: {
-                    title: revision.title,
-                    rev: revision.rev,
-                    page_deleted: revision.page_deleted
-                }
-            }
-        });
+    return this.storeRestrictions(hyper, req, {
+        title: req.params.title,
+        rev: req.params.revision || revision.rev,
+        page_deleted: revision.page_deleted
     });
 };
 
@@ -389,7 +431,7 @@ PRS.prototype.fetchMWRevision = function(hyper, req) {
                 title: normTitle,
                 page_id: parseInt(dataResp.pageid),
                 rev: parseInt(apiRev.revid),
-                tid: uuid.now().toString(),
+                tid: TimeUuid.now().toString(),
                 namespace: parseInt(dataResp.ns),
                 user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
                 user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
@@ -494,7 +536,7 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
                 // In case 404 is returned by MW api, the page is deleted
                 .then(function(result) {
                     result = result.body.items[0];
-                    result.tid = uuid.now().toString();
+                    result.tid = TimeUuid.now().toString();
                     result.page_deleted = result.rev;
                     return P.join(hyper.put({
                             uri: self.tableURI(rp.domain),
@@ -680,7 +722,8 @@ module.exports = function(options) {
             getTitleRevision: prs.getTitleRevision.bind(prs),
             listRevisions: prs.listRevisions.bind(prs),
             getRevision: prs.getRevision.bind(prs),
-            getRestriction: prs.getRestriction.bind(prs)
+            getRestrictions: prs.getRestrictions.bind(prs),
+            postRestrictions: prs.postRestrictions.bind(prs),
         },
         resources: [
             {
