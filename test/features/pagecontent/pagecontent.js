@@ -171,7 +171,7 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.body, {
-                items: ['sys', 'v1' ]
+                items: ['v1' ]
             });
         });
     });
