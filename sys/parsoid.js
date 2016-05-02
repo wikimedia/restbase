@@ -113,8 +113,9 @@ PSP._dependenciesUpdate = function(hyper, req) {
     });
 };
 
-PSP.getBucketURI = function(rp, format, tid) {
-    var path = [rp.domain, 'sys', this.options.bucket_type, 'parsoid.' + format, rp.title];
+PSP.getBucketURI = function(rp, format, tid, useKeyRevValue) {
+    var bucket = useKeyRevValue ? 'key_rev_value' : this.options.bucket_type;
+    var path = [rp.domain, 'sys', bucket, 'parsoid.' + format, rp.title];
     if (rp.revision) {
         path.push(rp.revision);
         if (tid) {

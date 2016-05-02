@@ -194,6 +194,9 @@ PRS.prototype.storeRestrictions = function(hyper, req, revision) {
     if (revision.restrictions && revision.restrictions.length) {
         restrictionObject.restrictions = revision.restrictions;
     }
+    // Only accept new-style redirect parameters that are strings, but ignore
+    // `true` flags as passed from MW API redirect responses (from
+    // storePageDeletion and fetchAndStoreMWRevision).
     if (revision.redirect !== true && revision.redirect) {
         restrictionObject.redirect = revision.redirect;
     }
@@ -251,10 +254,8 @@ PRS.prototype.storeRestrictions = function(hyper, req, revision) {
             }
             return P.resolve({ status: 200 });
         })
-        .catch({ status: 404 }, function() {
-            // No restrictions before & after. Nothing to do.
-            return { status: 200 };
-        });
+        // No restrictions before & after. Nothing to do.
+        .catchReturn({ status: 404 }, { status: 200 });
     }
 };
 
@@ -534,6 +535,8 @@ PRS.prototype.getTitleRevision = function(hyper, req) {
             .catch({ status: 404 }, function(e) {
                 return getLatestTitleRevision()
                 // In case 404 is returned by MW api, the page is deleted
+                // TODO: Handle this directly with more targeted page
+                // deletion/ un-deletion events.
                 .then(function(result) {
                     result = result.body.items[0];
                     result.tid = TimeUuid.now().toString();
