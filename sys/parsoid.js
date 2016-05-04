@@ -6,7 +6,6 @@
 
 var P = require('bluebird');
 var HyperSwitch = require('hyperswitch');
-var Title = require('mediawiki-title').Title;
 var URI = HyperSwitch.URI;
 var HTTPError = HyperSwitch.HTTPError;
 
@@ -96,68 +95,6 @@ function ParsoidService(options) {
 
 // Short alias
 var PSP = ParsoidService.prototype;
-
-// TEMP TEMP TEMP!!!
-// Wiktionary / summary invalidation and mobileapps pregeneration
-PSP._dependenciesUpdate = function(hyper, req) {
-    var rp = req.params;
-    return mwUtil.getSiteInfo(hyper, req)
-    .then(function(siteInfo) {
-        var rp = req.params;
-        var updates = [];
-        var summaryPromise = P.resolve();
-        if (rp.domain.indexOf('wiktionary') === -1) {
-            // non-wiktionary, update summary
-            summaryPromise = hyper.get({
-                uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
-                headers: {
-                    'cache-control': 'no-cache'
-                }
-            });
-        } else if (/en.wiktionary/.test(rp.domain)) {
-            if (Title.newFromText(rp.title, siteInfo).getNamespace().isMain()) {
-                // wiktionary update, we are interested only in en.wiktionary
-                // and only in Main namespaces
-                summaryPromise = hyper.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                });
-            }
-        }
-        summaryPromise = summaryPromise.catch(function(e) {
-            if (e.status !== 501 && e.status !== 404) {
-                hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
-                        'summary' : 'definition', e);
-            }
-        });
-        updates.push(summaryPromise);
-
-        // Emit resource change events
-        var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
-        updates.push(hyper.post({
-            uri: new URI([rp.domain, 'sys', 'events', '']),
-            body: [
-                { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
-                { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
-                    + '/' + rp.revision } }
-            ]
-        }));
-
-        updates.push(hyper.get({
-            uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        }));
-
-        return P.all(updates);
-    })
-    .catch(function(e) {
-        hyper.log('warn/mobileapps', e);
-    });
-};
 
 PSP.getBucketURI = function(rp, format, tid, useKeyRevValue) {
     var bucket = useKeyRevValue ? 'key_rev_value' : this.options.bucket_type;
@@ -272,10 +209,18 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
             resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
             return self.saveParsoidResult(hyper, req, format, tid, res)
             .then(function() {
-                var dependencyUpdate = self._dependenciesUpdate(hyper, req);
                 if (mwUtil.isNoCacheRequest(req)) {
                     // Finish background updates before returning
-                    return dependencyUpdate.thenReturn(resp);
+                    // Emit resource change events
+                    var publicURI = '//' + rp.domain + '/api/rest_v1/page' +
+                        encodeURIComponent(rp.title);
+                    return hyper.post({
+                        uri: new URI([rp.domain, 'sys', 'events', '']),
+                        body: [
+                            { meta: { uri: publicURI } },
+                            { meta: { uri: publicURI + '/' + rp.revision } }
+                        ]
+                    }).thenReturn(resp);
                 } else {
                     return resp;
                 }
