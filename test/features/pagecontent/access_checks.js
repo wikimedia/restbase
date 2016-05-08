@@ -44,18 +44,6 @@ describe('Access checks', function() {
                     }
                 }
             }
-        })
-        // TEMP: summary also needs update		
-        .post('').reply(200, {
-            'batchcomplete': '',
-            'query': {
-                'pages': {
-                    '11089416': {
-                        'title': title,
-                        'extract': 'test'
-                    }
-                }
-            }
         });
     }
 
@@ -83,20 +71,14 @@ describe('Access checks', function() {
             return preq.get({
                 uri: server.config.bucketURL + '/html/'
                         + encodeURIComponent(deletedPageTitle)
-                        + '/' + deletedPageOlderRevision,
-                headers: {
-                    'cache-control': 'no-cache'
-                }
+                        + '/' + deletedPageOlderRevision
             })
             .then(function(res) {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
                     uri: server.config.bucketURL + '/html/'
                             + encodeURIComponent(deletedPageTitle)
-                            + '/' + deletedPageRevision,
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
+                            + '/' + deletedPageRevision
                 });
             })
             .then(function (res) {
