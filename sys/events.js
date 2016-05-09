@@ -85,6 +85,26 @@ EventService.prototype._emit = function(hyper, req) {
                 return event;
             })
             .filter(function(event) { return !!event; });
+
+            // Change-propagation will set up the x-rerender-reason header, indicating
+            // the event which caused the rerender. In case RESTBase is about to emit
+            // the same event, it will cause a rerender loop. So, log an error and skip
+            // an event.
+            var reRenderReason = req.headers && req.headers['x-rerender-reason']
+                || hyper._rootReq && hyper._rootReq['x-rerender-reason'];
+            if (reRenderReason) {
+                events = events.filter(function(event) {
+                    if (reRenderReason.replace(/^https?:/, '') === event.meta.uri.replace(/^https?:/, '')) {
+                        hyper.log('error/events/rerender_loop', {
+                            message: 'Rerender loop detected',
+                            event: event
+                        });
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
             if (events && events.length) {
                 return hyper.post({
                     uri: self.options.eventlogging_service.uri,
