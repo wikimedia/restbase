@@ -589,12 +589,21 @@ PSP.transformRevision = function(hyper, req, from, to) {
         if (etag) {
             // Prefer the If-Match header
             tid = etag.tid;
-        } else if (req.body && req.body.html) {
+        }
+
+        if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
-            tid = extractTidMeta(req.body.html);
-            hyper.log('warn/parsoid/etag', {
-                msg: 'Client did not supply etag, fallback to mw:TimeUuid meta element'
-            });
+            var htmlTid = extractTidMeta(req.body.html);
+            if (tid && htmlTid && htmlTid !== tid) {
+                hyper.log('error/parsoid/etag_mismatch', {
+                    msg: 'Client-supplied etag did not match mw:TimeUuid!'
+                });
+            } else if (!tid) {
+                tid = htmlTid;
+                hyper.log('warn/parsoid/etag', {
+                    msg: 'Client did not supply etag, fallback to mw:TimeUuid meta element'
+                });
+            }
         }
         if (!tid) {
             throw new HTTPError({
