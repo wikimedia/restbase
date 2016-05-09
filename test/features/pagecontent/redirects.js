@@ -23,6 +23,28 @@ describe('Redirects', function() {
         });
     });
 
+    it('should preserve parameters while redirecting to a normalized version of a title', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main%20Page/1234?test=mwAQ',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 301);
+            assert.deepEqual(res.headers['location'], '../Main_Page/1234?test=mwAQ');
+        });
+    });
+
+    it('should preserve parameters while redirecting to a normalized version of a title, #2', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main%20Page/',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 301);
+            assert.deepEqual(res.headers['location'], '../Main_Page/');
+        });
+    });
+
     it('should not redirect to a normalized version of a title, no-cache', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ',
