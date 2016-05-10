@@ -37,8 +37,8 @@ function localRequests(slice, expected) {
         localReqs,
         expected,
         expected ?
-          'Should not have made local request' :
-          'Should have made a local request'
+          'Should have made a local request' :
+          'Should not have made a local request'
     );
 }
 
