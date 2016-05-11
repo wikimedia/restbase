@@ -244,9 +244,8 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
             // so that the change detection makes sense.
             return hyper.get({
                 uri: self.getBucketURI(rp, format, rp.tid)
-            })
-            .then(function(contentRes) {
-                    console.log('res', contentRes.status);
+            }).then(
+                function(contentRes) {
                     currentContentRes = contentRes;
                 },
                 function(contentRes) {
