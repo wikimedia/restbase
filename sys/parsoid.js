@@ -451,6 +451,12 @@ PSP.getFormat = function(format, hyper, req) {
         if (self.options.response_cache_control) {
             res.headers['cache-control'] = self.options.response_cache_control;
         }
+        if (/^null$/.test(res.headers.etag)) {
+            hyper.log('error/parsoid/response_etag_missing', {
+                msg: 'Detected a null etag in the response!'
+            });
+        }
+
         return res;
     });
 };
