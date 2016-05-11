@@ -28,7 +28,9 @@ describe('router - misc', function() {
             headers: {
                 'Cache-Control': 'no-cache'
             }
-        }).then(function(res) {
+        })
+        .delay(1000)
+        .then(function(res) {
             slice.halt();
             var reqId = res.headers['x-request-id'];
             assert.notDeepEqual(reqId, undefined, 'Request ID not returned');

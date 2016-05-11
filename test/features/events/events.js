@@ -164,7 +164,7 @@ describe('Change event emitting', function() {
                 {should_not_be: 'here'}
             ]
         })
-        .delay(100)
+        .delay(2000)
         .finally(function() {
             really_done(new Error('Timeout!'));
         });
