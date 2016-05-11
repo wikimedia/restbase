@@ -211,12 +211,11 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
     var self = this;
     // Try to generate HTML on the fly by calling Parsoid
     var rp = req.params;
-
-    var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle', rp.title, rp.revision]);
+    var reqRevision = rp.revision;
 
     // Helper for retrieving original content from storage & posting it to
     // the Parsoid pagebundle end point
-    function getOrigAndPostToParsoid(revision, contentName, updateMode) {
+    function getOrigAndPostToParsoid(pageBundleUri, revision, contentName, updateMode) {
         return self._getOriginalContent(hyper, req, revision)
         .then(function(res) {
             var body = {
@@ -237,52 +236,79 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
         });
     }
 
-    var parentRev = parseInt(req.headers['x-restbase-parentrevision']);
-    var updateMode = req.headers['x-restbase-mode'];
-    var parsoidReq;
-    if (parentRev) {
-        // OnEdit job update: pass along the predecessor version
-        parsoidReq = getOrigAndPostToParsoid(parentRev + '', 'previous');
-    } else if (updateMode) {
-        // Template or image updates. Similar to html2wt, pass:
-        // - current data-parsoid and html
-        // - the edit mode
-        parsoidReq = getOrigAndPostToParsoid(rp.revision, 'original', updateMode);
-    } else {
-        // Plain render
-        parsoidReq = hyper.get({ uri: pageBundleUri });
-    }
-
-    return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
-    .spread(function(res, currentContentRes) {
-        var tid = uuid.now().toString();
-        res.body.html.body = insertTidMeta(res.body.html.body, tid);
-
-        if (format === 'html' && currentContentRes
-                && sameHtml(res.body.html.body, currentContentRes.body)) {
-            // New render is the same as the previous one, no need to store it.
-            hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
-            return currentContentRes;
-        } else if (res.status === 200) {
-            var resp = {
-                status: res.status,
-                headers: res.body[format].headers,
-                body: res.body[format].body
-            };
-            resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-            return self.saveParsoidResult(hyper, req, format, tid, res)
-            .then(function() {
-                var dependencyUpdate = self._dependenciesUpdate(hyper, req);
-                if (mwUtil.isNoCacheRequest(req)) {
-                    // Finish background updates before returning
-                    return dependencyUpdate.thenReturn(resp);
-                } else {
-                    return resp;
+    return self.getRevisionInfo(hyper, req)
+    .then(function(revInfo) {
+        rp.revision = revInfo.rev + '';
+        if (reqRevision !== rp.revision) {
+            // Try to fetch the HTML corresponding to the requested revision,
+            // so that the change detection makes sense.
+            return hyper.get({
+                uri: self.getBucketURI(rp, format, rp.tid)
+            })
+            .then(function(contentRes) {
+                    console.log('res', contentRes.status);
+                    currentContentRes = contentRes;
+                },
+                function(contentRes) {
+                    currentContentRes = contentRes;
                 }
-            });
-        } else {
-            return res;
+            );
         }
+    })
+    .then(function(revInfo) {
+        var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
+                rp.title, rp.revision]);
+
+        var parentRev = parseInt(req.headers['x-restbase-parentrevision']);
+        var updateMode = req.headers['x-restbase-mode'];
+        var parsoidReq;
+        if (parentRev) {
+            // OnEdit job update: pass along the predecessor version
+            parsoidReq = getOrigAndPostToParsoid(pageBundleUri, parentRev + '', 'previous');
+        } else if (updateMode) {
+            // Template or image updates. Similar to html2wt, pass:
+            // - current data-parsoid and html
+            // - the edit mode
+            parsoidReq = getOrigAndPostToParsoid(pageBundleUri, rp.revision,
+                    'original', updateMode);
+        } else {
+            // Plain render
+            parsoidReq = hyper.get({ uri: pageBundleUri });
+        }
+
+        return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
+        .spread(function(res, currentContentRes) {
+            var tid = uuid.now().toString();
+            res.body.html.body = insertTidMeta(res.body.html.body, tid);
+
+            if (format === 'html'
+                    && currentContentRes
+                    && currentContentRes.status === 200
+                    && sameHtml(res.body.html.body, currentContentRes.body)) {
+                // New render is the same as the previous one, no need to store it.
+                hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
+                return currentContentRes;
+            } else if (res.status === 200) {
+                var resp = {
+                    status: res.status,
+                    headers: res.body[format].headers,
+                    body: res.body[format].body
+                };
+                resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
+                return self.saveParsoidResult(hyper, req, format, tid, res)
+                .then(function() {
+                    var dependencyUpdate = self._dependenciesUpdate(hyper, req);
+                    if (mwUtil.isNoCacheRequest(req)) {
+                        // Finish background updates before returning
+                        return dependencyUpdate.thenReturn(resp);
+                    } else {
+                        return resp;
+                    }
+                });
+            } else {
+                return res;
+            }
+        });
     });
 };
 
@@ -392,11 +418,7 @@ PSP.getFormat = function(format, hyper, req) {
 
     function generateContent(storageRes) {
         if (storageRes.status === 404 || storageRes.status === 200) {
-            return self.getRevisionInfo(hyper, req)
-            .then(function(revInfo) {
-                rp.revision = revInfo.rev + '';
-                return self.generateAndSave(hyper, req, format, storageRes);
-            });
+            return self.generateAndSave(hyper, req, format, storageRes);
         } else {
             // Don't generate content if there's some other error.
             throw storageRes;

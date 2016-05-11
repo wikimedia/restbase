@@ -98,23 +98,26 @@ describe('Change event emitting', function() {
                 { should_not_be: 'here' }
             ]
         })
-        .delay(100)
+        .delay(500)
         .finally(function() {
             udpServer.close();
-            done(new Error('Timeout!'));
+            done(new Error('UDP server timeout!'));
         });
     });
 
     it('should send correct events to the service', function(done) {
-        var eventLogging;
+        var eventLogging = null;
 
         function really_done(e) {
-            if (eventLogging) eventLogging.close();
-            done(e)
+            if (eventLogging) {
+                eventLogging.close();
+                done(e);
+            }
+            eventLogging = null;
         }
 
         try {
-            eventLogging = http.createServer(function(request) {
+            eventLogging = http.createServer(function(request, response) {
                 try {
                     assert.deepEqual(request.method, 'POST');
                     var postData;
@@ -134,6 +137,8 @@ describe('Change event emitting', function() {
                             assert.deepEqual(event.meta.uri, 'http://en.wikipedia.org/wiki/User:Pchelolo');
                             assert.deepEqual(event.tags, ['test', 'restbase']);
                             really_done();
+                            response.writeHead(200);
+                            response.end();
                         } catch (e) {
                             really_done(e);
                         }
@@ -151,7 +156,8 @@ describe('Change event emitting', function() {
         return preq.post({
             uri: server.config.baseURL + '/events_emit/',
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                connection: 'close',
             },
             body: [
                 {
@@ -164,9 +170,9 @@ describe('Change event emitting', function() {
                 {should_not_be: 'here'}
             ]
         })
-        .delay(2000)
+        .delay(10000)
         .finally(function() {
-            really_done(new Error('Timeout!'));
+            really_done(new Error('HTTP event server timeout!'));
         });
     });
 });
