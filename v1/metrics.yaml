@@ -92,10 +92,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}'
+              headers:
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-client-ip: '{{x-client-ip}}'
       x-monitor: false
 
   /pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}:
@@ -151,10 +163,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}'
+              headers:
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-client-ip: '{{x-client-ip}}'
       x-monitor: true
       x-amples:
         - title: Get aggregate page views
@@ -226,10 +250,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
               uri: '{{options.host}}/pageviews/top/{project}/{access}/{year}/{month}/{day}'
+              headers:
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-client-ip: '{{x-client-ip}}'
       x-monitor: false
 
   /unique-devices/{project}/{access-site}/{granularity}/{start}/{end}:
@@ -279,10 +315,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
               uri: '{{options.host}}/unique-devices/{project}/{access-site}/{granularity}/{start}/{end}'
+              headers:
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-client-ip: '{{x-client-ip}}'
       x-monitor: false
 
 definitions:
