@@ -118,3 +118,10 @@ metrics:
   host: localhost
   port: 8125
   batch: true
+
+ratelimiter:
+  type: kademlia
+  # Cluster nodes
+  seeds:
+    # Port 3050 used by default
+    - 127.0.0.1

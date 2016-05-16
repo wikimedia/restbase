@@ -80,6 +80,16 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 10
+              external: 5
+            log_only: true
+
       x-request-handler:
         - get_from_backend:
             request:
@@ -157,6 +167,16 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 10
+              external: 5
+            log_only: true
+
       x-request-handler:
         - get_from_backend:
             request:
@@ -319,6 +339,16 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 10
+              external: 5
+            log_only: true
+
       x-request-handler:
         - get_from_backend:
             request:
