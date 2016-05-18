@@ -187,7 +187,7 @@ describe('Change event emitting', function() {
             uri: server.config.baseURL + '/events_emit/',
             headers: {
                 'content-type': 'application/json',
-                'x-rerender-reason': '//en.wikipedia.org/wiki/Prohibited'
+                'x-triggered-by': 'resource_change:https://en.wikipedia.org/wiki/Prohibited'
             },
             body: [
                 {

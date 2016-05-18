@@ -90,11 +90,13 @@ EventService.prototype._emit = function(hyper, req) {
             // the event which caused the rerender. In case RESTBase is about to emit
             // the same event, it will cause a rerender loop. So, log an error and skip
             // an event.
-            var reRenderReason = req.headers && req.headers['x-rerender-reason']
-                || hyper._rootReq && hyper._rootReq['x-rerender-reason'];
-            if (reRenderReason) {
+            var triggeredBy = req.headers && req.headers['x-triggered-by']
+                || hyper._rootReq && hyper._rootReq['x-triggered-by'];
+            if (triggeredBy) {
+                triggeredBy = triggeredBy.replace(/https?:/g, '');
                 events = events.filter(function(event) {
-                    if (reRenderReason.replace(/^https?:/, '') === event.meta.uri.replace(/^https?:/, '')) {
+                    var eventId = event.meta.topic + ':' + event.meta.uri.replace(/^https?:/, '');
+                    if (triggeredBy.indexOf(eventId) !== -1) {
                         hyper.log('error/events/rerender_loop', {
                             message: 'Rerender loop detected',
                             event: event
