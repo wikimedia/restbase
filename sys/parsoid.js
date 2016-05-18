@@ -736,9 +736,10 @@ PSP.stashTransform = function(hyper, req, transformPromise) {
                 headers: original.body.html.headers,
                 body: original.body.html.body
             });
+        })
         // Add the ETag to the original response so it can be propagated
         // back to the client
-        }).then(function() {
+        .then(function() {
             original.body.html.headers.etag = mwUtil.makeETag(rp.revision, tid, 'stash');
             return original;
         });
