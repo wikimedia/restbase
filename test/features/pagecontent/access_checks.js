@@ -44,18 +44,6 @@ describe('Access checks', function() {
                     }
                 }
             }
-        })
-        // TEMP: summary also needs update		
-        .post('').reply(200, {
-            'batchcomplete': '',
-            'query': {
-                'pages': {
-                    '11089416': {
-                        'title': title,
-                        'extract': 'test'
-                    }
-                }
-            }
         });
     }
 
