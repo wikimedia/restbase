@@ -86,10 +86,10 @@ EventService.prototype._emit = function(hyper, req) {
             })
             .filter(function(event) { return !!event; });
 
-            // Change-propagation will set up the x-rerender-reason header, indicating
+            // Change-propagation will set up the x-triggered-by header, indicating
             // the event which caused the rerender. In case RESTBase is about to emit
             // the same event, it will cause a rerender loop. So, log an error and skip
-            // an event.
+            // the event.
             var triggeredBy = req.headers && req.headers['x-triggered-by']
                 || hyper._rootReq && hyper._rootReq['x-triggered-by'];
             if (triggeredBy) {
