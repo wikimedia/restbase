@@ -105,34 +105,6 @@ PSP._dependenciesUpdate = function(hyper, req) {
     .then(function(siteInfo) {
         var rp = req.params;
         var updates = [];
-        var summaryPromise = P.resolve();
-        if (rp.domain.indexOf('wiktionary') === -1) {
-            // non-wiktionary, update summary
-            summaryPromise = hyper.get({
-                uri: new URI([rp.domain, 'v1', 'page', 'summary', rp.title]),
-                headers: {
-                    'cache-control': 'no-cache'
-                }
-            });
-        } else if (/en.wiktionary/.test(rp.domain)) {
-            if (Title.newFromText(rp.title, siteInfo).getNamespace().isMain()) {
-                // wiktionary update, we are interested only in en.wiktionary
-                // and only in Main namespaces
-                summaryPromise = hyper.get({
-                    uri: new URI([rp.domain, 'v1', 'page', 'definition', rp.title]),
-                    headers: {
-                        'cache-control': 'no-cache'
-                    }
-                });
-            }
-        }
-        summaryPromise = summaryPromise.catch(function(e) {
-            if (e.status !== 501 && e.status !== 404) {
-                hyper.log('error/' + rp.domain.indexOf('wiktionary') < 0 ?
-                        'summary' : 'definition', e);
-            }
-        });
-        updates.push(summaryPromise);
 
         // Emit resource change events
         var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
