@@ -85,6 +85,28 @@ EventService.prototype._emit = function(hyper, req) {
                 return event;
             })
             .filter(function(event) { return !!event; });
+
+            // Change-propagation will set up the x-triggered-by header, indicating
+            // the event which caused the rerender. In case RESTBase is about to emit
+            // the same event, it will cause a rerender loop. So, log an error and skip
+            // the event.
+            var triggeredBy = req.headers && req.headers['x-triggered-by']
+                || hyper._rootReq && hyper._rootReq['x-triggered-by'];
+            if (triggeredBy) {
+                triggeredBy = triggeredBy.replace(/https?:/g, '');
+                events = events.filter(function(event) {
+                    var eventId = event.meta.topic + ':' + event.meta.uri.replace(/^https?:/, '');
+                    if (triggeredBy.indexOf(eventId) !== -1) {
+                        hyper.log('error/events/rerender_loop', {
+                            message: 'Rerender loop detected',
+                            event: event
+                        });
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
             if (events && events.length) {
                 return hyper.post({
                     uri: self.options.eventlogging_service.uri,
