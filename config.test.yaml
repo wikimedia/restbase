@@ -6,14 +6,9 @@ default_project: &default_project
   x-modules:
     - path: test/test_module.yaml
       options:
-        events_purge:
-          purge:
-            host: 127.0.0.1
-            port: 4321
-        events_emit:
-          eventlogging_service:
-            uri: http://127.0.0.1:8085/v1/events
-            topic: resource_change
+        events:
+          uri: http://127.0.0.1:8085/v1/events
+          topic: resource_change
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
@@ -39,10 +34,7 @@ default_project: &default_project
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
           host: http://appservice.wmflabs.org
-        events:
-          purge:
-            host: 127.0.0.1
-            port: 4321
+        events: {}
         purged_cache_control: test_purged_cache_control
 
 labs_project: &labs_project

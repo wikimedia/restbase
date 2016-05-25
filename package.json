@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "REST storage and service dispatcher",
   "main": "lib/server.js",
   "scripts": {
@@ -38,7 +38,6 @@
     "restbase-mod-table-cassandra": "^0.9.1",
     "service-runner": "^1.2.1",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
-    "htcp-purge": "^0.1.2",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
     "hyperswitch": "^0.5.0",
     "jsonwebtoken": "^6.2.0",
