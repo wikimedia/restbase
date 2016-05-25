@@ -97,8 +97,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 10
+              external: 10
             log_only: true
       x-request-handler:
         - get_from_backend:
@@ -166,8 +166,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 10
+              external: 10
             log_only: true
       x-request-handler:
         - get_from_backend:
@@ -251,8 +251,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 10
+              external: 10
             log_only: true
       x-request-handler:
         - get_from_backend:
@@ -314,8 +314,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 10
+              external: 10
             log_only: true
       x-request-handler:
         - get_from_backend:
