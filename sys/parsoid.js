@@ -117,17 +117,10 @@ PSP._dependenciesUpdate = function(hyper, req) {
             ]
         }));
 
-        updates.push(hyper.get({
-            uri: new URI([rp.domain, 'sys', 'mobileapps', 'mobile-sections', rp.title]),
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        }));
-
         return P.all(updates);
     })
     .catch(function(e) {
-        hyper.log('warn/mobileapps', e);
+        hyper.log('warn/bg-updates', e);
     });
 };
 
