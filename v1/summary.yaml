@@ -97,11 +97,12 @@ paths:
               method: post
               uri: /{domain}/sys/action/query
               body:
-                prop: 'info|extracts|pageimages'
+                prop: 'info|extracts|pageimages|revisions'
                 exsentences: 5
                 explaintext: true
                 piprop: 'thumbnail'
                 pithumbsize: 320
+                rvprop: 'timestamp'
                 titles: '{{request.params.title}}'
             response:
               # Define the response to save & return.
@@ -113,7 +114,7 @@ paths:
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
                 dir: '{{extract.body.items[0].pagelanguagedir}}'
-                timestamp: '{{extract.body.items[0].touched}}'
+                timestamp: '{{extract.body.items[0].revisions[0].timestamp}}'
 
         - emit_change_event:
             request:
