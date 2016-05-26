@@ -113,9 +113,7 @@ paths:
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
                 dir: '{{extract.body.items[0].pagelanguagedir}}'
-                # Need to figure out the format of this before we can add it.
-                # See https://phabricator.wikimedia.org/T117082#1787617.
-                #timestamp: '{{request.params.timestamp}}'
+                timestamp: '{{extract.body.items[0].touched}}'
 
         - emit_change_event:
             request:
@@ -207,4 +205,8 @@ definitions:
         type: string
         description: The page language direction code
         example: ltr
+      timestamp:
+        type: string
+        description: The time when the page was last editted in the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format
+        example: '1970-01-01T00:00:00.000Z'
     required: ['title', 'extract', 'lang', 'dir']
