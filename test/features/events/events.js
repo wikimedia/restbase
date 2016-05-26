@@ -12,96 +12,12 @@ describe('Change event emitting', function() {
 
     before(function () { return server.start(); });
 
-    it('should purge caches on mobileapps update', function(done) {
-        var udpServer = dgram.createSocket('udp4');
-        var receivedMessages = [];
-        udpServer.on("message", function(msg) {
-            try {
-                msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
-                if (msg.indexOf('User%3APchelolo%2FEventTest') >= 0) {
-                    receivedMessages.push(msg);
-                }
-                if (receivedMessages.length === 3) {
-                    assert.deepEqual(receivedMessages.sort(function(s1, s2) { return s2.length - s1.length; }),
-                    [
-                        "http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/mobile-sections-remaining/User%3APchelolo%2FEventTest",
-                        "http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/mobile-sections-lead/User%3APchelolo%2FEventTest",
-                        "http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/mobile-sections/User%3APchelolo%2FEventTest"
-                    ]);
-                    udpServer.close();
-                    done();
-                }
-            } catch (e) {
-                udpServer.close();
-                done(e);
-            }
-        });
-        udpServer.bind(4321);
-
-        // Start from a deplay to get all of the ongoing messages pass
-        return preq.get({
-            uri: server.config.labsBucketURL + '/mobile-sections/User:Pchelolo%2FEventTest',
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-        .delay(100)
-        .finally(function() {
-            udpServer.close();
-            done(new Error('Timeout!'));
-        });
-    });
-
     it('should not explode if events config is not provided', function() {
         return preq.post({
             uri: server.config.baseURL + '/events_no_config/',
             body: [
                 { uri: '//en.wikipedia.org' }
             ]
-        });
-    });
-
-    it('should not explode on incorrect body', function() {
-        return preq.post({
-            uri: server.config.baseURL + '/events_purge/',
-            body: { uri: '//en.wikipedia.org' }
-        });
-    });
-
-    it('should send valid events and drop invalid', function(done) {
-        var udpServer = dgram.createSocket('udp4');
-
-        udpServer.on("message", function(msg) {
-            try {
-                var uri = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
-                assert.deepEqual(uri, 'http://en.wikipedia.org');
-                udpServer.close();
-                done();
-            } catch (e) {
-                udpServer.close();
-                done(e);
-            }
-        });
-        udpServer.bind(4321);
-
-        return preq.post({
-            uri: server.config.baseURL + '/events_purge/',
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: [
-                { meta: {
-                        uri: '//en.wikipedia.org'
-                    }
-                },
-                { meta: { } },
-                { should_not_be: 'here' }
-            ]
-        })
-        .delay(500)
-        .finally(function() {
-            udpServer.close();
-            done(new Error('UDP server timeout!'));
         });
     });
 
@@ -138,8 +54,6 @@ describe('Change event emitting', function() {
         eventLogging.listen(8085);
         return eventLogging;
     }
-    
-   
 
     it('should send correct events to the service', function(done) {
         var eventLogging;
@@ -151,7 +65,7 @@ describe('Change event emitting', function() {
 
         eventLogging = createEventLogging(really_done);
         return preq.post({
-            uri: server.config.baseURL + '/events_emit/',
+            uri: server.config.baseURL + '/events/',
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
@@ -184,7 +98,7 @@ describe('Change event emitting', function() {
         eventLogging = createEventLogging(really_done);
 
         return preq.post({
-            uri: server.config.baseURL + '/events_emit/',
+            uri: server.config.baseURL + '/events/',
             headers: {
                 'content-type': 'application/json',
                 'x-triggered-by': 'resource_change:https://en.wikipedia.org/wiki/Prohibited'

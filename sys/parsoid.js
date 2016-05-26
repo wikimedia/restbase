@@ -97,28 +97,22 @@ function ParsoidService(options) {
 // Short alias
 var PSP = ParsoidService.prototype;
 
-// TEMP TEMP TEMP!!!
-// Wiktionary / summary invalidation and mobileapps pregeneration
+// HTML resource_change event emission
 PSP._dependenciesUpdate = function(hyper, req) {
     var rp = req.params;
-    return mwUtil.getSiteInfo(hyper, req)
-    .then(function(siteInfo) {
-        var rp = req.params;
-        var updates = [];
+    var updates = [];
 
-        // Emit resource change events
-        var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
-        updates.push(hyper.post({
-            uri: new URI([rp.domain, 'sys', 'events', '']),
-            body: [
-                { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
-                { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
-                    + '/' + rp.revision } }
-            ]
-        }));
+    var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
+    updates.push(hyper.post({
+        uri: new URI([rp.domain, 'sys', 'events', '']),
+        body: [
+            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
+            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
+                + '/' + rp.revision } }
+        ]
+    }));
 
-        return P.all(updates);
-    })
+    return P.all(updates)
     .catch(function(e) {
         hyper.log('warn/bg-updates', e);
     });
