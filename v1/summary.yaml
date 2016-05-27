@@ -97,13 +97,14 @@ paths:
               method: post
               uri: /{domain}/sys/action/query
               body:
-                prop: 'info|extracts|pageimages|revisions'
+                prop: 'info|extracts|pageimages|revisions|pageterms'
                 exsentences: 5
                 explaintext: true
                 piprop: 'thumbnail'
                 pithumbsize: 320
                 rvprop: 'timestamp'
                 titles: '{{request.params.title}}'
+                wbptterms: 'description'
             response:
               # Define the response to save & return.
               headers:
@@ -115,6 +116,7 @@ paths:
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
                 dir: '{{extract.body.items[0].pagelanguagedir}}'
                 timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
+                description: '{{extractDescription(extract.body.items[0].terms)}}'
 
         - emit_change_event:
             request:
@@ -156,6 +158,7 @@ paths:
                 source: /^https:/
               lang: en
               dir: ltr
+              description: /.+/
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
@@ -210,4 +213,8 @@ definitions:
         type: string
         description: The time when the page was last editted in the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format
         example: '1970-01-01T00:00:00.000Z'
+      description:
+        type: string
+        description: Wikidata description for the page
+        example: American poet
     required: ['title', 'extract', 'lang', 'dir']
