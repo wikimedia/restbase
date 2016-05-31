@@ -102,7 +102,6 @@ paths:
             limits:
               internal: 10
               external: 10
-            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
@@ -118,7 +117,7 @@ paths:
       summary: Get pageview counts for a project.
       description: |
         Given a date range, returns a timeseries of pageview counts. You can filter by project, access method and/or agent type. You can choose between daily and hourly granularity as well.
-        
+
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 10 req/s
       produces:
@@ -173,7 +172,6 @@ paths:
             limits:
               internal: 10
               external: 10
-            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
@@ -260,7 +258,6 @@ paths:
             limits:
               internal: 10
               external: 10
-            log_only: true
       x-request-handler:
         - get_from_backend:
             request:
@@ -276,7 +273,7 @@ paths:
       summary: Get unique devices count per project
       description: |
         Given a project and a date range, returns a timeseries of unique devices counts. You need to specify a project, and can filter by accessed site (mobile or desktop). You can choose between daily and hourly granularity as well.
-        
+
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 10 req/s
       produces:
@@ -325,7 +322,6 @@ paths:
             limits:
               internal: 10
               external: 10
-            log_only: true
       x-request-handler:
         - get_from_backend:
             request:

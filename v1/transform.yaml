@@ -21,7 +21,8 @@ paths:
         Transform [Parsoid HTML](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
         to Wikitext.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Rate limit: 5 req/s
       consumes:
         - multipart/form-data
       produces:
@@ -88,7 +89,6 @@ paths:
             limits:
               internal: 10
               external: 5
-            log_only: true
 
       x-request-handler:
         - get_from_backend:
@@ -110,7 +110,8 @@ paths:
         Transform wikitext to HTML. Note that if you set `stash: true`, you
         also need to supply the title.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Rate limit: 5 req/s
       consumes:
         - multipart/form-data
       produces:
@@ -175,7 +176,6 @@ paths:
             limits:
               internal: 10
               external: 5
-            log_only: true
 
       x-request-handler:
         - get_from_backend:
@@ -282,7 +282,8 @@ paths:
         The client can send back only modified HTML sections, and retrieve the
         full Wikitext of the page.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Rate limit: 5 req/s
       consumes:
         - application/json
         - multipart/form-data
@@ -347,7 +348,6 @@ paths:
             limits:
               internal: 10
               external: 5
-            log_only: true
 
       x-request-handler:
         - get_from_backend:
