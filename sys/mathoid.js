@@ -17,6 +17,58 @@ function MathoidService(options) {
 }
 
 
+MathoidService.prototype._invalidateCache = function(hyper, hash) {
+
+    var routes = [];
+    var uri = '//wikimedia.org/api/rest_v1/media/math/';
+
+    routes.push(uri + 'formula/' + hash);
+
+    FORMATS.forEach(function(fmt) {
+        routes.push(uri + 'render/' + fmt + '/' + hash);
+    });
+
+    return hyper.post({
+        uri: new URI(['wikimedia.org', 'sys', 'events', '']),
+        body: routes.map(function(route) {
+            return { meta: { uri: route } };
+        })
+    }).catch(function(e) {
+        hyper.log('warn/bg-updates', e);
+    });
+
+};
+
+MathoidService.prototype.getFormula = function(hyper, req) {
+
+    var rp = req.params;
+    var hash = rp.hash;
+
+    return hyper.get({
+        uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', hash])
+    }).then(function(res) {
+        res.headers['x-resource-location'] = hash;
+        return res;
+    }).catch({ status: 404 }, function(err) {
+        // let's try to find an indirection
+        return hyper.get({
+            uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])
+        }).then(function(hashRes) {
+            // we have a normalised version of the formula
+            hash = hashRes.body;
+            // grab that version from storage
+            return hyper.get({
+                uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', hash])
+            }).then(function(res) {
+                res.headers['x-resource-location'] = hash;
+                return res;
+            });
+        });
+    });
+
+};
+
+
 MathoidService.prototype.checkInput = function(hyper, req) {
 
     var self = this;
@@ -78,7 +130,8 @@ MathoidService.prototype.checkInput = function(hyper, req) {
             // add the indirection to the hash table if the hashes don't match
             if (hash !== origHash) {
                 indirectionP = hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', origHash]),
+                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table',
+                        origHash]),
                     headers: { 'content-type': 'text/plain' },
                     body: hash
                 });
@@ -96,6 +149,7 @@ MathoidService.prototype.checkInput = function(hyper, req) {
                     body: checkRes.body
                 }),
                 indirectionP,
+                self._invalidateCache.bind(self, hyper, hash),
                 function() {
                     return checkRes;
                 }
@@ -141,6 +195,9 @@ MathoidService.prototype._storeRenders = function(hyper, domain, hash, completeB
         reqs[idx] = hyper.put(reqObj);
     }
 
+    // invalidate the cache
+    reqs.push(this._invalidateCache(hyper, hash));
+
     // now do them all
     return P.all(reqs).then(function() { return completeBody; });
 
@@ -179,6 +236,11 @@ module.exports = function(options) {
     return {
         spec: {
             paths: {
+                '/formula/{hash}': {
+                    get: {
+                        operationId: 'getFormula'
+                    }
+                },
                 '/check/{type}': {
                     post: {
                         operationId: 'checkInput'
@@ -192,6 +254,7 @@ module.exports = function(options) {
             }
         },
         operations: {
+            getFormula: mathoidSrv.getFormula.bind(mathoidSrv),
             checkInput: mathoidSrv.checkInput.bind(mathoidSrv),
             requestAndStore: mathoidSrv.requestAndStore.bind(mathoidSrv)
         },
