@@ -100,20 +100,15 @@ var PSP = ParsoidService.prototype;
 // HTML resource_change event emission
 PSP._dependenciesUpdate = function(hyper, req) {
     var rp = req.params;
-    var updates = [];
+    var publicURI = '//' + rp.domain + '/api/rest_v1/page/html/' + encodeURIComponent(rp.title);
 
-    var publicBaseURI = '//' + rp.domain + '/api/rest_v1/page';
-    updates.push(hyper.post({
+    return hyper.post({
         uri: new URI([rp.domain, 'sys', 'events', '']),
         body: [
-            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title) } },
-            { meta: { uri: publicBaseURI + '/html/' + encodeURIComponent(rp.title)
-                + '/' + rp.revision } }
+            { meta: { uri: publicURI } },
+            { meta: { uri: publicURI + '/' + rp.revision } }
         ]
-    }));
-
-    return P.all(updates)
-    .catch(function(e) {
+    }).catch(function(e) {
         hyper.log('warn/bg-updates', e);
     });
 };

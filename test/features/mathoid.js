@@ -79,6 +79,16 @@ describe('Mathoid', function() {
         });
     });
 
+    it('gets the formula from storage', function() {
+        return preq.get({
+            uri: uri + '/formula/' + hash
+        }).then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.checkString(res.headers['x-resource-location'], hash);
+            assert.ok(res.body);
+        });
+    });
+
     for (var i = 0; i < formats.length; i++) {
         var format = formats[i];
         it('gets the render in ' + format, function() {
