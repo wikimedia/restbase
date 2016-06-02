@@ -169,35 +169,6 @@ describe('router - security', function() {
                     'rights': ['som right', 'some other right']
                 }
             }
-        })
-        .post('')
-        .reply(200, {
-            'batchcomplete': '',
-            'query': {
-                'pages': {
-                    '11089416': {
-                        'pageid': 11089416,
-                        'ns': 0,
-                        'title': title,
-                        'contentmodel': 'wikitext',
-                        'pagelanguage': 'en',
-                        'touched': '2015-05-22T08:49:39Z',
-                        'lastrevid': 653508365,
-                        'length': 2941,
-                        'revisions': [{
-                            'revid': revision,
-                            'user': 'Chuck Norris',
-                            'userid': 3606755,
-                            'timestamp': '2015-03-25T20:29:50Z',
-                            'size': 2941,
-                            'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
-                            'contentmodel': 'wikitext',
-                            'comment': 'Test',
-                            'tags': []
-                        }]
-                    }
-                }
-            }
         });
         return preq.get({
             uri: server.config.secureBucketURL + '/title/' + title,
