@@ -109,7 +109,7 @@ paths:
                 content-type: application/json
               body:
                 title: '{{extract.body.items[0].title}}'
-                extract: '{{extract.body.items[0].extract}}'
+                extract: '{{removeIPA(extract.body.items[0].extract)}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
                 dir: '{{extract.body.items[0].pagelanguagedir}}'

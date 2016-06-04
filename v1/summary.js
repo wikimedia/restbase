@@ -15,6 +15,14 @@ module.exports = function(options, templates) {
                     thumb.source = thumb.source.replace(/^http:/, 'https:');
                 }
                 return thumb;
+            },
+            removeIPA: function(text) {
+                if (!text) {
+                    return text;
+                }
+                return text.replace(/\/[^/]+\/;?/, '')
+                .replace(/\(\s*\)/, '')
+                .replace(/\s\s/g, ' ');
             }
         }
     };
