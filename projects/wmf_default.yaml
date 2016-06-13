@@ -95,7 +95,7 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
-                    skip_updates: '{{options.parsoid.skip_updates}}'
+                    skip_updates: '{{options.skip_updates}}'
                     # A list of pages that we don't currently want to re-render on
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
@@ -144,5 +144,5 @@ paths:
             /events:
               x-modules:
                 - path: sys/events.js
-                  options: '{{options.events}}'
+                  options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
         options: '{{options}}'

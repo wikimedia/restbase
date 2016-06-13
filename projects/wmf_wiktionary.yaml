@@ -95,7 +95,7 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
-                    skip_updates: '{{options.parsoid.skip_updates}}'
+                    skip_updates: '{{options.skip_updates}}'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
@@ -103,6 +103,6 @@ paths:
                                 options.mobileapps)}}'
             /events:
               x-modules:
-              - path: sys/events.js
-                options: '{{options.events}}'
+                - path: sys/events.js
+                  options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
         options: '{{options}}'

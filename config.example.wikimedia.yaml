@@ -18,7 +18,6 @@ default_project: &default_project
               domains: /./
         parsoid:
           host: http://parsoid-beta.wmflabs.org
-          skip_updates: false
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
         graphoid:
@@ -33,6 +32,7 @@ default_project: &default_project
           cache_control: s-maxage=86400, max-age=86400
         # 10 days Varnish caching, one day client-side
         purged_cache_control: s-maxage=864000, max-age=86400
+        skip_updates: false
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
