@@ -95,6 +95,7 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
+                    skip_updates: '{{options.parsoid.skip_updates}}'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml

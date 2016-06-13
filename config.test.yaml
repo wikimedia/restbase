@@ -24,6 +24,7 @@ default_project: &default_project
           dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         parsoid:
           host: http://parsoid-beta.wmflabs.org
+          skip_updates: false
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
         graphoid:

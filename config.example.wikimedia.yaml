@@ -18,6 +18,7 @@ default_project: &default_project
               domains: /./
         parsoid:
           host: http://parsoid-beta.wmflabs.org
+          skip_updates: false
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
         graphoid:
