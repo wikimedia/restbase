@@ -16,6 +16,7 @@ Dockerfile
 
 # sqlite file (used in testing)
 test.db.sqlite3
+test.db.sqlite3-journal
 sqlite.db
 db.sqlite3
 
