@@ -621,9 +621,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             original: original
         };
         if (from === 'sections') {
-            body2.html = {
-                body: replaceSections(original, parseSections(req))
-            };
+            body2.html = replaceSections(original, parseSections(req));
             from = 'html';
         } else {
             body2[from] = req.body[from];
@@ -707,7 +705,10 @@ PSP.callParsoidTransform = function callParsoidTransform(hyper, req, from, to) {
         // Retrieve pagebundle whenever we want HTML
         parsoidTo = 'pagebundle';
     }
-
+    var parsoidFrom = from;
+    if (from === 'html' && req.body.original && req.body['data-parsoid']) {
+        parsoidFrom = 'pagebundle';
+    }
     var parsoidExtras = [];
     if (rp.title) {
         parsoidExtras.push(rp.title);
@@ -723,7 +724,7 @@ PSP.callParsoidTransform = function callParsoidTransform(hyper, req, from, to) {
 
     var parsoidReq = {
         uri: this.parsoidHost + '/' + rp.domain + '/v3/transform/'
-            + from + '/to/' + parsoidTo + parsoidExtraPath,
+            + parsoidFrom + '/to/' + parsoidTo + parsoidExtraPath,
         headers: {
             'content-type': 'application/json',
             'user-agent': req['user-agent'],
