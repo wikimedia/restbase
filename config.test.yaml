@@ -36,6 +36,7 @@ default_project: &default_project
           host: http://appservice.wmflabs.org
         events: {}
         purged_cache_control: test_purged_cache_control
+        skip_updates: false
 
 labs_project: &labs_project
   x-modules:

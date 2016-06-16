@@ -68,6 +68,9 @@ EventService.prototype.emitEvent = function(hyper, req) {
         }
 
         if (events && events.length) {
+            if (self.options.skip_updates) {
+                return P.resolve();
+            }
             return hyper.post({
                 uri: self.options.uri,
                 headers: {

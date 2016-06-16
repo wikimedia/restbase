@@ -102,6 +102,6 @@ paths:
                                 options.mobileapps)}}'
             /events:
               x-modules:
-              - path: sys/events.js
-                options: '{{options.events}}'
+                - path: sys/events.js
+                  options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
         options: '{{options}}'
