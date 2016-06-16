@@ -102,10 +102,6 @@ PSP._dependenciesUpdate = function(hyper, req) {
     var rp = req.params;
     var publicURI = '//' + rp.domain + '/api/rest_v1/page/html/' + encodeURIComponent(rp.title);
 
-    if (this.options.skip_updates) {
-        return P.resolve();
-    }
-
     return hyper.post({
         uri: new URI([rp.domain, 'sys', 'events', '']),
         body: [

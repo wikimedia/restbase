@@ -81,5 +81,5 @@ paths:
             /events:
               x-modules:
                 - path: sys/events.js
-                  options: '{{options.events}}'
+                  options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
         options: '{{options}}'
