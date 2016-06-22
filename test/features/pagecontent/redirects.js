@@ -68,6 +68,17 @@ describe('Redirects', function() {
         });
     });
 
+    it('should redirect to commons for missing file pages, dewiki', function() {
+        return preq.get({
+            uri: server.config.hostPort + '/de.wikipedia.org/v1/page/html/Datei:Name.jpg'
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AName.jpg');
+        });
+    });
+
     it('should not redirect to commons for missing file pages, redirect=false', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg?redirect=false'
