@@ -41,7 +41,7 @@
     "content-type": "git+https://github.com/wikimedia/content-type#master",
     "hyperswitch": "^0.5.2",
     "jsonwebtoken": "^6.2.0",
-    "mediawiki-title": "^0.4.2",
+    "mediawiki-title": "^0.5.2",
     "entities": "^1.1.1"
   },
   "devDependencies": {
