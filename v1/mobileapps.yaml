@@ -15,7 +15,7 @@ paths:
         Retrieve the latest HTML for a page title optimised for viewing with
         native mobile applications. Note that the output is split by sections.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
@@ -92,7 +92,7 @@ paths:
         Retrieve the lead section of the latest HTML for a page title optimised
         for viewing with native mobile applications.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
@@ -155,7 +155,7 @@ paths:
         a page title optimised for viewing with native mobile applications,
         provided as a JSON object containing the sections.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
