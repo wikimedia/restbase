@@ -60,7 +60,7 @@
     "swagger-test": "0.3.0"
   },
   "deploy": {
-    "node": "4.3.0",
+    "node": "4.4.6",
     "target": "debian",
     "dependencies": {
       "_all": []
