@@ -28,7 +28,7 @@ if [ "x$2" = "x" ]; then
     if [ "$?" -eq 0 ]; then
         runTest "cassandra" $1
     else
-        echo "Cassandra not available. Using SQLite backed for tests"
+        echo "Cassandra not available. Using SQLite backend for tests"
         runTest "sqlite" $1
     fi
 elif [ "$2" = "sqlite" ]; then
