@@ -81,7 +81,8 @@ paths:
                     pageid: /.+/
                     normalizedtitle: /.+/
               random:
-                title: /.+/
+                items:
+                  - title: /.+/
               news:
                 - story: /.+/
                   links:

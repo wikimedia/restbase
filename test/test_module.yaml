@@ -66,6 +66,7 @@ paths:
                   - title: Retreives parallel content with simple service
                     request:
                       params:
+                        domain: en.wikipedia.org
                         key1: User:GWicke/Date
                         key2: User:GWicke/Date
                     response:

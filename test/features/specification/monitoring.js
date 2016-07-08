@@ -37,12 +37,14 @@ function constructTests(spec, options) {
             var p = paths[pathStr][method];
             var uri = new URI(server.config.hostPort + '/{domain}/v1' + pathStr, {}, true);
             if (!p['x-amples']) {
-                throw new Error('Method without examples should decalre x-monitor: false.'
+                throw new Error('Method without examples should declare x-monitor: false.'
                     + ' Path: ' + pathStr + ' Method: ' + method);
             }
             p['x-amples'].forEach(function(ex) {
                 ex.request = ex.request || {};
-                if (ex.request.params && ex.request.params.domain !== options.domain) {
+                ex.request.params = ex.request.params || {};
+                ex.request.params.domain = ex.request.params.domain || options.domain;
+                if (ex.request.params.domain !== options.domain) {
                     return;
                 }
 
@@ -61,8 +63,8 @@ function constructTests(spec, options) {
 
 
 function cmp(result, expected, errMsg) {
-    expected = expected || '';
-    result = result || '';
+    if(expected === null || expected === undefined) { expected = ''; }
+    if(result === null || result === undefined) { result = ''; }
     if(expected.length > 1 && expected[0] === '/' && expected[expected.length - 1] === '/') {
         if((new RegExp(expected.slice(1, -1))).test(result)) {
             return true;
@@ -107,11 +109,26 @@ function validateBody(resBody, expBody) {
             if (val.constructor === Object) {
                 validateBody(resBody[key], val)
             } else if (val.constructor === Array) {
-                assert.deepEqual(val.length === resBody[key].length, true,
-                    'Different size of array: expected ' + val.length + ' actual ' + resBody[key].length);
-                val.forEach(function(item, index) {
+                assert.deepEqual(Array.isArray(resBody[key]), true,
+                    'Body field ' + key + ' is not an array!');
+                var arrVal;
+                if(val.length === 1) {
+                    // special case: we have specified only one item in the expected body,
+                    // but what we really want is to check all of the returned items so
+                    // fill the expected array with as many items as the returned one
+                    arrVal = [];
+                    while(arrVal.length < resBody[key].length) {
+                        arrVal.push(val[0]);
+                    }
+                } else {
+                    arrVal = val;
+                }
+                assert.deepEqual(arrVal.length === resBody[key].length, true,
+                    'Different size of array for field ' + key + ', expected ' + arrVal.length +
+                    ' actual ' + resBody[key].length);
+                arrVal.forEach(function(item, index) {
                     validateBody(resBody[key][index], item);
-                })
+                });
             } else {
                 cmp(resBody[key], val, key + ' body field mismatch!');
             }
