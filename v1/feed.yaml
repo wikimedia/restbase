@@ -1,0 +1,105 @@
+# Feed endpoints powered by the MCS
+
+swagger: 2.0
+paths:
+  /featured/{yyyy}/{mm}/{dd}:
+    get:
+      tags:
+        - Feed
+      summary: Aggregated featured content
+      description: |
+        Provides the aggregated feed content for the given date. The endpoint returns
+        the featured article of the day, most read articles for the previous day, news
+        content, a random article, and the featured image and video of the day.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: yyyy
+          in: path
+          description: 'Year the aggregated content is requested for'
+          type: string
+          required: true
+        - name: mm
+          in: path
+          description: 'Month the aggregated content is requested for'
+          type: string
+          required: true
+        - name: dd
+          in: path
+          description: 'Day of the month the aggregated content is requested for'
+          type: string
+          required: true
+      responses:
+        '200':
+          description: JSON containing all of the featured content
+          schema:
+            type: object
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - from_mobileapps:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/feed/featured/{yyyy}/{mm}/{dd}'
+            return: 
+              status: '{{from_mobileapps.status}}'
+              headers: '{{ merge({"cache-control": options.feed_cache_control},
+                            from_mobileapps.headers) }}'
+              body: '{{from_mobileapps.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Retrieve aggregated feed content for April 29, 2016
+          request:
+            params:
+              domain: en.wikipedia.org
+              yyyy: '2016'
+              mm: '04'
+              dd: '29'
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              tfa:
+                title: /.+/
+                description: /.+/
+                extract: /.+/
+                thumbnail:
+                  source: /.+/
+                  width: /.+/
+                  height: /.+/
+              mostread:
+                date: /.+/
+                articles:
+                  - views: /.+/
+                    rank: /.+/
+                    title: /.+/
+                    pageid: /.+/
+                    normalizedtitle: /.+/
+              random:
+                title: /.+/
+              news:
+                - story: /.+/
+                  links:
+                    - pageid: /.+/
+                      ns: /.+/
+                      normalizedtitle: /.+/
+                      title: /.+/
+              image:
+                title: /.+/
+                description:
+                  text: /.+/
+                  lang: /.+/
+                image:
+                  source: /.+/
+                  width: /.+/
+                  height: /.+/
+                thumbnail:
+                  source: /.+/
+                  width: /.+/
+                  height: /.+/
+
