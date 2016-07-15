@@ -49,6 +49,14 @@ paths:
                     response_cache_control: '{{options.purged_cache_control}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
+                - path: v1/random.yaml
+                  options: '{{merge({"random_cache_control": "s-maxage=2, max-age=1"},
+                                options.mobileapps)}}'
+            /feed:
+              x-modules:
+                - path: v1/feed.yaml
+                  options: '{{merge({"feed_cache_control": "s-maxage=60, max-age=30"},
+                                options.mobileapps)}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml

@@ -1,0 +1,52 @@
+swagger: '2.0'
+paths:
+  /random/{format}:
+    get:
+      tags:
+        - Page content
+      summary: Get content for a random page
+      description: |
+        Redirects the client to the URI for the desired format for a random page title.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      parameters:
+        - name: format
+          in: path
+          description: The desired return format
+          type: string
+          enum:
+            - title
+            - html
+            - summary
+            - related
+            - mobile-sections
+            - mobile-sections-lead
+          required: true
+      responses:
+        '303':
+          description: The redirect to the desired format URI for a random page
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - title_from_mobileapps:
+            request:
+              uri: '{{options.host}}/{domain}/v1/page/random/title'
+            return:
+              status: 303
+              headers:
+                cache_control: '{{options.random_cache_control}}'
+                location: '../../{request.params.format}/{title_from_mobileapps.body.items[0].title}'
+      x-monitor: true
+      x-amples:
+        - title: Random title redirect
+          request:
+            params:
+              format: title
+          response:
+            status: 303
+            headers:
+              cache-control: /.+/
+              location: /^..\/..\/title\/[^\/]+$/
+        
