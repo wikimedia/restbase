@@ -706,7 +706,7 @@ PSP.callParsoidTransform = function callParsoidTransform(hyper, req, from, to) {
         parsoidTo = 'pagebundle';
     }
     var parsoidFrom = from;
-    if (from === 'html' && req.body.original && req.body['data-parsoid']) {
+    if (from === 'html' && req.body.original && req.body.original['data-parsoid']) {
         parsoidFrom = 'pagebundle';
     }
     var parsoidExtras = [];
