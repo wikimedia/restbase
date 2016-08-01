@@ -15,6 +15,9 @@ module.exports = function(options, templates) {
                     thumb.source = thumb.source.replace(/^http:/, 'https:');
                 }
                 return thumb;
+            },
+            getTimestamp: function(items) {
+                return items && items[0] && items[0].timestamp
             }
         }
     };
