@@ -4,6 +4,7 @@
   "description": "REST storage and service dispatcher",
   "main": "lib/server.js",
   "scripts": {
+    "prepublish": "git tag \"v${npm_package_version}\" && git push upstream --tags",
     "start": "service-runner",
     "test": "sh test/utils/run_tests.sh test",
     "coverage": "sh test/utils/run_tests.sh coverage",
@@ -31,7 +32,7 @@
     "url": "https://phabricator.wikimedia.org/tag/restbase/"
   },
   "homepage": "https://github.com/wikimedia/restbase",
-	"readme": "README.md",
+  "readme": "README.md",
   "dependencies": {
     "bluebird": "^3.4.1",
     "cassandra-uuid": "^0.0.2",
