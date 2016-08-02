@@ -114,7 +114,7 @@ paths:
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
                 dir: '{{extract.body.items[0].pagelanguagedir}}'
-                timestamp: '{{getTimestamp(extract.body.items[0].revisions)}}'
+                timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
 
         - emit_change_event:
             request:

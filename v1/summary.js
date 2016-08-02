@@ -16,8 +16,11 @@ module.exports = function(options, templates) {
                 }
                 return thumb;
             },
-            getTimestamp: function(items) {
-                return items && items[0] && items[0].timestamp
+            getRevision: function(revItems) {
+                if (Array.isArray(revItems) && revItems.length) {
+                    return revItems[0];
+                }
+                return {};
             }
         }
     };
