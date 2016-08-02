@@ -15,6 +15,12 @@ module.exports = function(options, templates) {
                     thumb.source = thumb.source.replace(/^http:/, 'https:');
                 }
                 return thumb;
+            },
+            getRevision: function(revItems) {
+                if (Array.isArray(revItems) && revItems.length) {
+                    return revItems[0];
+                }
+                return {};
             }
         }
     };
