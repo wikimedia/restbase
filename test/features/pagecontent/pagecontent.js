@@ -235,20 +235,6 @@ describe('item requests', function() {
         });
     });
 
-    it('should retrieve API listing in html', function() {
-        return preq.get({
-            uri: server.config.hostPort + '/en.wikipedia.org/',
-            headers: {
-                accept: 'text/html'
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'text/html');
-            assert.deepEqual(/<html/.exec(res.body)[0], '<html');
-        });
-    });
-
     it('should list page titles', function() {
         return preq.get({
             uri: server.config.bucketURL + '/title/'
