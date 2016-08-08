@@ -189,7 +189,8 @@ describe('item requests', function() {
 
     it('should retrieve the swagger-ui main page', function() {
         return preq.get({
-            uri: server.config.baseURL + '/?doc'
+            uri: server.config.baseURL + '/',
+            headers: { accept: 'text/html' }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
