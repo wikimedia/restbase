@@ -544,7 +544,7 @@ function parseSections(req) {
     var sections = req.body.sections;
     if (sections.constructor !== Object) {
         try {
-            return JSON.parse(req.body.sections.toString());
+            return JSON.parse(sections.toString());
         } catch (e) {
             // Catch JSON parsing exception and return 400
             throw new HTTPError({
