@@ -310,7 +310,6 @@ paths:
               sections:
                 example: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
               scrub_wikitext:
-                type: boolean
                 description: Normalise the DOM to yield cleaner wikitext?
             required:
               - sections
@@ -363,6 +362,8 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+              headers:
+                if-match: '{{if-match}}'
               body:
                 sections: '{{sections}}'
                 scrub_wikitext: '{{scrub_wikitext}}'
