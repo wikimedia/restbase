@@ -187,6 +187,29 @@ describe('transform api', function() {
         });
     });
 
+    it('sections2wt, replace, scrub_wikitext', function() {
+        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        var pageWithSectionsRev = 275834;
+        return preq.post({
+            uri: server.config.labsURL
+            + '/transform/sections/to/wikitext/'
+            + pageWithSectionsTitle
+            + '/' + pageWithSectionsRev,
+            body: {
+                sections: '{"mwAg":"<h2></h2>","mwAw":"<h2>Second Section replaced</h2>"}',
+                scrub_wikitext: true
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, contentTypes.wikitext);
+            assert.deepEqual(/== First Section ==/.test(res.body), false);
+            assert.deepEqual(/== Second Section ==/.test(res.body), false);
+            assert.deepEqual(/== ?<nowiki\/> ?==/.test(res.body), false);
+            assert.deepEqual(/== Second Section replaced ==/.test(res.body), true);
+        });
+    });
+
     it('sections2wt, append', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         var pageWithSectionsRev = 275834;
