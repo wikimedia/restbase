@@ -565,13 +565,10 @@ PSP.transformRevision = function(hyper, req, from, to) {
     var rp = req.params;
 
     var etag = req.headers && mwUtil.parseETag(req.headers['if-match']);
-    var tid;
-    if (from === 'html') {
-        if (etag) {
-            // Prefer the If-Match header
-            tid = etag.tid;
-        }
+    // Prefer the If-Match header
+    var tid = etag && etag.tid;
 
+    if (from === 'html') {
         if (req.body && req.body.html) {
             // Fall back to an inline meta tag in the HTML
             var htmlTid = extractTidMeta(req.body.html);

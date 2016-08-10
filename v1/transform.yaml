@@ -309,8 +309,17 @@ paths:
             properties:
               sections:
                 example: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
+              scrub_wikitext:
+                description: Normalise the DOM to yield cleaner wikitext?
             required:
               - sections
+        - name: if-match
+          in: header
+          description: |
+            The `ETag` header of the original render indicating it's revision and timeuuid.
+            Required if both `title` and `revision` parameters are present.
+          type: string
+          required: false
       responses:
         '200':
           description: Wikitext of the full page.
@@ -353,8 +362,11 @@ paths:
         - get_from_backend:
             request:
               uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+              headers:
+                if-match: '{{if-match}}'
               body:
                 sections: '{{sections}}'
+                scrub_wikitext: '{{scrub_wikitext}}'
       x-monitor: false
 
 definitions:
