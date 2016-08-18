@@ -144,6 +144,8 @@ paths:
                         نام_مقامات_ایس: true
                       commons.wikipedia.org:
                         Commons:Quality_images_candidates/candidate_list: true
+                      ceb.wikipedia.org:
+                        Gumagamit:Lsjbot/Anomalier-PRIVAT: true
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
