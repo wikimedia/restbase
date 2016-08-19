@@ -21,6 +21,12 @@ paths:
         Transform [Parsoid HTML](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec)
         to Wikitext.
 
+        When converting pre-existing (possibly modified) content, you should
+        pass in the `title`, `revision`, and `If-Match` header. This lets
+        [Parsoid](https://www.mediawiki.org/wiki/Parsoid) preserve small
+        syntactic variations in wikitext, which ensures that diffs are
+        readable.
+
         - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
         - Rate limit: 5 req/s
       consumes:
