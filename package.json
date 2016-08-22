@@ -1,8 +1,8 @@
 {
   "name": "restbase",
-  "version": "0.14.4",
+  "version": "0.15.0",
   "description": "REST storage and service dispatcher",
-  "main": "lib/server.js",
+  "main": "index.js",
   "scripts": {
     "postpublish": "git tag -a \"v${npm_package_version}\" -m \"${npm_package_name}@${npm_package_version} release\" && git push upstream \"v${npm_package_version}\"",
     "start": "service-runner",
