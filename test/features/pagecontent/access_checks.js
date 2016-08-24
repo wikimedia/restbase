@@ -183,7 +183,9 @@ describe('Access checks', function() {
     }
 
     testAccess('html', 'deleted', deletedPageTitle);
-    // TODO testAccess('html', 'deleted', deletedPageTitle, deletedPageOlderRevision);
+    testAccess('data-parsoid', 'deleted', deletedPageTitle);
+    testAccess('html', 'deleted', deletedPageTitle, deletedPageOlderRevision);
+    testAccess('data-parsoid', 'deleted', deletedPageTitle, deletedPageOlderRevision);
     testAccess('mobile-sections', 'deleted', deletedPageTitle);
     testAccess('mobile-sections-lead', 'deleted', deletedPageTitle);
     testAccess('mobile-sections-remaining', 'deleted', deletedPageTitle);
