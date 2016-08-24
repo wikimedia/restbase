@@ -514,7 +514,9 @@ PSP._getStashedContent = function(hyper, req, etag) {
  */
 function replaceSections(original, sectionsJson) {
     var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
-    var newBody = cheapBodyInnerHTML(original.html.body);
+    var originalBody = cheapBodyInnerHTML(original.html.body);
+    var newBody = '';
+
     var sectionIds = Object.keys(sectionsJson);
     var illegalId = sectionIds.some(function(id) {
         return !sectionOffsets[id];
@@ -528,14 +530,45 @@ function replaceSections(original, sectionsJson) {
             }
         });
     }
+
+    function sliceSection(offset) {
+        return originalBody.substring(offset.html[0], offset.html[1]);
+    }
+
     sectionIds.sort(function(id1, id2) {
         return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
     })
     .forEach(function(id) {
-        var offset = sectionOffsets[id];
-        newBody = newBody.substring(0, offset.html[0])
-        + sectionsJson[id]
-        + newBody.substring(offset.html[1], newBody.length);
+        if (typeof sectionsJson[id] === 'string') {
+            newBody += sectionsJson[id];
+        } else if (Array.isArray(sectionsJson[id])) {
+            sectionsJson[id].forEach(function(replacePart) {
+                if (typeof replacePart === 'string') {
+                    newBody += replacePart;
+                } else {
+                    var replaceId = replacePart[id];
+                    if (!replaceId || !sectionOffsets[id]) {
+                        throw new HTTPError({
+                            status: 400,
+                            body: {
+                                type: 'bad_request',
+                                description: 'Invalid section ids',
+                                id: replaceId
+                            }
+                        });
+                    }
+                    newBody += sliceSection(sectionOffsets[replaceId]);
+                }
+            });
+        } else {
+            throw new HTTPError({
+                status: 400,
+                body: {
+                    type: 'bad_request',
+                    description: 'Invalid section definition: ' + sectionsJson[id]
+                }
+            });
+        }
     });
     return '<body>' + newBody + '</body>';
 }
