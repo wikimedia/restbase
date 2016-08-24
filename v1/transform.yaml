@@ -292,9 +292,8 @@ paths:
         - Rate limit: 5 req/s
       consumes:
         - application/json
-        - multipart/form-data
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
+        - text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
       parameters:
         - name: title
           in: path
@@ -311,11 +310,36 @@ paths:
           description: Sections to transform
           required: true
           schema:
-            type: 'object'
+            type: object
             properties:
               sections:
-                example: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
+                type: object
+                patternProperties:
+                  '^mw\w+$':
+                      type: object
+                      properties:
+                        html:
+                          oneOf:
+                            - type: string
+                            - type: array
+                              items:
+                                oneOf:
+                                  - type: string
+                                  - type: object
+                                    properties:
+                                      id:
+                                        type: string
+                      additionalProperties: false
+                      required:
+                        - html
+                example:
+                  mwAg:
+                    html:
+                      - '<h2>Prepended section</h2>'
+                      - id: mwAg
+                      - '<h2>Appended Section</h2>'
               scrub_wikitext:
+                type: boolean
                 description: Normalise the DOM to yield cleaner wikitext?
             required:
               - sections

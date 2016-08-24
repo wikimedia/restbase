@@ -172,18 +172,25 @@ describe('transform api', function() {
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
+            headers: {
+                'content-type': 'application/json'
+            },
             body: {
-                sections: '{"mwAg":"<h2>First Section replaced</h2>",'
-                    + '"mwAw":"<h2>Second Section replaced</h2>"}'
+                sections: {
+                    mwAg: {
+                        html: "<h2>First Section replaced</h2>"
+                    },
+                    mwAw: {
+                        html: [ "<h2>Second Section replaced</h2>" ]
+                    }
+                }
             }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(/== First Section ==/.test(res.body), false);
-            assert.deepEqual(/== Second Section ==/.test(res.body), false);
-            assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
-            assert.deepEqual(/== Second Section replaced ==/.test(res.body), true);
+            assert.deepEqual(res.body, '== Second Section replaced ==\n\n' +
+                '== First Section replaced ==\n');
         });
     });
 
@@ -195,18 +202,25 @@ describe('transform api', function() {
             + '/transform/sections/to/wikitext/'
             + pageWithSectionsTitle
             + '/' + pageWithSectionsRev,
+            headers: {
+                'content-type': 'application/json'
+            },
             body: {
-                sections: '{"mwAg":"<h2></h2>","mwAw":"<h2>Second Section replaced</h2>"}',
+                sections: {
+                    mwAg: {
+                        html: "<h2></h2>"
+                    },
+                    mwAw: {
+                        html: "<h2>Second Section replaced</h2>"
+                    }
+                },
                 scrub_wikitext: true
             }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(/== First Section ==/.test(res.body), false);
-            assert.deepEqual(/== Second Section ==/.test(res.body), false);
-            assert.deepEqual(/== ?<nowiki\/> ?==/.test(res.body), false);
-            assert.deepEqual(/== Second Section replaced ==/.test(res.body), true);
+            assert.deepEqual(res.body, '== Second Section replaced ==\n');
         });
     });
 
@@ -218,21 +232,31 @@ describe('transform api', function() {
                 + '/transform/sections/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
+            headers: {
+                'content-type': 'application/json'
+            },
             body: {
-                sections: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
+                sections: {
+                    mwAg: {
+                        html: [ { id: 'mwAg' }, '<h2>Appended Section</h2>' ]
+                    },
+                    mwAw: {
+                        html: [ '<h2>Prepended section</h2>', { id: 'mwAw'} ]
+                    }
+                }
             }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(/== First Section ==/.test(res.body), false);
-            assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
-            assert.deepEqual(/== Appended Section ==/.test(res.body), true);
-            assert.deepEqual(/== Second Section ==/.test(res.body), true);
+            assert.deepEqual(res.body, '== Prepended section ==\n\n' +
+                '== Second Section ==\n' +
+                '== First Section ==\n\n' +
+                '== Appended Section ==\n');
         });
     });
 
-    it('sections2wt, append, application/json', function() {
+    it('sections2wt, move', function() {
         var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         var pageWithSectionsRev = 275834;
         return preq.post({
@@ -242,7 +266,9 @@ describe('transform api', function() {
                 + '/' + pageWithSectionsRev,
             body: {
                 sections: {
-                    'mwAg':'<h2>First Section replaced</h2><h2>Appended Section</h2>'
+                    mwAg: {
+                        html: [ { id: 'mwAw'}, { id: 'mwAg'} ]
+                    }
                 }
             },
             headers: {
@@ -252,10 +278,62 @@ describe('transform api', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(/== First Section ==/.test(res.body), false);
-            assert.deepEqual(/== First Section replaced ==/.test(res.body), true);
-            assert.deepEqual(/== Appended Section ==/.test(res.body), true);
-            assert.deepEqual(/== Second Section ==/.test(res.body), true);
+            assert.deepEqual(res.body, '== Second Section ==\n' +
+                '== First Section ==\n');
+        });
+    });
+
+    it('sections2wt, throws on invalid id', function() {
+        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        var pageWithSectionsRev = 275834;
+        return preq.post({
+            uri: server.config.labsURL
+            + '/transform/sections/to/wikitext/'
+            + pageWithSectionsTitle
+            + '/' + pageWithSectionsRev,
+            body: {
+                sections: {
+                    mwAASDC: {
+                        html: 'Test'
+                    }
+                }
+            },
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        .then(function() {
+            throw new Error('Error must be thrown')
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.status, 400);
+        });
+    });
+
+    it('sections2wt, throws on invalid replacement id', function() {
+        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        var pageWithSectionsRev = 275834;
+        return preq.post({
+            uri: server.config.labsURL
+            + '/transform/sections/to/wikitext/'
+            + pageWithSectionsTitle
+            + '/' + pageWithSectionsRev,
+            body: {
+                sections: {
+                    mwAg: {
+                        html: [ { id: 'mwAASDC'}, { id: 'mwAg'} ]
+                    }
+                }
+            },
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        .then(function() {
+            throw new Error('Error must be thrown')
+        })
+        .catch(function(e) {
+            assert.deepEqual(e.status, 400);
         });
     });
 

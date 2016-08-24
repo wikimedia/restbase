@@ -539,25 +539,25 @@ function replaceSections(original, sectionsJson) {
         return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
     })
     .forEach(function(id) {
-        if (typeof sectionsJson[id] === 'string') {
-            newBody += sectionsJson[id];
-        } else if (Array.isArray(sectionsJson[id])) {
-            sectionsJson[id].forEach(function(replacePart) {
+        var sectionReplacement = sectionsJson[id].html;
+        if (typeof sectionReplacement === 'string') {
+            newBody += sectionReplacement;
+        } else if (Array.isArray(sectionReplacement)) {
+            sectionReplacement.forEach(function(replacePart) {
                 if (typeof replacePart === 'string') {
                     newBody += replacePart;
                 } else {
-                    var replaceId = replacePart[id];
-                    if (!replaceId || !sectionOffsets[id]) {
+                    if (!replacePart.id || !sectionOffsets[replacePart.id]) {
                         throw new HTTPError({
                             status: 400,
                             body: {
                                 type: 'bad_request',
                                 description: 'Invalid section ids',
-                                id: replaceId
+                                id: replacePart.id
                             }
                         });
                     }
-                    newBody += sliceSection(sectionOffsets[replaceId]);
+                    newBody += sliceSection(sectionOffsets[replacePart.id]);
                 }
             });
         } else {
@@ -565,7 +565,8 @@ function replaceSections(original, sectionsJson) {
                 status: 400,
                 body: {
                     type: 'bad_request',
-                    description: 'Invalid section definition: ' + sectionsJson[id]
+                    description: 'Invalid section replacement: '
+                        + JSON.stringify(sectionReplacement)
                 }
             });
         }
