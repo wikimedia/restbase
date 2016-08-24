@@ -177,20 +177,17 @@ describe('transform api', function() {
             },
             body: {
                 sections: {
-                    mwAg: {
-                        html: "<h2>First Section replaced</h2>"
-                    },
-                    mwAw: {
-                        html: [ "<h2>Second Section replaced</h2>" ]
-                    }
+                    mwAQ: [],
+                    mwAg: [{ html: "<h2>First Section replaced</h2>" }],
+                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
                 }
             }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(res.body, '== Second Section replaced ==\n\n' +
-                '== First Section replaced ==\n');
+            assert.deepEqual(res.body, '== First Section replaced ==\n\n' +
+                '== Second Section replaced ==\n');
         });
     });
 
@@ -207,12 +204,9 @@ describe('transform api', function() {
             },
             body: {
                 sections: {
-                    mwAg: {
-                        html: "<h2></h2>"
-                    },
-                    mwAw: {
-                        html: "<h2>Second Section replaced</h2>"
-                    }
+                    mwAQ: [],
+                    mwAg: [{ html: "<h2></h2>" }],
+                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
                 },
                 scrub_wikitext: true
             }
@@ -237,22 +231,20 @@ describe('transform api', function() {
             },
             body: {
                 sections: {
-                    mwAg: {
-                        html: [ { id: 'mwAg' }, '<h2>Appended Section</h2>' ]
-                    },
-                    mwAw: {
-                        html: [ '<h2>Prepended section</h2>', { id: 'mwAw'} ]
-                    }
+                    mwAQ: [],
+                    mwAg: [{ id: 'mwAg' }, { html: '<h2>Appended Section</h2>' }],
+                    mwAw: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwAw'}]
                 }
             }
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(res.body, '== Prepended section ==\n\n' +
-                '== Second Section ==\n' +
+            assert.deepEqual(res.body,
                 '== First Section ==\n\n' +
-                '== Appended Section ==\n');
+                '== Appended Section ==\n\n' +
+                '== Prepended section ==\n\n' +
+                '== Second Section ==\n');
         });
     });
 
@@ -266,9 +258,9 @@ describe('transform api', function() {
                 + '/' + pageWithSectionsRev,
             body: {
                 sections: {
-                    mwAg: {
-                        html: [ { id: 'mwAw'}, { id: 'mwAg'} ]
-                    }
+                    mwAQ: [],
+                    mwAg: [{ id: 'mwAw' }, { id: 'mwAg' }],
+                    mwAw: []
                 }
             },
             headers: {
@@ -278,7 +270,8 @@ describe('transform api', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
-            assert.deepEqual(res.body, '== Second Section ==\n' +
+            assert.deepEqual(res.body,
+                '== Second Section ==\n' +
                 '== First Section ==\n');
         });
     });
@@ -293,9 +286,7 @@ describe('transform api', function() {
             + '/' + pageWithSectionsRev,
             body: {
                 sections: {
-                    mwAASDC: {
-                        html: 'Test'
-                    }
+                    mwAASDC: []
                 }
             },
             headers: {
@@ -320,9 +311,7 @@ describe('transform api', function() {
             + '/' + pageWithSectionsRev,
             body: {
                 sections: {
-                    mwAg: {
-                        html: [ { id: 'mwAASDC'}, { id: 'mwAg'} ]
-                    }
+                    mwAg:[ { id: 'mwAASDC'}, { id: 'mwAg'} ]
                 }
             },
             headers: {

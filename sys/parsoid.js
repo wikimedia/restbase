@@ -515,7 +515,7 @@ PSP._getStashedContent = function(hyper, req, etag) {
 function replaceSections(original, sectionsJson) {
     var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
     var originalBody = cheapBodyInnerHTML(original.html.body);
-    var newBody = '';
+    var newBody = originalBody;
 
     var sectionIds = Object.keys(sectionsJson);
     var illegalId = sectionIds.some(function(id) {
@@ -531,45 +531,40 @@ function replaceSections(original, sectionsJson) {
         });
     }
 
-    function sliceSection(offset) {
-        return originalBody.substring(offset.html[0], offset.html[1]);
+    function sliceSection(id) {
+        var htmlOffset = sectionOffsets[id].html;
+        return originalBody.substring(htmlOffset[0], htmlOffset[1]);
+    }
+
+    function fillSection(id, replacement) {
+        var htmlOffset = sectionOffsets[id].html;
+        return newBody.substring(0, htmlOffset[0]) + replacement
+            + newBody.substring(htmlOffset[1], newBody.length);
     }
 
     sectionIds.sort(function(id1, id2) {
         return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
     })
     .forEach(function(id) {
-        var sectionReplacement = sectionsJson[id].html;
-        if (typeof sectionReplacement === 'string') {
-            newBody += sectionReplacement;
-        } else if (Array.isArray(sectionReplacement)) {
-            sectionReplacement.forEach(function(replacePart) {
-                if (typeof replacePart === 'string') {
-                    newBody += replacePart;
-                } else {
-                    if (!replacePart.id || !sectionOffsets[replacePart.id]) {
-                        throw new HTTPError({
-                            status: 400,
-                            body: {
-                                type: 'bad_request',
-                                description: 'Invalid section ids',
-                                id: replacePart.id
-                            }
-                        });
-                    }
-                    newBody += sliceSection(sectionOffsets[replacePart.id]);
+        var sectionReplacement = sectionsJson[id];
+        var replacement = sectionReplacement.map(function(replacePart) {
+            if (replacePart.html) {
+                return replacePart.html;
+            } else {
+                if (!replacePart.id || !sectionOffsets[replacePart.id]) {
+                    throw new HTTPError({
+                        status: 400,
+                        body: {
+                            type: 'bad_request',
+                            description: 'Invalid section ids',
+                            id: replacePart.id
+                        }
+                    });
                 }
-            });
-        } else {
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request',
-                    description: 'Invalid section replacement: '
-                        + JSON.stringify(sectionReplacement)
-                }
-            });
-        }
+                return sliceSection(replacePart.id);
+            }
+        }).join('');
+        newBody = fillSection(id, replacement);
     });
     return '<body>' + newBody + '</body>';
 }

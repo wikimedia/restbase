@@ -316,28 +316,24 @@ paths:
                 type: object
                 patternProperties:
                   '^mw\w+$':
-                      type: object
-                      properties:
-                        html:
-                          oneOf:
-                            - type: string
-                            - type: array
-                              items:
-                                oneOf:
-                                  - type: string
-                                  - type: object
-                                    properties:
-                                      id:
-                                        type: string
-                      additionalProperties: false
-                      required:
-                        - html
+                    type: array
+                    items:
+                      oneOf:
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            html:
+                              type: string
+                          additionalProperties: false
                 example:
                   mwAg:
-                    html:
-                      - '<h2>Prepended section</h2>'
-                      - id: mwAg
-                      - '<h2>Appended Section</h2>'
+                    - html: '<h2>Prepended section</h2>'
+                    - id: mwAg
+                    - html: '<h2>Appended Section</h2>'
               scrub_wikitext:
                 type: boolean
                 description: Normalise the DOM to yield cleaner wikitext?
