@@ -540,9 +540,36 @@ function replaceSections(original, sectionsJson) {
     return '<body>' + newBody + '</body>';
 }
 
+function buildSections(original, sectionsJson) {
+    var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
+    var oldBody = cheapBodyInnerHTML(original.html.body);
+    var newBody = '';
+    var illegalId = sectionsJson.some(function(element) {
+        return element.id && !sectionOffsets[element.id];
+    });
+    if (illegalId) {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'bad_request',
+                description: 'Invalid section ids'
+            }
+        });
+    }
+    sectionsJson.forEach(function(element) {
+        if (element.id) {
+            var offset = sectionOffsets[element.id];
+            newBody += oldBody.substring(offset.html[0], offset.html[1]);
+        } else if (element.content) {
+            newBody += element.content;
+        }
+    });
+    return '<body>' + newBody + '</body>';
+}
+
 function parseSections(req) {
     var sections = req.body.sections;
-    if (sections.constructor !== Object) {
+    if (sections.constructor !== Object && sections.constructor !== Array) {
         try {
             return JSON.parse(sections.toString());
         } catch (e) {
@@ -618,7 +645,12 @@ PSP.transformRevision = function(hyper, req, from, to) {
             original: original
         };
         if (from === 'sections') {
-            body2.html = replaceSections(original, parseSections(req));
+            var sections = parseSections(req);
+            if (sections.constructor === Array) {
+                body2.html = buildSections(original, sections);
+            } else {
+                body2.html = replaceSections(original, sections);
+            }
             from = 'html';
         } else {
             body2[from] = req.body[from];
