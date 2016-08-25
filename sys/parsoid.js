@@ -569,26 +569,6 @@ function replaceSections(original, sectionsJson) {
     return '<body>' + newBody + '</body>';
 }
 
-function parseSections(req) {
-    var sections = req.body.sections;
-    if (sections.constructor !== Object) {
-        try {
-            return JSON.parse(sections.toString());
-        } catch (e) {
-            // Catch JSON parsing exception and return 400
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request',
-                    description: 'Invalid JSON provided in the request'
-                }
-            });
-        }
-    }
-    return sections;
-}
-
-
 PSP.transformRevision = function(hyper, req, from, to) {
     var self = this;
     var rp = req.params;
@@ -647,7 +627,7 @@ PSP.transformRevision = function(hyper, req, from, to) {
             original: original
         };
         if (from === 'sections') {
-            body2.html = replaceSections(original, parseSections(req));
+            body2.html = replaceSections(original, req.body.sections);
             from = 'html';
         } else {
             body2[from] = req.body[from];
