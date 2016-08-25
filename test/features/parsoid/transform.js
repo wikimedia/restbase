@@ -169,14 +169,14 @@ describe('transform api', function() {
         var pageWithSectionsRev = 275834;
         return preq.post({
             uri: server.config.labsURL
-                + '/transform/sections/to/wikitext/'
+                + '/transform/section-changes/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
             headers: {
                 'content-type': 'application/json'
             },
             body: {
-                sections: {
+                changes: {
                     mwAQ: [],
                     mwAg: [{ html: "<h2>First Section replaced</h2>" }],
                     mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
@@ -196,14 +196,14 @@ describe('transform api', function() {
         var pageWithSectionsRev = 275834;
         return preq.post({
             uri: server.config.labsURL
-            + '/transform/sections/to/wikitext/'
-            + pageWithSectionsTitle
-            + '/' + pageWithSectionsRev,
+                + '/transform/section-changes/to/wikitext/'
+                + pageWithSectionsTitle
+                + '/' + pageWithSectionsRev,
             headers: {
                 'content-type': 'application/json'
             },
             body: {
-                sections: {
+                changes: {
                     mwAQ: [],
                     mwAg: [{ html: "<h2></h2>" }],
                     mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
@@ -223,14 +223,14 @@ describe('transform api', function() {
         var pageWithSectionsRev = 275834;
         return preq.post({
             uri: server.config.labsURL
-                + '/transform/sections/to/wikitext/'
+                + '/transform/section-changes/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
             headers: {
                 'content-type': 'application/json'
             },
             body: {
-                sections: {
+                changes: {
                     mwAQ: [],
                     mwAg: [{ id: 'mwAg' }, { html: '<h2>Appended Section</h2>' }],
                     mwAw: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwAw'}]
@@ -253,11 +253,11 @@ describe('transform api', function() {
         var pageWithSectionsRev = 275834;
         return preq.post({
             uri: server.config.labsURL
-                + '/transform/sections/to/wikitext/'
+                + '/transform/section-changes/to/wikitext/'
                 + pageWithSectionsTitle
                 + '/' + pageWithSectionsRev,
             body: {
-                sections: {
+                changes: {
                     mwAQ: [],
                     mwAg: [{ id: 'mwAw' }, { id: 'mwAg' }],
                     mwAw: []
@@ -281,11 +281,11 @@ describe('transform api', function() {
         var pageWithSectionsRev = 275834;
         return preq.post({
             uri: server.config.labsURL
-            + '/transform/sections/to/wikitext/'
+            + '/transform/section-changes/to/wikitext/'
             + pageWithSectionsTitle
             + '/' + pageWithSectionsRev,
             body: {
-                sections: {
+                changes: {
                     mwAASDC: []
                 }
             },
@@ -306,11 +306,11 @@ describe('transform api', function() {
         var pageWithSectionsRev = 275834;
         return preq.post({
             uri: server.config.labsURL
-            + '/transform/sections/to/wikitext/'
+            + '/transform/section-changes/to/wikitext/'
             + pageWithSectionsTitle
             + '/' + pageWithSectionsRev,
             body: {
-                sections: {
+                changes: {
                     mwAg:[ { id: 'mwAASDC'}, { id: 'mwAg'} ]
                 }
             },

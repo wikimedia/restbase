@@ -103,46 +103,4 @@ describe('400 handling', function() {
             assert.contentType(e, 'application/problem+json');
         });
     });
-
-    it('Should return 400 on invalid JSON sections', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
-        return preq.post({
-            uri: server.config.labsURL
-                + '/transform/sections/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
-            body: {
-                sections: '{"mwAg":"First section replaced" INVALID}'
-            }
-        })
-        .then(function() {
-            throw new Error("400 should be returned");
-        })
-        .catch(function(e) {
-            assert.deepEqual(e.status, 400);
-            assert.contentType(e, 'application/problem+json');
-        });
-    });
-
-    it('Should return 400 if non-existent section id provided', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
-        return preq.post({
-            uri: server.config.labsURL
-                + '/transform/sections/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
-            body: {
-                sections: '{"INVALID":"First section replaced"}'
-            }
-        })
-        .then(function() {
-            throw new Error("400 should be returned");
-        })
-        .catch(function(e) {
-            assert.deepEqual(e.status, 400);
-            assert.contentType(e, 'application/problem+json');
-        });
-    });
 });

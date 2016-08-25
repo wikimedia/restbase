@@ -277,7 +277,7 @@ paths:
 #                body_only: '{body_only}'
 #      x-monitor: false
 
-  /sections/to/wikitext/{title}/{revision}:
+  /section-changes/to/wikitext/{title}/{revision}:
     post:
       tags:
         - Transforms
@@ -305,14 +305,14 @@ paths:
           description: The page revision
           type: integer
           required: true
-        - name: sections
+        - name: section-changes
           in: body
-          description: Sections to transform
+          description: Section changes to transform
           required: true
           schema:
             type: object
             properties:
-              sections:
+              changes:
                 type: object
                 patternProperties:
                   '^mw\w+$':
@@ -338,7 +338,7 @@ paths:
                 type: boolean
                 description: Normalise the DOM to yield cleaner wikitext?
             required:
-              - sections
+              - changes
         - name: if-match
           in: header
           description: |
@@ -387,11 +387,11 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+              uri: /{domain}/sys/parsoid/transform/changes/to/wikitext/{title}/{revision}
               headers:
                 if-match: '{{if-match}}'
               body:
-                sections: '{{sections}}'
+                changes: '{{changes}}'
                 scrub_wikitext: '{{scrub_wikitext}}'
       x-monitor: false
 

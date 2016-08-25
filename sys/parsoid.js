@@ -90,7 +90,7 @@ function ParsoidService(options) {
         transformHtmlToHtml: self.makeTransform('html', 'html'),
         transformHtmlToWikitext: self.makeTransform('html', 'wikitext'),
         transformWikitextToHtml: self.makeTransform('wikitext', 'html'),
-        transformSectionsToWikitext: self.makeTransform('sections', 'wikitext')
+        transformChangesToWikitext: self.makeTransform('changes', 'wikitext')
     };
 }
 
@@ -626,8 +626,8 @@ PSP.transformRevision = function(hyper, req, from, to) {
         var body2 = {
             original: original
         };
-        if (from === 'sections') {
-            body2.html = replaceSections(original, req.body.sections);
+        if (from === 'changes') {
+            body2.html = replaceSections(original, req.body.changes);
             from = 'html';
         } else {
             body2[from] = req.body[from];
