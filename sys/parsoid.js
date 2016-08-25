@@ -531,12 +531,12 @@ function replaceSections(original, sectionsJson) {
         });
     }
 
-    function sliceSection(id) {
+    function getSectionHTML(id) {
         var htmlOffset = sectionOffsets[id].html;
         return originalBody.substring(htmlOffset[0], htmlOffset[1]);
     }
 
-    function fillSection(id, replacement) {
+    function replaceSection(id, replacement) {
         var htmlOffset = sectionOffsets[id].html;
         return newBody.substring(0, htmlOffset[0]) + replacement
             + newBody.substring(htmlOffset[1], newBody.length);
@@ -561,10 +561,10 @@ function replaceSections(original, sectionsJson) {
                         }
                     });
                 }
-                return sliceSection(replacePart.id);
+                return getSectionHTML(replacePart.id);
             }
         }).join('');
-        newBody = fillSection(id, replacement);
+        newBody = replaceSection(id, replacement);
     });
     return '<body>' + newBody + '</body>';
 }
