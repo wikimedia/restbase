@@ -1,7 +1,7 @@
 # Mathoid - math formula rendering service
-
-swagger: 2.0
-
+tags:
+  - name: Math
+    description: formula rendering
 paths:
   /math/check/{type}:
     post:

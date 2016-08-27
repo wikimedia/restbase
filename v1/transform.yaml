@@ -11,6 +11,9 @@ info:
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Transforms
+    description: convert content between HTML and Wikitext
 paths:
   /html/to/wikitext{/title}{/revision}:
     post:
