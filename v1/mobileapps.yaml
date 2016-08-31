@@ -1,7 +1,7 @@
 # MobileApps page-manipulation service
 tags:
   - name: Mobile
-    description: page content optimized for mobile apps
+    description: mobile-friendly page content
 paths:
   /mobile-sections/{title}:
     x-route-filters:

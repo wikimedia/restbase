@@ -13,7 +13,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 tags:
   - name: Page content
-    description: various representation of page content
+    description: page content in different formats
 paths:
   /:
     get:
