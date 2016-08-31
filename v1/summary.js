@@ -21,6 +21,11 @@ module.exports = function(options, templates) {
                     return revItems[0];
                 }
                 return {};
+            },
+            extractDescription: function(terms) {
+                if (terms && terms.description && terms.description.length) {
+                    return terms.description[0];
+                }
             }
         }
     };
