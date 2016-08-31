@@ -90,7 +90,7 @@ function ParsoidService(options) {
         transformHtmlToHtml: self.makeTransform('html', 'html'),
         transformHtmlToWikitext: self.makeTransform('html', 'wikitext'),
         transformWikitextToHtml: self.makeTransform('wikitext', 'html'),
-        transformSectionsToWikitext: self.makeTransform('sections', 'wikitext')
+        transformChangesToWikitext: self.makeTransform('changes', 'wikitext')
     };
 }
 
@@ -514,7 +514,9 @@ PSP._getStashedContent = function(hyper, req, etag) {
  */
 function replaceSections(original, sectionsJson) {
     var sectionOffsets = original['data-parsoid'].body.sectionOffsets;
-    var newBody = cheapBodyInnerHTML(original.html.body);
+    var originalBody = cheapBodyInnerHTML(original.html.body);
+    var newBody = originalBody;
+
     var sectionIds = Object.keys(sectionsJson);
     var illegalId = sectionIds.some(function(id) {
         return !sectionOffsets[id];
@@ -528,37 +530,44 @@ function replaceSections(original, sectionsJson) {
             }
         });
     }
+
+    function getSectionHTML(id) {
+        var htmlOffset = sectionOffsets[id].html;
+        return originalBody.substring(htmlOffset[0], htmlOffset[1]);
+    }
+
+    function replaceSection(id, replacement) {
+        var htmlOffset = sectionOffsets[id].html;
+        return newBody.substring(0, htmlOffset[0]) + replacement
+            + newBody.substring(htmlOffset[1], newBody.length);
+    }
+
     sectionIds.sort(function(id1, id2) {
         return sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0];
     })
     .forEach(function(id) {
-        var offset = sectionOffsets[id];
-        newBody = newBody.substring(0, offset.html[0])
-        + sectionsJson[id]
-        + newBody.substring(offset.html[1], newBody.length);
+        var sectionReplacement = sectionsJson[id];
+        var replacement = sectionReplacement.map(function(replacePart) {
+            if (replacePart.html) {
+                return replacePart.html;
+            } else {
+                if (!replacePart.id || !sectionOffsets[replacePart.id]) {
+                    throw new HTTPError({
+                        status: 400,
+                        body: {
+                            type: 'bad_request',
+                            description: 'Invalid section ids',
+                            id: replacePart.id
+                        }
+                    });
+                }
+                return getSectionHTML(replacePart.id);
+            }
+        }).join('');
+        newBody = replaceSection(id, replacement);
     });
     return '<body>' + newBody + '</body>';
 }
-
-function parseSections(req) {
-    var sections = req.body.sections;
-    if (sections.constructor !== Object) {
-        try {
-            return JSON.parse(sections.toString());
-        } catch (e) {
-            // Catch JSON parsing exception and return 400
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request',
-                    description: 'Invalid JSON provided in the request'
-                }
-            });
-        }
-    }
-    return sections;
-}
-
 
 PSP.transformRevision = function(hyper, req, from, to) {
     var self = this;
@@ -617,8 +626,8 @@ PSP.transformRevision = function(hyper, req, from, to) {
         var body2 = {
             original: original
         };
-        if (from === 'sections') {
-            body2.html = replaceSections(original, parseSections(req));
+        if (from === 'changes') {
+            body2.html = replaceSections(original, req.body.changes);
             from = 'html';
         } else {
             body2[from] = req.body[from];

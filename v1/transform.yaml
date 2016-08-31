@@ -277,7 +277,7 @@ paths:
 #                body_only: '{body_only}'
 #      x-monitor: false
 
-  /sections/to/wikitext/{title}/{revision}:
+  /section-changes/to/wikitext/{title}/{revision}:
     post:
       tags:
         - Transforms
@@ -292,9 +292,8 @@ paths:
         - Rate limit: 5 req/s
       consumes:
         - application/json
-        - multipart/form-data
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
+        - text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
       parameters:
         - name: title
           in: path
@@ -306,19 +305,40 @@ paths:
           description: The page revision
           type: integer
           required: true
-        - name: sections
+        - name: section-changes
           in: body
-          description: Sections to transform
+          description: Section changes to transform
           required: true
           schema:
-            type: 'object'
+            type: object
             properties:
-              sections:
-                example: '{"mwAg":"<h2>First Section replaced</h2><h2>Appended Section</h2>"}'
+              changes:
+                type: object
+                patternProperties:
+                  '^mw\w+$':
+                    type: array
+                    items:
+                      oneOf:
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                          additionalProperties: false
+                        - type: object
+                          properties:
+                            html:
+                              type: string
+                          additionalProperties: false
+                example:
+                  mwAg:
+                    - html: '<h2>Prepended section</h2>'
+                    - id: mwAg
+                    - html: '<h2>Appended Section</h2>'
               scrub_wikitext:
+                type: boolean
                 description: Normalise the DOM to yield cleaner wikitext?
             required:
-              - sections
+              - changes
         - name: if-match
           in: header
           description: |
@@ -367,11 +387,11 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/transform/sections/to/wikitext/{title}/{revision}
+              uri: /{domain}/sys/parsoid/transform/changes/to/wikitext/{title}/{revision}
               headers:
                 if-match: '{{if-match}}'
               body:
-                sections: '{{sections}}'
+                changes: '{{changes}}'
                 scrub_wikitext: '{{scrub_wikitext}}'
       x-monitor: false
 
