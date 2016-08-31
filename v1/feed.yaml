@@ -1,6 +1,8 @@
 # Feed endpoints powered by the MCS
 
-swagger: 2.0
+tags:
+  - name: Feed
+    description: aggregated daily featured content
 paths:
   /featured/{yyyy}/{mm}/{dd}:
     get:

@@ -1,6 +1,7 @@
 # MobileApps page-manipulation service
-
-swagger: 2.0
+tags:
+  - name: Mobile
+    description: mobile-friendly page content
 paths:
   /mobile-sections/{title}:
     x-route-filters:
