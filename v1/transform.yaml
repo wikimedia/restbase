@@ -308,8 +308,7 @@ paths:
           description: The page revision
           type: integer
           required: true
-        - name: section-changes
-          in: body
+        - in: body
           description: Section changes to transform
           required: true
           schema:
