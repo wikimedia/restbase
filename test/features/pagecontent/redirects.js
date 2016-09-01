@@ -104,6 +104,17 @@ describe('Redirects', function() {
         });
     });
 
+    it('should append ?redirect=false to self-redirecting pages', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2FSelf_Redirect',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 302);
+            assert.deepEqual(res.headers.location, 'User%3APchelolo%2FSelf_Redirect?redirect=false');
+        });
+    });
+
     it('should not redirect if file is missing on commons', function() {
         return preq.get({
             uri: server.config.hostPort +
