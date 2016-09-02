@@ -152,7 +152,7 @@ paths:
             status: 200
             headers:
               etag: /.+/
-              content-type: /^application\/json$/
+              content-type: /^application\/json/
             body:
               extract: /.+/
               thumbnail:
