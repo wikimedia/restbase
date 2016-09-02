@@ -17,6 +17,7 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
+      - path: ./lib/ensure_content_type.js
     get:
       tags:
         - Page content
@@ -28,7 +29,7 @@ paths:
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.0"
       parameters:
         - name: title
           in: path
@@ -108,7 +109,7 @@ paths:
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.0"
               body:
                 title: '{{extract.body.items[0].title}}'
                 extract: '{{extract.body.items[0].extract}}'
