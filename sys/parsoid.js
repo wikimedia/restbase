@@ -419,11 +419,8 @@ PSP.getFormat = function(format, hyper, req) {
     return contentReq
     .then(function(res) {
         mwUtil.normalizeContentType(res);
-        HyperSwitch.misc.addCSPHeaders(res, {
-            domain: rp.domain,
-            allowInline: true,
-        });
         if (self.options.response_cache_control) {
+            if (!res.headers) { res.headers = {}; }
             res.headers['cache-control'] = self.options.response_cache_control;
         }
         if (/^null$/.test(res.headers.etag)) {

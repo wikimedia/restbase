@@ -25,6 +25,8 @@ services:
       default_page_size: 125
       user_agent: RESTBase
       spec:
+        x-request-filters:
+          - path: lib/security_response_header_filter.js
         x-sub-request-filters:
           - type: default
             name: http

@@ -53,6 +53,8 @@ wiktionary_project: &wiktionary_project
 # using YAML references.
 spec_root: &spec_root
   title: "The RESTBase root"
+  x-request-filters:
+    - path: lib/security_response_header_filter.js
   x-sub-request-filters:
     - type: default
       name: http

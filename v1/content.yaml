@@ -187,6 +187,9 @@ paths:
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
+      - path: lib/security_response_header_filter.js
+        options:
+          allowInlineStyles: true
     get:
       tags:
         - Page content
@@ -437,6 +440,9 @@ paths:
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
+      - path: lib/security_response_header_filter.js
+        options:
+          allowInlineStyles: true
     get:
       tags:
         - Page content
