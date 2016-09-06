@@ -45,7 +45,7 @@ labs_project: &labs_project
       options:
         <<: *default_options
         action:
-          apiUriTemplate: "{{'http://{domain}/w/api.php'}}"
+          apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
