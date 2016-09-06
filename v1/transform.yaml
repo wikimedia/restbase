@@ -320,17 +320,13 @@ paths:
                   '^mw\w+$':
                     type: array
                     items:
-                      oneOf:
-                        - type: object
-                          properties:
-                            id:
-                              type: string
-                          additionalProperties: false
-                        - type: object
-                          properties:
-                            html:
-                              type: string
-                          additionalProperties: false
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        html:
+                          type: string
+                      additionalProperties: false
                 example:
                   mwAg:
                     - html: '<h2>Prepended section</h2>'
