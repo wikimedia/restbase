@@ -54,8 +54,8 @@ paths:
                                 options.mobileapps)}}'
             /feed:
               x-modules:
-                - path: v1/feed.yaml
-                  options: '{{merge({"feed_cache_control": "s-maxage=60, max-age=30"},
+                - path: v1/feed.js
+                  options: '{{merge({"feed_cache_control": "s-maxage=30, max-age=15", "ttl": 600},
                                 options.mobileapps)}}'
             /transform:
               x-modules:
