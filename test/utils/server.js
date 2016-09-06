@@ -47,7 +47,7 @@ var config = {
     secureApiURL: 'https://fr.wikipedia.org/w/api.php',
     labsURL: labsURL,
     labsBucketURL: labsBucketURL,
-    labsApiURL: 'http://en.wikipedia.beta.wmflabs.org/w/api.php',
+    labsApiURL: 'https://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
     conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : __dirname + '/../../config.test.yaml')
 };
