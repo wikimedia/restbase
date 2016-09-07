@@ -120,7 +120,9 @@ Feed.prototype.aggregated = function(hyper, req) {
             };
             // populate its body
             Object.keys(result).forEach(function(key) {
-                finalResult.body[key] = result[key].body;
+                if (result[key].body && Object.keys(result[key].body).length) {
+                    finalResult.body[key] = result[key].body;
+                }
             });
             // store it
             return hyper.put({
