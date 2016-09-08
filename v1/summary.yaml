@@ -218,4 +218,5 @@ definitions:
         type: string
         description: Wikidata description for the page
         example: American poet
+    additionalProperties: false
     required: ['title', 'extract', 'lang', 'dir']

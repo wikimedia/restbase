@@ -146,7 +146,6 @@ definitions:
         description: First several sentences of an article in plain text
     required:
       - title
-      - normalizedtitle
 
   mostread_article:
     type: object
@@ -180,7 +179,6 @@ definitions:
       - views
       - rank
       - pageid
-      - fromencoded
 
   mostread:
     type: object
@@ -193,6 +191,9 @@ definitions:
         description: Array of most popular articles
         items:
           $ref: '#/definitions/mostread_article'
+    required:
+      - date
+      - articles
 
   news_item:
     type: object
@@ -205,6 +206,9 @@ definitions:
         description: A collection of articles related to the news item
         items:
           $ref: '#/definitions/article_summary'
+    required:
+      - story
+      - links
 
   news:
     type: array
@@ -218,6 +222,40 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/article_summary'
+    required:
+      - items
+
+  image_description:
+    properties:
+      text:
+        type: string
+        description: Text of the description
+      lang:
+        type: string
+        description: Language code of the description
+    required:
+      - text
+      - lang
+
+  image:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Image title
+      thumbnail:
+        description: Image thumbnail
+        $ref: '#/definitions/thumbnail'
+      image:
+        description: Full-size image
+        $ref: '#/definitions/thumbnail'
+      description:
+        descrtiption: Description of an image
+        $ref: '#/definitions/image_description'
+    required:
+      - title
+      - thumbnail
+      - image
 
   feed:
     type: object
@@ -235,3 +273,6 @@ definitions:
       random:
         description: A single random article
         $ref: '#/definitions/random'
+      image:
+        description: Featured image for a given date
+        $ref: '#/definitions/image'
