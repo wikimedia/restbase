@@ -133,8 +133,77 @@ Feed.prototype.aggregated = function(hyper, req) {
                 return finalResult;
             });
         });
-    });
+    })
+    .then(function(res) {
+        // We've got the titles, populate them with summaries
+        var feed = res.body;
+        var summaries = {};
 
+        function requestTitle(title) {
+            if (title && !summaries[title]) {
+                summaries[title] = hyper.get({
+                    uri: new URI([rp.domain, 'v1', 'page', 'summary', title])
+                })
+                .get('body')
+                // Swallow the error, no need to fail the whole feed
+                // request because of one failed summary fetch
+                .catchReturn(undefined);
+            }
+        }
+
+        if (feed.tfa) {
+            requestTitle(feed.tfa.title);
+        }
+        if (feed.mostread && feed.mostread.articles) {
+            feed.mostread.articles.forEach(function(article) { requestTitle(article.title); });
+        }
+        if (feed.random && feed.random.items) {
+            feed.random.items.forEach(function(article) { requestTitle(article.title); });
+        }
+        if (feed.news) {
+            feed.news.forEach(function(newsItem) {
+                if (newsItem.links) {
+                    newsItem.links.forEach(function(article) {
+                        requestTitle(article);
+                    });
+                }
+            });
+        }
+
+        return P.props(summaries)
+        .then(function(summaries) {
+            function assignSummary(article) {
+                if (summaries[article.title]) {
+                    // MCS expects the title to be a DB Key
+                    delete summaries[article.title].title;
+                    return Object.assign(article, summaries[article.title]);
+                }
+            }
+
+            function assignAllSummaries(articles) {
+                if (articles) {
+                    return articles.map(assignSummary)
+                    .filter(function(article) { return !!article; });
+                }
+            }
+
+            feed.tfa = feed.tfa && assignSummary(feed.tfa);
+            if (feed.mostread) {
+                feed.mostread.articles = assignAllSummaries(feed.mostread.articles);
+            }
+
+            if (feed.random) {
+                feed.random.items = assignAllSummaries(feed.random.items);
+            }
+
+            if (feed.news) {
+                feed.news.forEach(function(newsItem) {
+                    newsItem.links = assignAllSummaries(newsItem.links);
+                });
+            }
+            return res;
+        });
+    });
 };
 
 
@@ -166,4 +235,3 @@ module.exports = function(options) {
     };
 
 };
-
