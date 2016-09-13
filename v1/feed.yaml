@@ -146,6 +146,8 @@ definitions:
         description: First several sentences of an article in plain text
     required:
       - title
+      - normalizedtitle
+
 
   mostread_article:
     type: object
@@ -162,8 +164,6 @@ definitions:
       rank:
         type: integer
         description: Position in the list of most viewed articles
-      fromencoded:
-        type: boolean
       thumbnail:
         description: Lead image for the article
         $ref: '#/definitions/thumbnail'
@@ -276,3 +276,4 @@ definitions:
       image:
         description: Featured image for a given date
         $ref: '#/definitions/image'
+    additionalProperties: false

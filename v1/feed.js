@@ -176,7 +176,11 @@ Feed.prototype.aggregated = function(hyper, req) {
                 if (summaries[article.title]) {
                     // MCS expects the title to be a DB Key
                     delete summaries[article.title].title;
-                    return Object.assign(article, summaries[article.title]);
+                    var result = Object.assign(article, summaries[article.title]);
+                    if (!result.normalizedtitle) {
+                        result.normalizedtitle = result.title.replace(/_/g, ' ');
+                    }
+                    return result;
                 }
             }
 

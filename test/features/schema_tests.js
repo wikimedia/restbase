@@ -8,7 +8,7 @@ var server = require('../utils/server.js');
 var preq   = require('preq');
 var Ajv = require('ajv');
 
-describe('Responces should conform to the provided JSON schema of the responce', function() {
+describe('Responses should conform to the provided JSON schema of the responce', function() {
     var ajv = new Ajv({});
 
     before(function() {
