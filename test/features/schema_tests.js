@@ -32,6 +32,18 @@ describe('Responses should conform to the provided JSON schema of the responce',
         });
     });
 
+    it('/feed/featured should conform schema, ruwiki', function() {
+        return preq.get({ uri: server.config.hostPort + '/ru.wikipedia.org/v1/feed/featured/2016/09/08' })
+        .then(function(res) {
+            if (!ajv.validate('#/definitions/feed', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
+
+
     it('/page/summary/{title} should conform schema', function() {
         return preq.get({ uri: server.config.baseURL + '/page/summary/Tank' })
         .then(function(res) {
