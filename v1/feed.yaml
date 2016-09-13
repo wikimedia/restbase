@@ -216,14 +216,9 @@ definitions:
       $ref: '#/definitions/news_item'
 
   random:
-    type: object
-    properties:
-      items:
-        type: array
-        items:
-          $ref: '#/definitions/article_summary'
-    required:
-      - items
+    type: array
+    items:
+      $ref: '#/definitions/article_summary'
 
   image_description:
     properties:
