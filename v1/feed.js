@@ -161,9 +161,9 @@ Feed.prototype.aggregated = function(hyper, req) {
             feed.random.items.forEach(function(article) { requestTitle(article.title); });
         }
         if (feed.news) {
-            feed.news.forEach(function(story) {
-                if (story.links) {
-                    story.links.forEach(function(article) {
+            feed.news.forEach(function(newsItem) {
+                if (newsItem.links) {
+                    newsItem.links.forEach(function(article) {
                         requestTitle(article);
                     });
                 }
@@ -197,8 +197,8 @@ Feed.prototype.aggregated = function(hyper, req) {
             }
 
             if (feed.news) {
-                feed.news.forEach(function(story) {
-                    story.links = assignAllSummaries(story.links);
+                feed.news.forEach(function(newsItem) {
+                    newsItem.links = assignAllSummaries(newsItem.links);
                 });
             }
             return res;
