@@ -164,7 +164,7 @@ Feed.prototype.aggregated = function(hyper, req) {
             feed.news.forEach(function(newsItem) {
                 if (newsItem.links) {
                     newsItem.links.forEach(function(article) {
-                        requestTitle(article);
+                        requestTitle(article.title);
                     });
                 }
             });

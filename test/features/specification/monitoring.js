@@ -116,6 +116,11 @@ function validateBody(resBody, expBody) {
                     // special case: we have specified only one item in the expected body,
                     // but what we really want is to check all of the returned items so
                     // fill the expected array with as many items as the returned one
+                    if (resBody[key].length < 1) {
+                        throw new assert.AssertionError({
+                            message: 'Expected more then one element in the field: ' + key
+                        });
+                    }
                     arrVal = [];
                     while(arrVal.length < resBody[key].length) {
                         arrVal.push(val[0]);
@@ -123,7 +128,7 @@ function validateBody(resBody, expBody) {
                 } else {
                     arrVal = val;
                 }
-                assert.deepEqual(arrVal.length === resBody[key].length, true,
+                assert.deepEqual(arrVal.length, resBody[key].length,
                     'Different size of array for field ' + key + ', expected ' + arrVal.length +
                     ' actual ' + resBody[key].length);
                 arrVal.forEach(function(item, index) {
