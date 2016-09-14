@@ -11,7 +11,7 @@ var URI = HyperSwitch.URI;
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/post_data.yaml');
 
-function PostDataBucket(options) {
+function PostDataBucket() {
 }
 
 PostDataBucket.prototype.createBucket = function(hyper, req) {

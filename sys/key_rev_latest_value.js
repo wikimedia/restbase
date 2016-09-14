@@ -11,7 +11,7 @@ var mwUtil = require('../lib/mwUtil');
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
-function ArchivalBucket(options) {
+function ArchivalBucket() {
 }
 
 ArchivalBucket.prototype._latestName = function(bucket) {

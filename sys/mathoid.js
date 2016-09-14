@@ -49,7 +49,7 @@ MathoidService.prototype.getFormula = function(hyper, req) {
     }).then(function(res) {
         res.headers['x-resource-location'] = hash;
         return res;
-    }).catch({ status: 404 }, function(err) {
+    }).catch({ status: 404 }, function() {
         // let's try to find an indirection
         return hyper.get({
             uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])
@@ -90,7 +90,7 @@ MathoidService.prototype.checkInput = function(hyper, req) {
         // check the post storage
         return hyper.get({
             uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash])
-        }).catch({ status: 404 }, function(err) {
+        }).catch({ status: 404 }, function() {
             // let's try to find an indirection
             return hyper.get({
                 uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])

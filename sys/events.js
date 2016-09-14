@@ -1,7 +1,6 @@
 "use strict";
 
 var P         = require('bluebird');
-var HTTPError = require('hyperswitch').HTTPError;
 var uuid = require('cassandra-uuid').TimeUuid;
 
 var EventService = function(options) {

@@ -15,7 +15,7 @@ var HTTPError = HyperSwitch.HTTPError;
 var mwUtil = require('../lib/mwUtil');
 var TimeUuid = require('cassandra-uuid').TimeUuid;
 
-function PageSave(options) {
+function PageSave() {
     var self = this;
     this.spec = {
         paths: {

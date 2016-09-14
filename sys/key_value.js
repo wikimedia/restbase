@@ -12,7 +12,7 @@ var URI = HyperSwitch.URI;
 
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_value.yaml');
 
-function KVBucket(options) {
+function KVBucket() {
 }
 
 KVBucket.prototype.makeSchema = function(opts) {

@@ -6,7 +6,6 @@
 
 var P = require('bluebird');
 var HyperSwitch = require('hyperswitch');
-var Title = require('mediawiki-title').Title;
 var URI = HyperSwitch.URI;
 var HTTPError = HyperSwitch.HTTPError;
 
@@ -184,7 +183,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                 },
                 body: body
             });
-        }, function(e) {
+        }, function() {
             // Fall back to plain GET
             return hyper.get({ uri: pageBundleUri });
         });
@@ -208,7 +207,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
             );
         }
     })
-    .then(function(revInfo) {
+    .then(function() {
         var pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
                 rp.title, rp.revision]);
 
@@ -434,7 +433,6 @@ PSP.getFormat = function(format, hyper, req) {
 };
 
 PSP.listRevisions = function(format, hyper, req) {
-    var self = this;
     var rp = req.params;
     var revReq = {
         uri: new URI([rp.domain, 'sys', this.options.bucket_type,
