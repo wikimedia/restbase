@@ -197,7 +197,7 @@ Feed.prototype.aggregated = function(hyper, req) {
             }
 
             if (feed.random) {
-                feed.random = assignAllSummaries(feed.random.items);
+                feed.random.items = assignAllSummaries(feed.random.items);
             }
 
             if (feed.news) {
