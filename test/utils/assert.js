@@ -157,6 +157,7 @@ function checkString(result, expected, message) {
 }
 
 module.exports.ok             = assert.ok;
+module.exports.AssertionError = assert.AssertionError;
 module.exports.fails          = fails;
 module.exports.deepEqual      = deepEqual;
 module.exports.isDeepEqual    = isDeepEqual;

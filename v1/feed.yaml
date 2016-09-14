@@ -37,7 +37,7 @@ paths:
         '200':
           description: JSON containing all of the featured content
           schema:
-            type: object
+            $ref: '#/definitions/feed'
         default:
           description: Error
           schema:
@@ -74,8 +74,7 @@ paths:
                     pageid: /.+/
                     normalizedtitle: /.+/
               random:
-                items:
-                  - title: /.+/
+                - title: /.+/
               news:
                 - story: /.+/
                   links:
@@ -97,3 +96,178 @@ paths:
                   width: /.+/
                   height: /.+/
 
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  thumbnail:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Thumbnail image URI
+      width:
+        type: integer
+        description: Thumbnail width
+      height:
+        type: integer
+        description: Thumnail height
+    required: ['source', 'width', 'height']
+
+  article_summary:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Article title in a form of DB key
+      normalizedtitle:
+        type: string
+        description: Article title as it should be presented to the user
+      thumbnail:
+        description: Lead image for the article
+        $ref: '#/definitions/thumbnail'
+      description:
+        type: string
+        description: Wikidata description of the article
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+    required:
+      - title
+      - normalizedtitle
+
+
+  mostread_article:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Article title in a form of DB key
+      normalizedtitle:
+        type: string
+        description: Article title as it should be presented to the user
+      views:
+        type: integer
+        description: Number of views on the requested day
+      rank:
+        type: integer
+        description: Position in the list of most viewed articles
+      thumbnail:
+        description: Lead image for the article
+        $ref: '#/definitions/thumbnail'
+      description:
+        type: string
+        description: Wikidata description of the article
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+    required:
+      - title
+      - normalizedtitle
+      - views
+      - rank
+      - pageid
+
+  mostread:
+    type: object
+    properties:
+      date:
+        type: string
+        description: The date which the data correspond to
+      articles:
+        type: array
+        description: Array of most popular articles
+        items:
+          $ref: '#/definitions/mostread_article'
+    required:
+      - date
+      - articles
+
+  news_item:
+    type: object
+    properties:
+      story:
+        type: string
+        description: A cover story for the news item
+      links:
+        type: array
+        description: A collection of articles related to the news item
+        items:
+          $ref: '#/definitions/article_summary'
+    required:
+      - story
+      - links
+
+  news:
+    type: array
+    items:
+      $ref: '#/definitions/news_item'
+
+  random:
+    type: array
+    items:
+      $ref: '#/definitions/article_summary'
+
+  image_description:
+    properties:
+      text:
+        type: string
+        description: Text of the description
+      lang:
+        type: string
+        description: Language code of the description
+    required:
+      - text
+      - lang
+
+  image:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Image title
+      thumbnail:
+        description: Image thumbnail
+        $ref: '#/definitions/thumbnail'
+      image:
+        description: Full-size image
+        $ref: '#/definitions/thumbnail'
+      description:
+        descrtiption: Description of an image
+        $ref: '#/definitions/image_description'
+    required:
+      - title
+      - thumbnail
+      - image
+
+  feed:
+    type: object
+    description: Aggregated feed content for a given date
+    properties:
+      tfa:
+        description: Data about the featured article of the day
+        $ref: '#/definitions/article_summary'
+      mostread:
+        description: Data about most viewed articles
+        $ref: '#/definitions/mostread'
+      news:
+        description: Data about in the news section
+        $ref: '#/definitions/news'
+      random:
+        description: A single random article
+        $ref: '#/definitions/random'
+      image:
+        description: Featured image for a given date
+        $ref: '#/definitions/image'
+    additionalProperties: false
