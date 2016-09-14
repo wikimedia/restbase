@@ -11,7 +11,7 @@ var HTTPError = HyperSwitch.HTTPError;
 var URI = HyperSwitch.URI;
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/key_rev_value.yaml');
 
-function KRVBucket(options) {
+function KRVBucket() {
 }
 
 KRVBucket.prototype.makeSchema = function(opts) {

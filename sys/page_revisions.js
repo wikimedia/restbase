@@ -129,7 +129,7 @@ PRS.prototype._checkRevReturn = function(item) {
 };
 
 // /page/
-PRS.prototype.listTitles = function(hyper, req, options) {
+PRS.prototype.listTitles = function(hyper, req) {
     var rp = req.params;
     var listReq = {
         uri: new URI([rp.domain, 'sys', 'action', 'query']),

@@ -94,13 +94,12 @@ Feed.prototype.aggregated = function(hyper, req) {
             // make a new ETag since we are changing a part of the body
             res.headers.etag = dateArr.join('') + '/' + uuid.now().toString();
             return res;
-        }).catch(function(e) {
-            // something went wrong while retrieving the random part of
-            // the response from MCS, so just return the stored content
-            // as there is no need to error out for this edge case
-            return res;
-        });
-    }).catch({ status: 404 }, function(err) {
+        })
+        // something went wrong while retrieving the random part of
+        // the response from MCS, so just return the stored content
+        // as there is no need to error out for this edge case
+        .catchReturn(res);
+    }).catch({ status: 404 }, function() {
         // it's a cache miss, so we need to request all
         // of the components and store them
         return self._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)

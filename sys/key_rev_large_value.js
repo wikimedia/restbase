@@ -2,7 +2,6 @@
 
 var P = require('bluebird');
 var uuid = require('cassandra-uuid').TimeUuid;
-var preq = require('preq');
 
 var HyperSwitch = require('hyperswitch');
 var HTTPError = HyperSwitch.HTTPError;

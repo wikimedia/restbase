@@ -3,7 +3,7 @@
 var HyperSwitch = require('hyperswitch');
 var spec = HyperSwitch.utils.loadSpec(__dirname + '/summary.yaml');
 
-module.exports = function(options, templates) {
+module.exports = function(options) {
     return {
         spec: spec,
         globals: {
