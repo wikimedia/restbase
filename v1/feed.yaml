@@ -74,7 +74,8 @@ paths:
                     pageid: /.+/
                     normalizedtitle: /.+/
               random:
-                - title: /.+/
+                items:
+                  - title: /.+/
               news:
                 - story: /.+/
                   links:
@@ -215,9 +216,14 @@ definitions:
       $ref: '#/definitions/news_item'
 
   random:
-    type: array
-    items:
-      $ref: '#/definitions/article_summary'
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/article_summary'
+    required:
+      - items
 
   image_description:
     properties:
