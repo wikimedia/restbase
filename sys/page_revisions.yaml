@@ -53,3 +53,13 @@ paths:
     get:
       summary: Get the revision metadata for a specific revision
       operationId: getRevision
+
+  /restrictions/{title}{/revision}:
+    get:
+      summary: Check access to the title / revision
+      operationId: getRestrictions
+
+  /restrictions/{title}/{revision}:
+    post:
+      summary: Update restrictions / redirect information for a title / revision.
+      operationId: postRestrictions
