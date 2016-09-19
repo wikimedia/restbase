@@ -477,6 +477,11 @@ PRS.prototype.fetchAndStoreMWRevision = function(hyper, req) {
             }
         })
         .catch({ status: 404 }, function() {
+            if (!revision.page_deleted) {
+                // Clear up page_deleted
+                revision.page_deleted = null;
+            }
+
             return hyper.put({ // Save / update the revision entry
                 uri: self.tableURI(rp.domain),
                 body: {
