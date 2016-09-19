@@ -20,7 +20,10 @@ var EventService = function(options) {
 
 EventService.prototype.emitEvent = function(hyper, req) {
     var self = this;
-    if (!(self.options && self.options.uri && self.options.topic)) {
+    if (!(self.options
+            && self.options.uri
+            && self.options.topic
+            && self.options.transcludes_topic)) {
         return { status: 200 };
     }
     return P.try(function() {
