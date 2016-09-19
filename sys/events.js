@@ -24,6 +24,17 @@ EventService.prototype.emitEvent = function(hyper, req) {
         return { status: 200 };
     }
     return P.try(function() {
+        // Change-propagation will set up the x-triggered-by header, indicating
+        // the event which caused the rerender. In case RESTBase is about to emit
+        // the same event, it will cause a rerender loop. So, log an error and skip
+        // the event.
+        var triggeredBy = req.headers && req.headers['x-triggered-by']
+            || hyper._rootReq && hyper._rootReq['x-triggered-by'];
+        var topic = self.options.topic;
+        if (triggeredBy && /transcludes/.test(triggeredBy)) {
+            topic = self.options.transcludes_topic;
+        }
+
         var events = req.body.map(function(event) {
             if (!event.meta || !event.meta.uri || !/^\/\//.test(event.meta.uri)) {
                 hyper.log('error/events/emit', {
@@ -33,7 +44,7 @@ EventService.prototype.emitEvent = function(hyper, req) {
                 return undefined;
             }
             event.meta.uri = 'http:' + event.meta.uri;
-            event.meta.topic = self.options.topic;
+            event.meta.topic = topic;
             event.meta.request_id = hyper.reqId;
             event.meta.id = uuid.now().toString();
             event.meta.dt = new Date().toISOString();
@@ -46,12 +57,6 @@ EventService.prototype.emitEvent = function(hyper, req) {
         })
         .filter(function(event) { return !!event; });
 
-        // Change-propagation will set up the x-triggered-by header, indicating
-        // the event which caused the rerender. In case RESTBase is about to emit
-        // the same event, it will cause a rerender loop. So, log an error and skip
-        // the event.
-        var triggeredBy = req.headers && req.headers['x-triggered-by']
-            || hyper._rootReq && hyper._rootReq['x-triggered-by'];
         if (triggeredBy) {
             triggeredBy = triggeredBy.replace(/https?:/g, '');
             events = events.filter(function(event) {
