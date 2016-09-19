@@ -191,6 +191,24 @@ describe('Access checks', function() {
     testAccess('mobile-sections-remaining', 'deleted', deletedPageTitle);
     testAccess('summary', 'deleted', deletedPageTitle);
 
+    it('Should understand that the page was undeleted', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/title/' + encodeURIComponent(deletedPageTitle),
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            return preq.get({
+                uri: server.config.bucketURL + '/html/' + encodeURIComponent(deletedPageTitle) + '/' + deletedPageOlderRevision,
+            });
+        })
+        .then(function (res) {
+            assert.deepEqual(res.status, 200);
+        });
+    });
+
     var pageTitle = 'User:Pchelolo/restriction_testing_mock';
     var pageRev = 301375;
     it('should correctly fetch updated restrictions', function() {
