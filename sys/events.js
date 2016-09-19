@@ -20,10 +20,7 @@ var EventService = function(options) {
 
 EventService.prototype.emitEvent = function(hyper, req) {
     var self = this;
-    if (!(self.options
-            && self.options.uri
-            && self.options.topic
-            && self.options.transcludes_topic)) {
+    if (!(self.options && self.options.uri && self.options.topic)) {
         return { status: 200 };
     }
     return P.try(function() {
@@ -34,7 +31,8 @@ EventService.prototype.emitEvent = function(hyper, req) {
         var triggeredBy = req.headers && req.headers['x-triggered-by']
             || hyper._rootReq && hyper._rootReq['x-triggered-by'];
         var topic = self.options.topic;
-        if (triggeredBy && /transcludes/.test(triggeredBy)) {
+        if (triggeredBy && self.options.transcludes_topic
+                && /transcludes/.test(triggeredBy)) {
             topic = self.options.transcludes_topic;
         }
 
