@@ -138,6 +138,18 @@ describe('Redirects', function() {
         });
     });
 
+    it('should not redirect if redirect=false and page is not in storage', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/User:Pchelolo%2fRedirect_Test2?redirect=false',
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.location, undefined);
+            assert.deepEqual(res.body.length > 0, true);
+        });
+    });
+
     var etag;
     it('should return 302 for redirect pages html', function() {
         return preq.get({
