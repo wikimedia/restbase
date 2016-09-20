@@ -250,7 +250,6 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                 resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
                 return self.saveParsoidResult(hyper, req, format, tid, res)
                 .then(function() {
-                    var redirectUpdate = P.resolve();
                     // Extract redirect target, if any
                     var redirectTarget = mwUtil.extractRedirect(res.body.html.body);
                     if (redirectTarget) {
@@ -258,9 +257,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                         // to caller, and let it rewrite the location header.
                         resp.status = 302;
                         resp.headers.location = encodeURIComponent(redirectTarget);
-                        // Also save the location header.
-                        res.body.html.headers.location = redirectTarget;
-                        redirectUpdate = hyper.post({
+                        return hyper.post({
                             uri: new URI([rp.domain, 'sys', 'page_revisions',
                                          'restrictions', rp.title, rp.revision]),
                             body: {
