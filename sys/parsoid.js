@@ -257,7 +257,7 @@ PSP.generateAndSave = function(hyper, req, format, currentContentRes) {
                         // This revision is actually a redirect. Pass redirect target
                         // to caller, and let it rewrite the location header.
                         resp.status = 302;
-                        resp.headers.location = redirectTarget;
+                        resp.headers.location = encodeURIComponent(redirectTarget);
                         // Also save the location header.
                         res.body.html.headers.location = redirectTarget;
                         redirectUpdate = hyper.post({
