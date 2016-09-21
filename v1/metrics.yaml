@@ -20,7 +20,7 @@ paths:
         This is the root of all pageview data endpoints.  The list of paths that this returns includes ways to query by article, project, top articles, etc.  If browsing the interactive documentation, see the specifics for each endpoint below.
 
         - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
-        - Rate limit: 10 req/s
+        - Rate limit: 50 req/s
       produces:
         - application/json
       responses:
@@ -43,7 +43,7 @@ paths:
         Given a Mediawiki article and a date range, returns a daily timeseries of its pageview counts. You can also filter by access method and/or agent type.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 10 req/s
+        - Rate limit: 50 req/s
       produces:
         - application/json
       parameters:
@@ -99,8 +99,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
-              external: 10
+              internal: 50
+              external: 50
       x-request-handler:
         - get_from_backend:
             request:
@@ -118,7 +118,7 @@ paths:
         Given a date range, returns a timeseries of pageview counts. You can filter by project, access method and/or agent type. You can choose between daily and hourly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 10 req/s
+        - Rate limit: 50 req/s
       produces:
         - application/json
       parameters:
@@ -169,8 +169,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
-              external: 10
+              internal: 50
+              external: 50
       x-request-handler:
         - get_from_backend:
             request:
@@ -211,7 +211,7 @@ paths:
         Lists the 1000 most viewed articles for a given project and timespan (month or day). You can filter by access method.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 10 req/s
+        - Rate limit: 50 req/s
       produces:
         - application/json
       parameters:
@@ -255,8 +255,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
-              external: 10
+              internal: 50
+              external: 50
       x-request-handler:
         - get_from_backend:
             request:
@@ -274,7 +274,7 @@ paths:
         Given a project and a date range, returns a timeseries of unique devices counts. You need to specify a project, and can filter by accessed site (mobile or desktop). You can choose between daily and hourly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 10 req/s
+        - Rate limit: 50 req/s
       produces:
         - application/json
       parameters:
@@ -319,8 +319,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
-              external: 10
+              internal: 50
+              external: 50
       x-request-handler:
         - get_from_backend:
             request:
