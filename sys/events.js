@@ -29,7 +29,7 @@ EventService.prototype.emitEvent = function(hyper, req) {
         // the same event, it will cause a rerender loop. So, log an error and skip
         // the event.
         var triggeredBy = req.headers && req.headers['x-triggered-by']
-            || hyper._rootReq && hyper._rootReq['x-triggered-by'];
+            || hyper._rootReq && hyper._rootReq.headers && hyper._rootReq.headers['x-triggered-by'];
         var topic = self.options.topic;
         if (triggeredBy && self.options.transcludes_topic
                 && /transcludes/.test(triggeredBy)) {
