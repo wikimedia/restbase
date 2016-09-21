@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "REST storage and service dispatcher",
   "main": "index.js",
   "scripts": {
@@ -40,7 +40,7 @@
     "service-runner": "^2.1.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
-    "hyperswitch": "^0.7.0",
+    "hyperswitch": "^0.7.1",
     "jsonwebtoken": "^7.1.9",
     "mediawiki-title": "^0.5.5",
     "entities": "^1.1.1"
