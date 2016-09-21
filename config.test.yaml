@@ -9,6 +9,7 @@ default_project: &default_project
         events:
           uri: http://127.0.0.1:8085/v1/events
           topic: resource_change
+          transcludes_topic: change-prop.transcludes.resource-change
     - path: projects/wmf_default.yaml
       options: &default_options
         table:

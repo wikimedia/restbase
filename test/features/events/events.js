@@ -21,7 +21,7 @@ describe('Change event emitting', function() {
         });
     });
 
-    function createEventLogging(done) {
+    function createEventLogging(done, topic, uri) {
         var eventLogging = http.createServer(function(request) {
             try {
                 assert.deepEqual(request.method, 'POST');
@@ -38,8 +38,8 @@ describe('Change event emitting', function() {
                         assert.deepEqual(!!new Date(event.meta.dt), true);
                         assert.deepEqual(uuid.test(event.meta.id), true);
                         assert.deepEqual(!!event.meta.request_id, true);
-                        assert.deepEqual(event.meta.topic, 'resource_change');
-                        assert.deepEqual(event.meta.uri, 'http://en.wikipedia.org/wiki/User:Pchelolo');
+                        assert.deepEqual(event.meta.topic, topic);
+                        assert.deepEqual(event.meta.uri, uri);
                         assert.deepEqual(event.tags, ['test', 'restbase']);
                         done();
                     } catch (e) {
@@ -63,7 +63,9 @@ describe('Change event emitting', function() {
             done(e)
         }
 
-        eventLogging = createEventLogging(really_done);
+        eventLogging = createEventLogging(really_done,
+            'resource_change',
+            'http://en.wikipedia.org/wiki/User:Pchelolo');
         return preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
@@ -87,6 +89,39 @@ describe('Change event emitting', function() {
         });
     });
 
+    it('should send correct events to the service, transcludes', function(done) {
+        var eventLogging;
+
+        function really_done(e) {
+            if (eventLogging) eventLogging.close();
+            done(e)
+        }
+
+        eventLogging = createEventLogging(really_done,
+            'change-prop.transcludes.resource-change',
+            'http://en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo');
+        return preq.post({
+            uri: server.config.baseURL + '/events/',
+            headers: {
+                'content-type': 'application/json',
+                connection: 'close',
+                'x-triggered-by': 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/User:Pchelolo'
+            },
+            body: [
+                {
+                    meta: {
+                        uri: '//en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo'
+                    },
+                    tags: ['test']
+                }
+            ]
+        })
+        .delay(10000)
+        .finally(function() {
+            really_done(new Error('HTTP event server timeout!'));
+        });
+    });
+
     it('Should skip event if it will cause a loop', function(done) {
         var eventLogging;
 
@@ -95,7 +130,9 @@ describe('Change event emitting', function() {
             done(e)
         }
 
-        eventLogging = createEventLogging(really_done);
+        eventLogging = createEventLogging(really_done,
+            'resource_change',
+            'http://en.wikipedia.org/wiki/User:Pchelolo');
 
         return preq.post({
             uri: server.config.baseURL + '/events/',
