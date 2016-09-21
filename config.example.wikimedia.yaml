@@ -107,6 +107,9 @@ services:
       salt: secret
       default_page_size: 125
       user_agent: RESTBase
+      ui_name: RESTBase
+      ui_url: https://www.mediawiki.org/wiki/RESTBase
+      ui_title: RESTBase docs
 
 logging:
   name: restbase

@@ -24,6 +24,9 @@ services:
       salt: secret
       default_page_size: 125
       user_agent: RESTBase
+      ui_name: RESTBase
+      ui_url: https://www.mediawiki.org/wiki/RESTBase
+      ui_title: RESTBase docs
       spec:
         x-request-filters:
           - path: lib/security_response_header_filter.js
