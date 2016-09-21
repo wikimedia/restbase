@@ -101,10 +101,6 @@ paths:
             limits:
               internal: 10
               external: 10
-<<<<<<< HEAD
-=======
-            log_only: true
->>>>>>> Lowering throttling limits to 10 req/sec
       x-request-handler:
         - get_from_backend:
             request:
