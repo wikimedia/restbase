@@ -79,9 +79,7 @@ paths:
               news:
                 - story: /.+/
                   links:
-                    - pageid: /.+/
-                      ns: /.+/
-                      normalizedtitle: /.+/
+                    - normalizedtitle: /.+/
                       title: /.+/
               image:
                 title: /.+/
