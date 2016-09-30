@@ -60,7 +60,8 @@
     "restbase-mod-table-sqlite": "^0.1.18",
     "swagger-test": "0.3.0",
     "ajv": "^4.7.0",
-    "mocha-eslint":"^3.0.1"
+    "mocha-eslint":"^3.0.1",
+    "eslint-config-node-services": "^1.0.0"
   },
   "deploy": {
     "node": "4.4.6",
