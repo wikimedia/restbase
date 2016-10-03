@@ -21,7 +21,7 @@ describe('Change event emitting', function() {
         });
     });
 
-    function createEventLogging(done, topic, uri) {
+    function createEventLogging(done, topic, uri, trigger) {
         var eventLogging = http.createServer(function(request) {
             try {
                 assert.deepEqual(request.method, 'POST');
@@ -41,6 +41,9 @@ describe('Change event emitting', function() {
                         assert.deepEqual(event.meta.topic, topic);
                         assert.deepEqual(event.meta.uri, uri);
                         assert.deepEqual(event.tags, ['test', 'restbase']);
+                        if (trigger) {
+                            assert.deepEqual(event.triggered_by, trigger);
+                        }
                         done();
                     } catch (e) {
                         done(e);
@@ -99,7 +102,8 @@ describe('Change event emitting', function() {
 
         eventLogging = createEventLogging(really_done,
             'change-prop.transcludes.resource-change',
-            'http://en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo');
+            'http://en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo',
+            'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/User:Pchelolo');
         return preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
@@ -132,7 +136,8 @@ describe('Change event emitting', function() {
 
         eventLogging = createEventLogging(really_done,
             'resource_change',
-            'http://en.wikipedia.org/wiki/User:Pchelolo');
+            'http://en.wikipedia.org/wiki/User:Pchelolo',
+            'resource_change:https://en.wikipedia.org/wiki/Prohibited');
 
         return preq.post({
             uri: server.config.baseURL + '/events/',

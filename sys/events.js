@@ -54,6 +54,7 @@ class EventService {
                 if (event.tags.indexOf('restbase') < 0) {
                     event.tags.push('restbase');
                 }
+                event.triggered_by = triggeredBy;
                 return event;
             })
             .filter((event) => !!event);
