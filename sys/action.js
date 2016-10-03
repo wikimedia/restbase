@@ -4,14 +4,14 @@
  * Simple wrapper for the PHP action API
  */
 
-var HyperSwitch = require('hyperswitch');
-var HTTPError = HyperSwitch.HTTPError;
-var Template = HyperSwitch.Template;
+const HyperSwitch = require('hyperswitch');
+const HTTPError = HyperSwitch.HTTPError;
+const Template = HyperSwitch.Template;
 
 /**
  * Error translation
  */
-var errDefs = {
+const errDefs = {
     400: { status: 400, type: 'bad_request' },
     401: { status: 401, type: 'unauthorized' },
     403: { status: 403, type: 'forbidden#edit' },
@@ -22,7 +22,7 @@ var errDefs = {
     501: { status: 501, type: 'not_supported' }
 };
 
-var errCodes = {
+const errCodes = {
     /* 400 - bad request */
     articleexists: errDefs['400'],
     badformat: errDefs['400'],
@@ -84,10 +84,9 @@ var errCodes = {
 };
 
 function apiError(apiErr) {
-    var ret;
     apiErr = apiErr || {};
-    ret = {
-        message: 'MW API call error ' + apiErr.code,
+    const  ret = {
+        message: `MW API call error ${apiErr.code}`,
         status: errDefs['500'].status,
         body: {
             type: errDefs['500'].type,
@@ -95,44 +94,17 @@ function apiError(apiErr) {
             description: apiErr.info || 'Unknown MW API error'
         }
     };
-    if (apiErr.code && errCodes.hasOwnProperty(apiErr.code)) {
+    if (apiErr.code && {}.hasOwnProperty.call(errCodes, apiErr.code)) {
         ret.status = errCodes[apiErr.code].status;
         ret.body.type = errCodes[apiErr.code].type;
     }
     return new HTTPError(ret);
 }
 
-
-/**
- * Action module code
- */
-function ActionService(options) {
-    if (!options) { throw new Error("No options supplied for action module"); }
-    if (options.apiRequest && typeof options.apiRequest === 'function') {
-        this.apiRequestTemplate = options.apiRequest;
-    } else if (options.apiUriTemplate) {
-        this.apiRequestTemplate = new Template({
-            uri: options.apiUriTemplate,
-            method: 'post',
-            headers: {
-                host: '{{request.params.domain}}'
-            },
-            body: '{{request.body}}',
-        }).expand;
-    } else {
-        var e = new Error('Missing parameter in action module:\n'
-                + '- apiRequest template function, or\n'
-                + '- apiUriTemplate string parameter.');
-        e.options = options;
-        throw e;
-    }
-}
-
 function buildQueryResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
-            info: 'Unexpected response status ('
-                    + res.status + ') from the PHP action API.'
+            info: `Unexpected response status (${res.status}) from the PHP action API.`
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
@@ -150,10 +122,8 @@ function buildQueryResponse(apiReq, res) {
     if (res.body.query.pages) {
         // Rewrite res.body
         // XXX: Rethink!
-        var pages = res.body.query.pages;
-        var newBody = Object.keys(pages).map(function(key) {
-            return pages[key];
-        });
+        const pages = res.body.query.pages;
+        const newBody = Object.keys(pages).map((key) => pages[key]);
 
         // XXX: Clean this up!
         res.body = {
@@ -172,8 +142,7 @@ function buildQueryResponse(apiReq, res) {
 function buildEditResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
-            info: 'Unexpected response status ('
-                    + res.status + ') from the PHP action API.'
+            info: `Unexpected response status (${res.status}) from the PHP action API.`
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
@@ -185,46 +154,73 @@ function buildEditResponse(apiReq, res) {
     return res;
 }
 
-ActionService.prototype._doRequest = function(hyper, req, defBody, cont) {
-    var apiRequest = this.apiRequestTemplate({
-        request: req
-    });
-    apiRequest.body.action = defBody.action;
-    apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
-    apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
-    apiRequest.body.meta = apiRequest.body.meta || defBody.meta;
-    if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
-        apiRequest.body.continue = '';
+
+/**
+ * Action module code
+ */
+class ActionService {
+    constructor(options) {
+        if (!options) { throw new Error("No options supplied for action module"); }
+        if (options.apiRequest && typeof options.apiRequest === 'function') {
+            this.apiRequestTemplate = options.apiRequest;
+        } else if (options.apiUriTemplate) {
+            this.apiRequestTemplate = new Template({
+                uri: options.apiUriTemplate,
+                method: 'post',
+                headers: {
+                    host: '{{request.params.domain}}'
+                },
+                body: '{{request.body}}',
+            }).expand;
+        } else {
+            const e = new Error('Missing parameter in action module:\n'
+                    + '- apiRequest template function, or\n'
+                    + '- apiUriTemplate string parameter.');
+            e.options = options;
+            throw e;
+        }
     }
-    return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
-};
 
-ActionService.prototype.query = function(hyper, req) {
-    return this._doRequest(hyper, req, {
-        action: 'query',
-        format: 'json'
-    }, buildQueryResponse);
-};
+    _doRequest(hyper, req, defBody, cont) {
+        const apiRequest = this.apiRequestTemplate({
+            request: req
+        });
+        apiRequest.body.action = defBody.action;
+        apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
+        apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
+        apiRequest.body.meta = apiRequest.body.meta || defBody.meta;
+        if (!{}.hasOwnProperty.call(apiRequest.body, 'continue') && apiRequest.action === 'query') {
+            apiRequest.body.continue = '';
+        }
+        return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
+    }
 
-ActionService.prototype.edit = function(hyper, req) {
-    return this._doRequest(hyper, req, {
-        action: 'edit',
-        format: 'json',
-        formatversion: 2
-    }, buildEditResponse);
-};
+    query(hyper, req) {
+        return this._doRequest(hyper, req, {
+            action: 'query',
+            format: 'json'
+        }, buildQueryResponse);
+    }
 
-ActionService.prototype.siteinfo = function(hyper, req) {
-    return this._doRequest(hyper, req, {
-        action: 'query',
-        meta: 'siteinfo|filerepoinfo',
-        format: 'json'
-    }, function(apiReq, res) { return res; });
-};
+    edit(hyper, req) {
+        return this._doRequest(hyper, req, {
+            action: 'edit',
+            format: 'json',
+            formatversion: 2
+        }, buildEditResponse);
+    }
 
+    siteinfo(hyper, req) {
+        return this._doRequest(hyper, req, {
+            action: 'query',
+            meta: 'siteinfo|filerepoinfo',
+            format: 'json'
+        }, (apiReq, res) => res);
+    }
+}
 
-module.exports = function(options) {
-    var actionService = new ActionService(options);
+module.exports = (options) => {
+    const actionService = new ActionService(options);
     return {
         spec: {
             paths: {
