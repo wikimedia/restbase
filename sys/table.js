@@ -5,13 +5,12 @@
  * implementation using a config option.
  */
 
-module.exports = function(options) {
+module.exports = (options) => {
     options.conf.backend = options.conf.backend || 'cassandra';
 
-    if (options.conf.backend !== 'cassandra'
-            && options.conf.backend !== 'sqlite') {
-        throw new Error('Unsupported backend version specified: ' + options.backend);
+    if (options.conf.backend !== 'cassandra' && options.conf.backend !== 'sqlite') {
+        throw new Error(`Unsupported backend version specified: ${options.backend}`);
     }
 
-    return require('restbase-mod-table-' + options.conf.backend)(options);
+    return require(`restbase-mod-table-${options.conf.backend}`)(options);
 };

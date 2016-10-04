@@ -275,6 +275,7 @@ paths:
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 100 req/s
+>>>>>>> upstream/master
       produces:
         - application/json
       parameters:
