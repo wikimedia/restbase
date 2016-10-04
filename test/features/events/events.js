@@ -21,7 +21,7 @@ describe('Change event emitting', function() {
         });
     });
 
-    function createEventLogging(done, topic, uri) {
+    function createEventLogging(done, eventOptions) {
         var eventLogging = http.createServer(function(request) {
             try {
                 assert.deepEqual(request.method, 'POST');
@@ -38,9 +38,12 @@ describe('Change event emitting', function() {
                         assert.deepEqual(!!new Date(event.meta.dt), true);
                         assert.deepEqual(uuid.test(event.meta.id), true);
                         assert.deepEqual(!!event.meta.request_id, true);
-                        assert.deepEqual(event.meta.topic, topic);
-                        assert.deepEqual(event.meta.uri, uri);
+                        assert.deepEqual(event.meta.topic, eventOptions.topic);
+                        assert.deepEqual(event.meta.uri, eventOptions.uri);
                         assert.deepEqual(event.tags, ['test', 'restbase']);
+                        if (eventOptions.trigger) {
+                            assert.deepEqual(event.triggered_by, eventOptions.trigger);
+                        }
                         done();
                     } catch (e) {
                         done(e);
@@ -63,9 +66,10 @@ describe('Change event emitting', function() {
             done(e)
         }
 
-        eventLogging = createEventLogging(really_done,
-            'resource_change',
-            'http://en.wikipedia.org/wiki/User:Pchelolo');
+        eventLogging = createEventLogging(really_done, {
+            topic: 'resource_change',
+            uri: 'http://en.wikipedia.org/wiki/User:Pchelolo'
+        });
         return preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
@@ -97,9 +101,11 @@ describe('Change event emitting', function() {
             done(e)
         }
 
-        eventLogging = createEventLogging(really_done,
-            'change-prop.transcludes.resource-change',
-            'http://en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo');
+        eventLogging = createEventLogging(really_done, {
+            topic: 'change-prop.transcludes.resource-change',
+            uri: 'http://en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo',
+            trigger: 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/User:Pchelolo'
+        });
         return preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
@@ -130,10 +136,11 @@ describe('Change event emitting', function() {
             done(e)
         }
 
-        eventLogging = createEventLogging(really_done,
-            'resource_change',
-            'http://en.wikipedia.org/wiki/User:Pchelolo');
-
+        eventLogging = createEventLogging(really_done, {
+            topic: 'resource_change',
+            uri: 'http://en.wikipedia.org/wiki/User:Pchelolo',
+            trigger: 'resource_change:https://en.wikipedia.org/wiki/Prohibited'
+        });
         return preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
