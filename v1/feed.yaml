@@ -12,7 +12,7 @@ paths:
       description: |
         Provides the aggregated feed content for the given date. The endpoint returns
         the featured article of the day, most read articles for the previous day, news
-        content, a random article, and the featured image and video of the day.
+        content and the featured image and video of the day.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -73,9 +73,6 @@ paths:
                     title: /.+/
                     pageid: /.+/
                     normalizedtitle: /.+/
-              random:
-                items:
-                  - title: /.+/
               news:
                 - story: /.+/
                   links:
@@ -213,16 +210,6 @@ definitions:
     items:
       $ref: '#/definitions/news_item'
 
-  random:
-    type: object
-    properties:
-      items:
-        type: array
-        items:
-          $ref: '#/definitions/article_summary'
-    required:
-      - items
-
   image_description:
     properties:
       text:
@@ -268,9 +255,6 @@ definitions:
       news:
         description: Data about in the news section
         $ref: '#/definitions/news'
-      random:
-        description: A single random article
-        $ref: '#/definitions/random'
       image:
         description: Featured image for a given date
         $ref: '#/definitions/image'
