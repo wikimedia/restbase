@@ -184,6 +184,7 @@ module.exports = (options) => {
         resources: [{
             uri: '/{domain}/sys/key_value/feed.aggregated',
             body: {
+                version: 2,
                 valueType: 'json',
                 retention_policy: {
                     type: 'ttl',
