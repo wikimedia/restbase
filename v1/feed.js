@@ -16,7 +16,6 @@ const DEFAULT_TTL = 3600;
 const FEED_URIS = {
     tfa: { uri: ['v1', 'page', 'featured'], date: true },
     mostread: { uri: ['v1', 'page', 'most-read'], date: true },
-    random: { uri: ['v1', 'page', 'random', 'title'], date: false },
     image: { uri: ['v1', 'media', 'image', 'featured'], date: true },
     news: { uri: ['v1', 'page', 'news'], date: false }
 };
@@ -66,28 +65,8 @@ class Feed {
         // check if we have a record in Cassandra already
         return hyper.get({
             uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date])
-        }).then((res) => {
-            // we've got a cache hit, so we just need to request
-            // the random component and return the bundle
-            if (!res.body) {
-                throw new HTTPError({
-                    status: 500,
-                    body: {
-                        type: '#internal_error',
-                        detail: `No data received for aggregated feed date ${date}`,
-                        feed_date: date
-                    }
-                });
-            }
-            return this._makeFeedRequests(['random'], hyper, rp).then((rndRes) => {
-                res.body.random = rndRes.random.body;
-                // make a new ETag since we are changing a part of the body
-                res.headers.etag = `${dateArr.join('')}/${uuid.now().toString()}`;
-                return res;
-            }).catch(() => res); // something went wrong while retrieving the random part of
-            // the response from MCS, so just return the stored content
-            // as there is no need to error out for this edge case
-        }).catch({ status: 404 }, () => // it's a cache miss, so we need to request all
+        })
+        .catch({ status: 404 }, () => // it's a cache miss, so we need to request all
             // of the components and store them
             this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
             .then((result) => {
@@ -139,9 +118,6 @@ class Feed {
             if (feed.mostread && feed.mostread.articles) {
                 feed.mostread.articles.forEach((article) => { requestTitle(article.title); });
             }
-            if (feed.random && feed.random.items) {
-                feed.random.items.forEach((article) => { requestTitle(article.title); });
-            }
             if (feed.news) {
                 feed.news.forEach((newsItem) => {
                     if (newsItem.links) {
@@ -177,10 +153,6 @@ class Feed {
                 feed.tfa = feed.tfa && assignSummary(feed.tfa);
                 if (feed.mostread) {
                     feed.mostread.articles = assignAllSummaries(feed.mostread.articles);
-                }
-
-                if (feed.random) {
-                    feed.random.items = assignAllSummaries(feed.random.items);
                 }
 
                 if (feed.news) {
