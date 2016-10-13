@@ -64,7 +64,7 @@
     "eslint-config-node-services": "^1.0.0"
   },
   "deploy": {
-    "node": "4.4.6",
+    "node": "4.6.0",
     "target": "debian",
     "dependencies": {
       "_all": []
