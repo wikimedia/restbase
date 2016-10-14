@@ -20,6 +20,11 @@ const FEED_URIS = {
     news: { uri: ['v1', 'page', 'news'], date: false }
 };
 
+function isHistoric(date) {
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    return date < today;
+}
 
 class Feed {
     constructor(options) {
@@ -62,40 +67,48 @@ class Feed {
             });
         }
 
-        // check if we have a record in Cassandra already
-        return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date])
-        })
-        .catch({ status: 404 }, () => // it's a cache miss, so we need to request all
-            // of the components and store them
-            this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
-            .then((result) => {
-                // assemble the final response to be returned
-                const finalResult = {
-                    status: 200,
-                    headers: {
-                        'cache-control': this.options.feed_cache_control,
-                        // mimic MCS' ETag value
-                        etag: `${dateArr.join('')}/${uuid.now().toString()}`,
-                        // TODO: need a way to dynamically derive this
-                        'content-type': 'application/json; charset=utf-8; ' +
-                        'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"'
-                    },
-                    body: {}
-                };
-                // populate its body
-                Object.keys(result).forEach((key) => {
-                    if (result[key].body && Object.keys(result[key].body).length) {
-                        finalResult.body[key] = result[key].body;
-                    }
-                });
-                // store it
-                return hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date]),
-                    headers: finalResult.headers,
-                    body: finalResult.body
-                }).then(() => finalResult);
-            }))
+        let feedRequest;
+        if (isHistoric(date)) {
+            feedRequest = hyper.get({
+                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated.historic', date])
+            });
+        } else {
+            feedRequest = hyper.get({
+                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date])
+            })
+            .catch({ status: 404 }, () => // it's a cache miss, so we need to request all
+                // of the components and store them
+                this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
+                .then((result) => {
+                    // assemble the final response to be returned
+                    const finalResult = {
+                        status: 200,
+                        headers: {
+                            'cache-control': this.options.feed_cache_control,
+                            // mimic MCS' ETag value
+                            etag: `${dateArr.join('')}/${uuid.now().toString()}`,
+                            // TODO: need a way to dynamically derive this
+                            'content-type': 'application/json; charset=utf-8; ' +
+                            'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"'
+                        },
+                        body: {}
+                    };
+                    // populate its body
+                    Object.keys(result).forEach((key) => {
+                        if (result[key].body && Object.keys(result[key].body).length) {
+                            finalResult.body[key] = result[key].body;
+                        }
+                    });
+                    // store it, and update the historic
+                    return hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date]),
+                        headers: finalResult.headers,
+                        body: finalResult.body
+                    }).then(() => finalResult);
+                }));
+        }
+
+        return feedRequest
         .then((res) => {
             // We've got the titles, populate them with summaries
             const feed = res.body;
@@ -181,16 +194,25 @@ module.exports = (options) => {
         operations: {
             aggregatedFeed: feed.aggregated.bind(feed)
         },
-        resources: [{
-            uri: '/{domain}/sys/key_value/feed.aggregated',
-            body: {
-                version: 2,
-                valueType: 'json',
-                retention_policy: {
-                    type: 'ttl',
-                    ttl: options.ttl
+        resources: [
+            {
+                uri: '/{domain}/sys/key_value/feed.aggregated',
+                body: {
+                    version: 2,
+                    valueType: 'json',
+                    retention_policy: {
+                        type: 'ttl',
+                        ttl: options.ttl
+                    }
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_value/feed.aggregated.historic',
+                body: {
+                    version: 1,
+                    valueType: 'json'
                 }
             }
-        }]
+        ]
     };
 };
