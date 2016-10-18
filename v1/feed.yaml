@@ -73,11 +73,6 @@ paths:
                     title: /.+/
                     pageid: /.+/
                     normalizedtitle: /.+/
-              news:
-                - story: /.+/
-                  links:
-                    - normalizedtitle: /.+/
-                      title: /.+/
               image:
                 title: /.+/
                 description:
