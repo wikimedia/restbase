@@ -173,67 +173,67 @@ class Feed {
     }
 
 
-    _getHistoricContent(hyper, req, date) {
-        const rp = req.params;
-        const dateKey = toKey(date);
-        const dateArr = dateKey.split('-');
-        return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated.historic', dateKey])
-        })
-        .catch({ status: 404 }, () =>
-            // it's a cache miss, so we need to request all
-            // of the components and store them (but don't request news)
-            this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
-            .then((result) => this._assembleResult(result, dateArr))
-            .then((res) => this._populateSummaries(hyper, req, res))
-            .tap((res) => {
-                hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated.historic', date]),
-                    headers: res.headers,
-                    body: res.body
-                });
-            })
-        );
-    }
-
-    _getCurrentContent(hyper, req, date) {
-        const rp = req.params;
-        const dateKey = toKey(date);
-        const dateArr = dateKey.split('-');
-        return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', dateKey])
-        })
-        .catch({ status: 404 }, () =>
-            // it's a cache miss, so we need to request all
-            // of the components and store them
-            this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
-            .then((result) => {
-                const finalResult = this._assembleResult(result, dateArr);
-                // Store it
-                return hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date]),
-                    headers: finalResult.headers,
-                    body: finalResult.body
-                }).thenReturn(finalResult);
-            }))
-        .then((res) => this._populateSummaries(hyper, req, res))
-        .tap((res) => {
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated.historic', date]),
-                headers: res.headers,
-                body: res.body
-            });
+    _storeContent(hyper, rp, res, date, bucket) {
+        return hyper.put({
+            uri: new URI([rp.domain, 'sys', 'key_value', bucket, date]),
+            headers: res.headers,
+            body: res.body
         });
     }
 
     aggregated(hyper, req) {
         const rp = req.params;
         const date = getDateSafe(rp);
+        const dateKey = toKey(date);
+        const dateArr = dateKey.split('-');
+        const storeContent = (res, bucket) => {
+            return hyper.put({
+                uri: new URI([rp.domain, 'sys', 'key_value', bucket, date]),
+                headers: res.headers,
+                body: res.body
+            });
+        };
+        const getCurrentContent = () => {
+            return hyper.get({
+                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', dateKey])
+            })
+            .catch({ status: 404 }, () =>
+                // it's a cache miss, so we need to request all
+                // of the components and store them
+                this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
+                .then((result) => this._assembleResult(result, dateArr))
+                .tap((res) => {
+                    // Store async
+                    P.join(
+                        storeContent(res, 'feed.aggregated'),
+                        storeContent(res, 'feed.aggregated.historic')
+                    );
+                }));
+        };
+        const getHistoricContent = () => {
+            return hyper.get({
+                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated.historic', dateKey])
+            })
+            .catch({ status: 404 }, () =>
+                // it's a cache miss, so we need to request all
+                // of the components and store them (but don't request news)
+                this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
+                .then((result) => this._assembleResult(result, dateArr))
+                .tap((res) => {
+                    // Store async
+                    storeContent(res, 'feed.aggregated.historic');
+                })
+            );
+        };
+
+
+        let contentRequest;
         if (isHistoric(date)) {
-            return this._getHistoricContent(hyper, req, date);
+            contentRequest = getHistoricContent();
         } else {
-            return this._getCurrentContent(hyper, req, date);
+            contentRequest = getCurrentContent();
         }
+        return contentRequest.then((res) => this._populateSummaries(hyper, req, res));
     }
 }
 
