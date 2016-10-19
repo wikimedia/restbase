@@ -23,7 +23,7 @@ describe('item requests', function() {
             assert.deepEqual(res.headers['access-control-allow-origin'], '*');
             assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
             assert.deepEqual(res.headers['access-control-allow-headers'],
-                'accept, accept-encoding, origin, accept-language, content-type');
+                'accept, accept-encoding, accept-language, content-type');
             assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
         });
     });
