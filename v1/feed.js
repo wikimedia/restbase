@@ -19,6 +19,10 @@ const FEED_URIS = {
     news: { uri: ['v1', 'page', 'news'], date: false }
 };
 
+// TODO: need a way to dynamically derive this
+const CONTENT_TYPE = 'application/json; charset=utf-8; ' +
+    'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"';
+
 /**
  * Checks whether the date is today or in the past in UTC-0 timezone
  *
@@ -61,6 +65,48 @@ function toKey(date) {
     return date.toISOString().split('T').shift();
 }
 
+function populate(responce, fetch, mergeKey) {
+    const requests = {};
+    const setters = [];
+
+    function _traverse(node, removeFromParent) {
+        function requestResource(resource) {
+            requests[resource] = requests[resource] || fetch(resource);
+            setters.push((content) => {
+                if (content[resource]) {
+                    Object.assign(node, content[resource]);
+                } else if (removeFromParent) {
+                    removeFromParent();
+                }
+                // TODO: We would normally delete it anyway,
+                // this check is here until we remove a hack with populating $merge internally
+                if (mergeKey.indexOf('$') !== -1) {
+                    delete node[mergeKey];
+                }
+            });
+        }
+
+        if (Array.isArray(node)) {
+            for (let i = 0; i < node.length; i++) {
+                _traverse(node[i], () => node.splice(i, 1));
+            }
+        } else if (typeof node === 'object') {
+            if (Array.isArray(node[mergeKey])) {
+                node[mergeKey].forEach(requestResource);
+            } else if (node[mergeKey]) {
+                requestResource(node[mergeKey]);
+            } else {
+                Object.keys(node).forEach((key) => _traverse(node[key], () => delete node[key]));
+            }
+        }
+    }
+    _traverse(responce.body);
+
+    return P.props(requests)
+    .then((content) => setters.forEach((setter) => setter(content)))
+    .thenReturn(responce);
+}
+
 class Feed {
     constructor(options) {
         this.options = options;
@@ -90,9 +136,7 @@ class Feed {
                 'cache-control': this.options.feed_cache_control,
                 // mimic MCS' ETag value
                 etag: `${dateArr.join('')}/${uuid.now().toString()}`,
-                // TODO: need a way to dynamically derive this
-                'content-type': 'application/json; charset=utf-8; ' +
-                'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"'
+                'content-type': CONTENT_TYPE
             },
             body: {}
         };
@@ -105,87 +149,25 @@ class Feed {
         return finalResult;
     }
 
-    _populateSummaries(hyper, req, res) {
-        const feed = res.body;
-        const summaries = {};
-        const requestTitle = (title) => {
-            if (title && !summaries[title]) {
-                summaries[title] = hyper.get({
-                    uri: new URI([req.params.domain, 'v1', 'page', 'summary', title])
-                })
-                .get('body')
-                // Swallow the error, no need to fail the whole feed
-                // request because of one failed summary fetch
-                .catchReturn(undefined);
-            }
-        };
-
-        if (feed.tfa) {
-            requestTitle(feed.tfa.title);
-        }
-        if (feed.mostread && feed.mostread.articles) {
-            feed.mostread.articles.forEach((article) => { requestTitle(article.title); });
-        }
-        if (feed.news) {
-            feed.news.forEach((newsItem) => {
-                if (newsItem.links) {
-                    newsItem.links.forEach((article) => {
-                        requestTitle(article.title);
-                    });
-                }
-            });
-        }
-
-        return P.props(summaries)
-        .then((summaries) => {
-            const assignSummary = (article) => {
-                if (!summaries[article.title]) {
-                    return;
-                }
-                // MCS expects the title to be a DB Key
-                delete summaries[article.title].title;
-                const result = Object.assign(article, summaries[article.title]);
-                if (!result.normalizedtitle) {
-                    result.normalizedtitle = result.title.replace(/_/g, ' ');
-                }
-                return result;
-            };
-
-            const assignAllSummaries = (articles) => {
-                if (!articles) {
-                    return;
-                }
-                return articles.map(assignSummary).filter((article) => !!article);
-            };
-
-            feed.tfa = feed.tfa && assignSummary(feed.tfa);
-            if (feed.mostread) {
-                feed.mostread.articles = assignAllSummaries(feed.mostread.articles);
-            }
-
-            if (feed.news) {
-                feed.news.forEach((newsItem) => {
-                    newsItem.links = assignAllSummaries(newsItem.links);
-                });
-            }
-            return res;
-        });
-    }
-
-
-    _storeContent(hyper, rp, res, date, bucket) {
-        return hyper.put({
-            uri: new URI([rp.domain, 'sys', 'key_value', bucket, date]),
-            headers: res.headers,
-            body: res.body
-        });
-    }
-
     aggregated(hyper, req) {
         const rp = req.params;
         const date = getDateSafe(rp);
         const dateKey = toKey(date);
         const dateArr = dateKey.split('-');
+        const populateSummaries = (res) => {
+            function fetchSummary(uri) {
+                return hyper.get({ uri })
+                .then((res) => {
+                    res.body.normalizedtitle = res.body.title.replace(/_/g, ' ');
+                    delete res.body.title; // MSC expects title to be the db-key
+                    return res.body;
+                })
+                // Swallow the error, no need to fail the whole feed
+                // request because of one failed summary fetch
+                .catchReturn(undefined);
+            }
+            return populate(res, fetchSummary, '$merge');
+        };
         const storeContent = (res, bucket) => {
             return hyper.put({
                 uri: new URI([rp.domain, 'sys', 'key_value', bucket, date]),
@@ -202,6 +184,17 @@ class Feed {
                 // of the components and store them
                 this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
                 .then((result) => this._assembleResult(result, dateArr))
+                .then((result) => {
+                    // TODO: TEMP CODE: add '$merge' key until the MCS implements it
+                    const fetch = (title) => {
+                        const uri = `https://${rp.domain}/api/rest_v1/`
+                            + `page/summary/${encodeURIComponent(title)}`;
+                        return P.resolve({
+                            $merge: [ uri ]
+                        });
+                    };
+                    return populate(result, fetch, 'title');
+                })
                 .tap((res) => {
                     // Store async
                     P.join(
@@ -219,6 +212,17 @@ class Feed {
                 // of the components and store them (but don't request news)
                 this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
                 .then((result) => this._assembleResult(result, dateArr))
+                .then((result) => {
+                    // TODO: TEMP CODE: add '$merge' key until the MCS implements it
+                    const fetch = (title) => {
+                        const uri = `https://${rp.domain}/api/rest_v1/`
+                            + `page/summary/${encodeURIComponent(title)}`;
+                        return P.resolve({
+                            $merge: [ uri ]
+                        });
+                    };
+                    return populate(result, fetch, 'title');
+                })
                 .tap((res) => {
                     // Store async
                     storeContent(res, 'feed.aggregated.historic');
@@ -233,7 +237,7 @@ class Feed {
         } else {
             contentRequest = getCurrentContent();
         }
-        return contentRequest.then((res) => this._populateSummaries(hyper, req, res));
+        return contentRequest.then(populateSummaries);
     }
 }
 
