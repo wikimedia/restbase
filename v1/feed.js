@@ -148,6 +148,9 @@ class Feed {
             _traverse(response);
             return response;
         };
+        const getContent = (bucket) => hyper.get({
+            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', dateKey])
+        });
         const storeContent = (res, bucket) => {
             return hyper.put({
                 uri: new URI([rp.domain, 'sys', 'key_value', bucket, date]),
@@ -156,9 +159,7 @@ class Feed {
             });
         };
         const getCurrentContent = () => {
-            return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', dateKey])
-            })
+            return getContent('feed.aggregated')
             .catch({ status: 404 }, () =>
                 // it's a cache miss, so we need to request all
                 // of the components and store them
@@ -174,9 +175,7 @@ class Feed {
                 }));
         };
         const getHistoricContent = () => {
-            return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated.historic', dateKey])
-            })
+            return getContent('feed.aggregated.historic')
             .catch({ status: 404 }, () =>
                 // it's a cache miss, so we need to request all
                 // of the components and store them (but don't request news)
@@ -191,12 +190,7 @@ class Feed {
         };
 
 
-        let contentRequest;
-        if (isHistoric(date)) {
-            contentRequest = getHistoricContent();
-        } else {
-            contentRequest = getCurrentContent();
-        }
+        const contentRequest = isHistoric(date) ? getHistoricContent() : getCurrentContent();
         return contentRequest.then(populateSummaries);
     }
 }
