@@ -106,7 +106,7 @@ describe('Redirects', function() {
 
     it('should append ?redirect=false to self-redirecting pages', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/User:Pchelolo%2FSelf_Redirect',
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2FSelf_Redirect',
             followRedirect: false
         })
         .then(function(res) {
