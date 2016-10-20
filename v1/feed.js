@@ -4,7 +4,7 @@
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const uuid = require('cassandra-uuid').TimeUuid;
-
+const mwUtil = require('../lib/mwUtil');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
@@ -63,48 +63,6 @@ function getDateSafe(rp) {
  */
 function toKey(date) {
     return date.toISOString().split('T').shift();
-}
-
-function populate(responce, fetch, mergeKey) {
-    const requests = {};
-    const setters = [];
-
-    function _traverse(node, removeFromParent) {
-        function requestResource(resource) {
-            requests[resource] = requests[resource] || fetch(resource);
-            setters.push((content) => {
-                if (content[resource]) {
-                    Object.assign(node, content[resource]);
-                } else if (removeFromParent) {
-                    removeFromParent();
-                }
-                // TODO: We would normally delete it anyway,
-                // this check is here until we remove a hack with populating $merge internally
-                if (mergeKey.indexOf('$') !== -1) {
-                    delete node[mergeKey];
-                }
-            });
-        }
-
-        if (Array.isArray(node)) {
-            for (let i = 0; i < node.length; i++) {
-                _traverse(node[i], () => node.splice(i, 1));
-            }
-        } else if (typeof node === 'object') {
-            if (Array.isArray(node[mergeKey])) {
-                node[mergeKey].forEach(requestResource);
-            } else if (node[mergeKey]) {
-                requestResource(node[mergeKey]);
-            } else {
-                Object.keys(node).forEach((key) => _traverse(node[key], () => delete node[key]));
-            }
-        }
-    }
-    _traverse(responce.body);
-
-    return P.props(requests)
-    .then((content) => setters.forEach((setter) => setter(content)))
-    .thenReturn(responce);
 }
 
 class Feed {
@@ -166,7 +124,7 @@ class Feed {
                 // request because of one failed summary fetch
                 .catchReturn(undefined);
             }
-            return populate(res, fetchSummary, '$merge');
+            return mwUtil.populate(res, fetchSummary, '$merge');
         };
         const storeContent = (res, bucket) => {
             return hyper.put({
@@ -193,7 +151,7 @@ class Feed {
                             $merge: [ uri ]
                         });
                     };
-                    return populate(result, fetch, 'title');
+                    return mwUtil.populate(result, fetch, 'title');
                 })
                 .tap((res) => {
                     // Store async
@@ -221,7 +179,7 @@ class Feed {
                             $merge: [ uri ]
                         });
                     };
-                    return populate(result, fetch, 'title');
+                    return mwUtil.populate(result, fetch, 'title');
                 })
                 .tap((res) => {
                     // Store async
