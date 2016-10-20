@@ -65,6 +65,7 @@ function toKey(date) {
     return date.toISOString().split('T').shift();
 }
 
+
 class Feed {
     constructor(options) {
         this.options = options;
@@ -98,7 +99,7 @@ class Feed {
             },
             body: {}
         };
-        // populate its body
+        // hydrateResponse its body
         Object.keys(result).forEach((key) => {
             if (result[key].body && Object.keys(result[key].body).length) {
                 finalResult.body[key] = result[key].body;
@@ -124,7 +125,28 @@ class Feed {
                 // request because of one failed summary fetch
                 .catchReturn(undefined);
             }
-            return mwUtil.populate(res, fetchSummary, '$merge');
+            return mwUtil.hydrateResponse(res, fetchSummary, '$merge');
+        };
+        // TODO: TEMP CODE: add '$merge' key until the MCS implements it
+        const replaceTitleWith$merge = (response) => {
+            function _traverse(node) {
+                if (Array.isArray(node)) {
+                    for (let i = 0; i < node.length; i++) {
+                        _traverse(node[i]);
+                    }
+                } else if (typeof node === 'object') {
+                    if (node.title) {
+                        node.$merge = [
+                            `https://${rp.domain}/api/rest_v1/page/summary/`
+                                + `${encodeURIComponent(node.title)}`
+                        ];
+                    } else {
+                        Object.keys(node).forEach((key) => _traverse(node[key]));
+                    }
+                }
+            }
+            _traverse(response);
+            return response;
         };
         const storeContent = (res, bucket) => {
             return hyper.put({
@@ -142,17 +164,7 @@ class Feed {
                 // of the components and store them
                 this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
                 .then((result) => this._assembleResult(result, dateArr))
-                .then((result) => {
-                    // TODO: TEMP CODE: add '$merge' key until the MCS implements it
-                    const fetch = (title) => {
-                        const uri = `https://${rp.domain}/api/rest_v1/`
-                            + `page/summary/${encodeURIComponent(title)}`;
-                        return P.resolve({
-                            $merge: [ uri ]
-                        });
-                    };
-                    return mwUtil.populate(result, fetch, 'title');
-                })
+                .then(replaceTitleWith$merge)
                 .tap((res) => {
                     // Store async
                     P.join(
@@ -170,17 +182,7 @@ class Feed {
                 // of the components and store them (but don't request news)
                 this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
                 .then((result) => this._assembleResult(result, dateArr))
-                .then((result) => {
-                    // TODO: TEMP CODE: add '$merge' key until the MCS implements it
-                    const fetch = (title) => {
-                        const uri = `https://${rp.domain}/api/rest_v1/`
-                            + `page/summary/${encodeURIComponent(title)}`;
-                        return P.resolve({
-                            $merge: [ uri ]
-                        });
-                    };
-                    return mwUtil.populate(result, fetch, 'title');
-                })
+                .then(replaceTitleWith$merge)
                 .tap((res) => {
                     // Store async
                     storeContent(res, 'feed.aggregated.historic');

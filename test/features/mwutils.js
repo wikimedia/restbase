@@ -8,7 +8,7 @@ const P = require('bluebird');
 const mwUtil = require('../../lib/mwUtil');
 const assert = require('../utils/assert');
 
-describe('Utils.populate', () => {
+describe('Utils.hydrateResponse', () => {
     it('Should support $merge', () => {
         const responce = {
             body: {
@@ -31,7 +31,7 @@ describe('Utils.populate', () => {
             }
         };
 
-        return mwUtil.populate(responce, (uri) => {
+        return mwUtil.hydrateResponse(responce, (uri) => {
             switch (uri) {
                 case 'you_shall_not_pass':
                     return P.resolve(undefined);
@@ -42,7 +42,7 @@ describe('Utils.populate', () => {
                 default:
                     return P.reject(new Error('What?'));
             }
-        }, '$merge')
+        })
         .then((responce) => {
             assert.deepEqual(responce, {
                 body: {
