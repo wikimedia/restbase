@@ -153,7 +153,7 @@ class Feed {
         });
         const storeContent = (res, bucket) => {
             return hyper.put({
-                uri: new URI([rp.domain, 'sys', 'key_value', bucket, date]),
+                uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey]),
                 headers: res.headers,
                 body: res.body
             });
