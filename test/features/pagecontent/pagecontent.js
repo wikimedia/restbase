@@ -22,7 +22,8 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['access-control-allow-origin'], '*');
             assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
-            assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type');
+            assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type, cache-control, ' +
+                'accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding');
             assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
         });
     });
