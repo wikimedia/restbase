@@ -89,16 +89,20 @@ paths:
             $ref: '#/definitions/revision'
         '301':
           description: |
-            Permanent redirect is returned if the supplied article title was not in the normalized form.
-            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
-            title normalization.
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid these redirects, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client side.
 
-            Beware that cross-origin request that allows preflight OPTIONS request would fail for
-            redirected pages.
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '302':
           description: |
-            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
-            ignored, use `redirect=false` query parameter.
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title or no revisions found.
           schema:
@@ -254,16 +258,20 @@ paths:
               type: string
         '301':
           description: |
-            Permanent redirect is returned if the supplied article title was not in the normalized form.
-            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
-            title normalization.
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
 
-            Beware that cross-origin request that allows preflight OPTIONS request would fail for
-            redirected pages.
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '302':
           description: |
-            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
-            ignored, use `redirect=false` query parameter.
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title
           schema:
@@ -539,16 +547,20 @@ paths:
               type: string
         '301':
           description: |
-            Permanent redirect is returned if the supplied article title was not in the normalized form.
-            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
-            title normalization.
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
 
-            Beware that cross-origin request that allows preflight OPTIONS request would fail for
-            redirected pages.
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '302':
           description: |
-            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
-            ignored, use `redirect=false` query parameter.
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page revision contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '400':
           description: Invalid revision or tid
           schema:
@@ -639,16 +651,20 @@ paths:
               type: string
         '301':
           description: |
-            Permanent redirect is returned if the supplied article title was not in the normalized form.
-            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
-            title normalization.
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
 
-            Beware that cross-origin request that allows preflight OPTIONS request would fail for
-            redirected pages.
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '302':
           description: |
-            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
-            ignored, use `redirect=false` query parameter.
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual data-parsoid for the redirect page.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '400':
           description: Invalid revision
           schema:
