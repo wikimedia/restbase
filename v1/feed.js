@@ -121,7 +121,7 @@ class Feed {
                 return hyper.get({ uri })
                 .then((res) => {
                     res.body.normalizedtitle = res.body.title;
-                    res.body.title = res.body.title.replace(/ /g, '_'); // MSC expects title to be the db-key
+                    res.body.title = res.body.title.replace(/ /g, '_');
                     return res.body;
                 })
                 // Swallow the error, no need to fail the whole feed
