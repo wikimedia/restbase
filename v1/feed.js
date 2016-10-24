@@ -65,6 +65,16 @@ function toKey(date) {
     return date.toISOString().split('T').shift();
 }
 
+function constructBody(result) {
+    const body = {};
+    Object.keys(result).forEach((key) => {
+        if (result[key].body && Object.keys(result[key].body).length) {
+            body[key] = result[key].body;
+        }
+    });
+    return body;
+}
+
 
 class Feed {
     constructor(options) {
@@ -89,7 +99,7 @@ class Feed {
 
     _assembleResult(result, dateArr) {
         // assemble the final response to be returned
-        const finalResult = {
+        return {
             status: 200,
             headers: {
                 'cache-control': this.options.feed_cache_control,
@@ -97,15 +107,8 @@ class Feed {
                 etag: `${dateArr.join('')}/${uuid.now().toString()}`,
                 'content-type': CONTENT_TYPE
             },
-            body: {}
+            body: constructBody(result)
         };
-        // hydrateResponse its body
-        Object.keys(result).forEach((key) => {
-            if (result[key].body && Object.keys(result[key].body).length) {
-                finalResult.body[key] = result[key].body;
-            }
-        });
-        return finalResult;
     }
 
     aggregated(hyper, req) {
