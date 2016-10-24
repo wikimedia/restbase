@@ -120,8 +120,8 @@ class Feed {
             function fetchSummary(uri) {
                 return hyper.get({ uri })
                 .then((res) => {
-                    res.body.normalizedtitle = res.body.title.replace(/_/g, ' ');
-                    delete res.body.title; // MSC expects title to be the db-key
+                    res.body.normalizedtitle = res.body.title;
+                    res.body.title = res.body.title.replace(/ /g, '_'); // MSC expects title to be the db-key
                     return res.body;
                 })
                 // Swallow the error, no need to fail the whole feed
