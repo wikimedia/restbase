@@ -45,6 +45,18 @@ paths:
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '404':
           description: Unknown page title
           schema:
@@ -122,6 +134,18 @@ paths:
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '404':
           description: Unknown page title
           schema:
@@ -185,6 +209,18 @@ paths:
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '404':
           description: Unknown page title
           schema:

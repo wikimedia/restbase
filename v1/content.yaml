@@ -87,6 +87,18 @@ paths:
           description: The latest revision metadata for the provided title.
           schema:
             $ref: '#/definitions/revision'
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '404':
           description: Unknown page title or no revisions found.
           schema:
@@ -240,6 +252,18 @@ paths:
                 the exact corresponding data-parsoid metadata, by requesting
                 the specific `revision` and `tid` indicated by the `ETag`.
               type: string
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '404':
           description: Unknown page title
           schema:
@@ -513,6 +537,18 @@ paths:
                 the exact corresponding data-parsoid metadata, by requesting
                 the specific `revision` and `tid` indicated by the `ETag`.
               type: string
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '400':
           description: Invalid revision or tid
           schema:
@@ -601,6 +637,18 @@ paths:
             ETag:
               description: 'Revision / tid: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"'
               type: string
+        '301':
+          description: |
+            Permanent redirect is returned if the supplied article title was not in the normalized form.
+            You can use [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization.
+
+            Beware that cross-origin request that allows preflight OPTIONS request would fail for
+            redirected pages.
+        '302':
+          description: |
+            The redirect is returned if the page on wiki is a redirect. In case redirects on wiki should be
+            ignored, use `redirect=false` query parameter.
         '400':
           description: Invalid revision
           schema:
