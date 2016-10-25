@@ -1,0 +1,84 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki PDF API
+  description: Page PDF Render API
+  termsOfService: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: Services
+    email: services@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/Services
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /pdf/{title}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+    get:
+      tags:
+        - Page content
+      summary: Get a page as PDF
+      description: |
+        Renders the page content as PDF.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/pdf
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The PDF render of an article
+          schema:
+            type: file
+          # TODO: Add an etag somehow. How???
+          #headers:
+          #  ETag:
+          #    description: >
+          #      Syntax: "{revision}/{tid}".
+          #      Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-request-handler:
+        - get_pdf_from_backend:
+            request:
+              method: get
+              uri: 'https://pdf-electron.wmflabs.org/pdf?accessKey=secret&url=https://{{domain}}/wiki/{title}'
+        - return_response:
+            return:
+              status: 200
+              headers:
+                content-disposition: 'attachment; filename={{request.params.title}}.pdf'
+                content-type: '{{get_pdf_from_backend.headers.content-type}}'
+                content-length: '{{get_pdf_from_backend.headers.content-length}}'
+                cache-control: '{{options.response_cache_control}}'
+              body: '{{get_pdf_from_backend.body}}'
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
