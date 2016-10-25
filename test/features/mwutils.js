@@ -20,6 +20,9 @@ describe('Utils.hydrateResponse', () => {
                         $merge: ['you_shall_not_pass']
                     },
                     {
+                        $merge: ['you_shall_not_pass']
+                    },
+                    {
                         prop: 'this_will_be_overwritten',
                         $merge: ['prop_contained_here']
                     }
