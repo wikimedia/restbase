@@ -56,7 +56,7 @@ paths:
                                 options.mobileapps)}}'
                 - path: v1/pdf.yaml
                   options:
-                    response_cache_control: '{{options.purged_cache_control}}'
+                    response_cache_control: '{{options.pdf_cache_control}}'
             /feed:
               x-modules:
                 - path: v1/feed.js

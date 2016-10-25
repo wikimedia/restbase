@@ -65,7 +65,7 @@ paths:
                 content-disposition: 'attachment; filename={{request.params.title}}.pdf'
                 content-type: '{{get_pdf_from_backend.headers.content-type}}'
                 content-length: '{{get_pdf_from_backend.headers.content-length}}'
-                cache-control: '{{options.response_cache_control}}'
+                cache-control: '{{default(options.response_cache_control, "s-maxage=300, max-age=300")}}'
               body: '{{get_pdf_from_backend.body}}'
 
 definitions:
