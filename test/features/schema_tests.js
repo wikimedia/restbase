@@ -11,6 +11,11 @@ var Ajv = require('ajv');
 describe('Responses should conform to the provided JSON schema of the responce', function() {
     var ajv = new Ajv({});
 
+    function getToday() {
+        const now = new Date();
+        return `${now.getUTCFullYear()}/${now.getUTCMonth() + 1}/${now.getUTCDate()}`;
+    }
+
     before(function() {
         return server.start()
         .then(function() { return preq.get({ uri: server.config.baseURL + '/?spec' }); })
@@ -22,7 +27,7 @@ describe('Responses should conform to the provided JSON schema of the responce',
     });
 
     it('/feed/featured should conform schema', function() {
-        return preq.get({ uri: server.config.baseURL + '/feed/featured/2016/09/08' })
+        return preq.get({ uri: `${server.config.baseURL}/feed/featured/${getToday()}` })
         .then(function(res) {
             if (!ajv.validate('#/definitions/feed', res.body)) {
                 throw new assert.AssertionError({
@@ -33,7 +38,7 @@ describe('Responses should conform to the provided JSON schema of the responce',
     });
 
     it('/feed/featured should conform schema, ruwiki', function() {
-        return preq.get({ uri: server.config.hostPort + '/ru.wikipedia.org/v1/feed/featured/2016/09/08' })
+        return preq.get({ uri: `${server.config.hostPort}/ru.wikipedia.org/v1/feed/featured/${getToday()}` })
         .then(function(res) {
             if (!ajv.validate('#/definitions/feed', res.body)) {
                 throw new assert.AssertionError({

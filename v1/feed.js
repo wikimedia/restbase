@@ -4,12 +4,11 @@
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const uuid = require('cassandra-uuid').TimeUuid;
-
+const mwUtil = require('../lib/mwUtil');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/feed.yaml`);
-
 
 const DEFAULT_TTL = 3600;
 
@@ -19,6 +18,62 @@ const FEED_URIS = {
     image: { uri: ['v1', 'media', 'image', 'featured'], date: true },
     news: { uri: ['v1', 'page', 'news'], date: false }
 };
+
+// TODO: need a way to dynamically derive this
+const CONTENT_TYPE = 'application/json; charset=utf-8; ' +
+    'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"';
+
+/**
+ * Checks whether the date is today or in the past in UTC-0 timezone
+ *
+ * @param {Date} date a date to check
+ * @return {boolean} true if the date is in the past
+ */
+function isHistoric(date) {
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    return date < today;
+}
+
+/**
+ * Safely builds the Date from request parameters
+ *
+ * @param {Object} rp request parameters object
+ * @return {Date} the requested date.
+ */
+function getDateSafe(rp) {
+    try {
+        return new Date(Date.UTC(rp.yyyy, rp.mm - 1, rp.dd));
+    } catch (err) {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'bad_request',
+                description: 'wrong date format specified'
+            }
+        });
+    }
+}
+
+/**
+ * Converts the date to the bucket key, key the records in the format YYYY-MM-DD
+ *
+ * @param {Date} date the date to convert
+ * @return {string}
+ */
+function toKey(date) {
+    return date.toISOString().split('T').shift();
+}
+
+function constructBody(result) {
+    const body = {};
+    Object.keys(result).forEach((key) => {
+        if (result[key].body && Object.keys(result[key].body).length) {
+            body[key] = result[key].body;
+        }
+    });
+    return body;
+}
 
 
 class Feed {
@@ -42,127 +97,104 @@ class Feed {
         return P.props(props);
     }
 
+    _assembleResult(result, dateArr) {
+        // assemble the final response to be returned
+        return {
+            status: 200,
+            headers: {
+                'cache-control': this.options.feed_cache_control,
+                // mimic MCS' ETag value
+                etag: `${dateArr.join('')}/${uuid.now().toString()}`,
+                'content-type': CONTENT_TYPE
+            },
+            body: constructBody(result)
+        };
+    }
+
     aggregated(hyper, req) {
         const rp = req.params;
-        let date;
-        let dateArr;
-
-        // key the records on the date in the format YYYY-MM-DD
-        try {
-            date = new Date(Date.UTC(rp.yyyy, rp.mm - 1, rp.dd));
-            date = date.toISOString().split('T').shift();
-            dateArr = date.split('-');
-        } catch (err) {
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request',
-                    description: 'wrong date format specified'
-                }
-            });
-        }
-
-        // check if we have a record in Cassandra already
-        return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date])
-        })
-        .catch({ status: 404 }, () => // it's a cache miss, so we need to request all
-            // of the components and store them
-            this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
-            .then((result) => {
-                // assemble the final response to be returned
-                const finalResult = {
-                    status: 200,
-                    headers: {
-                        'cache-control': this.options.feed_cache_control,
-                        // mimic MCS' ETag value
-                        etag: `${dateArr.join('')}/${uuid.now().toString()}`,
-                        // TODO: need a way to dynamically derive this
-                        'content-type': 'application/json; charset=utf-8; ' +
-                        'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"'
-                    },
-                    body: {}
-                };
-                // populate its body
-                Object.keys(result).forEach((key) => {
-                    if (result[key].body && Object.keys(result[key].body).length) {
-                        finalResult.body[key] = result[key].body;
-                    }
-                });
-                // store it
-                return hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', date]),
-                    headers: finalResult.headers,
-                    body: finalResult.body
-                }).then(() => finalResult);
-            }))
-        .then((res) => {
-            // We've got the titles, populate them with summaries
-            const feed = res.body;
-            const summaries = {};
-            const requestTitle = (title) => {
-                if (title && !summaries[title]) {
-                    summaries[title] = hyper.get({
-                        uri: new URI([rp.domain, 'v1', 'page', 'summary', title])
-                    })
-                    .get('body')
-                    // Swallow the error, no need to fail the whole feed
-                    // request because of one failed summary fetch
-                    .catchReturn(undefined);
-                }
-            };
-
-            if (feed.tfa) {
-                requestTitle(feed.tfa.title);
+        const date = getDateSafe(rp);
+        const dateKey = toKey(date);
+        const dateArr = dateKey.split('-');
+        const populateSummaries = (res) => {
+            function fetchSummary(uri) {
+                return hyper.get({ uri })
+                .then((res) => {
+                    res.body.normalizedtitle = res.body.title;
+                    res.body.title = res.body.title.replace(/ /g, '_');
+                    return res.body;
+                })
+                // Swallow the error, no need to fail the whole feed
+                // request because of one failed summary fetch
+                .catchReturn(undefined);
             }
-            if (feed.mostread && feed.mostread.articles) {
-                feed.mostread.articles.forEach((article) => { requestTitle(article.title); });
-            }
-            if (feed.news) {
-                feed.news.forEach((newsItem) => {
-                    if (newsItem.links) {
-                        newsItem.links.forEach((article) => {
-                            requestTitle(article.title);
-                        });
+            return mwUtil.hydrateResponse(res, fetchSummary, '$merge');
+        };
+        // TODO: TEMP CODE: add '$merge' key until the MCS implements it
+        const replaceTitleWith$merge = (response) => {
+            function _traverse(node) {
+                if (Array.isArray(node)) {
+                    for (let i = 0; i < node.length; i++) {
+                        _traverse(node[i]);
                     }
-                });
-            }
-
-            return P.props(summaries)
-            .then((summaries) => {
-                const assignSummary = (article) => {
-                    if (!summaries[article.title]) {
-                        return;
+                } else if (typeof node === 'object') {
+                    if (node.title) {
+                        node.$merge = [
+                            `https://${rp.domain}/api/rest_v1/page/summary/`
+                                + `${encodeURIComponent(node.title)}`
+                        ];
+                    } else {
+                        Object.keys(node).forEach((key) => _traverse(node[key]));
                     }
-                    // MCS expects the title to be a DB Key
-                    delete summaries[article.title].title;
-                    const result = Object.assign(article, summaries[article.title]);
-                    if (!result.normalizedtitle) {
-                        result.normalizedtitle = result.title.replace(/_/g, ' ');
-                    }
-                    return result;
-                };
-
-                const assignAllSummaries = (articles) => {
-                    if (!articles) {
-                        return;
-                    }
-                    return articles.map(assignSummary).filter((article) => !!article);
-                };
-
-                feed.tfa = feed.tfa && assignSummary(feed.tfa);
-                if (feed.mostread) {
-                    feed.mostread.articles = assignAllSummaries(feed.mostread.articles);
                 }
-
-                if (feed.news) {
-                    feed.news.forEach((newsItem) => {
-                        newsItem.links = assignAllSummaries(newsItem.links);
-                    });
-                }
-                return res;
-            });
+            }
+            _traverse(response);
+            return response;
+        };
+        const getContent = (bucket) => hyper.get({
+            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', dateKey])
         });
+        const storeContent = (res, bucket) => {
+            return hyper.put({
+                uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey]),
+                headers: res.headers,
+                body: res.body
+            });
+        };
+        const getCurrentContent = () => {
+            return getContent('feed.aggregated')
+            .catch({ status: 404 }, () =>
+                // it's a cache miss, so we need to request all
+                // of the components and store them
+                this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
+                .then((result) => this._assembleResult(result, dateArr))
+                .then(replaceTitleWith$merge)
+                .tap((res) => {
+                    // Store async
+                    P.join(
+                        storeContent(res, 'feed.aggregated'),
+                        storeContent(res, 'feed.aggregated.historic')
+                    );
+                }));
+        };
+        const getHistoricContent = () => {
+            return getContent('feed.aggregated.historic')
+            .catch({ status: 404 }, () =>
+                // it's a cache miss, so we need to request all
+                // of the components and store them (but don't request news)
+                this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
+                .then((result) => this._assembleResult(result, dateArr))
+                .then(replaceTitleWith$merge)
+                .tap((res) => {
+                    // Store async
+                    storeContent(res, 'feed.aggregated.historic');
+                })
+            );
+        };
+
+
+        const contentRequest = isHistoric(date) ? getHistoricContent() : getCurrentContent();
+        return contentRequest.then(populateSummaries);
     }
 }
 
@@ -181,16 +213,25 @@ module.exports = (options) => {
         operations: {
             aggregatedFeed: feed.aggregated.bind(feed)
         },
-        resources: [{
-            uri: '/{domain}/sys/key_value/feed.aggregated',
-            body: {
-                version: 2,
-                valueType: 'json',
-                retention_policy: {
-                    type: 'ttl',
-                    ttl: options.ttl
+        resources: [
+            {
+                uri: '/{domain}/sys/key_value/feed.aggregated',
+                body: {
+                    version: 2,
+                    valueType: 'json',
+                    retention_policy: {
+                        type: 'ttl',
+                        ttl: options.ttl
+                    }
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_value/feed.aggregated.historic',
+                body: {
+                    version: 1,
+                    valueType: 'json'
                 }
             }
-        }]
+        ]
     };
 };
