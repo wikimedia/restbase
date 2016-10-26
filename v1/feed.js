@@ -128,7 +128,7 @@ class Feed {
                 // request because of one failed summary fetch
                 .catchReturn(undefined);
             }
-            return mwUtil.hydrateResponse(res, fetchSummary, '$merge');
+            return mwUtil.hydrateResponse(res, fetchSummary);
         };
         // TODO: TEMP CODE: add '$merge' key until the MCS implements it
         const replaceTitleWith$merge = (response) => {
@@ -152,7 +152,7 @@ class Feed {
             return response;
         };
         const getContent = (bucket) => hyper.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', 'feed.aggregated', dateKey])
+            uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey])
         });
         const storeContent = (res, bucket) => {
             return hyper.put({
@@ -163,6 +163,13 @@ class Feed {
         };
         const getCurrentContent = () => {
             return getContent('feed.aggregated')
+            // TODO: Temp code while to run correctly in the mixed code environment.
+            // Added only for deployment and transition period, to be removed afterwards.
+            .tap((res) => {
+                if (!res || !res.body || !res.body.tfa || !res.body.tfa.$merge) {
+                    throw new HTTPError({ status: 404 });
+                }
+            })
             .catch({ status: 404 }, () =>
                 // it's a cache miss, so we need to request all
                 // of the components and store them
@@ -191,7 +198,6 @@ class Feed {
                 })
             );
         };
-
 
         const contentRequest = isHistoric(date) ? getHistoricContent() : getCurrentContent();
         return contentRequest.then(populateSummaries);
