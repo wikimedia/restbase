@@ -16,7 +16,7 @@ function assertStorageRequest(requests, method, bucket, expected) {
     }
 }
 
-function assertServiceRequest(requests, content, date, expected) {
+function assertMCSRequest(requests, content, date, expected) {
     let serviceURI = `http://appservice.wmflabs.org/en.wikipedia.org/v1/${content}`;
     if (date) {
         serviceURI += `/${date}`;
@@ -50,10 +50,10 @@ describe('Feed', () => {
             assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
             assertStorageRequest(requests, 'get', 'feed.aggregated', false);
             assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertServiceRequest(requests, 'page/featured', date, true);
-            assertServiceRequest(requests, 'page/most-read', date, true);
-            assertServiceRequest(requests, 'media/image/featured', date, true);
-            assertServiceRequest(requests, 'page/news', undefined, false);
+            assertMCSRequest(requests, 'page/featured', date, true);
+            assertMCSRequest(requests, 'page/most-read', date, true);
+            assertMCSRequest(requests, 'media/image/featured', date, true);
+            assertMCSRequest(requests, 'page/news', undefined, false);
         });
     });
 
@@ -71,10 +71,10 @@ describe('Feed', () => {
             assertStorageRequest(requests, 'put', 'feed.aggregated.historic', false);
             assertStorageRequest(requests, 'get', 'feed.aggregated', false);
             assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertServiceRequest(requests, 'page/featured', date, false);
-            assertServiceRequest(requests, 'page/most-read', date, false);
-            assertServiceRequest(requests, 'media/image/featured', date, false);
-            assertServiceRequest(requests, 'page/news', undefined, false);
+            assertMCSRequest(requests, 'page/featured', date, false);
+            assertMCSRequest(requests, 'page/most-read', date, false);
+            assertMCSRequest(requests, 'media/image/featured', date, false);
+            assertMCSRequest(requests, 'page/news', undefined, false);
         });
     });
 
@@ -92,10 +92,10 @@ describe('Feed', () => {
             assertStorageRequest(requests, 'get', 'feed.aggregated', true);
             assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
-            assertServiceRequest(requests, 'page/featured', date, true);
-            assertServiceRequest(requests, 'page/most-read', date, true);
-            assertServiceRequest(requests, 'media/image/featured', date, true);
-            assertServiceRequest(requests, 'page/news', undefined, true);
+            assertMCSRequest(requests, 'page/featured', date, true);
+            assertMCSRequest(requests, 'page/most-read', date, true);
+            assertMCSRequest(requests, 'media/image/featured', date, true);
+            assertMCSRequest(requests, 'page/news', undefined, true);
         });
     });
 
@@ -111,10 +111,10 @@ describe('Feed', () => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
             assertStorageRequest(requests, 'get', 'feed.aggregated', true);
-            assertServiceRequest(requests, 'page/featured', date, false);
-            assertServiceRequest(requests, 'page/most-read', date, false);
-            assertServiceRequest(requests, 'media/image/featured', date, false);
-            assertServiceRequest(requests, 'page/news', undefined, false);
+            assertMCSRequest(requests, 'page/featured', date, false);
+            assertMCSRequest(requests, 'page/most-read', date, false);
+            assertMCSRequest(requests, 'media/image/featured', date, false);
+            assertMCSRequest(requests, 'page/news', undefined, false);
         });
     });
 });
