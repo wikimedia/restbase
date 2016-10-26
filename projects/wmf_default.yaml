@@ -147,6 +147,13 @@ paths:
                         Commons:Quality_images_candidates/candidate_list: true
                       ceb.wikipedia.org:
                         Gumagamit:Lsjbot/Anomalier-PRIVAT: true
+                      sv.wikipedia.org:
+                        Användare:Lsjbot/Anomalier-PRIVAT: true
+                        Användare:Lsjbot/Namnkonflikter-PRIVAT: true
+                      fr.wikipedia.org:
+                        Utilisateur:ZéroBot/Log/Erreurs: true
+                      ca.wikipedia.org:
+                        Usuari:TronaBot/log:Activitat_reversors_per_hores: true
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
