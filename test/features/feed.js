@@ -42,7 +42,8 @@ describe('Feed', () => {
         return preq.get({
             uri: `${server.config.baseURL}/feed/featured/${date}`
         })
-        .then(function () {
+        .delay(1000)
+        .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
             assertStorageRequest(requests, 'get', 'feed.aggregated.historic', true);
@@ -62,7 +63,8 @@ describe('Feed', () => {
         return preq.get({
             uri: `${server.config.baseURL}/feed/featured/2016/10/01`
         })
-        .then(function () {
+        .delay(1000)
+        .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
             assertStorageRequest(requests, 'get', 'feed.aggregated.historic', true);
@@ -83,7 +85,8 @@ describe('Feed', () => {
         return preq.get({
             uri: `${server.config.baseURL}/feed/featured/${date}`
         })
-        .then(function () {
+        .delay(1000)
+        .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
             assertStorageRequest(requests, 'get', 'feed.aggregated', true);
@@ -103,7 +106,8 @@ describe('Feed', () => {
         return preq.get({
             uri: `${server.config.baseURL}/feed/featured/${date}`
         })
-        .then(function () {
+        .delay(1000)
+        .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
             assertStorageRequest(requests, 'get', 'feed.aggregated', true);
