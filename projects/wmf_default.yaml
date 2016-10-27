@@ -66,6 +66,10 @@ paths:
               x-modules:
                 - path: v1/mathoid.yaml
                   options: '{{options.mathoid}}'
+            /data:
+              x-modules:
+                - path: v1/citoid.yaml
+                  options: '{{options.citoid}}'
         options: '{{options}}'
 
   /{api:sys}:
