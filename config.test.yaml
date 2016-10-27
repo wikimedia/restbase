@@ -36,6 +36,8 @@ default_project: &default_project
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
           host: http://appservice.wmflabs.org
+        citoid:
+          host: http://citoid-beta.wmflabs.org
         events: {}
         purged_cache_control: test_purged_cache_control
         pdf:
