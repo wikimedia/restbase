@@ -43,6 +43,14 @@ paths:
             parameter manually, it will be done by the docs engine.
           type: string
           required: true
+        - name: basefields
+          in: query
+          type: boolean
+          required: false
+          description: >
+            Optional boolean argument. If it is set to true (or 1), it will return the base
+            fields for the data in addition to the mapped fields. For example, it will return
+            `publicationTitle` in addition to `bookTitle` or `websiteTitle`
         - name: Accept-Language
           in: header
           type: string
