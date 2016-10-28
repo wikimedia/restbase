@@ -82,6 +82,10 @@ spec_root: &spec_root
         dump_test_uris: false
         filepath: uri_dump
     - path: lib/security_response_header_filter.js
+    - path: lib/content_location_filter.js
+      options:
+        templates:
+          base_uri_template: 'https://{{request.params.domain}}/api/rest_v1'
 
   x-sub-request-filters:
     - type: default
