@@ -19,7 +19,7 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 function normalizeHtml(html) {
     return html && html.toString
     && html.toString()
-    .replace(/ about="[^"]+"(?=[\/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
+    .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
 }
 function sameHtml(a, b) {
     return normalizeHtml(a) === normalizeHtml(b);
@@ -269,7 +269,7 @@ class ParsoidService {
         })
         .then(() => {
             const pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
-                    rp.title, rp.revision]);
+                rp.title, rp.revision]);
 
             const parentRev = parseInt(req.headers['x-restbase-parentrevision']);
             const updateMode = req.headers['x-restbase-mode'];
@@ -318,7 +318,7 @@ class ParsoidService {
                             resp.headers.location = encodeURIComponent(redirectTarget);
                             return hyper.post({
                                 uri: new URI([rp.domain, 'sys', 'page_revisions',
-                                             'restrictions', rp.title, rp.revision]),
+                                    'restrictions', rp.title, rp.revision]),
                                 body: {
                                     redirect: redirectTarget,
                                 }
@@ -486,7 +486,7 @@ class ParsoidService {
         const rp = req.params;
         const revReq = {
             uri: new URI([rp.domain, 'sys', this.options.bucket_type,
-                    `parsoid.${format}`, rp.title, '']),
+                `parsoid.${format}`, rp.title, '']),
             body: {
                 limit: hyper.config.default_page_size
             }

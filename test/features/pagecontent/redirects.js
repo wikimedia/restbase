@@ -147,7 +147,7 @@ describe('Redirects', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers.location, undefined);
             assert.deepEqual(res.headers['content-location'],
-                'https://en.wikipedia.org/api/rest_v1/html/User:Pchelolo%2fRedirect_Test2?redirect=false')
+                'https://en.wikipedia.org/api/rest_v1/page/html/User%3APchelolo%2FRedirect_Test2?redirect=false')
             assert.deepEqual(res.body.length > 0, true);
         });
     });
@@ -323,7 +323,7 @@ describe('Redirects', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'], 'https://en.wikipedia.org/api/rest_v1/html/Main_Page')
+            assert.deepEqual(res.headers['content-location'], 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page');
         })
     });
 });

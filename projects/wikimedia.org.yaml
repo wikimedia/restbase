@@ -42,6 +42,10 @@ paths:
             - path: ./lib/normalize_title_filter.js
               options:
                 redirect_cache_control: '{{options.purged_cache_control}}'
+            - path: lib/content_location_filter.js
+              options:
+                templates:
+                  base_uri_template: 'https://{{request.params.domain}}/api/rest_v1'
           paths:
             /media:
               x-modules:

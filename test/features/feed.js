@@ -21,12 +21,12 @@ function assertMCSRequest(requests, content, date, expected) {
     if (date) {
         serviceURI += `/${date}`;
     }
-    const storageRequests = requests.filter((log) =>
+    const serviceRequests = requests.filter((log) =>
         log.req && log.req.uri === serviceURI);
     if (expected) {
-        assert.deepEqual(storageRequests.length > 0, true, `Should have made request to service for ${content}`);
+        assert.deepEqual(serviceRequests.length > 0, true, `Should have made request to service for ${content}`);
     } else {
-        assert.deepEqual(storageRequests.length === 0, true, `Should NOT have made request to service for ${content}`);
+        assert.deepEqual(serviceRequests.length === 0, true, `Should NOT have made request to service for ${content}`);
     }
 }
 
@@ -80,7 +80,7 @@ describe('Feed', () => {
 
     it('Should render non-available current content', () => {
         const now = new Date();
-        const date = `${now.getUTCFullYear()}/${now.getUTCMonth() + 1}/${now.getUTCDate()}`;
+        const date = now.toISOString().split('T').shift().split('-').join('/');
         const slice = server.config.logStream.slice();
         return preq.get({
             uri: `${server.config.baseURL}/feed/featured/${date}`
@@ -101,7 +101,7 @@ describe('Feed', () => {
 
     it('Should not rerender available current content', () => {
         const now = new Date();
-        const date = `${now.getUTCFullYear()}/${now.getUTCMonth() + 1}/${now.getUTCDate()}`;
+        const date = now.toISOString().split('T').shift().split('-').join('/');
         const slice = server.config.logStream.slice();
         return preq.get({
             uri: `${server.config.baseURL}/feed/featured/${date}`
