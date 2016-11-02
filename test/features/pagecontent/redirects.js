@@ -59,22 +59,24 @@ describe('Redirects', function() {
     });
     it('should redirect to commons for missing file pages', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg'
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
+            followRedirect: false
         })
         .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
+            assert.deepEqual(res.status, 302);
+            assert.deepEqual(res.headers['location'],
                 'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
         });
     });
 
     it('should redirect to commons for missing file pages, dewiki', function() {
         return preq.get({
-            uri: server.config.hostPort + '/de.wikipedia.org/v1/page/html/Datei:Name.jpg'
+            uri: server.config.hostPort + '/de.wikipedia.org/v1/page/html/Datei:Name.jpg',
+            followRedirect: false
         })
         .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
+            assert.deepEqual(res.status, 302);
+            assert.deepEqual(res.headers['location'],
                 'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AName.jpg');
         });
     });
@@ -325,5 +327,58 @@ describe('Redirects', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-location'], 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page');
         })
+    });
+
+    it('should return 200 for redirect pages html, cross-origin', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+            assert.deepEqual(res.body.length > 0, true);
+            assert.deepEqual(/Redirect Target/.test(res.body.toString()), true);
+        });
+    });
+
+    it('should return 200 for redirect pages html, cross-origin, with title normalization', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect%20Test',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+            assert.deepEqual(res.body.length > 0, true);
+            assert.deepEqual(/Redirect Target/.test(res.body.toString()), true);
+        });
+    });
+
+    // Skipping since we're testing against parsoid in beta cluster and it doesn't support commons
+    it.skip('should redirect to commons for missing file pages, cross-origin', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+        });
     });
 });
