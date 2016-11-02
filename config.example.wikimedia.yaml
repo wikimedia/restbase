@@ -20,6 +20,7 @@ default_project: &default_project
           host: http://parsoid-beta.wmflabs.org
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+          baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
         graphoid:
           host: http://graphoid.wikimedia.org
         mathoid:

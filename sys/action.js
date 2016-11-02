@@ -154,6 +154,15 @@ function buildEditResponse(apiReq, res) {
     return res;
 }
 
+function findSharedRepoDomain(siteInfoRes) {
+    const sharedRepo = (siteInfoRes.body.query.repos || []).find((repo) => repo.name === 'shared');
+    if (sharedRepo) {
+        const domainMatch = /^((:?https?:)?\/\/[^/]+)/.exec(sharedRepo.descBaseUrl);
+        if (domainMatch) {
+            return domainMatch[0];
+        }
+    }
+}
 
 /**
  * Action module code
@@ -161,31 +170,35 @@ function buildEditResponse(apiReq, res) {
 class ActionService {
     constructor(options) {
         if (!options) { throw new Error("No options supplied for action module"); }
-        if (options.apiRequest && typeof options.apiRequest === 'function') {
-            this.apiRequestTemplate = options.apiRequest;
-        } else if (options.apiUriTemplate) {
-            this.apiRequestTemplate = new Template({
-                uri: options.apiUriTemplate,
-                method: 'post',
-                headers: {
-                    host: '{{request.params.domain}}'
-                },
-                body: '{{request.body}}',
-            }).expand;
-        } else {
+        if (!options.apiUriTemplate || !options.baseUriTemplate) {
             const e = new Error('Missing parameter in action module:\n'
                     + '- apiRequest template function, or\n'
                     + '- apiUriTemplate string parameter.');
             e.options = options;
             throw e;
         }
+
+        this.apiRequestTemplate = new Template({
+            uri: options.apiUriTemplate,
+            method: 'post',
+            headers: {
+                host: '{{request.params.domain}}'
+            },
+            body: '{{request.body}}',
+        });
+        this.baseUriTemplate = new Template({
+            uri: options.baseUriTemplate
+        });
+
+        this._siteInfoCache = {};
     }
 
     _doRequest(hyper, req, defBody, cont) {
-        const apiRequest = this.apiRequestTemplate({
+        const apiRequest = this.apiRequestTemplate.expand({
             request: req
         });
-        apiRequest.body.action = defBody.action;
+        apiRequest.body = apiRequest.body || {};
+        apiRequest.body.action = apiRequest.body.action || defBody.action;
         apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
         apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
         apiRequest.body.meta = apiRequest.body.meta || defBody.meta;
@@ -193,6 +206,10 @@ class ActionService {
             apiRequest.body.continue = '';
         }
         return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
+    }
+
+    _getBaseUri(req) {
+        return this.baseUriTemplate.expand({ request: req }).uri;
     }
 
     query(hyper, req) {
@@ -211,11 +228,45 @@ class ActionService {
     }
 
     siteinfo(hyper, req) {
-        return this._doRequest(hyper, req, {
-            action: 'query',
-            meta: 'siteinfo|filerepoinfo',
-            format: 'json'
-        }, (apiReq, res) => res);
+        const rp = req.params;
+        if (!this._siteInfoCache[rp.domain]) {
+            this._siteInfoCache[rp.domain] = this._doRequest(hyper, {
+                method: 'post',
+                params: req.params,
+                headers: req.headers,
+                body: {
+                    action: 'query',
+                    meta: 'siteinfo|filerepoinfo',
+                    siprop: 'general|namespaces|namespacealiases',
+                    format: 'json'
+                }
+            }, {}, (apiReq, res) => {
+                if (!res || !res.body || !res.body.query || !res.body.query.general) {
+                    throw new Error(`SiteInfo is unavailable for ${rp.domain}`);
+                }
+                return {
+                    status: 200,
+                    body: {
+                        general: {
+                            lang: res.body.query.general.lang,
+                            legaltitlechars: res.body.query.general.legaltitlechars,
+                            case: res.body.query.general.case
+                        },
+
+                        namespaces: res.body.query.namespaces,
+                        namespacealiases: res.body.query.namespacealiases,
+                        sharedRepoRootURI: findSharedRepoDomain(res),
+                        baseUri: this._getBaseUri(req)
+                    }
+                };
+            })
+            .catch((e) => {
+                hyper.log('error/site_info', e);
+                delete this._siteInfoCache[rp.domain];
+                throw e;
+            });
+        }
+        return this._siteInfoCache[rp.domain];
     }
 }
 
