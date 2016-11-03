@@ -314,8 +314,9 @@ class ParsoidService {
                         if (redirectTarget) {
                             // This revision is actually a redirect. Pass redirect target
                             // to caller, and let it rewrite the location header.
-                            resp.status = 302;
-                            resp.headers.location = encodeURIComponent(redirectTarget);
+                            // The status will be changed by the filter.
+                            resp.status = 200;
+                            resp.headers.location = redirectTarget;
                             return hyper.post({
                                 uri: new URI([rp.domain, 'sys', 'page_revisions',
                                     'restrictions', rp.title, rp.revision]),
