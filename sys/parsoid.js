@@ -143,11 +143,9 @@ function replaceSections(original, sectionsJson) {
 // HTML resource_change event emission
 function _dependenciesUpdate(hyper, req) {
     const rp = req.params;
-    return hyper.get({
-        uri: new URI([rp.domain, 'sys', 'action', 'siteinfo'])
-    })
+    return mwUtil.getSiteInfo(hyper, req)
     .then((siteInfo) => {
-        const baseUri = siteInfo.body.baseUri.replace(/^htts?:/, '');
+        const baseUri = siteInfo.baseUri.replace(/^htts?:/, '');
         const publicURI = `${baseUri}/page/html/${encodeURIComponent(rp.title)}`;
         return hyper.post({
             uri: new URI([rp.domain, 'sys', 'events', '']),
