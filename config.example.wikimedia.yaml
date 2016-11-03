@@ -43,6 +43,10 @@ wikimedia.org: &wikimedia.org
         pageviews:
           host: https://wikimedia.org/api/rest_v1/metrics
 
+wikidata.org: &wikidata.org
+  x-modules:
+    - path: projects/wmf_wikidata.yaml
+      options: *default_options
 
 wiktionary_project: &wiktionary_project
   x-modules:
@@ -79,6 +83,9 @@ spec_root: &spec_root
 
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org
+
+    # special case for wikidata
+    /{domain:www.wikidata.org}: *wikidata.org
 
     # A robots.txt to make sure that the content isn't indexed.
     /robots.txt:
