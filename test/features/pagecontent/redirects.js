@@ -365,8 +365,7 @@ describe('Redirects', function() {
         });
     });
 
-    // Skipping since we're testing against parsoid in beta cluster and it doesn't support commons
-    it.skip('should redirect to commons for missing file pages, cross-origin', function() {
+    it('should redirect to commons for missing file pages, cross-origin', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
             headers: {
