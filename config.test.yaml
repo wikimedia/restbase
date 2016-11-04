@@ -27,6 +27,7 @@ default_project: &default_project
           host: http://parsoid-beta.wmflabs.org
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+          baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
         graphoid:
           host: http://graphoid-beta.wmflabs.org
         mathoid:
@@ -43,10 +44,7 @@ labs_project: &labs_project
   x-modules:
     - path: test/test_module.yaml
     - path: projects/wmf_default.yaml
-      options:
-        <<: *default_options
-        action:
-          apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+      options: *default_options
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org

@@ -19,7 +19,7 @@ describe('400 handling', function() {
         .then(function() {
             // Fetch real siteInfo to return from a mock
             return preq.post({
-                uri: server.config.apiURL,
+                uri: server.config.labsApiURL,
                 body: {
                     action: 'query',
                     meta: 'siteinfo|filerepoinfo',
@@ -33,7 +33,7 @@ describe('400 handling', function() {
             siteInfo = res.body;
             // Fetch real revision info for Main_Page
             return preq.post({
-                uri: server.config.apiURL,
+                uri: server.config.labsApiURL,
                 body: {
                     action: 'query',
                     prop: 'info|revisions',
@@ -55,18 +55,18 @@ describe('400 handling', function() {
         // 1. Throw an error on siteInfo fetch
         // 2. Return correct siteInfo
         // 3. Return revision data
-        var mwApi = nock(server.config.apiURL, {allowUnmocked: true})
+        var mwApi = nock(server.config.labsApiURL, {allowUnmocked: true})
         .post('').reply(400)
         .post('').reply(200, siteInfo)
         .post('').reply(200, revisionInfo);
 
         return preq.get({
-            uri: server.config.bucketURL + '/title/Main_Page'
+            uri: server.config.labsBucketURL + '/title/Main_Page'
         })
         .catch(function (e) {
             assert.deepEqual(e.status, 400);
             return preq.get({
-                uri: server.config.bucketURL + '/title/Main_Page'
+                uri: server.config.labsBucketURL + '/title/Main_Page'
             });
         })
         .then(function(res) {

@@ -143,16 +143,19 @@ function replaceSections(original, sectionsJson) {
 // HTML resource_change event emission
 function _dependenciesUpdate(hyper, req) {
     const rp = req.params;
-    const publicURI = `//${rp.domain}/api/rest_v1/page/html/${encodeURIComponent(rp.title)}`;
-
-    return hyper.post({
-        uri: new URI([rp.domain, 'sys', 'events', '']),
-        body: [
-            { meta: { uri: publicURI } },
-            { meta: { uri: `${publicURI}/${rp.revision}` } }
-        ]
-    }).catch((e) => {
-        hyper.log('warn/bg-updates', e);
+    return mwUtil.getSiteInfo(hyper, req)
+    .then((siteInfo) => {
+        const baseUri = siteInfo.baseUri.replace(/^https?:/, '');
+        const publicURI = `${baseUri}/page/html/${encodeURIComponent(rp.title)}`;
+        return hyper.post({
+            uri: new URI([rp.domain, 'sys', 'events', '']),
+            body: [
+                { meta: { uri: publicURI } },
+                { meta: { uri: `${publicURI}/${rp.revision}` } }
+            ]
+        }).catch((e) => {
+            hyper.log('warn/bg-updates', e);
+        });
     });
 }
 
