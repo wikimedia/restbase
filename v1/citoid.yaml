@@ -22,6 +22,13 @@ paths:
 
         See more at [Citoid service documentation](https://www.mediawiki.org/wiki/Citoid)
 
+        The citation data could be requested in one of the following formats:
+          - `bibtex`: format used to describe and process lists of references,
+            mostly in conjunction with LaTeX documents. (See [bibtex.org](http://www.bibtex.org/).
+          - `zotero`: format used by the [Zotero](https://www.zotero.org/) research tool.
+          - `mediawiki`: format designed specifically for MediaWiki to be used with `templateData`.
+          - `mediawiki-basefields`: `mediawiki` format extended with Zotero `basefields`
+
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json; charset=utf-8;
@@ -31,9 +38,10 @@ paths:
           in: path
           description: "The format to use for the resulting citation data"
           enum:
-            - mediawiki
             - bibtex
             - zotero
+            - mediawiki
+            - mediawiki-basefields
           required: true
         - name: query
           in: path
@@ -70,13 +78,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
 
-      x-request-handler:
-        - get_citation_from_backend:
-            request:
-              method: get
-              uri: '{{options.host}}/api?format={format}&search={query}'
-              headers:
-                accept-language: '{{accept-language}}'
+      operationId: getCitation
       x-monitor: true
       x-amples:
         - title: Get citation for Darth Vader
