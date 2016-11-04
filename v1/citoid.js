@@ -25,7 +25,7 @@ class Citoid {
                     + `search=${encodeURIComponent(rp.query)}&basefields=true`;
             } else {
                 reqURI = `${this._options.host}/api?format=${rp.format}&`
-                    + `search=${encodeURIComponent(rp.query)}`
+                    + `search=${encodeURIComponent(rp.query)}`;
             }
             return hyper.get({
                 uri: reqURI,
@@ -33,7 +33,7 @@ class Citoid {
                     'accept-language': acceptLanguage
                 }
             });
-        })
+        });
     }
 }
 
