@@ -172,7 +172,7 @@ class ActionService {
         if (!options) { throw new Error("No options supplied for action module"); }
         if (!options.apiUriTemplate || !options.baseUriTemplate) {
             const e = new Error('Missing parameter in action module:\n'
-                    + '- apiRequest template function, or\n'
+                    + '- baseUriTemplate string parameter, or\n'
                     + '- apiUriTemplate string parameter.');
             e.options = options;
             throw e;
