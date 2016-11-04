@@ -68,7 +68,7 @@ paths:
                   options: '{{options.mathoid}}'
             /data:
               x-modules:
-                - path: v1/citoid.yaml
+                - path: v1/citoid.js
                   options: '{{options.citoid}}'
         options: '{{options}}'
 
