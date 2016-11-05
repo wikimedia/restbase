@@ -48,6 +48,8 @@ services:
                   action:
                     # XXX Check API URL!
                     apiUriTemplate: http://localhost/w/api.php
+                    # XXX Check the base RESTBase URI
+                    baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
                   parsoid:
                     # XXX Check Parsoid URL!
                     host: http://localhost:8142
