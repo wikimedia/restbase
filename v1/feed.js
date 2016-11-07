@@ -151,9 +151,17 @@ class Feed {
             _traverse(response);
             return response;
         };
-        const getContent = (bucket) => hyper.get({
-            uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey])
-        });
+        const getContent = (bucket, forwardCacheControl) => {
+            const request = {
+                uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey])
+            };
+            if (forwardCacheControl && req.headers && req.headers['cache-control']) {
+                request.headers = {
+                    'cache-control': req.headers['cache-control']
+                };
+            }
+            return hyper.get(request);
+        };
         const storeContent = (res, bucket) => {
             return hyper.put({
                 uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey]),
@@ -162,7 +170,7 @@ class Feed {
             });
         };
         const getCurrentContent = () => {
-            return getContent('feed.aggregated')
+            return getContent('feed.aggregated', true)
             // TODO: Temp code while to run correctly in the mixed code environment.
             // Added only for deployment and transition period, to be removed afterwards.
             .tap((res) => {
