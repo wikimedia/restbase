@@ -49,7 +49,7 @@ paths:
       parameters:
         - name: project
           in: path
-          description: If you want to filter by project, use the domain of any Wikimedia project, for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'. If you are interested in all pageviews regardless of project, use all-projects.
+          description: The name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off.  For projects like commons without language codes, use commons.wikimedia.  For projects like www.mediawiki.org, you can use that full string, or just use mediawiki or mediawiki.org.
           type: string
           required: true
         - name: access
@@ -124,7 +124,7 @@ paths:
       parameters:
         - name: project
           in: path
-          description: If you want to filter by project, use the domain of any Wikimedia project, for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'. If you are interested in all pageviews regardless of project, use all-projects.
+          description: If you want to filter by project, use the name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off. For projects like commons without language codes, use commons.wikimedia. For projects like www.mediawiki.org, you can use that full string, or just use mediawiki or mediawiki.org. If you are interested in all pageviews regardless of project, use all-projects.
           type: string
           required: true
         - name: access
@@ -217,7 +217,7 @@ paths:
       parameters:
         - name: project
           in: path
-          description: If you want to filter by project, use the domain of any Wikimedia project, for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'. If you are interested in all pageviews regardless of project, use all-projects.
+          description: The name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off.  For projects like commons without language codes, use commons.wikimedia. For projects like www.mediawiki.org, you can use that full string, or just use mediawiki or mediawiki.org.
           type: string
           required: true
         - name: access
