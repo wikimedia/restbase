@@ -380,4 +380,20 @@ describe('Redirects', function() {
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
         });
     });
+
+    it('should stop redirect cycles, cross-origin', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test_One',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(() => {
+            throw new Error('Error must be thrown');
+        }, (e) => {
+            assert.deepEqual(e.status, 504);
+            assert.deepEqual(/Exceeded maxRedirects/.test(e.body.detail), true);
+        });
+    });
 });
