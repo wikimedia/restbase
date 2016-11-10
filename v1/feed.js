@@ -130,27 +130,6 @@ class Feed {
             }
             return mwUtil.hydrateResponse(res, fetchSummary);
         };
-        // TODO: TEMP CODE: add '$merge' key until the MCS implements it
-        const replaceTitleWith$merge = (response) => {
-            function _traverse(node) {
-                if (Array.isArray(node)) {
-                    for (let i = 0; i < node.length; i++) {
-                        _traverse(node[i]);
-                    }
-                } else if (typeof node === 'object') {
-                    if (node.title) {
-                        node.$merge = [
-                            `https://${rp.domain}/api/rest_v1/page/summary/`
-                                + `${encodeURIComponent(node.title)}`
-                        ];
-                    } else {
-                        Object.keys(node).forEach((key) => _traverse(node[key]));
-                    }
-                }
-            }
-            _traverse(response);
-            return response;
-        };
         const getContent = (bucket, forwardCacheControl) => {
             const request = {
                 uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey])
@@ -171,19 +150,11 @@ class Feed {
         };
         const getCurrentContent = () => {
             return getContent('feed.aggregated', true)
-            // TODO: Temp code while to run correctly in the mixed code environment.
-            // Added only for deployment and transition period, to be removed afterwards.
-            .tap((res) => {
-                if (!res || !res.body || !res.body.tfa || !res.body.tfa.$merge) {
-                    throw new HTTPError({ status: 404 });
-                }
-            })
             .catch({ status: 404 }, () =>
                 // it's a cache miss, so we need to request all
                 // of the components and store them
                 this._makeFeedRequests(Object.keys(FEED_URIS), hyper, rp, dateArr)
                 .then((result) => this._assembleResult(result, dateArr))
-                .then(replaceTitleWith$merge)
                 .tap((res) => {
                     // Store async
                     P.join(
@@ -199,7 +170,6 @@ class Feed {
                 // of the components and store them (but don't request news)
                 this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
                 .then((result) => this._assembleResult(result, dateArr))
-                .then(replaceTitleWith$merge)
                 .tap((res) => {
                     // Store async
                     storeContent(res, 'feed.aggregated.historic');
