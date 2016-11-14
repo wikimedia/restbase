@@ -164,4 +164,47 @@ describe('Feed', () => {
             assertMCSRequest(requests, 'page/news', undefined, true);
         });
     });
+
+    it('Should not allow invalid yyyy param', () => {
+        return preq.get({
+            uri: `${server.config.baseURL}/feed/featured/0000/01/01`,
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(() => {
+            throw new Error('Must have failed')
+        }, (e) => {
+            assert.deepEqual(e.status, 400);
+        });
+    });
+
+    it('Should not allow invalid mm param', () => {
+        return preq.get({
+            uri: `${server.config.baseURL}/feed/featured/2016/1/01`,
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(() => {
+            throw new Error('Must have failed')
+        }, (e) => {
+            assert.deepEqual(e.status, 400);
+        });
+    });
+
+    it('Should not allow invalid dd param', () => {
+        return preq.get({
+            uri: `${server.config.baseURL}/feed/featured/2016/01/1`,
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        })
+        .then(() => {
+            throw new Error('Must have failed')
+        }, (e) => {
+            assert.deepEqual(e.status, 400);
+        });
+    });
+
 });
