@@ -19,7 +19,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
             let headers = {
-                etag: mwUtil.makeETag('0', row.tid),
+                etag: row.headers.etag || mwUtil.makeETag('0', row.tid),
                 'content-type': row['content-type']
             };
             if (row.headers) {
