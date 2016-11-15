@@ -25,12 +25,12 @@ paths:
           required: true
         - name: mm
           in: path
-          description: 'Month the aggregated content is requested for'
+          description: 'Month the aggregated content is requested for, 0-padded'
           type: string
           required: true
         - name: dd
           in: path
-          description: 'Day of the month the aggregated content is requested for'
+          description: 'Day of the month the aggregated content is requested for, 0-padded'
           type: string
           required: true
       responses:

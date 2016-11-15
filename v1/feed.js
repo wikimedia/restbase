@@ -75,6 +75,44 @@ function constructBody(result) {
     return body;
 }
 
+/**
+ * Verifies that the date parameter is in proper format.
+ *
+ * @param {Object} req the request to check
+ */
+function verifyParams(req) {
+    const rp = req.params;
+
+    if (!/^2\d\d\d$/.test(rp.yyyy)) {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'bad_request',
+                description: 'Invalid yyyy parameter'
+            }
+        });
+    }
+
+    if (!/^\d\d$/.test(rp.mm) || rp.mm === '00' || rp.mm > '12') {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'bad_request',
+                description: 'Invalid mm parameter'
+            }
+        });
+    }
+
+    if (!/^\d\d$/.test(rp.dd) || rp.dd === '00' || rp.dd > '31') {
+        throw new HTTPError({
+            status: 400,
+            body: {
+                type: 'bad_request',
+                description: 'Invalid dd parameter'
+            }
+        });
+    }
+}
 
 class Feed {
     constructor(options) {
@@ -112,6 +150,7 @@ class Feed {
     }
 
     aggregated(hyper, req) {
+        verifyParams(req);
         const rp = req.params;
         const date = getDateSafe(rp);
         const dateKey = toKey(date);
