@@ -119,13 +119,14 @@ paths:
                 explaintext: true
                 piprop: 'thumbnail'
                 pithumbsize: 320
-                rvprop: 'timestamp'
+                rvprop: 'timestamp|ids'
                 titles: '{{request.params.title}}'
                 wbptterms: 'description'
             response:
               # Define the response to save & return.
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.0"
+                etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
               body:
                 title: '{{extract.body.items[0].title}}'
                 extract: '{{extract.body.items[0].extract}}'
