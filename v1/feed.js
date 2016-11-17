@@ -167,7 +167,38 @@ class Feed {
                 // request because of one failed summary fetch
                 .catchReturn(undefined);
             }
-            return mwUtil.hydrateResponse(res, fetchSummary);
+
+            // TODO: this is temporary code to increase the size of the TFA thumbnail
+            if (res.body.tfa && res.body.tfa.$merge && res.body.tfa.$merge.length) {
+                const summaryURI = res.body.tfa.$merge[0];
+                const title = decodeURIComponent(
+                    summaryURI.substr(summaryURI.lastIndexOf('/') + 1));
+                const highQualityThumbRequest = hyper.get({
+                    method: 'post',
+                    uri: new URI([rp.domain, 'sys', 'action', 'query']),
+                    body: {
+                        prop: 'pageimages',
+                        piprop: 'thumbnail',
+                        pithumbsize: 640,
+                        titles: title
+                    }
+                });
+                return P.join(
+                    mwUtil.hydrateResponse(res, fetchSummary),
+                    highQualityThumbRequest
+                ).then((result) => {
+                    const thumbRes = result[1].body;
+                    if (thumbRes.items && thumbRes.items.length && thumbRes.items[0].thumbnail) {
+                        const newThumb = thumbRes.items[0].thumbnail;
+                        newThumb.source = newThumb.source.replace(/^http:/, 'https:');
+                        result[0].body.tfa.thumbnail = newThumb;
+                    }
+                    return result[0];
+                });
+                // TODO: End of temp code.
+            } else {
+                return mwUtil.hydrateResponse(res, fetchSummary);
+            }
         };
         const getContent = (bucket, forwardCacheControl) => {
             const request = {
@@ -238,7 +269,6 @@ class Feed {
                 );
             }
         };
-
         const contentRequest = isHistoric(date) ? getHistoricContent() : getCurrentContent();
         return contentRequest.then(populateSummaries);
     }
