@@ -78,7 +78,7 @@ describe('Feed', () => {
         });
     });
 
-    it('Should not rerender available historic content, no-cache', () => {
+    it('Should partially rerender available historic content, no-cache', () => {
         const date = '2016/10/01';
         const slice = server.config.logStream.slice();
         return preq.get({
@@ -92,12 +92,12 @@ describe('Feed', () => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
             assertStorageRequest(requests, 'get', 'feed.aggregated.historic', true);
-            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', false);
+            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
             assertStorageRequest(requests, 'get', 'feed.aggregated', false);
             assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertMCSRequest(requests, 'page/featured', date, false);
-            assertMCSRequest(requests, 'page/most-read', date, false);
-            assertMCSRequest(requests, 'media/image/featured', date, false);
+            assertMCSRequest(requests, 'page/featured', date, true);
+            assertMCSRequest(requests, 'page/most-read', date, true);
+            assertMCSRequest(requests, 'media/image/featured', date, true);
             assertMCSRequest(requests, 'page/news', undefined, false);
         });
     });

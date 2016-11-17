@@ -202,18 +202,41 @@ class Feed {
                     );
                 }));
         };
+        const requestHistoricContentFromMCS = () => {
+            return this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
+            .then((result) => this._assembleResult(result, dateArr));
+        };
         const getHistoricContent = () => {
-            return getContent('feed.aggregated.historic')
-            .catch({ status: 404 }, () =>
-                // it's a cache miss, so we need to request all
-                // of the components and store them (but don't request news)
-                this._makeFeedRequests([ 'tfa', 'mostread', 'image' ], hyper, rp, dateArr)
-                .then((result) => this._assembleResult(result, dateArr))
-                .tap((res) => {
+            if (mwUtil.isNoCacheRequest(req)) {
+                // Need to update only the parts of content
+                // we're able to regenerate and reuse others
+                return P.join(
+                    getContent('feed.aggregated.historic')
+                    .catch({ status: 404 }, () => ({
+                        headers: {},
+                        body: {}
+                    })),
+                    requestHistoricContentFromMCS()
+                )
+                .then((results) => {
+                    Object.assign(results[0].body, results[1].body);
+                    Object.assign(results[0].headers, results[1].headers);
                     // Store async
-                    storeContent(res, 'feed.aggregated.historic');
-                })
-            );
+                    storeContent(results[0], 'feed.aggregated.historic');
+                    return results[0];
+                });
+            } else {
+                return getContent('feed.aggregated.historic')
+                .catch({ status: 404 }, () =>
+                    // it's a cache miss, so we need to request all
+                    // of the components and store them (but don't request news)
+                    requestHistoricContentFromMCS()
+                    .tap((res) => {
+                        // Store async
+                        storeContent(res, 'feed.aggregated.historic');
+                    })
+                );
+            }
         };
 
         const contentRequest = isHistoric(date) ? getHistoricContent() : getCurrentContent();
