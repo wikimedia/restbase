@@ -1,0 +1,129 @@
+# Announcements endpoint powered by MCS
+paths:
+  /announcements:
+    get:
+      tags:
+        - Feed
+      summary: Current announcements to display
+      description: |
+        Gets announcements for display in the official Wikipedia iOS and Android apps.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+        - application/problem+json
+      responses:
+        '200':
+          description: Announcements for the given Wiki
+          schema:
+            $ref: '#/definitions/announcementsResponse'
+      x-request-handler:
+        - get_announcements_from_mcs:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/feed/announcements'
+              gzip: false
+            response:
+              status: '{{get_announcements_from_mcs.status}}'
+              headers: '{{merge(get_announcements_from_mcs.headers, { "cache-control": options.announcement_cache_control})}}'
+              body: '{{get_announcements_from_mcs.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Retrieve announcements
+          request:
+            params:
+              domain: en.wikipedia.org
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  action:
+    type: object
+    properties:
+      title:
+        type: string
+        description: The title to display on the button that performs the action
+      url:
+        type: string
+        description: The URL to navigate to when the button is pressed
+    required:
+      - title
+      - url
+
+  announcement:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique ID of the announcement
+      type:
+        type: string
+        description: The type of announcement. Possible values are "survey" or "fundraising"
+      start_time:
+        type: string
+        description: The date to begin showing the announcement
+      end_time:
+        type: string
+        description: The date to stop showing the announcement
+      platforms:
+        type: array
+        items:
+          type: string
+        description: An array of platforms to display the announcement. Possible values are "iOSApp" or "AndroidApp"
+      text:
+        type: string
+        description: The text of the announcement
+      image:
+        type: string
+        description: The URL of the image for the announcement
+      action:
+        type: object
+        description: The action for the button of the announcement
+        schema:
+          $ref: '#/definitions/action'
+      caption_HTML:
+        type: string
+        description: HTML to display below the announcement. Usually a privacy statment and link to a policy
+      countries:
+        type: array
+        items:
+          type: string
+        description: |
+          An array of country codes in which to display the announcement.
+          Clients should derive the country from 'GeoIP' portion of the Set-Cookie header
+    required:
+      - id
+      - type
+      - start_time
+      - end_time
+      - platforms
+      - text
+      - countries
+
+  announcementsResponse:
+    type: object
+    properties:
+      announce:
+        type: array
+        items:
+          type: object
+          schema:
+            $ref: '#/definitions/announcement'
+    required:
+      - announce

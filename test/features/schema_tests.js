@@ -59,4 +59,15 @@ describe('Responses should conform to the provided JSON schema of the responce',
             }
         });
     });
+
+    it('/feed/announcements should conform schema', function() {
+        return preq.get({ uri: server.config.baseURL + '/feed/announcements' })
+        .then(function(res) {
+            if (!ajv.validate('#/definitions/announcementsResponse', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
 });
