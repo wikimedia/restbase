@@ -29,7 +29,7 @@ paths:
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.1"
       parameters:
         - name: title
           in: path
@@ -118,14 +118,14 @@ paths:
                 exsentences: 5
                 explaintext: true
                 piprop: 'thumbnail'
-                pithumbsize: 320
+                pithumbsize: 640
                 rvprop: 'timestamp'
                 titles: '{{request.params.title}}'
                 wbptterms: 'description'
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.0"
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.0.1"
               body:
                 title: '{{extract.body.items[0].title}}'
                 extract: '{{extract.body.items[0].extract}}'
