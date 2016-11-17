@@ -17,14 +17,6 @@ paths:
           description: Announcements for the given Wiki
           schema:
             $ref: '#/definitions/announcementsResponse'
-        '404':
-          description: Unsupported Wiki
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
       x-request-handler:
         - get_announcements_from_mcs:
             request:
@@ -35,28 +27,7 @@ paths:
               status: '{{get_announcements_from_mcs.status}}'
               headers: '{{merge(get_announcements_from_mcs.headers, { "cache-control": options.announcement_cache_control})}}'
               body: '{{get_announcements_from_mcs.body}}'
-      x-amples:
-        - title: Retrieve announcements
-          request:
-            params:
-                domain: en.wikipedia.org
-          response:
-            status: 200
-            headers:
-              content-type: application/json
-            body:
-              announce:
-                - id: /.+/
-                  type: /.+/
-                  start_time: /.+/
-                  end_time: /.+/
-                  platforms: [ /.+/ ]
-                  text: /.+/
-                  action:
-                    title: /.+/
-                    url: /.+/
-                  caption_HTML: /.+/
-                  countries: [ /.+/ ]
+      x-monitor: false
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
