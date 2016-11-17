@@ -27,7 +27,16 @@ paths:
               status: '{{get_announcements_from_mcs.status}}'
               headers: '{{merge(get_announcements_from_mcs.headers, { "cache-control": options.announcement_cache_control})}}'
               body: '{{get_announcements_from_mcs.body}}'
-      x-monitor: false
+      x-monitor: true
+      x-amples:
+        - title: Retrieve announcements
+          request:
+            params:
+              domain: en.wikipedia.org
+          response:
+            status: 200
+            headers:
+              content-type: application/json
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem
@@ -49,7 +58,7 @@ definitions:
     properties:
       title:
         type: string
-        description: The title to deisplay on the button that performs the action
+        description: The title to display on the button that performs the action
       url:
         type: string
         description: The URL to navigate to when the button is pressed
