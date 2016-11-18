@@ -330,20 +330,6 @@ describe('page content access', function() {
         });
     });
 
-    it('should deny access to the data-parsoid of a restricted revision', function() {
-        var listURL = [server.config.bucketURL, 'data-parsoid', deniedTitle, deniedRev, ''].join('/');
-        return preq.get({ uri: listURL })
-        .then(function(res) {
-            var deniedRevisions = res.body.items.filter(function(item) {
-                return item.revision === deniedRev;
-            });
-
-            if (deniedRevisions.length > 0) {
-                throw new Error('Expected no suppressed data-parsoid revisions to be stored');
-            }
-        });
-    });
-
     it('Should throw error for invalid title access', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/[asdf]'
