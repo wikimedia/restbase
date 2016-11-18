@@ -32,7 +32,7 @@ const tableName = 'title_revisions';
  * @type {string}
  * @const
  */
-const restrictionsTableName = 'restrictions';
+const restrictionsTableName = 'page_restrictions';
 
 // Title Revision Service
 class PRS {
@@ -105,7 +105,7 @@ class PRS {
             },
             index: [
                 { attribute: 'title', type: 'hash' },
-                { attribute: 'rev', type: 'range', order: 'asc' },
+                { attribute: 'rev', type: 'range', order: 'desc' },
                 { attribute: 'page_deleted', type: 'static' }
             ]
         };
@@ -125,7 +125,7 @@ class PRS {
         const attributes = { title: rp.title };
         if (rp.revision) {
             attributes.rev = {
-                ge: rp.revision
+                le: rp.revision
             };
         }
         return hyper.get({
@@ -141,8 +141,9 @@ class PRS {
             // the page deletion info
             const restrictions = res.body && res.body.items && res.body.items[0] || null;
             if (restrictions) {
-                if (restrictions.rev !== rp.revision && restrictions.restrictions) {
+                if (rp.revision && parseInt(restrictions.rev) !== parseInt(rp.revision)) {
                     restrictions.restrictions = [];
+                    restrictions.redirect = undefined;
                 }
                 res.body = restrictions;
             } else {
@@ -252,7 +253,8 @@ class PRS {
     storePageDeletion(hyper, req, revision) {
         return this.storeRestrictions(hyper, req, {
             title: req.params.title,
-            rev: req.params.revision || revision.rev,
+            // We're storing page_deletions with magic 0 rev just to update the static column
+            rev: 0,
             page_deleted: revision.page_deleted
         });
     }
