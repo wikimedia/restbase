@@ -254,6 +254,8 @@ class PRS {
         return this.storeRestrictions(hyper, req, {
             title: req.params.title,
             // We're storing page_deletions with magic 0 rev just to update the static column
+            // 0 is used to allow "LE" query always find at least something if no restrictions
+            // are present for a particular revision.
             rev: 0,
             page_deleted: revision.page_deleted
         });
