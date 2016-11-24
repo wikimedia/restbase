@@ -38,12 +38,11 @@ paths:
           description: The PDF render of an article
           schema:
             type: file
-          # TODO: Add an etag somehow. How???
-          #headers:
-          #  ETag:
-          #    description: >
-          #      Syntax: "{revision}/{tid}".
-          #      Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
         '404':
           description: Unknown page title
           schema:
@@ -54,17 +53,22 @@ paths:
             $ref: '#/definitions/problem'
 
       x-request-handler:
+        - get_latest_revision:
+            request:
+              method: get
+              uri: /{domain}/sys/page_revisions/page/{title}
         - get_pdf_from_backend:
             request:
               method: get
-              uri: 'https://pdf-electron.wmflabs.org/pdf?accessKey=secret&url=https://{{domain}}/wiki/{title}'
+              uri: '{{options.uri}}?accessKey={options.secret}&url=https://{{domain}}/wiki/{title}'
             return:
               status: 200
               headers:
                 content-disposition: 'attachment; filename={{request.params.title}}.pdf'
                 content-type: '{{get_pdf_from_backend.headers.content-type}}'
                 content-length: '{{get_pdf_from_backend.headers.content-length}}'
-                cache-control: '{{default(options.response_cache_control, "s-maxage=300, max-age=300")}}'
+                cache-control: '{{default(options.cache_control, "s-maxage=600, max-age=600")}}'
+                etag: '{{get_latest_revision.headers.etag}}'
               body: '{{get_pdf_from_backend.body}}'
 
 definitions:
