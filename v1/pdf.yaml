@@ -64,7 +64,8 @@ paths:
             return:
               status: 200
               headers:
-                content-disposition: 'attachment; filename={{request.params.title}}.pdf'
+                # Firefox supports filename*= syntax while Chrome respect filename=. Safari is stupid and understands neither
+                content-disposition: 'attachment; filename={request.params.title}.pdf; filename*={request.params.title}.pdf'
                 content-type: '{{get_pdf_from_backend.headers.content-type}}'
                 content-length: '{{get_pdf_from_backend.headers.content-length}}'
                 cache-control: '{{default(options.cache_control, "s-maxage=600, max-age=600")}}'
