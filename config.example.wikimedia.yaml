@@ -36,7 +36,7 @@ default_project: &default_project
         pdf:
           # Cache PDF for 5 minutes since it's not purged
           cache_control: s-maxage=600, max-age=600
-          uri: https://pdf-electron.wmflabs.org/pdf
+          uri: https://pdf-electron.wmflabs.org
           secret: secret
         skip_updates: false
 

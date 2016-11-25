@@ -60,7 +60,7 @@ paths:
         - get_pdf_from_backend:
             request:
               method: get
-              uri: '{{options.uri}}?accessKey={options.secret}&url=https://{{domain}}/wiki/{title}'
+              uri: '{{options.uri}}/pdf?accessKey={options.secret}&url=https://{{domain}}/wiki/{title}'
             return:
               status: 200
               headers:
