@@ -5,6 +5,7 @@ var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
 var uuid = require('cassandra-uuid').TimeUuid;
 var P = require('bluebird');
+const parallel = require('mocha.parallel');
 
 describe('Key value buckets', function() {
 
@@ -137,5 +138,5 @@ describe('Key value buckets', function() {
         });
     }
 
-    describe('key_value', function() { runTests('key_value') });
+    parallel('key_value', function() { runTests('key_value') });
 });

@@ -3,8 +3,9 @@
 var assert = require('../utils/assert.js');
 var server = require('../utils/server.js');
 var preq   = require('preq');
+const parallel = require('mocha.parallel');
 
-describe('Metrics', function() {
+parallel('Metrics', function() {
     this.timeout(20000);
 
     before(function () { return server.start(); });

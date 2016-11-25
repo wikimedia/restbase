@@ -1,5 +1,6 @@
 'use strict';
 
+const parallel = require('mocha.parallel');
 var preq   = require('preq');
 var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
@@ -174,7 +175,7 @@ describe('Monitoring tests', function() {
                 return res.body;
             })
             .then(function(spec) {
-                describe('Monitoring routes, ' + options.domain + ' domain', function() {
+                parallel('Monitoring routes, ' + options.domain + ' domain', function() {
                     constructTests(spec, options).forEach(function(testCase) {
                         it(testCase.title, function() {
                             return preq(testCase.request)
