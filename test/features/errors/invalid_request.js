@@ -8,7 +8,6 @@ var assert  = require('../../utils/assert.js');
 var preq    = require('preq');
 var server  = require('../../utils/server.js');
 var nock    = require('nock');
-var mwUtils =
 
 parallel('400 handling', function() {
     this.timeout(20000);
