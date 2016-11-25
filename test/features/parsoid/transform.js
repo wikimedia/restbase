@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
 var preq   = require('preq');
+const parallel = require('mocha.parallel');
 
 var testPage = {
     title: 'User:Pchelolo%2fRestbase_Test',
@@ -14,7 +15,7 @@ var testPage = {
     // html is fetched dynamically
 };
 
-describe('transform api', function() {
+parallel('transform api', function() {
     this.timeout(20000);
 
     before(function () {
