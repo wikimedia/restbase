@@ -8,10 +8,12 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var nock = require('nock');
+const parallel = require('mocha.parallel');
 
 describe('Redirects', function() {
     before(function() { return server.start(); });
 
+    parallel('', () => {
     it('should redirect to a normalized version of a title', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ',
@@ -154,8 +156,7 @@ describe('Redirects', function() {
         });
     });
 
-    var etag;
-    it('should return 302 for redirect pages html', function() {
+    it('should return 302 for redirect pages html and data-parsoid', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test',
             followRedirect: false
@@ -166,24 +167,19 @@ describe('Redirects', function() {
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body.length > 0, true);
             assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
-            etag = res.headers.etag;
-        });
-    });
-
-    it('should return 302 for redirect pages data-parsoid', function() {
-        assert.notDeepEqual(etag, undefined);
-        var renderInfo = mwUtil.parseETag(etag);
-        return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/User:Pchelolo%2fRedirect_Test/'
+            var renderInfo = mwUtil.parseETag(res.headers.etag);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/data-parsoid/User:Pchelolo%2fRedirect_Test/'
                     + renderInfo.rev + '/' + renderInfo.tid,
-            followRedirect: false
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 302);
-            assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25');
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-            assert.deepEqual(res.headers['content-type'], server.config.conf.test.content_types['data-parsoid']);
-            assert.deepEqual(Object.keys(res.body).length > 0, true);
+                followRedirect: false
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 302);
+                assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25');
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+                assert.deepEqual(res.headers['content-type'], server.config.conf.test.content_types['data-parsoid']);
+                assert.deepEqual(Object.keys(res.body).length > 0, true);
+            });
         });
     });
 
@@ -395,5 +391,6 @@ describe('Redirects', function() {
             assert.deepEqual(e.status, 504);
             assert.deepEqual(/Exceeded maxRedirects/.test(e.body.detail), true);
         });
+    });
     });
 });

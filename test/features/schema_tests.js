@@ -3,12 +3,13 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
+const parallel = require('mocha.parallel');
 var assert = require('../utils/assert.js');
 var server = require('../utils/server.js');
 var preq   = require('preq');
 var Ajv = require('ajv');
 
-describe('Responses should conform to the provided JSON schema of the responce', function() {
+parallel('Responses should conform to the provided JSON schema of the responce', function() {
     var ajv = new Ajv({});
 
     function getToday() {

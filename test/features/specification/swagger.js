@@ -3,6 +3,7 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
+const parallel = require('mocha.parallel');
 var preq   = require('preq');
 var assert = require('../../utils/assert.js');
 var specs  = require('../../utils/specs.js');
@@ -17,8 +18,7 @@ var server = require('../../utils/server.js');
         }
     ];
 
-describe('swagger spec', function () {
-    this.timeout(20000);
+parallel('swagger spec', function () {
 
     before(function () { return server.start(); });
 

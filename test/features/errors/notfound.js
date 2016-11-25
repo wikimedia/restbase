@@ -3,11 +3,12 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
+const parallel = require('mocha.parallel');
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 
-describe('404 handling', function() {
+parallel('404 handling', function() {
 
     this.timeout(20000);
 
