@@ -3,7 +3,6 @@
 const assert = require('../utils/assert.js');
 const server = require('../utils/server.js');
 const preq   = require('preq');
-const P = require('bluebird');
 
 function assertStorageRequest(requests, method, bucket, expected) {
     const storageRequests = requests.filter((log) =>

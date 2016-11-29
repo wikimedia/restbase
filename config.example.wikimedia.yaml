@@ -33,6 +33,11 @@ default_project: &default_project
           cache_control: s-maxage=86400, max-age=86400
         # 10 days Varnish caching, one day client-side
         purged_cache_control: s-maxage=864000, max-age=86400
+        pdf:
+          # Cache PDF for 5 minutes since it's not purged
+          cache_control: s-maxage=600, max-age=600
+          uri: https://pdf-electron.wmflabs.org
+          secret: secret
         skip_updates: false
 
 # A different project template, sharing configuration options.

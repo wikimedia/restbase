@@ -54,6 +54,8 @@ paths:
                 - path: v1/random.yaml
                   options: '{{merge({"random_cache_control": "s-maxage=2, max-age=1"},
                                 options.mobileapps)}}'
+                - path: v1/pdf.yaml
+                  options: '{{options.pdf}}'
             /feed:
               x-modules:
                 - path: v1/feed.js

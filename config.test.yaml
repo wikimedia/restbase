@@ -38,6 +38,11 @@ default_project: &default_project
           host: http://appservice.wmflabs.org
         events: {}
         purged_cache_control: test_purged_cache_control
+        pdf:
+          # Cache PDF for 5 minutes since it's not purged
+          cache_control: s-maxage=600, max-age=600
+          uri: https://pdf-electron.wmflabs.org
+          secret: secret
         skip_updates: false
 
 labs_project: &labs_project
