@@ -41,6 +41,8 @@ paths:
                 - path: v1/content.yaml
                   options:
                     purged_cache_control: '{{options.purged_cache_control}}'
+                - path: v1/graphoid.yaml
+                  options: '{{options.graphoid}}'
                 - path: v1/random.yaml
                   options: '{{merge({"random_cache_control": "s-maxage=2, max-age=1"},
                                 options.mobileapps)}}'
