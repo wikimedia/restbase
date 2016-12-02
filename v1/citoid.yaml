@@ -77,14 +77,14 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              format: bibtex
+              format: mediawiki
               query: 'https://en.wikipedia.org/wiki/Darth_Vader'
-            response:
-              status: 200
-              headers:
-                content-type:  /^application\/x-bibtex/
-              body:
-                title: 'Darth Vader'
+          response:
+            status: 200
+            headers:
+              content-type:  /^application\/json/
+            body:
+              - title: 'Darth Vader'
                 language: en
                 itemType: encyclopediaArticle
                 encyclopediaTitle: Wikipedia
