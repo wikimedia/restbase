@@ -79,7 +79,7 @@ paths:
               domain: en.wikipedia.org
               format: bibtex
               query: 'https://en.wikipedia.org/wiki/Darth_Vader'
-            responce:
+            response:
               status: 200
               headers:
                 content-type:  /^application\/x-bibtex/

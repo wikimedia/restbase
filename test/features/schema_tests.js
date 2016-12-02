@@ -9,7 +9,7 @@ var server = require('../utils/server.js');
 var preq   = require('preq');
 var Ajv = require('ajv');
 
-parallel('Responses should conform to the provided JSON schema of the responce', function() {
+parallel('Responses should conform to the provided JSON schema of the response', function() {
     var ajv = new Ajv({});
 
     function getToday() {

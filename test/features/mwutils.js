@@ -10,7 +10,7 @@ const assert = require('../utils/assert');
 
 describe('Utils.hydrateResponse', () => {
     it('Should support $merge', () => {
-        const responce = {
+        const response = {
             body: {
                 non_existent: {
                     $merge: ['you_shall_not_pass']
@@ -34,7 +34,7 @@ describe('Utils.hydrateResponse', () => {
             }
         };
 
-        return mwUtil.hydrateResponse(responce, (uri) => {
+        return mwUtil.hydrateResponse(response, (uri) => {
             switch (uri) {
                 case 'you_shall_not_pass':
                     return P.resolve(undefined);
@@ -46,8 +46,8 @@ describe('Utils.hydrateResponse', () => {
                     return P.reject(new Error('What?'));
             }
         })
-        .then((responce) => {
-            assert.deepEqual(responce, {
+        .then((response) => {
+            assert.deepEqual(response, {
                 body: {
                     array: [{
                         prop: 'prop_value'
