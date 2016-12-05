@@ -88,6 +88,7 @@ paths:
           description: The hash string of the previous POST data
           type: string
           required: true
+          minLength: 1
       responses:
         '200':
           description: Information about the checked formula
@@ -138,6 +139,7 @@ paths:
           description: The hash string of the previous POST data
           type: string
           required: true
+          minLength: 1
       responses:
         '200':
           description: The rendered formula
