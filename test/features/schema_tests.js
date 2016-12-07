@@ -28,6 +28,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
     });
 
     it('/feed/featured should conform schema', function() {
+        console.log(`${server.config.baseURL}/feed/featured/${getToday()}`);
         return preq.get({ uri: `${server.config.baseURL}/feed/featured/${getToday()}` })
         .then(function(res) {
             if (!ajv.validate('#/definitions/feed', res.body)) {
