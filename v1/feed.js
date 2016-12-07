@@ -6,7 +6,6 @@ const HyperSwitch = require('hyperswitch');
 const uuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const URI = HyperSwitch.URI;
-const HTTPError = HyperSwitch.HTTPError;
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/feed.yaml`);
 
@@ -23,48 +22,6 @@ const FEED_URIS = {
 const CONTENT_TYPE = 'application/json; charset=utf-8; ' +
     'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"';
 
-/**
- * Checks whether the date is today or in the past in UTC-0 timezone
- *
- * @param {Date} date a date to check
- * @return {boolean} true if the date is in the past
- */
-function isHistoric(date) {
-    const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    return date < today;
-}
-
-/**
- * Safely builds the Date from request parameters
- *
- * @param {Object} rp request parameters object
- * @return {Date} the requested date.
- */
-function getDateSafe(rp) {
-    try {
-        return new Date(Date.UTC(rp.yyyy, rp.mm - 1, rp.dd));
-    } catch (err) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'bad_request',
-                description: 'wrong date format specified'
-            }
-        });
-    }
-}
-
-/**
- * Converts the date to the bucket key, key the records in the format YYYY-MM-DD
- *
- * @param {Date} date the date to convert
- * @return {string}
- */
-function toKey(date) {
-    return date.toISOString().split('T').shift();
-}
-
 function constructBody(result) {
     const body = {};
     Object.keys(result).forEach((key) => {
@@ -73,45 +30,6 @@ function constructBody(result) {
         }
     });
     return body;
-}
-
-/**
- * Verifies that the date parameter is in proper format.
- *
- * @param {Object} req the request to check
- */
-function verifyParams(req) {
-    const rp = req.params;
-
-    if (!/^2\d\d\d$/.test(rp.yyyy)) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'bad_request',
-                description: 'Invalid yyyy parameter'
-            }
-        });
-    }
-
-    if (!/^\d\d$/.test(rp.mm) || rp.mm === '00' || rp.mm > '12') {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'bad_request',
-                description: 'Invalid mm parameter'
-            }
-        });
-    }
-
-    if (!/^\d\d$/.test(rp.dd) || rp.dd === '00' || rp.dd > '31') {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'bad_request',
-                description: 'Invalid dd parameter'
-            }
-        });
-    }
 }
 
 class Feed {
@@ -150,10 +68,10 @@ class Feed {
     }
 
     aggregated(hyper, req) {
-        verifyParams(req);
+        mwUtil.verifyDateParams(req);
         const rp = req.params;
-        const date = getDateSafe(rp);
-        const dateKey = toKey(date);
+        const date = mwUtil.getDateSafe(rp);
+        const dateKey = mwUtil.dateToKey(date);
         const dateArr = dateKey.split('-');
         const populateSummaries = (res) => {
             function fetchSummary(uri) {
@@ -269,7 +187,7 @@ class Feed {
                 );
             }
         };
-        const contentRequest = isHistoric(date) ? getHistoricContent() : getCurrentContent();
+        const contentRequest = mwUtil.isHistoric(date) ? getHistoricContent() : getCurrentContent();
         return contentRequest.then(populateSummaries);
     }
 }
