@@ -1,0 +1,151 @@
+# Trending-edits endpoints powered by the the trending service
+paths:
+  /trending/edits/{yyyy}/{mm}/{dd}:
+    get:
+      tags:
+        - Feed
+      summary: Trending articles feed
+      description: |
+        Provides a list of articles that have been edited the most on a particular day.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: yyyy
+          in: path
+          description: 'Year the trending content is requested for'
+          type: string
+          required: true
+        - name: mm
+          in: path
+          description: 'Month the trending content is requested for, 0-padded'
+          type: string
+          required: true
+        - name: dd
+          in: path
+          description: 'Day of the month the trending content is requested for, 0-padded'
+          type: string
+          required: true
+      responses:
+        '200':
+          description: JSON containing all of the featured content
+          schema:
+            $ref: '#/definitions/trendingResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      operationId: trendingEdits
+      x-monitor: false # todo add monitoring once we have something in storage
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  thumbnail:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Thumbnail image URI
+      width:
+        type: integer
+        description: Thumbnail width
+      height:
+        type: integer
+        description: Thumnail height
+    required: ['source', 'width', 'height']
+
+  trendingPage:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The page ID
+      title:
+        type: string
+        description: Article title in a form of DB key
+      normalizedtitle:
+        type: string
+        description: Article title as it should be presented to the user
+      thumbnail:
+        description: Lead image for the article
+        $ref: '#/definitions/thumbnail'
+      description:
+        type: string
+        description: Wikidata description of the article
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+      totalEdits:
+        type: integer
+        description: The number of edits for this page
+      trendiness:
+        type: integer
+        description: The page score based on edits
+      isNew:
+        type: boolean
+        description: Was the page created during this trend period
+      from:
+        type: datetime
+        description: Timestamp whe the page became trending
+      updated:
+        type: datetime
+        description: Timestamp when the page was last updated
+      rev_len:
+        type: integer
+        description: The length of the lates revision
+      anonEdits:
+        type: integer
+        description: The number of anonymous edits over the trending period
+      contributors:
+        type: object
+        description: Information about the contributors
+        properties:
+          total:
+            type: integer
+            description: Total number of editors
+          anons:
+            type: integer
+            description: Total number of anonymous editors
+          names:
+            type: array
+            description: List of contributor usernames
+            items:
+              type: string
+          main:
+            type: string
+            description: Name of the main contributor
+    required:
+      - title
+      - normalizedtitle
+
+  trendingResponse:
+    type: object
+    description: The response of the trending feed
+    properties:
+      pages:
+        description: Data about the featured article of the day
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/trendingPage'
+      ts:
+        description: Timestamp of the data
+        type: datetime
+    additionalProperties: false
+    required:
+      - pages
+      - ts
