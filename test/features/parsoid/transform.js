@@ -179,8 +179,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ html: "<h2>First Section replaced</h2>" }],
-                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
+                    First_Section: [{ html: "<h2>First Section replaced</h2>" }],
+                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
                 }
             }
         })
@@ -203,8 +203,8 @@ parallel('transform api', function() {
             body: {
                 changes: JSON.stringify({
                     mwAQ: [],
-                    mwAg: [{ html: "<h2>First Section replaced</h2>" }],
-                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
+                    First_Section: [{ html: "<h2>First Section replaced</h2>" }],
+                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
                 }),
                 scrub_wikitext: 'true'
             }
@@ -231,8 +231,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ html: "<h2></h2>" }],
-                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
+                    First_Section: [{ html: "<h2></h2>" }],
+                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
                 },
                 scrub_wikitext: true
             }
@@ -258,8 +258,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ id: 'mwAg' }, { html: '<h2>Appended Section</h2>' }],
-                    mwAw: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwAw'}]
+                    First_Section: [{ id: 'First_Section' }, { html: '<h2>Appended Section</h2>' }],
+                    Second_Section: [{ html: '<h2>Prepended section</h2>' }, { id: 'Second_Section'}]
                 }
             }
         })
@@ -285,8 +285,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ id: 'mwAw' }, { id: 'mwAg' }],
-                    mwAw: []
+                    First_Section: [{ id: 'Second_Section' }, { id: 'First_Section' }],
+                    Second_Section: []
                 }
             },
             headers: {
@@ -337,7 +337,7 @@ parallel('transform api', function() {
             + '/' + pageWithSectionsRev,
             body: {
                 changes: {
-                    mwAg:[ { id: 'mwAASDC'}, { id: 'mwAg'} ]
+                    First_Section:[ { id: 'mwAASDC'}, { id: 'First_Section'} ]
                 }
             },
             headers: {
@@ -413,7 +413,7 @@ parallel('transform api', function() {
                     'if-match': etag
                 },
                 body: {
-                    html: res.body.replace('ABCDEF', 'FECDBA')
+                    html: res.body.replace(' ABCDEF ', ' FECDBA ')
                 }
             });
         })

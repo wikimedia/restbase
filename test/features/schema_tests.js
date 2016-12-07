@@ -13,8 +13,14 @@ parallel('Responses should conform to the provided JSON schema of the response',
     var ajv = new Ajv({});
 
     function getToday() {
+        function zeroPad(num) {
+            if (num < 10) {
+                return `0${num}`;
+            }
+            return `${num}`;
+        }
         const now = new Date();
-        return `${now.getUTCFullYear()}/${now.getUTCMonth() + 1}/${now.getUTCDate()}`;
+        return `${now.getUTCFullYear()}/${zeroPad(now.getUTCMonth() + 1)}/${zeroPad(now.getUTCDate())}`;
     }
 
     before(function() {
@@ -28,7 +34,6 @@ parallel('Responses should conform to the provided JSON schema of the response',
     });
 
     it('/feed/featured should conform schema', function() {
-        console.log(`${server.config.baseURL}/feed/featured/${getToday()}`);
         return preq.get({ uri: `${server.config.baseURL}/feed/featured/${getToday()}` })
         .then(function(res) {
             if (!ajv.validate('#/definitions/feed', res.body)) {
