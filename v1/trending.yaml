@@ -77,9 +77,6 @@ definitions:
       title:
         type: string
         description: Article title in a form of DB key
-      normalizedtitle:
-        type: string
-        description: Article title as it should be presented to the user
       thumbnail:
         description: Lead image for the article
         $ref: '#/definitions/thumbnail'
@@ -98,39 +95,11 @@ definitions:
       isNew:
         type: boolean
         description: Was the page created during this trend period
-      from:
-        type: datetime
-        description: Timestamp whe the page became trending
       updated:
         type: datetime
         description: Timestamp when the page was last updated
-      rev_len:
-        type: integer
-        description: The length of the lates revision
-      anonEdits:
-        type: integer
-        description: The number of anonymous edits over the trending period
-      contributors:
-        type: object
-        description: Information about the contributors
-        properties:
-          total:
-            type: integer
-            description: Total number of editors
-          anons:
-            type: integer
-            description: Total number of anonymous editors
-          names:
-            type: array
-            description: List of contributor usernames
-            items:
-              type: string
-          main:
-            type: string
-            description: Name of the main contributor
     required:
       - title
-      - normalizedtitle
 
   trendingResponse:
     type: object
