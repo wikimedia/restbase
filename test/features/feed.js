@@ -3,6 +3,7 @@
 const assert = require('../utils/assert.js');
 const server = require('../utils/server.js');
 const preq   = require('preq');
+const nock   = require('nock');
 
 function assertStorageRequest(requests, method, bucket, expected) {
     const storageRequests = requests.filter((log) =>
@@ -31,7 +32,7 @@ function assertMCSRequest(requests, content, date, expected) {
 
 
 
-describe('Feed', () => {
+describe('Featured feed', () => {
 
     before(() => server.start());
 
@@ -206,4 +207,43 @@ describe('Feed', () => {
         });
     });
 
+});
+
+
+describe('Trending feed', () => {
+    before(() => server.start());
+
+    it('Should get the trending edits for today', () => {
+        const response = {
+            "timestamp": "2016-12-08T23:16:03.865Z",
+            "pages": [{
+                "totalEdits": 7,
+                "trendiness": 0,
+                "isNew": false,
+                "updated": "2016-12-08T22:17:55.000Z",
+                "$merge": ["https://restbase-beta.wmflabs.org/en.wikipedia.beta.wmflabs.org/v1/page/summary/Trending_article"]
+            }]
+        };
+        const api = nock('https://trending-beta.wmflabs.org')
+        .get('/en.wikipedia.beta.wmflabs.org/v1/feed/trending-edits/')
+        .reply(200, response);
+
+        const now = new Date();
+        const date = now.toISOString().split('T').shift().split('-').join('/');
+        return preq.get({
+            uri: `${server.config.labsURL}/feed/trending/edits/${date}`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.timestamp, response.timestamp);
+            const page = res.body.pages[0];
+            const samplePage = response.pages[0];
+            assert.deepEqual(page.totalEdits, samplePage.totalEdits);
+            assert.deepEqual(page.updated, samplePage.updated);
+            assert.deepEqual(page.title, 'Trending_article');
+            assert.deepEqual(page.normalizedtitle, 'Trending article')
+        })
+        .then(() => api.done())
+        .finally(() => nock.cleanAll())
+    });
 });

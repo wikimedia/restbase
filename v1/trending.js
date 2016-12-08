@@ -65,7 +65,7 @@ class TrendingEdits {
         };
         const getCurrentContent = () => {
             return hyper.get({
-                uri: `${this.options.host}/${rp.domain}/v1/feed/trending-edits`
+                uri: `${this.options.host}/${rp.domain}/v1/feed/trending-edits/`
             })
             .tap((res) => {
                 storeContent(res, 'feed.trending.historic');
