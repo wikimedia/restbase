@@ -12,11 +12,26 @@ class TrendingEdits {
         this.options = options;
     }
 
+    _assembleResult(result, dateArr) {
+        // assemble the final response to be returned
+        return {
+            status: 200,
+            headers: {
+                'cache-control': this.options.feed_cache_control,
+                // mimic MCS' ETag value
+                etag: `${dateArr.join('')}/${uuid.now().toString()}`,
+                'content-type': CONTENT_TYPE
+            },
+            body: constructBody(result)
+        };
+    }
+
     getTrending(hyper, req) {
         mwUtil.verifyDateParams(req);
         const rp = req.params;
         const date = mwUtil.getDateSafe(rp);
         const dateKey = mwUtil.dateToKey(date);
+        const dateArr = dateKey.split('-');
         const populateSummaries = (res) => {
             function fetchSummary(uri) {
                 return hyper.get({ uri })
@@ -31,16 +46,11 @@ class TrendingEdits {
             }
             return mwUtil.hydrateResponse(res, fetchSummary);
         };
-        const getContent = (bucket, forwardCacheControl) => {
-            const request = {
+        const getContent = (bucket) => {
+            return hyper.get({
                 uri: new URI([rp.domain, 'sys', 'key_value', bucket, dateKey])
-            };
-            if (forwardCacheControl && req.headers && req.headers['cache-control']) {
-                request.headers = {
-                    'cache-control': req.headers['cache-control']
-                };
-            }
-            return hyper.get(request);
+            })
+            .then((res) => this._assembleResult(res, dateArr));
         };
         const storeContent = (res, bucket) => {
             return hyper.put({
@@ -55,7 +65,8 @@ class TrendingEdits {
             })
             .tap((res) => {
                 storeContent(res, 'feed.trending.historic');
-            });
+            })
+            .then((res) => this._assembleResult(res, dateArr));
         };
         if (mwUtil.isHistoric(date)) {
             return getContent('feed.trending.historic').then(populateSummaries);

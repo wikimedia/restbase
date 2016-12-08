@@ -42,6 +42,7 @@ default_project: &default_project
           secret: secret
         trending:
           host: <THE HOST GOES HERE>
+          cache-control: s-maxage=600, max-age=600
         skip_updates: false
 
 # A different project template, sharing configuration options.
