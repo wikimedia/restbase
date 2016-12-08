@@ -4,8 +4,12 @@
 const HyperSwitch = require('hyperswitch');
 const mwUtil = require('../lib/mwUtil');
 const URI = HyperSwitch.URI;
+const uuid = require('cassandra-uuid').TimeUuid;
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/trending.yaml`);
+
+const CONTENT_TYPE = 'application/json; charset=utf-8; ' +
+    'profile="https://www.mediawiki.org/wiki/Specs/trending-feed/0.5.0"';
 
 class TrendingEdits {
     constructor(options) {
@@ -22,7 +26,7 @@ class TrendingEdits {
                 etag: `${dateArr.join('')}/${uuid.now().toString()}`,
                 'content-type': CONTENT_TYPE
             },
-            body: constructBody(result)
+            body: result.body
         };
     }
 
