@@ -1,32 +1,16 @@
 # Trending-edits endpoints powered by the the trending service
 paths:
-  /trending/edits/{yyyy}/{mm}/{dd}:
+  /trending/edits:
     get:
       tags:
         - Feed
       summary: Trending articles feed
       description: |
-        Provides a list of articles that have been edited the most on a particular day.
+        Provides a list of articles that are trending right now (receiving the most edits)
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
-      parameters:
-        - name: yyyy
-          in: path
-          description: 'Year the trending content is requested for'
-          type: string
-          required: true
-        - name: mm
-          in: path
-          description: 'Month the trending content is requested for, 0-padded'
-          type: string
-          required: true
-        - name: dd
-          in: path
-          description: 'Day of the month the trending content is requested for, 0-padded'
-          type: string
-          required: true
       responses:
         '200':
           description: JSON containing all of the featured content
@@ -37,7 +21,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       operationId: trendingEdits
-      x-monitor: false # todo add monitoring once we have something in storage
+      x-monitor: false # Can't monitor since we can't be sure something will be trending all the time
 
 definitions:
   # A https://tools.ietf.org/html/draft-nottingham-http-problem

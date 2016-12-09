@@ -74,17 +74,7 @@ class Feed {
         const dateKey = mwUtil.dateToKey(date);
         const dateArr = dateKey.split('-');
         const populateSummaries = (res) => {
-            function fetchSummary(uri) {
-                return hyper.get({ uri })
-                .then((res) => {
-                    res.body.normalizedtitle = res.body.title;
-                    res.body.title = res.body.title.replace(/ /g, '_');
-                    return res.body;
-                })
-                // Swallow the error, no need to fail the whole feed
-                // request because of one failed summary fetch
-                .catchReturn(undefined);
-            }
+            const fetchSummary = (uri) => mwUtil.fetchSummary(hyper, uri);
 
             // TODO: this is temporary code to increase the size of the TFA thumbnail
             if (res.body.tfa && res.body.tfa.$merge && res.body.tfa.$merge.length) {
