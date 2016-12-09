@@ -228,20 +228,19 @@ describe('Trending feed', () => {
         .get('/en.wikipedia.beta.wmflabs.org/v1/feed/trending-edits/')
         .reply(200, response);
 
-        const now = new Date();
-        const date = now.toISOString().split('T').shift().split('-').join('/');
         return preq.get({
-            uri: `${server.config.labsURL}/feed/trending/edits/${date}`
+            uri: `${server.config.labsURL}/feed/trending/edits`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.timestamp, response.timestamp);
+            assert.deepEqual(res.headers['cache-control'], 's-maxage=600, max-age=600');
             const page = res.body.pages[0];
             const samplePage = response.pages[0];
             assert.deepEqual(page.totalEdits, samplePage.totalEdits);
             assert.deepEqual(page.updated, samplePage.updated);
             assert.deepEqual(page.title, 'Trending_article');
-            assert.deepEqual(page.normalizedtitle, 'Trending article')
+            assert.deepEqual(page.normalizedtitle, 'Trending article');
         })
         .then(() => api.done())
         .finally(() => nock.cleanAll())
