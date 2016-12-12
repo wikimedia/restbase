@@ -83,6 +83,9 @@ definitions:
         type: string
         format: date-time
         description: Timestamp when the page was last updated
+      editors:
+        type: integer
+        description: Number of unique editors who changed the page
     required:
       - title
 
