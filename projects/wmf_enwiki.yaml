@@ -61,6 +61,10 @@ paths:
                 - path: v1/feed.js
                   options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60",
                                 "ttl": 7200}, options.mobileapps)}}'
+                - path: v1/announcements.yaml
+                  options: '{{merge({"announcement_cache_control": "s-maxage=86400, max-age=86400"}, options.mobileapps)}}'
+                - path: v1/trending.js
+                  options: '{{options.trending}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml

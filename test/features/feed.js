@@ -234,7 +234,7 @@ describe('Trending feed', () => {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.timestamp, response.timestamp);
-            assert.deepEqual(res.headers['cache-control'], 's-maxage=600, max-age=600');
+            assert.deepEqual(res.headers['cache-control'], 's-maxage=1800, max-age=1800');
             const page = res.body.pages[0];
             const samplePage = response.pages[0];
             assert.deepEqual(page.totalEdits, samplePage.totalEdits);
