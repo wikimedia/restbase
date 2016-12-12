@@ -40,10 +40,17 @@ default_project: &default_project
           cache_control: s-maxage=600, max-age=600
           uri: https://pdf-electron.wmflabs.org
           secret: secret
+        skip_updates: false
+
+# A separate project for en.wikipedia because it is more feature-rich
+en.wikipedia.org: &en.wikipedia.org
+  x-modules:
+    - path: projects/wmf_enwiki.yaml
+      options:
+        <<: *default_options
         trending:
           host: https://trending-beta.wmflabs.org
-          cache-control: s-maxage=600, max-age=600
-        skip_updates: false
+          cache_control: s-maxage=1800, max-age=1800
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
@@ -81,7 +88,7 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
-    /{domain:en.wikipedia.org}: *default_project
+    /{domain:en.wikipedia.org}: *en.wikipedia.org
     /{domain:fr.wikipedia.org}: *default_project
     /{domain:de.wikipedia.org}: *default_project
     /{domain:es.wikipedia.org}: *default_project

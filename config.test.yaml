@@ -5,11 +5,6 @@
 default_project: &default_project
   x-modules:
     - path: test/test_module.yaml
-      options:
-        events:
-          uri: http://127.0.0.1:8085/v1/events
-          topic: resource_change
-          transcludes_topic: change-prop.transcludes.resource-change
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
@@ -45,16 +40,33 @@ default_project: &default_project
           cache_control: s-maxage=600, max-age=600
           uri: https://pdf-electron.wmflabs.org
           secret: secret
+        skip_updates: false
+
+# A separate project for en.wikipedia because it is more feature-rich
+en.wikipedia.org: &en.wikipedia.org
+  x-modules:
+    - path: test/test_module.yaml
+      options:
+        events:
+          uri: http://127.0.0.1:8085/v1/events
+          topic: resource_change
+          transcludes_topic: change-prop.transcludes.resource-change
+    - path: projects/wmf_enwiki.yaml
+      options:
+        <<: *default_options
         trending:
           host: https://trending-beta.wmflabs.org
-          cache_control: s-maxage=600, max-age=600
-        skip_updates: false
+          cache_control: s-maxage=1800, max-age=1800
 
 labs_project: &labs_project
   x-modules:
     - path: test/test_module.yaml
-    - path: projects/wmf_default.yaml
-      options: *default_options
+    - path: projects/wmf_enwiki.yaml
+      options:
+        <<: *default_options
+        trending:
+          host: https://trending-beta.wmflabs.org
+          cache_control: s-maxage=1800, max-age=1800
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
@@ -105,7 +117,7 @@ spec_root: &spec_root
     /{domain:test.wikipedia.org}: *default_project
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
-    /{domain:en.wikipedia.org}: *default_project
+    /{domain:en.wikipedia.org}: *en.wikipedia.org
     /{domain:ru.wikipedia.org}: *default_project
     /{domain:de.wikipedia.org}: *default_project
     /{domain:test2.wikipedia.org}: *default_project
