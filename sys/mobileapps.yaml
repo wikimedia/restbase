@@ -73,6 +73,19 @@ paths:
               uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
               headers: '{{from_service.headers}}'
               body: '{{from_service.body.remaining}}'
+          store_revisioned_lead:
+            request:
+              method: put
+              uri: /{domain}/sys/key_rev_value/mobile-sections-lead/{title}/{{from_service.lead.revision}}
+              headers: '{{from_service.headers}}'
+              body: '{{from_service.body.remaining}}'
+          store_revisioned_remaining:
+            request:
+              method: put
+              uri: /{domain}/sys/key_rev_value/mobile-sections-remaining/{title}/{{from_service.lead.revision}}
+              headers: '{{from_service.headers}}'
+              body: '{{from_service.body.remaining}}'
+
         - purge_and_return:
             request:
               method: post
