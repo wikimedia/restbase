@@ -26,6 +26,27 @@ paths:
               valueType: json
               updates:
                 pattern: timeseries
+        - init-revisioned-lead:
+            method: put
+            uri: /{domain}/sys/key_rev_value/mobile-sections-lead
+            body:
+              revisionRetentionPolicy:
+                type: latest_hash
+                grace_ttl: 86400
+              valueType: json
+              updates:
+                pattern: timeseries
+        - init-revisioned-remaining:
+            method: put
+            uri: /{domain}/sys/key_rev_value/mobile-sections-remaining
+            body:
+              revisionRetentionPolicy:
+                type: latest_hash
+                grace_ttl: 86400
+              valueType: json
+              updates:
+                pattern: timeseries
+
       x-request-handler:
         - from_storage:
             request:
