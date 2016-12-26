@@ -166,6 +166,8 @@ paths:
                         Utilisateur:ZéroBot/Log/Erreurs: true
                       ca.wikipedia.org:
                         Usuari:TronaBot/log:Activitat_reversors_per_hores: true
+                      it.wikipedia.org:
+                        Utente:Effems/Sandbox7: true
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
