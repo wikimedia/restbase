@@ -119,11 +119,6 @@ paths:
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
                     rerenderBlacklist:
-                      www.wikidata.org:
-                        Q21558717: true
-                        Q21505108: true
-                        Q21481867: true
-                        Q21521425: true
                       en.wikipedia.org:
                         Wikipedia:Administrators'_noticeboard/Incidents: true
                         User:JamesR/AdminStats: true
@@ -147,25 +142,6 @@ paths:
                         User:Cyberpower678/RfX_Report: true
                         User:Cyberpower678/Tally: true
                         User:Pentjuuu!.!/sandbox: true
-                      ur.wikipedia.org:
-                        نام_مقامات_ایل: true
-                        نام_مقامات_ڈی: true
-                        نام_مقامات_جے: true
-                        نام_مقامات_جی: true
-                        نام_مقامات_ایچ: true
-                        نام_مقامات_ایم: true
-                        نام_مقامات_ایس: true
-                      commons.wikipedia.org:
-                        Commons:Quality_images_candidates/candidate_list: true
-                      ceb.wikipedia.org:
-                        Gumagamit:Lsjbot/Anomalier-PRIVAT: true
-                      sv.wikipedia.org:
-                        Användare:Lsjbot/Anomalier-PRIVAT: true
-                        Användare:Lsjbot/Namnkonflikter-PRIVAT: true
-                      fr.wikipedia.org:
-                        Utilisateur:ZéroBot/Log/Erreurs: true
-                      ca.wikipedia.org:
-                        Usuari:TronaBot/log:Activitat_reversors_per_hores: true
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml

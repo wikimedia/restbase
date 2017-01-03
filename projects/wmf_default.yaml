@@ -117,33 +117,23 @@ paths:
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
                     rerenderBlacklist:
-                      www.wikidata.org:
-                        Q21558717: true
-                        Q21505108: true
-                        Q21481867: true
-                        Q21521425: true
-                      en.wikipedia.org:
-                        Wikipedia:Administrators'_noticeboard/Incidents: true
-                        User:JamesR/AdminStats: true
-                        User:Kudpung/Dashboard: true
-                        # Various dashboards
-                        User:Breawycker/Wikipedia: true
-                        User:Sonia/dashboard: true
-                        User:Ocaasi/dashboard: true
-                        User:Nolelover: true
-                        User:Calmer_Waters: true
-                        User:Technical_13/dashboard: true
-                        Template:Cratstats: true
-                        # Cyberbot is creating 90% of null edits
-                        User:Cyberbot_I/Status: true
-                        User:Cyberbot_II/Status: true
-                        صارف:Cyberbot_I/Run/Adminstats: true
-                        User:Cyberbot_I/Run/Adminstats: true
-                        Defnyddiwr:Cyberbot_I/Run/Adminstats: true
-                        User:Cyberbot_I/Run/Datefixer: true
-                        User:Cyberbot_I/adminrights-admins.js: true
-                        User:Cyberpower678/Tally: true
-                        User:Pentjuuu!.!/sandbox: true
+                      ca.wikipedia.org:
+                        Usuari:TronaBot/log:Activitat_reversors_per_hores: true
+                      ceb.wikipedia.org:
+                        Gumagamit:Lsjbot/Anomalier-PRIVAT: true
+                      commons.wikipedia.org:
+                        Commons:Quality_images_candidates/candidate_list: true
+                        User:J_budissin/Uploads/BiH/2016_December_11-20: true
+                        User:OgreBot/Uploads_by_new_users: true
+                        User:Oxyman/Buildings_in_London/2014_October_11-20: true
+                        User:Stunteltje/gallery: true
+                      fr.wikipedia.org:
+                        Utilisateur:ZéroBot/Log/Erreurs: true
+                      it.wikipedia.org:
+                        Utente:Effems/Sandbox7: true
+                      sv.wikipedia.org:
+                        Användare:Lsjbot/Anomalier-PRIVAT: true
+                        Användare:Lsjbot/Namnkonflikter-PRIVAT: true
                       ur.wikipedia.org:
                         نام_مقامات_ایل: true
                         نام_مقامات_ڈی: true
@@ -152,23 +142,11 @@ paths:
                         نام_مقامات_ایچ: true
                         نام_مقامات_ایم: true
                         نام_مقامات_ایس: true
-                      commons.wikipedia.org:
-                        Commons:Quality_images_candidates/candidate_list: true
-                        User:J_budissin/Uploads/BiH/2016_December_11-20: true
-                        User:OgreBot/Uploads_by_new_users: true
-                        User:Oxyman/Buildings_in_London/2014_October_11-20: true
-                        User:Stunteltje/gallery: true
-                      ceb.wikipedia.org:
-                        Gumagamit:Lsjbot/Anomalier-PRIVAT: true
-                      sv.wikipedia.org:
-                        Användare:Lsjbot/Anomalier-PRIVAT: true
-                        Användare:Lsjbot/Namnkonflikter-PRIVAT: true
-                      fr.wikipedia.org:
-                        Utilisateur:ZéroBot/Log/Erreurs: true
-                      ca.wikipedia.org:
-                        Usuari:TronaBot/log:Activitat_reversors_per_hores: true
-                      it.wikipedia.org:
-                        Utente:Effems/Sandbox7: true
+                      www.wikidata.org:
+                        Q21558717: true
+                        Q21505108: true
+                        Q21481867: true
+                        Q21521425: true
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
