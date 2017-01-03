@@ -127,6 +127,8 @@ paths:
                         User:OgreBot/Uploads_by_new_users: true
                         User:Oxyman/Buildings_in_London/2014_October_11-20: true
                         User:Stunteltje/gallery: true
+                      de.wikipedia.org:
+                        Wikipedia_Diskussion:Hauptseite/Schon_gewusst: true
                       fr.wikipedia.org:
                         Utilisateur:ZéroBot/Log/Erreurs: true
                       it.wikipedia.org:
