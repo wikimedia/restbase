@@ -70,7 +70,8 @@ describe('Change event emitting', function() {
             topic: 'resource_change',
             uri: 'http://en.wikipedia.org/wiki/User:Pchelolo'
         });
-        return preq.post({
+
+        preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
                 'content-type': 'application/json',
@@ -106,7 +107,8 @@ describe('Change event emitting', function() {
             uri: 'http://en.wikipedia.org/api/rest_v1/page/html/User:Pchelolo',
             trigger: 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/User:Pchelolo'
         });
-        return preq.post({
+
+        preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
                 'content-type': 'application/json',
@@ -141,7 +143,8 @@ describe('Change event emitting', function() {
             uri: 'http://en.wikipedia.org/wiki/User:Pchelolo',
             trigger: 'resource_change:https://en.wikipedia.org/wiki/Prohibited'
         });
-        return preq.post({
+
+        preq.post({
             uri: server.config.baseURL + '/events/',
             headers: {
                 'content-type': 'application/json',
