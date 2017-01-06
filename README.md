@@ -36,10 +36,13 @@ issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-P
 
 ## Installation
 
-Make sure that you have node 0.10+:
+Make sure that you have node 4+:
 ```sh
 sudo apt-get install nodejs nodejs-legacy nodejs-dev npm
 ```
+
+Note: if your distribution does not have a recent version of Node, you can
+install one via [nvm](https://github.com/creationix/nvm).
 
 From the *restbase* project directory, install the Node dependencies:
 
@@ -55,8 +58,8 @@ node server
 
 The defaults without a config file should work for a local Cassandra
 installation with the default passwords. Restbase has been tested with
-[Cassandra 2.1.13](http://wiki.apache.org/cassandra/DebianPackaging).
-To customize RESTBase's behavior, copy the example config to its
+[Cassandra 2.2.6](http://wiki.apache.org/cassandra/DebianPackaging).
+To customize RESTBase's behaviour, copy the example config to its
 default location:
 
 ```sh
