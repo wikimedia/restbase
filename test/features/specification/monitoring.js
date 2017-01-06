@@ -187,7 +187,6 @@ describe('Monitoring tests', function() {
                             .then(function(res) {
                                 validateTestResponse(testCase, res);
                             }, function(err) {
-                                console.log(err);
                                 validateTestResponse(testCase, err);
                             });
                         });
