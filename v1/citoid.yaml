@@ -16,18 +16,19 @@ paths:
     get:
       tags:
         - Citation
-      summary: Get citation data given an article identifyer.
+      summary: Get citation data given an article identifier.
       description: |
-        Generates citation data given a URL, DOI, PMID, or PMCID.
+        Generates citation data given a URL, DOI, PMID, ISBN, or PMCID.
 
         See more at [Citoid service documentation](https://www.mediawiki.org/wiki/Citoid)
 
-        The citation data could be requested in one of the following formats:
-          - `bibtex`: format used to describe and process lists of references,
-            mostly in conjunction with LaTeX documents. See [bibtex.org](http://www.bibtex.org/).
-          - `zotero`: format used by the [Zotero](https://www.zotero.org/) research tool.
-          - `mediawiki`: format designed specifically for MediaWiki to be used with `templateData`.
-          - `mediawiki-basefields`: `mediawiki` format extended with Zotero `basefields`
+        The citation data can be requested in one of the following formats:
+          - `mediawiki`: format designed for MediaWiki to be used with `templateData`.
+            Uses [Zotero field names](https://aurimasv.github.io/z2csl/typeMap.xml).
+          - `mediawiki-basefields`: `mediawiki` format with Zotero `basefield` field names.
+          - `zotero`: format used by [Zotero](https://www.zotero.org/).
+          - `bibtex`: format used in conjunction with LaTeX documents.
+            See [bibtex.org](http://www.bibtex.org/).
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -38,15 +39,15 @@ paths:
           in: path
           description: "The format to use for the resulting citation data"
           enum:
-            - bibtex
-            - zotero
             - mediawiki
             - mediawiki-basefields
+            - zotero
+            - bibtex
           required: true
         - name: query
           in: path
           description: >
-            URL of an article, DOI, PMCID or PMID in the URL-encoded format.
+            URL of an article, DOI, ISBN, PMCID or PMID in the URL-encoded format.
             Note that on the Swagger-UI doc page you don't need to URI-encode the
             parameter manually, it will be done by the docs engine.
           type: string
@@ -61,12 +62,10 @@ paths:
       responses:
         '200':
           description: The citation data in the requested format
+          schema:
+            $ref: '#/definitions/result'
         '404':
           description: Citation data was not found.
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
           schema:
             $ref: '#/definitions/problem'
 
@@ -102,4 +101,16 @@ definitions:
       detail:
         type: string
       instance:
+        type: string
+  result:
+    required:
+      - title
+      - url
+      - itemType
+    properties:
+      itemType:
+        type: string
+      title:
+        type: string
+      url:
         type: string
