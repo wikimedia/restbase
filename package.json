@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "description": "REST storage and service dispatcher",
   "main": "index.js",
   "scripts": {
@@ -68,7 +68,7 @@
     "node": ">=4"
   },
   "deploy": {
-    "node": "4.6.0",
+    "node": "6.9.1",
     "target": "debian",
     "dependencies": {
       "_all": []
