@@ -119,6 +119,7 @@ paths:
                 explaintext: true
                 piprop: 'thumbnail'
                 pithumbsize: 320
+                pilicense: 'any'
                 rvprop: 'timestamp|ids'
                 titles: '{{request.params.title}}'
                 wbptterms: 'description'
