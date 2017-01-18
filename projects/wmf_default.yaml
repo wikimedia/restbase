@@ -152,7 +152,7 @@ paths:
                         Q21521425: true
             /mobileapps:
               x-modules:
-                - path: sys/mobileapps.yaml
+                - path: sys/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
             /events:
