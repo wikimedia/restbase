@@ -67,32 +67,47 @@ class MobileApps {
                 return {
                     status: 200,
                     headers: res.headers,
-                    body: res.body.lead
+                    body: res.body[part]
                 };
             })
         );
-
     }
 
-    _purgeURIs(hyper, req) {
+    _purgeURIs(hyper, req, revision) {
         const rp = req.params;
         const prefix = `//${rp.domain}/api/rest_v1/page/mobile-sections`;
+        const title = encodeURIComponent(rp.title);
         return hyper.post({
             uri: new URI([rp.domain, 'sys', 'events', '']),
             body: [
                 {
                     meta: {
-                        uri: `${prefix}/${encodeURIComponent(rp.title)}`
+                        uri: `${prefix}/${title}`
                     }
                 },
                 {
                     meta: {
-                        uri: `${prefix}-lead/${encodeURIComponent(rp.title)}`
+                        uri: `${prefix}-lead/${title}`
                     }
                 },
                 {
                     meta: {
-                        uri: `${prefix}-remaining/${encodeURIComponent(rp.title)}`
+                        uri: `${prefix}-remaining/${title}`
+                    }
+                },
+                {
+                    meta: {
+                        uri: `${prefix}/${title}/${revision}`
+                    }
+                },
+                {
+                    meta: {
+                        uri: `${prefix}-lead/${title}/${revision}`
+                    }
+                },
+                {
+                    meta: {
+                        uri: `${prefix}-remaining/${title}/${revision}`
                     }
                 }
             ]
@@ -137,7 +152,7 @@ class MobileApps {
                 headers: res.headers,
                 body: res.body.remaining
             }))
-            .tap(() => this._purgeURIs(hyper, req))
+            .tap(() => this._purgeURIs(hyper, req, res.body.lead.revision))
             .thenReturn(res)
         );
     }

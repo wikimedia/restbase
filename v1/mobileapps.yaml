@@ -3,7 +3,7 @@ tags:
   - name: Mobile
     description: mobile-friendly page content
 paths:
-  /mobile-sections/{title}:
+  /mobile-sections/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -25,6 +25,12 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
         - name: redirect
           in: query
           description: >
@@ -73,7 +79,7 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}{/revision}
               headers:
                 cache-control: '{{cache-control}}'
             return:
@@ -96,7 +102,7 @@ paths:
               lead: /.+/
               remaining: /.+/
 
-  /mobile-sections-lead/{title}:
+  /mobile-sections-lead/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -118,6 +124,12 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
         - name: redirect
           in: query
           description: >
@@ -166,7 +178,7 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
+              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -174,7 +186,7 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: false
 
-  /mobile-sections-remaining/{title}:
+  /mobile-sections-remaining/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -197,6 +209,12 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
         - name: redirect
           in: query
           description: >
@@ -245,7 +263,7 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}
+              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
