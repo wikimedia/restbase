@@ -1,22 +1,63 @@
 'use strict';
 
+const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
+const URI = HyperSwitch.URI;
+
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/related.yaml`);
 
-module.exports = (options) => ({
-    spec,
-    globals: {
-        options,
-        // Add a utility function to the global scope, so that it can be
-        // called in the response template.
-        httpsSource(items) {
-            items.forEach((item) => {
-                if (item.thumbnail && item.thumbnail.source) {
-                    item.thumbnail.source = item.thumbnail.source.replace(/^http:/, 'https:');
-                }
-            });
-            return items;
-        }
+class Related {
+    constructor(options) {
+        this._options = options;
     }
-});
+
+    getPages(hyper, req) {
+        const rp = req.params;
+
+        return hyper.post({
+            uri: new URI([rp.domain, 'sys', 'action', 'query']),
+            body: {
+                format: 'json',
+                generator: 'search',
+                gsrsearch: `morelike:${rp.title}`,
+                gsrnamespace: 0,
+                gsrwhat: 'text',
+                gsrinfo: '',
+                gsrprop: 'redirecttitle',
+                gsrlimit: 5
+            }
+        })
+        .then((res) => {
+            delete res.body.next;
+
+            // Step 1: Normalize and convert titles to use $merge
+            res.body.items.forEach((item) => {
+                // We can avoid using the full-blown title normalisation here because
+                // the titles come from MW API and they're already normalised except
+                // they use spaces instead of underscores.
+                item.$merge = [ new URI([rp.domain, 'v1', 'page',
+                    'summary', item.title.replace(/ /g, '_')]) ];
+                delete item.title;
+            });
+
+            // Rename `items` to `pages`
+            res.body.pages = res.body.items;
+            delete res.body.items;
+
+            // Step 2: Hydrate response as always.
+            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri));
+        });
+    }
+}
+
+module.exports = (options) => {
+    const relatedModule = new Related(options);
+
+    return {
+        spec,
+        operations: {
+            getRelatedPages: relatedModule.getPages.bind(relatedModule)
+        }
+    };
+};
 

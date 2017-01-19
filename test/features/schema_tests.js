@@ -77,4 +77,16 @@ parallel('Responses should conform to the provided JSON schema of the response',
             }
         });
     });
+
+
+    it('/page/related should conform schema', function() {
+        return preq.get({ uri: server.config.bucketURL + '/related/Tank' })
+        .then(function(res) {
+            if (!ajv.validate('#/definitions/related', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
 });
