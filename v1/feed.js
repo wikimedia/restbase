@@ -50,7 +50,7 @@ class Feed {
                 query: { aggregated: true }
             })
             .tap((res) => {
-                if (res.status !== 200 || !res.body || !Object.keys(res.body)) {
+                if (res.status !== 200 || !res.body || !Object.keys(res.body).length) {
                     hyper.log('warn/feed', {
                         msg: `Failed to fetch ${part} from MCS`
                     });
