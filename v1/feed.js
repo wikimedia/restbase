@@ -48,6 +48,13 @@ class Feed {
             props[part] = hyper.get({
                 uri: uriArray.join('/'),
                 query: { aggregated: true }
+            })
+            .tap((res) => {
+                if (res.status !== 200 || !res.body || !Object.keys(res.body)) {
+                    hyper.log('warn/feed', {
+                        msg: `Failed to fetch ${part} from MCS`
+                    });
+                }
             });
         });
         return P.props(props);
