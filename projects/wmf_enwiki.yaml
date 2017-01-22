@@ -120,7 +120,7 @@ paths:
                     # rarely viewed in any case.
                     rerenderBlacklist:
                       en.wikipedia.org:
-                        Wikipedia:Administrators'_noticeboard/Incidents: true
+                        User:B-bot/Event_log: true
                         User:JamesR/AdminStats: true
                         User:Kudpung/Dashboard: true
                         # Various dashboards
@@ -142,6 +142,7 @@ paths:
                         User:Cyberpower678/RfX_Report: true
                         User:Cyberpower678/Tally: true
                         User:Pentjuuu!.!/sandbox: true
+                        Wikipedia:Administrators'_noticeboard/Incidents: true
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.yaml
