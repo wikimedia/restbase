@@ -95,6 +95,7 @@ class Feed {
                         prop: 'pageimages',
                         piprop: 'thumbnail',
                         pithumbsize: 640,
+                        pilicense: 'any',
                         titles: title
                     }
                 });
