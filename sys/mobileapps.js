@@ -73,13 +73,29 @@ class MobileApps {
         );
     }
 
-    _purgeURIs(hyper, req, revision) {
+    _purgeURIs(hyper, req, revision, purgeLatest) {
         const rp = req.params;
         const prefix = `//${rp.domain}/api/rest_v1/page/mobile-sections`;
         const title = encodeURIComponent(rp.title);
-        return hyper.post({
-            uri: new URI([rp.domain, 'sys', 'events', '']),
-            body: [
+        let purgeEvents = [
+            {
+                meta: {
+                    uri: `${prefix}/${title}/${revision}`
+                }
+            },
+            {
+                meta: {
+                    uri: `${prefix}-lead/${title}/${revision}`
+                }
+            },
+            {
+                meta: {
+                    uri: `${prefix}-remaining/${title}/${revision}`
+                }
+            }
+        ];
+        if (purgeLatest) {
+            purgeEvents = purgeEvents.concat([
                 {
                     meta: {
                         uri: `${prefix}/${title}`
@@ -95,22 +111,13 @@ class MobileApps {
                         uri: `${prefix}-remaining/${title}`
                     }
                 },
-                {
-                    meta: {
-                        uri: `${prefix}/${title}/${revision}`
-                    }
-                },
-                {
-                    meta: {
-                        uri: `${prefix}-lead/${title}/${revision}`
-                    }
-                },
-                {
-                    meta: {
-                        uri: `${prefix}-remaining/${title}/${revision}`
-                    }
-                }
-            ]
+
+            ]);
+        }
+
+        return hyper.post({
+            uri: new URI([rp.domain, 'sys', 'events', '']),
+            body: purgeEvents
         })
         .catch({ status: 404 }, () => {
         });
@@ -124,37 +131,69 @@ class MobileApps {
             serviceURI += `/${rp.revision}`;
         }
 
-        return hyper.get(new URI(serviceURI))
-        .then((res) => P.join(
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'key_value',
-                    'mobileapps.lead', rp.title]),
-                headers: res.headers,
-                body: res.body.lead
-            }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'key_value',
-                    'mobileapps.remaining', rp.title]),
-                headers: res.headers,
-                body: res.body.remaining
-            }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                    'mobile-sections-lead', rp.title,
-                    res.body.lead.revision]),
-                headers: res.headers,
-                body: res.body.lead
-            }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                    'mobile-sections-remaining', rp.title,
-                    res.body.lead.revision, mwUtils.parseETag(res.headers.etag).tid]),
-                headers: res.headers,
-                body: res.body.remaining
-            }))
-            .tap(() => this._purgeURIs(hyper, req, res.body.lead.revision))
-            .thenReturn(res)
-        );
+
+        const requests = {
+            newContent: hyper.get({
+                uri: new URI(serviceURI)
+            })
+        };
+
+        if (rp.revision) {
+            // This might be a request to the old revision and we don't want
+            // to issue a purge for the latest revision nor store it in the
+            // key_rev bucket, so check if it's indeed the latest
+            requests.latestRev = hyper.get({
+                uri: new URI([rp.domain, 'sys', 'key_value', 'mobileapps.lead', rp.title])
+            })
+            .then((res) => res.body.revision)
+            .catch({ status: 404 }, () => {
+                // We have no revisions for this title, so it's certainly latest.
+                return -1;
+            });
+        } else {
+            requests.latestRev = P.resolve(-1);
+        }
+
+
+        return P.props(requests)
+        .then((res) => {
+            const newContent = res.newContent;
+            let storeRequests = P.resolve();
+            if (rp.revision > res.latestRev) {
+                storeRequests = P.join(
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value',
+                            'mobileapps.lead', rp.title]),
+                        headers: newContent.headers,
+                        body: newContent.body.lead
+                    }),
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value',
+                            'mobileapps.remaining', rp.title]),
+                        headers: newContent.headers,
+                        body: newContent.body.remaining
+                    }),
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_rev_value',
+                            'mobile-sections-lead', rp.title,
+                            newContent.body.lead.revision]),
+                        headers: newContent.headers,
+                        body: newContent.body.lead
+                    }),
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_rev_value',
+                            'mobile-sections-remaining', rp.title,
+                            newContent.body.lead.revision,
+                            mwUtils.parseETag(newContent.headers.etag).tid]),
+                        headers: newContent.headers,
+                        body: newContent.body.remaining
+                    }));
+            }
+            return storeRequests
+            .tap(() => this._purgeURIs(hyper, req,
+                newContent.body.lead.revision, rp.revision > res.latestRev))
+            .thenReturn(newContent);
+        });
     }
 }
 
