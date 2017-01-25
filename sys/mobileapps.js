@@ -242,7 +242,7 @@ module.exports = (options) => {
                     revisionRetentionPolicy: {
                         type: 'latest_hash',
                         count: 1,
-                        grace_ttl: 86400
+                        grace_ttl: 1
                     },
                     valueType: 'json',
                     updates: {
@@ -256,7 +256,7 @@ module.exports = (options) => {
                     revisionRetentionPolicy: {
                         type: 'latest_hash',
                         count: 1,
-                        grace_ttl: 86400
+                        grace_ttl: 1
                     },
                     valueType: 'json',
                     updates: {
@@ -267,5 +267,3 @@ module.exports = (options) => {
         ]
     };
 };
-
-
