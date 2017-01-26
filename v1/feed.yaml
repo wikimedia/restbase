@@ -102,6 +102,20 @@ definitions:
       instance:
         type: string
 
+  originalimage:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Original image URI
+      width:
+        type: integer
+        description: Original image width
+      height:
+        type: integer
+        description: Original image height
+    required: ['source', 'width', 'height']
+
   thumbnail:
     type: object
     properties:
@@ -126,8 +140,11 @@ definitions:
         type: string
         description: Article title as it should be presented to the user
       thumbnail:
-        description: Lead image for the article
+        description: Thumbnail for the lead image for the article
         $ref: '#/definitions/thumbnail'
+      originalimage:
+        description: The original of the lead image for the atricle
+        $ref: '#/definitions/originalimage'
       description:
         type: string
         description: Wikidata description of the article
