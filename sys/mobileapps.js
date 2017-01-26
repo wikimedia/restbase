@@ -163,8 +163,7 @@ class MobileApps {
             requests.latestRev = P.resolve(-1);
         }
 
-        const shouldStoreNewRev = (latestRev) =>
-            mwUtils.isNoCacheRequest(req) || !rp.revision || rp.revision >= latestRev;
+        const shouldStoreNewRev = (latestRev) => !rp.revision || rp.revision >= latestRev;
 
         return P.props(requests)
         .then((res) => {
