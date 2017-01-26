@@ -117,7 +117,7 @@ definitions:
               description: Lead image for the article
               $ref: '#/definitions/thumbnail'
             originalimage:
-              description: The original of the lead image for the atricle
+              description: The original of the lead image for the article
               $ref: '#/definitions/originalimage'
             description:
               type: string
