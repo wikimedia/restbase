@@ -13,6 +13,10 @@ class MobileApps {
     }
 
     getSections(hyper, req) {
+        if (mwUtils.isNoCacheRequest(req)) {
+            return this._fetchFromMCSAndStore(hyper, req);
+        }
+
         const rp = req.params;
         let fetchPaths;
         if (rp.revision) {
@@ -32,10 +36,10 @@ class MobileApps {
         }
         return P.join(
             hyper.get({
-                uri: new URI(fetchPaths.lead)
+                uri: new URI(fetchPaths.lead),
             }),
             hyper.get({
-                uri: new URI([fetchPaths.remaining])
+                uri: new URI(fetchPaths.remaining),
             })
         ).spread((lead, remaining) => ({
             status: 200,
@@ -50,6 +54,19 @@ class MobileApps {
 
     getPart(part, hyper, req) {
         const rp = req.params;
+        const fetchAndReturnPart = () => this._fetchFromMCSAndStore(hyper, req)
+        .then((res) => {
+            return {
+                status: 200,
+                headers: req.headers,
+                body: res.body[part]
+            };
+        });
+
+        if (mwUtils.isNoCacheRequest(req)) {
+            return fetchAndReturnPart();
+        }
+
         let fetchPath;
         if (rp.revision) {
             fetchPath = [rp.domain, 'sys', 'key_rev_value',
@@ -60,17 +77,9 @@ class MobileApps {
         }
 
         return hyper.get({
-            uri: new URI(fetchPath)
+            uri: new URI(fetchPath),
         })
-        .catch({ status: 404 }, () => this._fetchFromMCSAndStore(hyper, req)
-            .then((res) => {
-                return {
-                    status: 200,
-                    headers: res.headers,
-                    body: res.body[part]
-                };
-            })
-        );
+        .catch({ status: 404 }, fetchAndReturnPart);
     }
 
     _purgeURIs(hyper, req, revision, purgeLatest) {
@@ -131,7 +140,6 @@ class MobileApps {
             serviceURI += `/${rp.revision}`;
         }
 
-
         const requests = {
             newContent: hyper.get({
                 uri: new URI(serviceURI)
@@ -143,6 +151,7 @@ class MobileApps {
             // to issue a purge for the latest revision nor store it in the
             // key_rev bucket, so check if it's indeed the latest
             requests.latestRev = hyper.get({
+                // TODO: replace this with the key_rev_value when removing old buckets
                 uri: new URI([rp.domain, 'sys', 'key_value', 'mobileapps.lead', rp.title])
             })
             .then((res) => res.body.revision)
@@ -153,13 +162,15 @@ class MobileApps {
         } else {
             requests.latestRev = P.resolve(-1);
         }
-
+        
+        const shouldStoreNewRev = (latestRev) =>
+            mwUtils.isNoCacheRequest(req) || !rp.revision || rp.revision >= latestRev;
 
         return P.props(requests)
         .then((res) => {
             const newContent = res.newContent;
             let storeRequests = P.resolve();
-            if (rp.revision > res.latestRev) {
+            if (shouldStoreNewRev(res.latestRev)) {
                 storeRequests = P.join(
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_value',
@@ -183,15 +194,14 @@ class MobileApps {
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_rev_value',
                             'mobile-sections-remaining', rp.title,
-                            newContent.body.lead.revision,
-                            mwUtils.parseETag(newContent.headers.etag).tid]),
+                            newContent.body.lead.revision]),
                         headers: newContent.headers,
                         body: newContent.body.remaining
                     }));
             }
             return storeRequests
             .tap(() => this._purgeURIs(hyper, req,
-                newContent.body.lead.revision, rp.revision > res.latestRev))
+                newContent.body.lead.revision, shouldStoreNewRev(res.latestRev)))
             .thenReturn(newContent);
         });
     }
@@ -239,6 +249,7 @@ module.exports = (options) => {
             {
                 uri: '/{domain}/sys/key_rev_value/mobile-sections-lead',
                 body: {
+                    version: 4,
                     revisionRetentionPolicy: {
                         type: 'latest_hash',
                         count: 1,
@@ -253,6 +264,7 @@ module.exports = (options) => {
             {
                 uri: '/{domain}/sys/key_rev_value/mobile-sections-remaining',
                 body: {
+                    version: 4,
                     revisionRetentionPolicy: {
                         type: 'latest_hash',
                         count: 1,
