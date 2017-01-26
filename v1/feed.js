@@ -101,9 +101,11 @@ class Feed {
                         const newThumb = thumbRes.items[0].thumbnail;
                         newThumb.source = newThumb.source.replace(/^http:/, 'https:');
                         result[0].body.tfa.thumbnail = newThumb;
-                        const newOriginal = thumbRes.items[0].original;
-                        newOriginal.source = newOriginal.source.replace(/^http:/, 'https:');
-                        result[0].body.tfa.originalimage = newOriginal;
+                        if (thumbRes.items[0].original) {
+                            const newOriginal = thumbRes.items[0].original;
+                            newOriginal.source = newOriginal.source.replace(/^http:/, 'https:');
+                            result[0].body.tfa.originalimage = newOriginal;
+                        }
                     }
                     return result[0];
                 });
