@@ -1,138 +1,15 @@
 info:
   title: Mobileapps sys API module
 paths:
-  /mobile-sections/{title}:
+  /mobile-sections/{title}{/revision}:
     get:
-      x-setup-handler:
-        - init-lead:
-            method: put
-            uri: /{domain}/sys/key_value/mobileapps.lead
-            body:
-              revisionRetentionPolicy:
-                type: latest
-                count: 1
-                grace_ttl: 86400
-              valueType: json
-              updates:
-                pattern: timeseries
-        - init-remaining:
-            method: put
-            uri: /{domain}/sys/key_value/mobileapps.remaining
-            body:
-              revisionRetentionPolicy:
-                type: latest
-                count: 1
-                grace_ttl: 86400
-              valueType: json
-              updates:
-                pattern: timeseries
-      x-request-handler:
-        - from_storage:
-            request:
-              headers: '{{request.headers}}'
-              uri: /{domain}/sys/mobileapps/mobile-sections_from_storage/{title}
-            catch:
-              status: 404
-            return_if:
-              status: '2xx'
-        - from_service:
-            request:
-              method: get
-              uri: '{+options.host}/{domain}/v1/page/mobile-sections/{title}'
-              gzip: false
-        - store_lead:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
-              headers: '{{from_service.headers}}'
-              body: '{{from_service.body.lead}}'
-          store_remaining:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
-              headers: '{{from_service.headers}}'
-              body: '{{from_service.body.remaining}}'
-        - purge_and_return:
-            request:
-              method: post
-              uri: /{domain}/sys/events/
-              body:
-                - meta:
-                    uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections/{request.params.title}
-                - meta:
-                    uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections-lead/{request.params.title}
-                - meta:
-                    uri: //{{request.params.domain}}/api/rest_v1/page/mobile-sections-remaining/{request.params.title}
-            catch:
-              status: 404
-            return:
-              status: 200
-              headers: '{{from_service.headers}}'
-              body: '{{from_service.body}}'
+      operationId: getSections
 
-
-  /mobile-sections_from_storage/{title}:
+  /mobile-sections-lead/{title}{/revision}:
     get:
-      x-request-handler:
-        - stored_lead:
-            request:
-              method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
-              headers: '{{request.headers}}'
-          stored_remaining:
-            request:
-              method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
-        - return:
-            return:
-              status: 200
-              headers: '{{stored_lead.headers}}'
-              body:
-                lead: '{{stored_lead.body}}'
-                remaining: '{{stored_remaining.body}}'
+      operationId: getSectionsLead
 
-
-  /mobile-sections-lead/{title}:
+  /mobile-sections-remaining/{title}{/revision}:
     get:
-      x-request-handler:
-        - check_storage:
-            request:
-              method: get
-              uri: /{domain}/sys/key_value/mobileapps.lead/{title}
-            return_if:
-              status: '2xx'
-            catch:
-              status: 404
-        - get_sections:
-            request:
-              method: get
-              headers:
-                cache-control: no-cache
-              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
-            return:
-              status: 200
-              headers: '{{get_sections.headers}}'
-              body: '{{get_sections.body.lead}}'
-
-  /mobile-sections-remaining/{title}:
-    get:
-      x-request-handler:
-        - check_storage:
-            request:
-              method: get
-              uri: /{domain}/sys/key_value/mobileapps.remaining/{title}
-            return_if:
-              status: '2xx'
-            catch:
-              status: 404
-        - get_sections:
-            request:
-              method: get
-              headers:
-                cache-control: no-cache
-              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
-            return:
-              status: 200
-              headers: '{{get_sections.headers}}'
-              body: '{{get_sections.body.remaining}}'
+      operationId: getSectionsRemaining
 
