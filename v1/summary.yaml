@@ -132,7 +132,7 @@ paths:
                 title: '{{extract.body.items[0].title}}'
                 extract: '{{extract.body.items[0].extract}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
-                originalimage: '{{httpSource(extract.body.items[0].original)}}'
+                originalimage: '{{httpsSource(extract.body.items[0].original)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
                 dir: '{{extract.body.items[0].pagelanguagedir}}'
                 timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
