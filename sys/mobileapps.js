@@ -162,7 +162,7 @@ class MobileApps {
         } else {
             requests.latestRev = P.resolve(-1);
         }
-        
+
         const shouldStoreNewRev = (latestRev) =>
             mwUtils.isNoCacheRequest(req) || !rp.revision || rp.revision >= latestRev;
 
