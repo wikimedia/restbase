@@ -176,6 +176,8 @@ paths:
               extract: /.+/
               thumbnail:
                 source: /^https:/
+              originalimage:
+                source: /^https:/
               lang: en
               dir: ltr
               description: /.+/
