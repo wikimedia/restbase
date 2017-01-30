@@ -130,8 +130,12 @@ paths:
                         User:Stunteltje/gallery: true
                       de.wikipedia.org:
                         Wikipedia_Diskussion:Hauptseite/Schon_gewusst: true
+                        Benutzer:Wartungsstube/Musik: true
+                        Benutzer:Verum/ege: true
                       fr.wikipedia.org:
                         Utilisateur:ZéroBot/Log/Erreurs: true
+                        Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité: true
+                        Discussion_utilisateur:NaggoBot/CommonsDR: true
                       it.wikipedia.org:
                         Utente:Effems/Sandbox7: true
                       sv.wikipedia.org:
