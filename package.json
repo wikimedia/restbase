@@ -36,7 +36,7 @@
   "dependencies": {
     "bluebird": "^3.4.7",
     "cassandra-uuid": "^0.0.2",
-    "restbase-mod-table-cassandra": "^0.10.3",
+    "restbase-mod-table-cassandra": "^0.11.0",
     "service-runner": "^2.1.13",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
@@ -46,7 +46,7 @@
     "entities": "^1.1.1"
   },
   "devDependencies": {
-    "ajv": "^4.10.4",
+    "ajv": "^4.11.2",
     "bunyan": "^1.8.5",
     "coveralls": "^2.11.15",
     "eslint-config-node-services": "^1.0.6",
