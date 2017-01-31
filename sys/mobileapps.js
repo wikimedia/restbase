@@ -96,13 +96,13 @@ class MobileApps {
             }));
 
             if (purgeLatest) {
-                purgeEvents = purgeEvents.concat( postfixes.map((postfix) => ({
+                purgeEvents = purgeEvents.concat(postfixes.map((postfix) => ({
                     meta: {
                         uri: `${prefix}${postfix}/${title}`
                     }
                 })));
             }
-            
+
             return hyper.post({
                 uri: new URI([rp.domain, 'sys', 'events', '']),
                 body: purgeEvents
