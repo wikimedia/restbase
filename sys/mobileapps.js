@@ -84,51 +84,31 @@ class MobileApps {
 
     _purgeURIs(hyper, req, revision, purgeLatest) {
         const rp = req.params;
-        const prefix = `//${rp.domain}/api/rest_v1/page/mobile-sections`;
-        const title = encodeURIComponent(rp.title);
-        let purgeEvents = [
-            {
+        return mwUtils.getSiteInfo(hyper, req)
+        .then((siteInfo) => {
+            const prefix = `${siteInfo.baseUri}/page/mobile-sections`.replace(/^https?:/, '');
+            const title = encodeURIComponent(rp.title);
+            const postfixes = ['', '-lead', 'remaining'];
+            let purgeEvents = postfixes.map((postfix) => ({
                 meta: {
-                    uri: `${prefix}/${title}/${revision}`
+                    uri: `${prefix}${postfix}/${title}/${revision}`
                 }
-            },
-            {
-                meta: {
-                    uri: `${prefix}-lead/${title}/${revision}`
-                }
-            },
-            {
-                meta: {
-                    uri: `${prefix}-remaining/${title}/${revision}`
-                }
+            }));
+
+            if (purgeLatest) {
+                purgeEvents = purgeEvents.concat( postfixes.map((postfix) => ({
+                    meta: {
+                        uri: `${prefix}${postfix}/${title}`
+                    }
+                })));
             }
-        ];
-        if (purgeLatest) {
-            purgeEvents = purgeEvents.concat([
-                {
-                    meta: {
-                        uri: `${prefix}/${title}`
-                    }
-                },
-                {
-                    meta: {
-                        uri: `${prefix}-lead/${title}`
-                    }
-                },
-                {
-                    meta: {
-                        uri: `${prefix}-remaining/${title}`
-                    }
-                },
-
-            ]);
-        }
-
-        return hyper.post({
-            uri: new URI([rp.domain, 'sys', 'events', '']),
-            body: purgeEvents
-        })
-        .catch({ status: 404 }, () => {
+            
+            return hyper.post({
+                uri: new URI([rp.domain, 'sys', 'events', '']),
+                body: purgeEvents
+            })
+            .catch({ status: 404 }, () => {
+            });
         });
     }
 
