@@ -88,7 +88,7 @@ class MobileApps {
         .then((siteInfo) => {
             const prefix = `${siteInfo.baseUri}/page/mobile-sections`.replace(/^https?:/, '');
             const title = encodeURIComponent(rp.title);
-            const postfixes = ['', '-lead', 'remaining'];
+            const postfixes = ['', '-lead', '-remaining'];
             let purgeEvents = postfixes.map((postfix) => ({
                 meta: {
                     uri: `${prefix}${postfix}/${title}/${revision}`
