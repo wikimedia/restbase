@@ -103,6 +103,17 @@ definitions:
       editors:
         type: integer
         description: Number of unique editors who changed the page
+      coordinates:
+        type: object
+        description: The coordinates of the item
+        properties:
+          lat:
+            type: number
+            description: The latitude
+          lon:
+            type: number
+            description: The longitude
+        requiredProperties: [ 'lat', 'lon' ]
     required:
       - title
 

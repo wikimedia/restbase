@@ -114,7 +114,7 @@ paths:
               method: post
               uri: /{domain}/sys/action/query
               body:
-                prop: 'info|extracts|pageimages|revisions|pageterms'
+                prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
                 exsentences: 5
                 explaintext: true
                 piprop: 'thumbnail|original'
@@ -137,6 +137,7 @@ paths:
                 dir: '{{extract.body.items[0].pagelanguagedir}}'
                 timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
                 description: '{{extractDescription(extract.body.items[0].terms)}}'
+                coordinates: '{{processCoords(extract.body.items[0].coordinates)}}'
 
         - emit_change_event:
             request:
@@ -252,5 +253,16 @@ definitions:
         type: string
         description: Wikidata description for the page
         example: American poet
+      coordinates:
+        type: object
+        description: The coordinates of the item
+        properties:
+          lat:
+            type: number
+            description: The latitude
+          lon:
+            type: number
+            description: The longitude
+        requiredProperties: [ 'lat', 'lon' ]
     additionalProperties: false
     required: ['title', 'extract', 'lang', 'dir']

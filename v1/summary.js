@@ -25,6 +25,16 @@ module.exports = (options) => ({
             if (terms && terms.description && terms.description.length) {
                 return terms.description[0];
             }
+        },
+        processCoords(coords) {
+            if (!coords || !coords.length) {
+                return undefined;
+            }
+
+            const coord = coords[0];
+            delete coord.primary;
+            delete coord.globe;
+            return coord;
         }
     }
 });
