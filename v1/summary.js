@@ -34,6 +34,10 @@ module.exports = (options) => ({
             const coord = coords[0];
             delete coord.primary;
             delete coord.globe;
+            if (coord.lat === undefined || coord.lon === undefined) {
+                // These properties are required, so double check they exist
+                return undefined;
+            }
             return coord;
         }
     }
