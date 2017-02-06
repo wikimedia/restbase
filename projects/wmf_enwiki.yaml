@@ -142,6 +142,14 @@ paths:
                         User:Cyberpower678/RfX_Report: true
                         User:Cyberpower678/Tally: true
                         User:Pentjuuu!.!/sandbox: true
+                        User:AllyD/CSDlog: true
+                        User:Peter_I._Vardy/sandbox-13: true
+                        User:I_dream_of_horses/CSD_log: true
+                        Talk:United_States_presidential_election,_2016: true
+                        Wikipedia:Reference_desk/Humanities: true
+                        Wikipedia:WikiProject_Deletion_sorting/People: true
+                        Wikipedia:WikiProject_Deletion_sorting/United_States_of_America: true
+                        Wikipedia:Articles_for_creation/Redirects: true
                         Wikipedia:Administrators'_noticeboard/Incidents: true
             /mobileapps:
               x-modules:
