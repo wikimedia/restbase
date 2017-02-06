@@ -129,15 +129,31 @@ paths:
                         User:Oxyman/Buildings_in_London/2014_October_11-20: true
                         User:Stunteltje/gallery: true
                       de.wikipedia.org:
+                        Wikipedia:Café: true
+                        Wikipedia:Defekte_Weblinks/Bot2015-Problem: true
                         Wikipedia_Diskussion:Hauptseite/Schon_gewusst: true
+                        Benutzer:Wartungsstube/Berlin: true
                         Benutzer:Wartungsstube/Musik: true
+                        Benutzer:Wartungsstube/Unternehmen: true
+                        Benutzer:Wartungsstube/Schifffahrt: true
                         Benutzer:Verum/ege: true
+                        Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z: true
+                        Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel: true
+                      es.wikipedia.org:
+                        Wikipedia:Café/Archivo/Miscelánea/Actual: true
                       fr.wikipedia.org:
                         Utilisateur:ZéroBot/Log/Erreurs: true
                         Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité: true
                         Discussion_utilisateur:NaggoBot/CommonsDR: true
+                        Projet:France/Annonces/Admissibilité: true
                       it.wikipedia.org:
                         Utente:Effems/Sandbox7: true
+                      nl.wikipedia.org:
+                        Gebruiker:Eg-T2g/Kladblok: true
+                      pt.wikipedia.org:
+                        Wikipédia:Pedidos/Bloqueio: true
+                      ru.wikipedia.org:
+                        Википедия:Форум/Технический: true
                       sv.wikipedia.org:
                         Användare:Lsjbot/Anomalier-PRIVAT: true
                         Användare:Lsjbot/Namnkonflikter-PRIVAT: true
@@ -149,6 +165,8 @@ paths:
                         نام_مقامات_ایچ: true
                         نام_مقامات_ایم: true
                         نام_مقامات_ایس: true
+                      zh.wikipedia.org:
+                        Wikipedia:互助客栈/条目探讨: true
                       www.wikidata.org:
                         Q21558717: true
                         Q21505108: true
