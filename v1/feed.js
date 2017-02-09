@@ -4,29 +4,52 @@
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
+const Template = HyperSwitch.Template;
 const mwUtil = require('../lib/mwUtil');
 const BaseFeed = require('../lib/base_feed');
 
 const PARTS_URIS = {
     tfa: {
-        uri: ['v1', 'page', 'featured'],
-        date: true,
+        reqTemplate: new Template({
+            uri: '{{options.host}}/{{domain}}/v1/page/featured/{{yyyy}}/{{mm}}/{{dd}}',
+            query: {
+                aggregated: true
+            }
+        }),
         renewable: true
     },
     mostread: {
-        uri: ['v1', 'page', 'most-read'],
-        date: true,
+        reqTemplate: new Template({
+            uri: '{{options.host}}/{{domain}}/v1/page/most-read/{{yyyy}}/{{mm}}/{{dd}}',
+            query: {
+                aggregated: true
+            }
+        }),
         renewable: true
     },
     image: {
-        uri: ['v1', 'media', 'image', 'featured'],
-        date: true,
+        reqTemplate: new Template({
+            uri: '{{options.host}}/{{domain}}/v1/media/image/featured/{{yyyy}}/{{mm}}/{{dd}}',
+            query: {
+                aggregated: true
+            }
+        }),
         renewable: true
     },
     news: {
-        uri: ['v1', 'page', 'news'],
-        date: false,
+        reqTemplate: new Template({
+            uri: '{{options.host}}/{{domain}}/v1/page/news',
+            query: {
+                aggregated: true
+            }
+        }),
         renewable: false
+    },
+    anniversaries: {
+        reqTemplate: new Template({
+            uri: '{{options.host}}/{{domain}}/v1/onthisday/selected/{{mm}}/{{dd}}'
+        }),
+        renewable: true
     }
 };
 
@@ -72,25 +95,40 @@ class Feed extends BaseFeed {
         }
     }
 
-    _makeFeedRequests(hyper, req, dateArr, isHistoric) {
+    _makeFeedRequests(hyper, req, isHistoric) {
         const props = {};
-        const rp = req.params;
         let parts = Object.keys(PARTS_URIS);
         if (isHistoric) {
             parts = parts.filter((part) => PARTS_URIS[part].renewable);
         }
         parts.forEach((part) => {
-            const def = PARTS_URIS[part];
-            const uriArray = [this.options.host, rp.domain].concat(def.uri);
-            if (def.date) {
-                Array.prototype.push.apply(uriArray, dateArr);
-            }
-            props[part] = hyper.get({
-                uri: uriArray.join('/'),
-                query: { aggregated: true }
-            });
+            props[part] = hyper.get(PARTS_URIS[part].reqTemplate.expand({
+                options: this.options,
+                request: req
+            }))
+            // Don't fail all if one of the parts failed.
+            .catchReturn({});
         });
         return P.props(props);
+    }
+
+    getDateAndKey(req) {
+        mwUtil.verifyDateParams(req);
+        const date = mwUtil.getDateSafe(req.params);
+        return {
+            date,
+            key: date.toISOString().split('T').shift()
+        };
+    }
+
+    constructBody(result) {
+        const body = {};
+        Object.keys(result).forEach((key) => {
+            if (result[key].body && Object.keys(result[key].body).length) {
+                body[key] = result[key].body;
+            }
+        });
+        return body;
     }
 }
 
@@ -102,6 +140,7 @@ module.exports = (options) => {
     options.content_type = 'application/json; charset=utf-8; ' +
         'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"';
     options.spec = spec;
+    options.storeHistory = true;
 
     return new Feed(options).getModuleDeclaration();
 };

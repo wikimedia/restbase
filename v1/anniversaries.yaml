@@ -1,0 +1,189 @@
+# Feed endpoints powered by the MCS
+
+tags:
+  - name: Feed
+    description: aggregated daily featured content
+paths:
+  /anniversaries/{type}/{mm}/{dd}:
+    get:
+      tags:
+        - Feed
+      summary: Anniversaries on this day
+      description: |
+        Provides all anniversaries on the particular day. Supported types of anniversaries are:
+         - Births: All the birthdays happened on the provided of the year
+         - Deaths: All the deaths happened on the provided day of the year
+         - Events: All the importand events happened on the provided day of the year
+         - Holidays: All the holidays celebrated on the provided day of the year
+         - Selected: Featured, most important anniversaries
+         - All: Everything that happened on the provided day of the year
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: 'Type of the anniversaries'
+          type: string
+          required: true
+          enum:
+            - births
+            - deaths
+            - events
+            - holidays
+            - selected
+            - all
+        - name: mm
+          in: path
+          description: 'Month anniversaries are requested for, 0-padded'
+          type: string
+          required: true
+        - name: dd
+          in: path
+          description: 'Day of the month anniversaries are requested for, 0-padded'
+          type: string
+          required: true
+      responses:
+        '200':
+          description: JSON containing all of the featured content
+          schema:
+            $ref: '#/definitions/anniversariesResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      operationId: aggregatedFeed
+      x-monitor: true
+      x-amples:
+        - title: Retrieve selected the anniversaries for Jan 01
+          request:
+            params:
+              domain: en.wikipedia.org
+              type: 'selected'
+              mm: '01'
+              dd: '01'
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              selected:
+                - text: /.+/
+                  pages:
+                    - title: /.+/
+                      extract: /.+/
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  originalimage:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Original image URI
+      width:
+        type: integer
+        description: Original image width
+      height:
+        type: integer
+        description: Original image height
+    required: ['source', 'width', 'height']
+
+  thumbnail:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Thumbnail image URI
+      width:
+        type: integer
+        description: Thumbnail width
+      height:
+        type: integer
+        description: Thumnail height
+    required: ['source', 'width', 'height']
+
+  article_summary:
+    type: object
+    properties:
+      title:
+        type: string
+        description: Article title in a form of DB key
+      normalizedtitle:
+        type: string
+        description: Article title as it should be presented to the user
+      thumbnail:
+        description: Thumbnail for the lead image for the article
+        $ref: '#/definitions/thumbnail'
+      originalimage:
+        description: The original of the lead image for the article
+        $ref: '#/definitions/originalimage'
+      description:
+        type: string
+        description: Wikidata description of the article
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+      coordinates:
+        type: object
+        description: The coordinates of the item
+        properties:
+          lat:
+            type: number
+            description: The latitude
+          lon:
+            type: number
+            description: The longitude
+        requiredProperties: [ 'lat', 'lon' ]
+    required:
+      - title
+      - normalizedtitle
+
+  anniversaries:
+    type: array
+    items:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Short description of the event
+        pages:
+          type: array
+          description: List of pages related to the event
+          items:
+            type: object
+            $ref: '#/definitions/article_summary'
+
+  anniversariesResponse:
+    type: object
+    description: All the anniversaries on the day of the year
+    properties:
+      births:
+        description: Data about the births on the day
+        $ref: '#/definitions/anniversaries'
+      deaths:
+        description: Data about the deaths on the day
+        $ref: '#/definitions/anniversaries'
+      events:
+        description: Data about the events on the day
+        $ref: '#/definitions/anniversaries'
+      holidays:
+        description: Data about the holidays on the day
+        $ref: '#/definitions/anniversaries'
+      selected:
+        description: Data about the selected anniversaries on the day
+        $ref: '#/definitions/anniversaries'
+    additionalProperties: false

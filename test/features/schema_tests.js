@@ -78,6 +78,17 @@ parallel('Responses should conform to the provided JSON schema of the response',
         });
     });
 
+    it('/feed/anniversaries should conform schema', function() {
+        return preq.get({ uri: server.config.baseURL + '/feed/anniversaries/all/01/01' })
+        .then(function(res) {
+            if (!ajv.validate('#/definitions/anniversariesResponse', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
+
 
     it('/page/related should conform schema', function() {
         return preq.get({ uri: server.config.bucketURL + '/related/Tank' })

@@ -186,6 +186,20 @@ definitions:
       - thumbnail
       - image
 
+  anniversaries:
+    type: array
+    items:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Short description of the event
+        pages:
+          type: array
+          description: List of pages related to the event
+          items:
+            $ref: '#/definitions/article_summary'
+
   feed:
     type: object
     description: Aggregated feed content for a given date
@@ -202,4 +216,7 @@ definitions:
       image:
         description: Featured image for a given date
         $ref: '#/definitions/image'
+      anniversaries:
+        description: List of featured anniversaries that happend on this day
+        $ref: '#/definitions/anniversaries'
     additionalProperties: false
