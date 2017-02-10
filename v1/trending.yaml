@@ -24,48 +24,6 @@ paths:
       x-monitor: false # Can't monitor since we can't be sure something will be trending all the time
 
 definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
-
-  originalimage:
-    type: object
-    properties:
-      source:
-        type: string
-        description: Original image URI
-      width:
-        type: integer
-        description: Original image width
-      height:
-        type: integer
-        description: Original image height
-    required: ['source', 'width', 'height']
-
-  thumbnail:
-    type: object
-    properties:
-      source:
-        type: string
-        description: Thumbnail image URI
-      width:
-        type: integer
-        description: Thumbnail width
-      height:
-        type: integer
-        description: Thumnail height
-    required: ['source', 'width', 'height']
-
   trendingPage:
     type: object
     properties:

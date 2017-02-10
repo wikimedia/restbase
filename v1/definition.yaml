@@ -155,20 +155,6 @@ paths:
               content-type: /^application\/json$/
 
 definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
-
   definition:
     type: object
     description: Describes a single definition of a term

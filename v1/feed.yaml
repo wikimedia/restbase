@@ -88,85 +88,6 @@ paths:
                   height: /.+/
 
 definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
-
-  originalimage:
-    type: object
-    properties:
-      source:
-        type: string
-        description: Original image URI
-      width:
-        type: integer
-        description: Original image width
-      height:
-        type: integer
-        description: Original image height
-    required: ['source', 'width', 'height']
-
-  thumbnail:
-    type: object
-    properties:
-      source:
-        type: string
-        description: Thumbnail image URI
-      width:
-        type: integer
-        description: Thumbnail width
-      height:
-        type: integer
-        description: Thumnail height
-    required: ['source', 'width', 'height']
-
-  article_summary:
-    type: object
-    properties:
-      title:
-        type: string
-        description: Article title in a form of DB key
-      normalizedtitle:
-        type: string
-        description: Article title as it should be presented to the user
-      thumbnail:
-        description: Thumbnail for the lead image for the article
-        $ref: '#/definitions/thumbnail'
-      originalimage:
-        description: The original of the lead image for the article
-        $ref: '#/definitions/originalimage'
-      description:
-        type: string
-        description: Wikidata description of the article
-      extract:
-        type: string
-        description: First several sentences of an article in plain text
-      coordinates:
-        type: object
-        description: The coordinates of the item
-        properties:
-          lat:
-            type: number
-            description: The latitude
-          lon:
-            type: number
-            description: The longitude
-        requiredProperties: [ 'lat', 'lon' ]
-    required:
-      - title
-      - normalizedtitle
-
-
   mostread_article:
     type: object
     properties:
@@ -223,7 +144,7 @@ definitions:
         type: array
         description: A collection of articles related to the news item
         items:
-          $ref: '#/definitions/article_summary'
+          $ref: '#/definitions/summary'
     required:
       - story
       - links
@@ -271,7 +192,7 @@ definitions:
     properties:
       tfa:
         description: Data about the featured article of the day
-        $ref: '#/definitions/article_summary'
+        $ref: '#/definitions/summary'
       mostread:
         description: Data about most viewed articles
         $ref: '#/definitions/mostread'

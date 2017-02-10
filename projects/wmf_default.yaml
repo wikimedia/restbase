@@ -56,6 +56,7 @@ paths:
                                 options.mobileapps)}}'
                 - path: v1/pdf.yaml
                   options: '{{options.pdf}}'
+                - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
             /feed:
               x-modules:
                 - path: v1/feed.js
