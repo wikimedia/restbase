@@ -43,6 +43,7 @@ paths:
               x-modules:
                 - path: v1/mathoid.yaml
                   options: '{{options.mathoid}}'
+                - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
             /metrics:
               x-modules:
                 - path: v1/metrics.yaml

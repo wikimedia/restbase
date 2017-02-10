@@ -883,20 +883,6 @@ paths:
       x-monitor: false
 
 definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
-
   revisions:
     description: The result format for revision listing
     required:

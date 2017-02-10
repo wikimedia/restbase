@@ -1,0 +1,92 @@
+# This is a special spec that's supposed to hold all the common schemas used in other specs.
+# It doesn't export any paths, but the HyperSwitch spec loading process will merge
+# schemas into the final spec, so other files can reference them.
+
+definitions:
+  # A https://tools.ietf.org/html/draft-nottingham-http-problem
+  problem:
+    required:
+      - type
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      instance:
+        type: string
+
+  originalimage:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Original image URI
+      width:
+        type: integer
+        description: Original image width
+      height:
+        type: integer
+        description: Original image height
+    required: ['source', 'width', 'height']
+
+  thumbnail:
+    type: object
+    properties:
+      source:
+        type: string
+        description: Thumbnail image URI
+      width:
+        type: integer
+        description: Thumbnail width
+      height:
+        type: integer
+        description: Thumnail height
+    required: ['source', 'width', 'height']
+
+  summary:
+    type: object
+    properties:
+      title:
+        type: string
+        description: The page title
+      #timestamp:
+      #  type: string
+      #  format: date-time
+      #  description: The ISO timestamp of a page revision
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+      thumbnail:
+        $ref: '#/definitions/thumbnail'
+      originalimage:
+        $ref: '#/definitions/originalimage'
+      lang:
+        type: string
+        description: The page language code
+        example: en
+      dir:
+        type: string
+        description: The page language direction code
+        example: ltr
+      timestamp:
+        type: string
+        description: The time when the page was last editted in the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format
+        example: '1970-01-01T00:00:00.000Z'
+      description:
+        type: string
+        description: Wikidata description for the page
+        example: American poet
+      coordinates:
+        type: object
+        description: The coordinates of the item
+        properties:
+          lat:
+            type: number
+            description: The latitude
+          lon:
+            type: number
+            description: The longitude
+        requiredProperties: [ 'lat', 'lon' ]
+    required: ['title', 'extract', 'lang', 'dir']
