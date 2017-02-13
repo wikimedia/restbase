@@ -45,7 +45,7 @@ const PARTS_URIS = {
         }),
         renewable: false
     },
-    anniversaries: {
+    onthisday: {
         reqTemplate: new Template({
             uri: '{{options.host}}/{{domain}}/v1/onthisday/selected/{{mm}}/{{dd}}'
         }),

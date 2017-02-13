@@ -40,10 +40,10 @@ class Feed extends BaseFeed {
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/onthisday.yaml`);
 
 module.exports = (options) => {
-    options.name = 'feed.anniversaries';
+    options.name = 'feed.onthisday';
     // TODO: need a way to dynamically derive this
     options.content_type = 'application/json; charset=utf-8; ' +
-        'profile="https://www.mediawiki.org/wiki/Specs/anniversaries-feed/0.5.0"';
+        'profile="https://www.mediawiki.org/wiki/Specs/onthisday-feed/0.5.0"';
     options.spec = spec;
     options.storeHistory = false;
 
