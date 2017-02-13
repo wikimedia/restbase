@@ -15,6 +15,7 @@ paths:
          - Holidays: All the holidays celebrated on the provided day of the year
          - Selected: Featured, most important events
          - All: Everything that happened on the provided day of the year
+
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
