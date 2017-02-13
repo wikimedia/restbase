@@ -198,7 +198,7 @@ definitions:
           type: array
           description: List of pages related to the event
           items:
-            $ref: '#/definitions/article_summary'
+            $ref: '#/definitions/summary'
 
   feed:
     type: object

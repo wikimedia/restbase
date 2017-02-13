@@ -5,7 +5,7 @@ const Template = HyperSwitch.Template;
 const BaseFeed = require('../lib/base_feed');
 
 const REQUEST_TEMPLATE = new Template({
-    uri: '{{options.host}}/{{domain}}/v1/onthisday/all/{{mm}}/{{dd}}'
+    uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/all/{{mm}}/{{dd}}'
 });
 
 class Feed extends BaseFeed {
@@ -37,7 +37,7 @@ class Feed extends BaseFeed {
     }
 }
 
-const spec = HyperSwitch.utils.loadSpec(`${__dirname}/anniversaries.yaml`);
+const spec = HyperSwitch.utils.loadSpec(`${__dirname}/onthisday.yaml`);
 
 module.exports = (options) => {
     options.name = 'feed.anniversaries';

@@ -1,0 +1,108 @@
+# On this day endpoints powered by the MCS
+
+paths:
+  /onthisday/{type}/{mm}/{dd}:
+    get:
+      tags:
+        - Feed
+      summary: Events on this day
+      description: |
+        Provides all events that historically happenec on the particular day.
+        Supported types of events are:
+         - Births: All the birthdays happened on the provided of the year
+         - Deaths: All the deaths happened on the provided day of the year
+         - Events: All the importand events happened on the provided day of the year
+         - Holidays: All the holidays celebrated on the provided day of the year
+         - Selected: Featured, most important events
+         - All: Everything that happened on the provided day of the year
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: 'Type of the event'
+          type: string
+          required: true
+          enum:
+            - births
+            - deaths
+            - events
+            - holidays
+            - selected
+            - all
+        - name: mm
+          in: path
+          description: 'Month events are requested for, 0-padded'
+          type: string
+          required: true
+        - name: dd
+          in: path
+          description: 'Day of the month events are requested for, 0-padded'
+          type: string
+          required: true
+      responses:
+        '200':
+          description: JSON containing all of the featured content
+          schema:
+            $ref: '#/definitions/onthisdayResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      operationId: aggregatedFeed
+      x-monitor: true
+      x-amples:
+        - title: Retrieve selected the events for Jan 01
+          request:
+            params:
+              domain: en.wikipedia.org
+              type: 'selected'
+              mm: '01'
+              dd: '01'
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              selected:
+                - text: /.+/
+                  pages:
+                    - title: /.+/
+                      extract: /.+/
+
+definitions:
+  onthisday:
+    type: array
+    items:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Short description of the event
+        pages:
+          type: array
+          description: List of pages related to the event
+          items:
+            $ref: '#/definitions/summary'
+
+  onthisdayResponse:
+    type: object
+    description: All the ovents that happened on the day of the year
+    properties:
+      births:
+        description: Data about the births on the day
+        $ref: '#/definitions/onthisday'
+      deaths:
+        description: Data about the deaths on the day
+        $ref: '#/definitions/onthisday'
+      events:
+        description: Data about the events on the day
+        $ref: '#/definitions/onthisday'
+      holidays:
+        description: Data about the holidays on the day
+        $ref: '#/definitions/onthisday'
+      selected:
+        description: Data about the selected events on the day
+        $ref: '#/definitions/onthisday'
+    additionalProperties: false
