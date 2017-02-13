@@ -186,7 +186,7 @@ definitions:
       - thumbnail
       - image
 
-  anniversaries:
+  onthisday:
     type: array
     items:
       type: object
@@ -216,7 +216,7 @@ definitions:
       image:
         description: Featured image for a given date
         $ref: '#/definitions/image'
-      anniversaries:
-        description: List of featured anniversaries that happend on this day
-        $ref: '#/definitions/anniversaries'
+      onthisday:
+        description: List of featured events that happend on this day
+        $ref: '#/definitions/onthisday'
     additionalProperties: false
