@@ -30,7 +30,7 @@ paths:
           - `bibtex`: format used in conjunction with LaTeX documents.
             See [bibtex.org](http://www.bibtex.org/).
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8;
         - application/x-bibtex; charset=utf-8

@@ -30,7 +30,7 @@ paths:
         syntactic variations in wikitext, which ensures that diffs are
         readable.
 
-        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 5 req/s
       consumes:
         - multipart/form-data
@@ -119,7 +119,7 @@ paths:
         Transform wikitext to HTML. Note that if you set `stash: true`, you
         also need to supply the title.
 
-        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 5 req/s
       consumes:
         - multipart/form-data

@@ -8,7 +8,7 @@ paths:
       description: |
         Gets announcements for display in the official Wikipedia iOS and Android apps.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
         - application/problem+json

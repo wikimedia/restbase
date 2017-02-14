@@ -29,7 +29,7 @@ paths:
         page](https://www.mediawiki.org/wiki/Wikimedia_Apps/Wiktionary_definition_popups_in_the_Android_Wikipedia_Beta_app)
         for background and considerations for further development.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json
       parameters:
