@@ -27,7 +27,7 @@ paths:
         sentences, as well as information about a thumbnail that represents
         the page.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.1.0"
       parameters:

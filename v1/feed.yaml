@@ -14,7 +14,7 @@ paths:
         the featured article of the day, most read articles for the previous day, news
         content and the featured image and video of the day.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
       parameters:
