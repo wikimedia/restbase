@@ -1,4 +1,4 @@
-# On this day endpoints powered by the MCS
+# On this day endpoints powered by MCS
 
 paths:
   /onthisday/{type}/{mm}/{dd}:
@@ -7,14 +7,14 @@ paths:
         - Feed
       summary: Events on this day
       description: |
-        Provides all events that historically happenec on the particular day.
+        Provides events that historically happened on the provided day and month.
         Supported types of events are:
-         - Births: All the birthdays happened on the provided of the year
-         - Deaths: All the deaths happened on the provided day of the year
-         - Events: All the importand events happened on the provided day of the year
-         - Holidays: All the holidays celebrated on the provided day of the year
-         - Selected: Featured, most important events
-         - All: Everything that happened on the provided day of the year
+         - All: all of the following
+         - Selected: a list of a few selected anniversaries which happen on the provided day and month; often the entries are curated for the current year
+         - Births: a list of birthdays which happened on the provided day and month
+         - Deaths: a list of deaths which happened on the provided day and month
+         - Holidays: a list of fixed holidays celebrated on the provided day and month
+         - Events: a list of significant events which happened on the provided day and month and which are not covered by the other types yet
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -22,16 +22,16 @@ paths:
       parameters:
         - name: type
           in: path
-          description: 'Type of the event'
+          description: 'Type of events'
           type: string
           required: true
           enum:
+            - all
+            - selected
             - births
             - deaths
             - events
             - holidays
-            - selected
-            - all
         - name: mm
           in: path
           description: 'Month events are requested for, 0-padded'
@@ -47,6 +47,14 @@ paths:
           description: JSON containing all of the featured content
           schema:
             $ref: '#/definitions/onthisdayResponse'
+        '404':
+          description: No data found for the requested date
+          schema:
+            $ref: '#/definitions/problem'
+        '501':
+          description: Unsupported language
+          schema:
+            $ref: '#/definitions/problem'
         default:
           description: Error
           schema:
