@@ -97,21 +97,21 @@ definitions:
 
   onthisdayResponse:
     type: object
-    description: All the ovents that happened on the day of the year
+    description: All events which happened on this given day of the year
     properties:
       births:
-        description: Data about the births on the day
+        description: Data about births on this day
         $ref: '#/definitions/onthisday'
       deaths:
-        description: Data about the deaths on the day
+        description: Data about deaths on this day
         $ref: '#/definitions/onthisday'
       events:
-        description: Data about the events on the day
+        description: Data about events on this day
         $ref: '#/definitions/onthisday'
       holidays:
-        description: Data about the holidays on the day
+        description: Data about holidays on this day
         $ref: '#/definitions/onthisday'
       selected:
-        description: Data about the selected events on the day
+        description: Data about the selected anniversaries on this day
         $ref: '#/definitions/onthisday'
     additionalProperties: false
