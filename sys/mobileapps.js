@@ -18,21 +18,15 @@ class MobileApps {
         }
 
         const rp = req.params;
-        let fetchPaths;
+        const fetchPaths = {
+            lead: [rp.domain, 'sys', 'key_rev_value',
+                'mobile-sections-lead', rp.title],
+            remaining: [rp.domain, 'sys', 'key_rev_value',
+                'mobile-sections-remaining', rp.title]
+        };
         if (rp.revision) {
-            fetchPaths = {
-                lead: [rp.domain, 'sys', 'key_rev_value',
-                    'mobile-sections-lead', rp.title, `${rp.revision}`],
-                remaining: [rp.domain, 'sys', 'key_rev_value',
-                    'mobile-sections-remaining', rp.title, `${rp.revision}`]
-            };
-        } else {
-            fetchPaths = {
-                lead: [rp.domain, 'sys', 'key_value',
-                    'mobileapps.lead', rp.title],
-                remaining: [rp.domain, 'sys', 'key_value',
-                    'mobileapps.remaining', rp.title]
-            };
+            fetchPaths.lead.push(rp.revision);
+            fetchPaths.remaining.push(rp.revision);
         }
         return P.join(
             hyper.get({
@@ -67,13 +61,10 @@ class MobileApps {
             return fetchAndReturnPart();
         }
 
-        let fetchPath;
+        const fetchPath = [rp.domain, 'sys', 'key_rev_value',
+            `mobile-sections-${part}`, rp.title];
         if (rp.revision) {
-            fetchPath = [rp.domain, 'sys', 'key_rev_value',
-                `mobile-sections-${part}`, rp.title, `${rp.revision}`];
-        } else {
-            fetchPath = [rp.domain, 'sys', 'key_value',
-                `mobileapps.${part}`, rp.title];
+            fetchPath.push(rp.revision);
         }
 
         return hyper.get({
@@ -131,8 +122,8 @@ class MobileApps {
             // to issue a purge for the latest revision nor store it in the
             // key_rev bucket, so check if it's indeed the latest
             requests.latestRev = hyper.get({
-                // TODO: replace this with the key_rev_value when removing old buckets
-                uri: new URI([rp.domain, 'sys', 'key_value', 'mobileapps.lead', rp.title])
+                uri: new URI([rp.domain, 'sys', 'key_rev_value',
+                    'mobile-sections-lead', rp.title])
             })
             .then((res) => res.body.revision)
             .catch({ status: 404 }, () => {
@@ -151,18 +142,6 @@ class MobileApps {
             let storeRequests = P.resolve();
             if (shouldStoreNewRev(res.latestRev)) {
                 storeRequests = P.join(
-                    hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'key_value',
-                            'mobileapps.lead', rp.title]),
-                        headers: newContent.headers,
-                        body: newContent.body.lead
-                    }),
-                    hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'key_value',
-                            'mobileapps.remaining', rp.title]),
-                        headers: newContent.headers,
-                        body: newContent.body.remaining
-                    }),
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_rev_value',
                             'mobile-sections-lead', rp.title,
@@ -197,34 +176,6 @@ module.exports = (options) => {
             getSectionsRemaining: mobileApps.getPart.bind(mobileApps, 'remaining')
         },
         resources: [
-            {
-                uri: '/{domain}/sys/key_value/mobileapps.lead',
-                body: {
-                    revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 1,
-                        grace_ttl: 86400
-                    },
-                    valueType: 'json',
-                    updates: {
-                        pattern: 'timeseries'
-                    }
-                }
-            },
-            {
-                uri: '/{domain}/sys/key_value/mobileapps.remaining',
-                body: {
-                    revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 1,
-                        grace_ttl: 86400
-                    },
-                    valueType: 'json',
-                    updates: {
-                        pattern: 'timeseries'
-                    }
-                }
-            },
             {
                 uri: '/{domain}/sys/key_rev_value/mobile-sections-lead',
                 body: {
