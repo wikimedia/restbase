@@ -47,7 +47,7 @@ const PARTS_URIS = {
     },
     onthisday: {
         reqTemplate: new Template({
-            uri: '{{options.host}}/{{domain}}/v1/onthisday/selected/{{mm}}/{{dd}}'
+            uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/selected/{{mm}}/{{dd}}'
         }),
         renewable: true
     }
