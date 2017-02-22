@@ -125,7 +125,12 @@ class Feed extends BaseFeed {
         const body = {};
         Object.keys(result).forEach((key) => {
             if (result[key].body && Object.keys(result[key].body).length) {
-                body[key] = result[key].body;
+                // TODO: temp code to support transition to new MCS response format
+                if (key === 'onthisday' && result.onthisday.body.selected) {
+                    body[key] = result.onthisday.body.selected;
+                } else {
+                    body[key] = result[key].body;
+                }
             }
         });
         return body;
