@@ -41,7 +41,7 @@ paths:
         - Page content
       summary: List all pages.
       description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+        Stability: Deprecated. To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -73,7 +73,7 @@ paths:
         - Page content
       summary: Get latest revision metadata for a title.
       description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: Deprecated. To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -166,7 +166,7 @@ paths:
         linear history (across renames) of the page currently using this
         title.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: Deprecated. To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -698,8 +698,7 @@ paths:
         - Page content
       summary: List all page revisions.
       description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental).
-        Don't rely on this.
+        Stability: Deprecated. To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -731,7 +730,7 @@ paths:
         - Page content
       summary: Get metadata about a specific revision.
       description: |
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: Deprecated. To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
