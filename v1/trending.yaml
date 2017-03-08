@@ -12,8 +12,7 @@ paths:
       parameters:
         - name: period
           description: |
-            Optional number in hours to only see pages that became trending in
-            the scpecified period of time. Default: 1 hour.
+            The period, expressed in hours, for which to obtain the list of trending articles. Default: 1 hour
           in: path
           required: false
           type: integer
