@@ -1,6 +1,6 @@
 # Trending-edits endpoints powered by the the trending service
 paths:
-  /trending/edits:
+  /trending/edits{/period}:
     get:
       tags:
         - Feed
@@ -9,6 +9,16 @@ paths:
         Provides a list of articles that are trending right now (receiving the most edits)
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      parameters:
+        - name: period
+          description: |
+            Optional number in hours to only see pages that became trending in
+            the scpecified period of time. Default: 1 hour.
+          in: path
+          required: false
+          type: integer
+          minimum: 1
+          maximum: 24
       produces:
         - application/json
       responses:

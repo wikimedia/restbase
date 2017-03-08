@@ -32,7 +32,7 @@ class TrendingEdits {
     getTrending(hyper, req) {
         const rp = req.params;
         return hyper.get({
-            uri: `${this.options.host}/${rp.domain}/v1/feed/trending-edits/`
+            uri: `${this.options.host}/${rp.domain}/v1/feed/trending-edits/${rp.period || ''}`
         })
         .then((res) => this._assembleResult(res))
         .then((res) => mwUtil.hydrateResponse(res, (uri) =>
