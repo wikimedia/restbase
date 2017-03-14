@@ -117,6 +117,7 @@ paths:
                 prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
                 exsentences: 5
                 explaintext: true
+                exintro: true
                 piprop: 'thumbnail|original'
                 pithumbsize: 320
                 pilicense: 'any'
