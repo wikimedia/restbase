@@ -126,7 +126,8 @@ describe('Key value buckets', function() {
         });
 
         it('throws 404 error if key not found', function() {
-            var testData = randomString(100);
+            var a = 11;
+            var b = 54;
             return preq.get({
                 uri: bucketBaseURI + '/some_not_existing_key'
             })
