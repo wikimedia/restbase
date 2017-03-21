@@ -1,9 +1,12 @@
+dist: trusty
+sudo: required
+
 language: node_js
 node_js:
     - "4"
     - "6"
 
-sudo: false
+jdk: oraclejdk8
 
 notifications:
   irc:
@@ -16,5 +19,14 @@ before_install:
   - wget https://archive.apache.org/dist/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-2.2.6-bin.tar.gz -C ../
   - sh ../apache-cassandra-2.2.6/bin/cassandra > /dev/null
+  
+addons:
+  sonarqube:
+    organization: "inverno-github"
 
 script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
+script: sonar-scanner
+
+cache:
+  directories:
+    - '$HOME/.sonar/cache'
