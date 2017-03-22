@@ -280,7 +280,8 @@ paths:
         Retrieve the *lite* (text-only) version of the latest HTML for a page
         title optimised for viewing with native mobile applications.
 
-        Stability: **Deprecated.** To be removed on May, 1st 2017
+        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
+        To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
