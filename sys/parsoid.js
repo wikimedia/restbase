@@ -159,10 +159,26 @@ function _dependenciesUpdate(hyper, req) {
     });
 }
 
+function compileReRenderBlacklist(blacklist) {
+    const result = {};
+    blacklist = blacklist || {};
+    Object.keys(blacklist).forEach((domain) => {
+        result[domain] = blacklist[domain].map((entry) => {
+            if (/^\/.+\/$/.test(entry)) {
+                return new RegExp(entry.substring(1, entry.length - 1));
+            }
+            return decodeURIComponent(entry);
+        });
+    });
+    return result;
+}
+
 class ParsoidService {
     constructor(options) {
         this.options = options = options || {};
         this.parsoidHost = options.parsoidHost;
+
+        this._blacklist = compileReRenderBlacklist(options.rerenderBlacklist);
 
         // Set up operations
         this.operations = {
@@ -407,11 +423,13 @@ class ParsoidService {
      */
     _okayToRerender(req) {
         if (mwUtil.isNoCacheRequest(req)) {
-            const blackList = this.options.rerenderBlacklist;
-            if (blackList) {
-                return !blackList[req.params.domain]
-                    || !blackList[req.params.domain][req.params.title];
-            }
+            const title = req.params.title;
+            return !this._blacklist[req.params.domain].some((entry) => {
+                if (typeof entry === 'string') {
+                    return entry === title;
+                }
+                return entry.test(title);
+            });
         }
         return true;
     }
