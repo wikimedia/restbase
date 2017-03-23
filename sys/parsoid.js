@@ -422,7 +422,7 @@ class ParsoidService {
      * @return {boolean} Whether re-rendering this title is okay.
      */
     _okayToRerender(req) {
-        if (mwUtil.isNoCacheRequest(req)) {
+        if (mwUtil.isNoCacheRequest(req) && this._blacklist[req.params.domain]) {
             const title = req.params.title;
             return !this._blacklist[req.params.domain].some((entry) => {
                 if (typeof entry === 'string') {
