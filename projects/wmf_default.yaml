@@ -126,11 +126,16 @@ paths:
                         Gumagamit:Lsjbot/Kartrutor2: true
                       commons.wikimedia.org:
                         Commons:Quality_images_candidates/candidate_list: true
+                        Commons:Quality_images/Subject/Places/Natural_structures: true
                         User:Darkweasel94/Vienna/2016_December_14-16: true
                         User:J_budissin/Uploads/BiH/2016_December_11-20: true
                         User:Jarekt/d: true
+                        User:Marcus_Cyron/OgreBotCeramics/2013_May_21-31: true
+                        User:Nicolas_Rück_(WMDE)/Supported_by_Wikimedia_Deutschland_2015/1: true
+                        User:Nicolas_Rück_(WMDE)/Supported_by_Wikimedia_Deutschland_2015/2: true
                         User:OgreBot/Uploads_by_new_users: true
                         User:Oxyman/Buildings_in_London/2014_October_11-20: true
+                        User:Oxyman/London/2014_October_1-10: true
                         User:Stunteltje/gallery: true
                         User:PIERRE_ANDRE_LECLERCQ/gallery: true
                       de.wikipedia.org:
