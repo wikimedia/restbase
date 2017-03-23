@@ -120,70 +120,64 @@ paths:
                     # rarely viewed in any case.
                     rerenderBlacklist:
                       ca.wikipedia.org:
-                        Usuari:TronaBot/log:Activitat_reversors_per_hores: true
+                        - 'Usuari:TronaBot/log:Activitat_reversors_per_hores'
                       ceb.wikipedia.org:
-                        Gumagamit:Lsjbot/Anomalier-PRIVAT: true
-                        Gumagamit:Lsjbot/Kartrutor2: true
+                        - 'Gumagamit:Lsjbot/Anomalier-PRIVAT'
+                        - 'Gumagamit:Lsjbot/Kartrutor2'
                       commons.wikimedia.org:
-                        Commons:Quality_images_candidates/candidate_list: true
-                        Commons:Quality_images/Subject/Places/Natural_structures: true
-                        Commons:WikiProject_Aviation/recent_uploads/2014_February_17: true
-                        User:Darkweasel94/Vienna/2016_December_14-16: true
-                        User:J_budissin/Uploads/BiH/2016_December_11-20: true
-                        User:Jarekt/d: true
-                        User:JJMC89_bot/report/BSicons/changes/2017-03: true
-                        User:Marcus_Cyron/OgreBotCeramics/2013_May_21-31: true
-                        User:Nicolas_Rück_(WMDE)/Supported_by_Wikimedia_Deutschland_2015/1: true
-                        User:Nicolas_Rück_(WMDE)/Supported_by_Wikimedia_Deutschland_2015/2: true
-                        User:OgreBot/Uploads_by_new_users: true
-                        User:Oxyman/Buildings_in_London/2014_October_11-20: true
-                        User:Oxyman/London/2014_October_1-10: true
-                        User:Stunteltje/gallery: true
-                        User:PIERRE_ANDRE_LECLERCQ/gallery: true
+                        - 'Commons:Quality_images_candidates/candidate_list'
+                        - 'Commons:Quality_images/Subject/Places/Natural_structures'
+                        - '/Commons:WikiProject_Aviation\/recent_uploads\//'
+                        - '/^User:Darkweasel94\/Vienna\//'
+                        - '/^User:J_budissin\/Uploads\/BiH\//'
+                        - 'User:Jarekt/d'
+                        - '/^User:JJMC89_bot\/report\/BSicons\/changes\//'
+                        - '/^User:Marcus_Cyron\/OgreBotCeramics\//'
+                        - '/^User:Nicolas_Rück_(WMDE)\/Supported_by_Wikimedia_Deutschland_2015/'
+                        - 'User:OgreBot/Uploads_by_new_users'
+                        - '/^User:Oxyman\/Buildings_in_London\//'
+                        - '/^User:Oxyman\/London\//'
+                        - 'User:Stunteltje/gallery'
+                        - 'User:PIERRE_ANDRE_LECLERCQ/gallery'
                       de.wikipedia.org:
-                        Wikipedia:Café: true
-                        Wikipedia:Defekte_Weblinks/Bot2015-Problem: true
-                        Wikipedia_Diskussion:Hauptseite/Schon_gewusst: true
-                        Benutzer:Wartungsstube/Berlin: true
-                        Benutzer:Wartungsstube/Musik: true
-                        Benutzer:Wartungsstube/Unternehmen: true
-                        Benutzer:Wartungsstube/Schifffahrt: true
-                        Benutzer:Verum/ege: true
-                        Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z: true
-                        Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel: true
+                        - 'Wikipedia:Café'
+                        - 'Wikipedia:Defekte_Weblinks/Bot2015-Problem'
+                        - 'Wikipedia_Diskussion:Hauptseite/Schon_gewusst'
+                        - 'Benutzer:Wartungsstube/Berlin'
+                        - 'Benutzer:Wartungsstube/Musik'
+                        - 'Benutzer:Wartungsstube/Unternehmen'
+                        - 'Benutzer:Wartungsstube/Schifffahrt'
+                        - 'Benutzer:Verum/ege'
+                        - 'Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z'
+                        - 'Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel'
                       es.wikipedia.org:
-                        Wikipedia:Café/Archivo/Miscelánea/Actual: true
+                        - 'Wikipedia:Café/Archivo/Miscelánea/Actual'
                       fr.wikipedia.org:
-                        Utilisateur:ZéroBot/Log/Erreurs: true
-                        Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité: true
-                        Discussion_utilisateur:NaggoBot/CommonsDR: true
-                        Projet:France/Annonces/Admissibilité: true
+                        - 'Utilisateur:ZéroBot/Log/Erreurs'
+                        - 'Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité'
+                        - 'Discussion_utilisateur:NaggoBot/CommonsDR'
+                        - 'Projet:France/Annonces/Admissibilité'
                       it.wikipedia.org:
-                        Utente:Effems/Sandbox7: true
+                        - 'Utente:Effems/Sandbox7'
                       nl.wikipedia.org:
-                        Gebruiker:Eg-T2g/Kladblok: true
+                        - 'Gebruiker:Eg-T2g/Kladblok'
                       pt.wikipedia.org:
-                        Wikipédia:Pedidos/Bloqueio: true
+                        - 'Wikipédia:Pedidos/Bloqueio'
                       ru.wikipedia.org:
-                        Википедия:Форум/Технический: true
+                        - 'Википедия:Форум/Технический'
                       sv.wikipedia.org:
-                        Användare:Lsjbot/Anomalier-PRIVAT: true
-                        Användare:Lsjbot/Namnkonflikter-PRIVAT: true
+                        - 'Användare:Lsjbot/Anomalier-PRIVAT'
+                        - 'Användare:Lsjbot/Namnkonflikter-PRIVAT'
                       ur.wikipedia.org:
-                        نام_مقامات_ایل: true
-                        نام_مقامات_ڈی: true
-                        نام_مقامات_جے: true
-                        نام_مقامات_جی: true
-                        نام_مقامات_ایچ: true
-                        نام_مقامات_ایم: true
-                        نام_مقامات_ایس: true
+                        - 'نام_مقامات_ایل'
+                        - 'نام_مقامات_ڈی'
+                        - 'نام_مقامات_جے'
+                        - 'نام_مقامات_جی'
+                        - 'نام_مقامات_ایچ'
+                        - 'نام_مقامات_ایم'
+                        - 'نام_مقامات_ایس'
                       zh.wikipedia.org:
-                        Wikipedia:互助客栈/条目探讨: true
-                      www.wikidata.org:
-                        Q21558717: true
-                        Q21505108: true
-                        Q21481867: true
-                        Q21521425: true
+                        - 'Wikipedia:互助客栈/条目探讨'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js

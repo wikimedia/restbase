@@ -122,38 +122,34 @@ paths:
                     # rarely viewed in any case.
                     rerenderBlacklist:
                       en.wikipedia.org:
-                        User:B-bot/Event_log: true
-                        User:JamesR/AdminStats: true
-                        User:Kudpung/Dashboard: true
+                        - 'User:B-bot/Event_log'
+                        - 'User:JamesR/AdminStats'
+                        - 'User:Kudpung/Dashboard'
                         # Various dashboards
-                        User:Breawycker/Wikipedia: true
-                        User:Sonia/dashboard: true
-                        User:Ocaasi/dashboard: true
-                        User:Nolelover: true
-                        User:Calmer_Waters: true
-                        User:Technical_13/dashboard: true
-                        Template:Cratstats: true
+                        - 'User:Breawycker/Wikipedia'
+                        - 'User:Sonia/dashboard'
+                        - 'User:Ocaasi/dashboard'
+                        - 'User:Nolelover'
+                        - 'User:Calmer_Waters'
+                        - 'User:Technical_13/dashboard'
+                        - 'Template:Cratstats'
                         # Cyberbot is creating 90% of null edits
-                        User:Cyberbot_I/Status: true
-                        User:Cyberbot_II/Status: true
-                        صارف:Cyberbot_I/Run/Adminstats: true
-                        User:Cyberbot_I/Run/Adminstats: true
-                        Defnyddiwr:Cyberbot_I/Run/Adminstats: true
-                        User:Cyberbot_I/Run/Datefixer: true
-                        User:Cyberbot_I/adminrights-admins.js: true
-                        User:Cyberpower678/RfX_Report: true
-                        User:Cyberpower678/Tally: true
-                        User:Pentjuuu!.!/sandbox: true
-                        User:AllyD/CSDlog: true
-                        User:Peter_I._Vardy/sandbox-13: true
-                        User:I_dream_of_horses/CSD_log: true
-                        User:MJ180MJ180/sandbox: true
-                        Talk:United_States_presidential_election,_2016: true
-                        Wikipedia:Reference_desk/Humanities: true
-                        Wikipedia:WikiProject_Deletion_sorting/People: true
-                        Wikipedia:WikiProject_Deletion_sorting/United_States_of_America: true
-                        Wikipedia:Articles_for_creation/Redirects: true
-                        Wikipedia:Administrators'_noticeboard/Incidents: true
+                        - '/^User:Cyberbot_I\//'
+                        - '/^User:Cyberbot_II\//'
+                        - '/^User:Cyberpower678\//'
+                        - 'صارف:Cyberbot_I/Run/Adminstats'
+                        - 'Defnyddiwr:Cyberbot_I/Run/Adminstats'
+                        - 'User:Pentjuuu!.!/sandbox'
+                        - 'User:AllyD/CSDlog'
+                        - 'User:Peter_I._Vardy/sandbox-13'
+                        - 'User:I_dream_of_horses/CSD_log'
+                        - 'User:MJ180MJ180/sandbox'
+                        - 'Talk:United_States_presidential_election,_2016'
+                        - 'Wikipedia:Reference_desk/Humanities'
+                        - 'Wikipedia:WikiProject_Deletion_sorting/People'
+                        - 'Wikipedia:WikiProject_Deletion_sorting/United_States_of_America'
+                        - 'Wikipedia:Articles_for_creation/Redirects'
+                        - 'Wikipedia:Administrators%27_noticeboard/Incidents'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js
