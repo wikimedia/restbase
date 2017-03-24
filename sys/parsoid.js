@@ -166,8 +166,8 @@ function compileReRenderBlacklist(blacklist) {
      * From a list of regexes and strings, constructs a regex that
      * matches any of list items
      */
-    const constructRegex = (variants) => {
-        let regex = (variants || []).map((regexString) => {
+    const constructRegex = (pages) => {
+        let regex = (pages || []).map((regexString) => {
             regexString = regexString.trim();
             if (/^\/.+\/$/.test(regexString)) {
                 return `(?:${regexString.substring(1, regexString.length - 1)})`;
