@@ -161,14 +161,29 @@ function _dependenciesUpdate(hyper, req) {
 
 function compileReRenderBlacklist(blacklist) {
     const result = {};
+
+    /**
+     * From a list of regexes and strings, constructs a regex that
+     * matches any of list items
+     */
+    const constructRegex = (variants) => {
+        let regex = (variants || []).map((regexString) => {
+            regexString = regexString.trim();
+            if (/^\/.+\/$/.test(regexString)) {
+                return `(:?${regexString.substring(1, regexString.length - 1)})`;
+            }
+            // Instead of comparing strings
+            return `(:?^${decodeURIComponent(regexString)
+                .replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&")})`;
+        }).join('|');
+        regex = regex && regex.length > 0 ? new RegExp(regex) : undefined;
+        return regex;
+    };
+
+
     blacklist = blacklist || {};
     Object.keys(blacklist).forEach((domain) => {
-        result[domain] = blacklist[domain].map((entry) => {
-            if (/^\/.+\/$/.test(entry)) {
-                return new RegExp(entry.substring(1, entry.length - 1));
-            }
-            return decodeURIComponent(entry);
-        });
+        result[domain] = constructRegex(blacklist[domain]);
     });
     return result;
 }
@@ -423,13 +438,7 @@ class ParsoidService {
      */
     _okayToRerender(req) {
         if (mwUtil.isNoCacheRequest(req) && this._blacklist[req.params.domain]) {
-            const title = req.params.title;
-            return !this._blacklist[req.params.domain].some((entry) => {
-                if (typeof entry === 'string') {
-                    return entry === title;
-                }
-                return entry.test(title);
-            });
+            return !this._blacklist[req.params.domain].test(req.params.title);
         }
         return true;
     }
