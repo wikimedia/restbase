@@ -170,10 +170,10 @@ function compileReRenderBlacklist(blacklist) {
         let regex = (variants || []).map((regexString) => {
             regexString = regexString.trim();
             if (/^\/.+\/$/.test(regexString)) {
-                return `(:?${regexString.substring(1, regexString.length - 1)})`;
+                return `(?:${regexString.substring(1, regexString.length - 1)})`;
             }
-            // Instead of comparing strings
-            return `(:?^${decodeURIComponent(regexString)
+            // Compare strings, instead
+            return `(?:^${decodeURIComponent(regexString)
                 .replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&")})`;
         }).join('|');
         regex = regex && regex.length > 0 ? new RegExp(regex) : undefined;
