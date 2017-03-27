@@ -89,7 +89,7 @@ paths:
         '200':
           description: The list of values
           schema:
-            $ref: '#/definitions/article'
+            $ref: '#/definitions/pageview-article'
         default:
           description: Error
           schema:
@@ -159,7 +159,7 @@ paths:
         '200':
           description: The list of values
           schema:
-            $ref: '#/definitions/project'
+            $ref: '#/definitions/pageview-project'
         default:
           description: Error
           schema:
@@ -245,7 +245,7 @@ paths:
         '200':
           description: The list of top articles in the project
           schema:
-            $ref: '#/definitions/tops'
+            $ref: '#/definitions/pageview-tops'
         default:
           description: Error
           schema:
@@ -329,6 +329,92 @@ paths:
                 x-client-ip: '{{x-client-ip}}'
       x-monitor: false
 
+  /legacy/:
+    get:
+      tags:
+        - Legacy metrics
+      summary: List legacy metrics API entry points.
+      description: |
+        This is the root of all legacy data endpoints. For the moment it only contains aggregated pagecounts.
+
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        - Rate limit: 100 req/s
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The queriable sub-items
+          schema:
+            $ref: '#/definitions/listing'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+
+  /legacy/pagecounts/aggregate/{project}/{access-site}/{granularity}/{start}/{end}:
+    get:
+      tags:
+        - Pagecounts data (legacy)
+      description: |
+        Given a project and a date range, returns a timeseries of pagecounts. You can filter by access site (mobile or desktop) and you can choose between monthly, daily and hourly granularity as well.
+
+        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        - Rate limit: 100 req/s
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: The name of any Wikimedia project formatted like {language code}.{project name}, for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped off. For projects like commons without language codes, use commons.wikimedia.
+          type: string
+          required: true
+        - name: access-site
+          in: path
+          description: If you want to filter by access site, use one of desktop-site or mobile-site. If you are interested in pagecounts regardless of access site use all-sites.
+          type: string
+          enum: ['all-sites', 'desktop-site', 'mobile-site']
+          required: true
+        - name: granularity
+          in: path
+          description: The time unit for the response data. As of today, the supported granularities for this endpoint are hourly, daily and monthly.
+          type: string
+          enum: ['hourly', 'daily', 'monthly']
+          required: true
+        - name: start
+          in: path
+          description: The timestamp of the first hour/day/month to include, in YYYYMMDDHH format.
+          type: string
+          required: true
+        - name: end
+          in: path
+          description: The timestamp of the last hour/day/month to include, in YYYYMMDDHH format. In hourly and daily granularities this value is inclusive, in the monthly granularity this value is exclusive.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of values
+          schema:
+            $ref: '#/definitions/pagecounts-project'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/legacy/pagecounts/aggregate/{project}/{access-site}/{granularity}/{start}/{end}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+      x-monitor: false
+
 definitions:
   listing:
     description: The result format for listings
@@ -340,7 +426,7 @@ definitions:
         items:
           type: string
 
-  article:
+  pageview-article:
     properties:
       items:
         type: array
@@ -363,7 +449,7 @@ definitions:
               type: integer
               format: int64
 
-  project:
+  pageview-project:
     properties:
       items:
         type: array
@@ -384,7 +470,7 @@ definitions:
               type: integer
               format: int64
 
-  tops:
+  pageview-tops:
     properties:
       items:
         type: array
@@ -420,6 +506,24 @@ definitions:
               # the daily timestamp will be stored as YYYYMMDD
               type: string
             devices:
+              type: integer
+              format: int64
+
+  pagecounts-project:
+    properties:
+      items:
+        type: array
+        items:
+          properties:
+            project:
+              type : string
+            access-site:
+              type : string
+            granularity:
+              type: string
+            timestamp:
+              type: string
+            count:
               type: integer
               format: int64
 
