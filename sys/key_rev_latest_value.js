@@ -106,7 +106,7 @@ class ArchivalBucket {
         });
 
         return P.join(
-            prepare.then((data) => hyper.put({
+            prepare.then(data => hyper.put({
                 uri: requestURI(rp, this._latestName(rp.bucket)),
                 headers: req.headers,
                 body: data
@@ -117,7 +117,7 @@ class ArchivalBucket {
                 body: req.body
             })
         )
-        .spread((res1) => res1);
+        .spread(res1 => res1);
     }
 
     _latestName(bucket) {

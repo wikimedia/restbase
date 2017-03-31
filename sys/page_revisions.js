@@ -97,7 +97,6 @@ class PRS {
 
     /**
      * Suppression table schema
-     *
      * @type {Object}
      * @const
      */
@@ -123,7 +122,7 @@ class PRS {
     /**
      * Returns the suppression table URI for a given domain
      * @param {string} domain the domain
-     * @returns {URI} suppression table URI
+     * @return {URI} suppression table URI
      */
     restrictionsTableURI(domain) {
         return new URI([domain, 'sys', 'table', restrictionsTableName, '']);
@@ -269,17 +268,17 @@ class PRS {
     fetchAndStoreMWRevision(hyper, req) {
         const rp = req.params;
         return this.fetchMWRevision(hyper, req)
-        .then((revision) => // Check if the same revision is already in storage
-        P.join(hyper.get({
-            uri: this.tableURI(rp.domain),
-            body: {
-                table: tableName,
-                attributes: {
-                    title: revision.title,
-                    rev: revision.rev
+        .then(revision => // Check if the same revision is already in storage
+            P.join(hyper.get({
+                uri: this.tableURI(rp.domain),
+                body: {
+                    table: tableName,
+                    attributes: {
+                        title: revision.title,
+                        rev: revision.rev
+                    }
                 }
-            }
-        }),
+            }),
             // TODO: Before we fill in the restrictions table we need
             // to store the restriction regardless of the revision change
 
@@ -339,7 +338,7 @@ class PRS {
                     table: tableName,
                     attributes: {
                         title: rp.title,
-                        rev: parseInt(rp.revision)
+                        rev: parseInt(rp.revision, 10)
                     },
                     limit: 1
                 }
@@ -348,7 +347,7 @@ class PRS {
         } else if (!rp.revision) {
             if (mwUtil.isNoCacheRequest(req)) {
                 revisionRequest = this.fetchAndStoreMWRevision(hyper, req)
-                .catch({ status: 404 }, (e) => getLatestTitleRevision()
+                .catch({ status: 404 }, e => getLatestTitleRevision()
                 // In case 404 is returned by MW api, the page is deleted
                 // TODO: Handle this directly with more targeted page
                 // deletion/ un-deletion events.
@@ -459,7 +458,7 @@ class PRS {
                 table: tableName,
                 index: 'by_rev',
                 attributes: {
-                    rev: parseInt(rp.revision)
+                    rev: parseInt(rp.revision, 10)
                 },
                 limit: 1
             }
@@ -486,8 +485,7 @@ class PRS {
      *  - sha1hidden or texthidden: raise 403 error
      *  - commenthidden: remove comment field from response
      *  - userhidden: remove user information from response
-     *
-     * @param item Object the revision item
+     * @param {Object} item the revision item
      * @throws HTTPError if access to the revision should be denied
      */
     _checkRevReturn(item) {
@@ -635,14 +633,14 @@ class PRS {
                 // Are there any restrictions set?
                 // FIXME: test for the precise attributes instead, this can easily
                 // break if new keys are added.
-                const restrictions = Object.keys(apiRev).filter((key) => /hidden$/.test(key));
+                const restrictions = Object.keys(apiRev).filter(key => /hidden$/.test(key));
 
                 return {
                     title: normTitle,
-                    page_id: parseInt(dataResp.pageid),
-                    rev: parseInt(apiRev.revid),
+                    page_id: parseInt(dataResp.pageid, 10),
+                    rev: parseInt(apiRev.revid, 10),
                     tid: TimeUuid.now().toString(),
-                    namespace: parseInt(dataResp.ns),
+                    namespace: parseInt(dataResp.ns, 10),
                     user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
                     user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,
                     timestamp: apiRev.timestamp,

@@ -136,7 +136,7 @@ class KVBucket {
             }
         };
         return hyper.get(storeRequest)
-        .then((res) => ({
+        .then(res => ({
             status: 200,
 
             headers: {
@@ -144,7 +144,7 @@ class KVBucket {
             },
 
             body: {
-                items: res.body.items.map((row) => row.tid)
+                items: res.body.items.map(row => row.tid)
             }
         }));
     }

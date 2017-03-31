@@ -57,7 +57,7 @@ class EventService {
                 event.triggered_by = triggeredBy;
                 return event;
             })
-            .filter((event) => !!event);
+            .filter(event => !!event);
 
             if (triggeredBy) {
                 triggeredBy = triggeredBy.replace(/https?:/g, '');

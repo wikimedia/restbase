@@ -57,7 +57,7 @@ class Feed extends BaseFeed {
     // TODO: this is temporary code to increase the size of the TFA thumbnail
     _hydrateResponse(hyper, req, res) {
         const rp = req.params;
-        const fetchSummary = (uri) => mwUtil.fetchSummary(hyper, uri);
+        const fetchSummary = uri => mwUtil.fetchSummary(hyper, uri);
         if (res.body.tfa && res.body.tfa.$merge && res.body.tfa.$merge.length) {
             const summaryURI = res.body.tfa.$merge[0];
             const title = decodeURIComponent(
@@ -99,7 +99,7 @@ class Feed extends BaseFeed {
         const props = {};
         let parts = Object.keys(PARTS_URIS);
         if (isHistoric) {
-            parts = parts.filter((part) => PARTS_URIS[part].renewable);
+            parts = parts.filter(part => PARTS_URIS[part].renewable);
         }
         parts.forEach((part) => {
             props[part] = hyper.get(PARTS_URIS[part].reqTemplate.expand({
