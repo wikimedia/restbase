@@ -34,7 +34,7 @@ class PostDataBucket {
             },
             body: storedData
         })
-        .then((res) => ({
+        .then(res => ({
             status: res.status,
             headers: {
                 'content-type': 'text/plain'

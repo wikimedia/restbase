@@ -127,7 +127,7 @@ class KRVBucket {
                 limit: mwUtil.getLimit(hyper, req)
             }
         })
-        .then((res) => ({
+        .then(res => ({
             status: 200,
 
             headers: {
@@ -135,7 +135,7 @@ class KRVBucket {
             },
 
             body: {
-                items: res.body.items.map((row) => ({
+                items: res.body.items.map(row => ({
                     revision: row.rev,
                     tid: row.tid
                 })),

@@ -135,13 +135,13 @@ class ChunkedBucket {
             }
         }
         return hyper.get(metadataReq)
-        .then((metadataRes) => metadataRes.body.items[0]);
+        .then(metadataRes => metadataRes.body.items[0]);
     }
 
     getRevision(hyper, req) {
         const rp = req.params;
         return this._getMetadata(hyper, req)
-        .then((metadata) => P.all(range(metadata.num_chunks).map((chunkId) => hyper.get({
+        .then(metadata => P.all(range(metadata.num_chunks).map(chunkId => hyper.get({
             uri: new URI([rp.domain, 'sys', 'table', this._chunksTableName(req), '']),
             body: {
                 table: this._chunksTableName(req),
@@ -153,7 +153,7 @@ class ChunkedBucket {
                 limit: 1
             }
         })))
-        .map((res) => res.body.items[0].value)
+        .map(res => res.body.items[0].value)
         .then((sections) => {
             metadata.value = _joinData(sections);
             return {
@@ -179,7 +179,7 @@ class ChunkedBucket {
                 limit: mwUtil.getLimit(hyper, req)
             }
         })
-        .then((res) => ({
+        .then(res => ({
             status: 200,
 
             headers: {
@@ -187,7 +187,7 @@ class ChunkedBucket {
             },
 
             body: {
-                items: res.body.items.map((row) => ({
+                items: res.body.items.map(row => ({
                     revision: row.rev,
                     tid: row.tid
                 })),
@@ -204,7 +204,7 @@ class ChunkedBucket {
                 attributes: Object.assign({}, row, { _ttl: GRACE_TTL })
             }
         })
-        .then(() => P.all(range(row.num_chunks).map((chunkId) => hyper.get({
+        .then(() => P.all(range(row.num_chunks).map(chunkId => hyper.get({
             uri: new URI([req.params.domain, 'sys', 'table',
                 this._chunksTableName(req), '']),
             body: {
@@ -312,8 +312,8 @@ class ChunkedBucket {
         .then((res) => {
             const rows = res && res.body && res.body.items;
             if (rows && rows.length) {
-                const toRemove = rows.filter((row) => !row._ttl);
-                return P.each(toRemove, (row) => this._setRowTTLs(hyper, req, row));
+                const toRemove = rows.filter(row => !row._ttl);
+                return P.each(toRemove, row => this._setRowTTLs(hyper, req, row));
             }
         });
     }

@@ -123,7 +123,7 @@ function buildQueryResponse(apiReq, res) {
         // Rewrite res.body
         // XXX: Rethink!
         const pages = res.body.query.pages;
-        const newBody = Object.keys(pages).map((key) => pages[key]);
+        const newBody = Object.keys(pages).map(key => pages[key]);
 
         // XXX: Clean this up!
         res.body = {
@@ -155,7 +155,7 @@ function buildEditResponse(apiReq, res) {
 }
 
 function findSharedRepoDomain(siteInfoRes) {
-    const sharedRepo = (siteInfoRes.body.query.repos || []).find((repo) => repo.name === 'shared');
+    const sharedRepo = (siteInfoRes.body.query.repos || []).find(repo => repo.name === 'shared');
     if (sharedRepo) {
         const domainMatch = /^((:?https?:)?\/\/[^/]+)/.exec(sharedRepo.descBaseUrl);
         if (domainMatch) {

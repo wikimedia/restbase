@@ -134,7 +134,7 @@ class PageSave {
         }
         path.push(revision);
         return hyper.get({ uri: new URI(path) })
-        .then((res) => res.body.items[0])
+        .then(res => res.body.items[0])
         // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit

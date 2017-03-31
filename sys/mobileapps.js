@@ -80,14 +80,14 @@ class MobileApps {
             const prefix = `${siteInfo.baseUri}/page/mobile-sections`.replace(/^https?:/, '');
             const title = encodeURIComponent(rp.title);
             const postfixes = ['', '-lead', '-remaining'];
-            let purgeEvents = postfixes.map((postfix) => ({
+            let purgeEvents = postfixes.map(postfix => ({
                 meta: {
                     uri: `${prefix}${postfix}/${title}/${revision}`
                 }
             }));
 
             if (purgeLatest) {
-                purgeEvents = purgeEvents.concat(postfixes.map((postfix) => ({
+                purgeEvents = purgeEvents.concat(postfixes.map(postfix => ({
                     meta: {
                         uri: `${prefix}${postfix}/${title}`
                     }
@@ -125,7 +125,7 @@ class MobileApps {
                 uri: new URI([rp.domain, 'sys', 'key_rev_value',
                     'mobile-sections-lead', rp.title])
             })
-            .then((res) => res.body.revision)
+            .then(res => res.body.revision)
             .catch({ status: 404 }, () => {
                 // We have no revisions for this title, so it's certainly latest.
                 return -1;
@@ -134,7 +134,7 @@ class MobileApps {
             requests.latestRev = P.resolve(-1);
         }
 
-        const shouldStoreNewRev = (latestRev) => !rp.revision || rp.revision >= latestRev;
+        const shouldStoreNewRev = latestRev => !rp.revision || rp.revision >= latestRev;
 
         return P.props(requests)
         .then((res) => {

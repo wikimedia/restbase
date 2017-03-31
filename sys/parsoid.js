@@ -42,10 +42,9 @@ function cheapBodyInnerHTML(html) {
 
 /**
  * Makes sure we have a meta tag for the tid in our output
- *
- * @param html {string} original HTML content
- * @param tid {string} the tid to insert
- * @returns {string} modified html
+ * @param {string} html original HTML content
+ * @param {string} tid the tid to insert
+ * @return {string} modified html
  */
 function insertTidMeta(html, tid) {
     if (!/<meta property="mw:TimeUuid" [^>]+>/.test(html)) {
@@ -66,10 +65,9 @@ function extractTidMeta(html) {
 /**
  *  Checks whether the content has been modified since the timestamp
  *  in `if-unmodified-since` header of the request
- *
- * @param req {object} the request
- * @param res {object} the response
- * @returns {boolean} true if content has beed modified
+ * @param {Object} req the request
+ * @param {Object} res the response
+ * @return {boolean} true if content has beed modified
  */
 function isModifiedSince(req, res) {
     try {
@@ -93,7 +91,7 @@ function replaceSections(original, sectionsJson) {
     let newBody = originalBody;
 
     const sectionIds = Object.keys(sectionsJson);
-    const illegalId = sectionIds.some((id) => !sectionOffsets[id]);
+    const illegalId = sectionIds.some(id => !sectionOffsets[id]);
     if (illegalId) {
         throw new HTTPError({
             status: 400,
@@ -305,7 +303,7 @@ class ParsoidService {
             const pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
                 rp.title, rp.revision]);
 
-            const parentRev = parseInt(req.headers['x-restbase-parentrevision']);
+            const parentRev = parseInt(req.headers['x-restbase-parentrevision'], 10);
             const updateMode = req.headers['x-restbase-mode'];
             let parsoidReq;
             if (parentRev) {
@@ -381,7 +379,7 @@ class ParsoidService {
 
     getSections(hyper, req) {
         const rp = req.params;
-        const sections = req.query.sections.split(',').map((id) => id.trim());
+        const sections = req.query.sections.split(',').map(id => id.trim());
         delete req.query.sections;
 
         return this.getFormat('html', hyper, req)
@@ -394,7 +392,7 @@ class ParsoidService {
             return hyper.get({
                 uri: this.getBucketURI(sectionsRP, 'section.offsets', sectionsRP.tid)
             })
-            .then((sectionOffsets) => mwUtil.decodeBody(htmlRes).then((content) => {
+            .then(sectionOffsets => mwUtil.decodeBody(htmlRes).then((content) => {
                 const body = cheapBodyInnerHTML(content.body);
                 const chunks = sections.reduce((result, id) => {
                     const offsets = sectionOffsets.body[id];
@@ -432,7 +430,6 @@ class ParsoidService {
      * https://phabricator.wikimedia.org/T120171 and
      * https://phabricator.wikimedia.org/T120972 are resolved / resource
      * consumption for these articles has been reduced to a reasonable level.
-     *
      * @param {Request} req the request being processed
      * @return {boolean} Whether re-rendering this title is okay.
      */
@@ -541,7 +538,7 @@ class ParsoidService {
 
     _getStashedContent(hyper, req, etag) {
         const rp = req.params;
-        const getStash = (format) => hyper.get({
+        const getStash = format => hyper.get({
             uri: this.getBucketURI(rp, `stash.${format}`, etag.tid, true)
         })
         .then(mwUtil.decodeBody);
@@ -658,20 +655,20 @@ class ParsoidService {
         const rp = req.params;
         const tid = uuid.now().toString();
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        return transformPromise.then((original) =>
+        return transformPromise.then(original =>
             // Save the returned data-parsoid for the transform and the wikitext sent by the client
-        P.all([
-            hyper.put({
-                uri: this.getBucketURI(rp, 'stash.data-parsoid', tid, true),
-                headers: original.body['data-parsoid'].headers,
-                body: original.body['data-parsoid'].body
-            }),
-            hyper.put({
-                uri: this.getBucketURI(rp, 'stash.wikitext', tid, true),
-                headers: { 'content-type': wtType },
-                body: req.body.wikitext
-            })
-        ])
+            P.all([
+                hyper.put({
+                    uri: this.getBucketURI(rp, 'stash.data-parsoid', tid, true),
+                    headers: original.body['data-parsoid'].headers,
+                    body: original.body['data-parsoid'].body
+                }),
+                hyper.put({
+                    uri: this.getBucketURI(rp, 'stash.wikitext', tid, true),
+                    headers: { 'content-type': wtType },
+                    body: req.body.wikitext
+                })
+            ])
         // Save HTML last, so that any error in metadata storage suppresses
         // HTML.
         .then(() => hyper.put({
@@ -817,7 +814,7 @@ class ParsoidService {
                 'cache-control': req.headers && req.headers['cache-control']
             }
         })
-        .then((res) => res.body.items[0]);
+        .then(res => res.body.items[0]);
     }
 
     _getOriginalContent(hyper, req, revision, tid) {

@@ -147,7 +147,7 @@ class MathoidService {
             uri: `${this.options.host}/complete`,
             headers: { 'content-type': 'application/json' },
             body: req.body
-        }).then((res) => // now store all of the renders
+        }).then(res => // now store all of the renders
         this._storeRenders(hyper, rp.domain, hash, res.body)).then((res) => {
             // and return a proper response
             const ret = res[rp.format];
@@ -171,7 +171,7 @@ class MathoidService {
 
         return hyper.post({
             uri: new URI(['wikimedia.org', 'sys', 'events', '']),
-            body: routes.map((route) => ({
+            body: routes.map(route => ({
                 meta: { uri: route }
             }))
         }).catch((e) => {
