@@ -138,7 +138,7 @@ paths:
                         - '/^User:JJMC89_bot\/report\/BSicons\/changes\//'
                         - '/^User:Marcus_Cyron\/OgreBotCeramics\//'
                         - '/User:Multichill\//'
-                        - '/^User:Nicolas_Rück_(WMDE)\/Supported_by_Wikimedia_Deutschland_2015/'
+                        - '/^(?:User|Benutzer):Nicolas_Rück_\(WMDE\)\/Supported_by_Wikimedia_Deutschland_2015/'
                         - 'User:OgreBot/Uploads_by_new_users'
                         - '/^User:Oxyman\/Buildings_in_London\//'
                         - '/^User:Oxyman\/London\//'
