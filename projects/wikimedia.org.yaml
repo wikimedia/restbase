@@ -58,6 +58,10 @@ paths:
               x-modules:
                 - path: v1/metrics.yaml
                   options: '{{options.pageviews}}'
+            /transform:
+              x-modules:
+                - path: v1/transform-global.yaml
+                  options: '{{options.transform}}'
         options: '{{options}}'
 
   /{api:sys}:
