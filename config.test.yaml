@@ -42,6 +42,8 @@ default_project: &default_project
           cache_control: s-maxage=600, max-age=600
           uri: https://pdfrender-beta.wmflabs.org
           secret: secret
+        transform:
+          cx_host: http://cxserver-beta.wmflabs.org
         skip_updates: false
 
 # A separate project for en.wikipedia because it is more feature-rich
