@@ -170,7 +170,7 @@ function findSharedRepoDomain(siteInfoRes) {
 class ActionService {
     constructor(options) {
         if (!options) { throw new Error("No options supplied for action module"); }
-        if (!options.apiUriTemplate || !options.baseUriTemplate) {
+        if (!(options.apiUriTemplate || options.baseUriTemplate)) {
             const e = new Error('Missing parameter in action module:\n'
                     + '- baseUriTemplate string parameter, or\n'
                     + '- apiUriTemplate string parameter.');
