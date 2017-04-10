@@ -123,6 +123,7 @@ paths:
                     rerenderBlacklist:
                       en.wikipedia.org:
                         - 'User:B-bot/Event_log'
+                        - 'User:DeltaQuad/UAA/Wait'
                         - 'User:JamesR/AdminStats'
                         - 'User:Kudpung/Dashboard'
                         # Various dashboards
