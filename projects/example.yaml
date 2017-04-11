@@ -23,7 +23,7 @@ paths:
     x-modules:
       - spec:
           info:
-            version: 1.0.0-beta
+            version: 1.0.0
             title: Wikimedia REST API
             description: Welcome to your RESTBase API.
           x-route-filters:

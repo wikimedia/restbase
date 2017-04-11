@@ -23,7 +23,11 @@ paths:
 
                 By using this API, you agree to Wikimedia's 
                 [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
-                [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy).
+                [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy), and
+                you irrevocably agree to release modifications or additions
+                made through this API under the 
+                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
+                License and the [GFDL](https://www.gnu.org/copyleft/fdl.html).
 
             termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
             contact:
