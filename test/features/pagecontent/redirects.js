@@ -274,7 +274,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.body.length, 0);
         });
     });
