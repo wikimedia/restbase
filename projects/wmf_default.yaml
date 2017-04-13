@@ -57,7 +57,7 @@ paths:
                   options: '{{options.graphoid}}'
                 - path: v1/summary.js
                   options:
-                    response_cache_control: '{{options.purged_cache_control}}'
+                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
