@@ -171,6 +171,7 @@ paths:
                         - 'Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité'
                         - 'Discussion_utilisateur:NaggoBot/CommonsDR'
                         - 'Projet:France/Annonces/Admissibilité'
+                        - '/Wikipédia:Le_saviez-vous_.+/Anecdotes_proposées/'
                       it.wikipedia.org:
                         - 'Utente:Effems/Sandbox7'
                       nl.wikipedia.org:
