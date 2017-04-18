@@ -139,7 +139,7 @@ paths:
                         - 'Commons:Quality_images/Subject/Places/Natural_structures'
                         - '/Commons:Undeletion_requests\//'
                         - '/Commons:WikiProject_Aviation\/recent_uploads\//'
-                        - '/^User:/'
+                        - '/^(?:User|Benutzer):/'
 #                        - '/^User:Darafsh\//'
 #                        - '/^User:Darkweasel94\/Vienna\//'
 #                        - '/User:Huckety\//'
