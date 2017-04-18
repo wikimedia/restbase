@@ -128,11 +128,59 @@ paths:
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
                     rerenderBlacklist:
+                      # Wikipedia
                       ca.wikipedia.org:
                         - 'Usuari:TronaBot/log:Activitat_reversors_per_hores'
                       ceb.wikipedia.org:
                         - 'Gumagamit:Lsjbot/Anomalier-PRIVAT'
                         - 'Gumagamit:Lsjbot/Kartrutor2'
+                      de.wikipedia.org:
+                        - 'Wikipedia:Café'
+                        - 'Wikipedia:Defekte_Weblinks/Bot2015-Problem'
+                        - 'Wikipedia_Diskussion:Hauptseite/Schon_gewusst'
+                        - 'Benutzer:Wartungsstube/Berlin'
+                        - 'Benutzer:Wartungsstube/Musik'
+                        - 'Benutzer:Wartungsstube/Unternehmen'
+                        - 'Benutzer:Wartungsstube/Schifffahrt'
+                        - 'Benutzer:Verum/ege'
+                        - 'Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z'
+                        - 'Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel'
+                      es.wikipedia.org:
+                        - 'Wikipedia:Café/Archivo/Miscelánea/Actual'
+                      fr.wikipedia.org:
+                        - 'Utilisateur:ZéroBot/Log/Erreurs'
+                        - 'Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité'
+                        - '/^Utilisateur:[\s\S]+[Bb]rouillon'
+                        - 'Discussion_utilisateur:NaggoBot/CommonsDR'
+                        - 'Projet:France/Annonces/Admissibilité'
+                        - '/Wikipédia:Le_saviez-vous_.+/Anecdotes_proposées/'
+                      hy.wikipedia.org:
+                        - "/Մասնակից:Omicroñ\\'R/"
+                      it.wikipedia.org:
+                        - 'Utente:Effems/Sandbox7'
+                      nl.wikipedia.org:
+                        - 'Gebruiker:Eg-T2g/Kladblok'
+                      pt.wikipedia.org:
+                        - 'Wikipédia:Pedidos/Bloqueio'
+                      ru.wikipedia.org:
+                        - 'Википедия:Форум/Технический'
+                      sv.wikipedia.org:
+                        - 'Användare:Lsjbot/Anomalier-PRIVAT'
+                        - 'Användare:Lsjbot/Namnkonflikter-PRIVAT'
+                      ur.wikipedia.org:
+                        - 'نام_مقامات_ایل'
+                        - 'نام_مقامات_ڈی'
+                        - 'نام_مقامات_جے'
+                        - 'نام_مقامات_جی'
+                        - 'نام_مقامات_ایچ'
+                        - 'نام_مقامات_ایم'
+                        - 'نام_مقامات_ایس'
+                      zh.wikipedia.org:
+                        - 'Wikipedia:互助客栈/条目探讨'
+                      # Wikisource
+                      pl.wikisource.org:
+                        - '/^Wśród_czarnych\//'
+                      # Wikimedia
                       commons.wikimedia.org:
                         - '/Commons:Featured_picture_candidates\//'
                         - 'Commons:Quality_images_candidates/candidate_list'
@@ -155,46 +203,6 @@ paths:
 #                        - '/^User:Oxyman\/London\//'
 #                        - 'User:Stunteltje/gallery'
 #                        - 'User:PIERRE_ANDRE_LECLERCQ/gallery'
-                      de.wikipedia.org:
-                        - 'Wikipedia:Café'
-                        - 'Wikipedia:Defekte_Weblinks/Bot2015-Problem'
-                        - 'Wikipedia_Diskussion:Hauptseite/Schon_gewusst'
-                        - 'Benutzer:Wartungsstube/Berlin'
-                        - 'Benutzer:Wartungsstube/Musik'
-                        - 'Benutzer:Wartungsstube/Unternehmen'
-                        - 'Benutzer:Wartungsstube/Schifffahrt'
-                        - 'Benutzer:Verum/ege'
-                        - 'Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z'
-                        - 'Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel'
-                      es.wikipedia.org:
-                        - 'Wikipedia:Café/Archivo/Miscelánea/Actual'
-                      fr.wikipedia.org:
-                        - 'Utilisateur:ZéroBot/Log/Erreurs'
-                        - 'Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité'
-                        - 'Discussion_utilisateur:NaggoBot/CommonsDR'
-                        - 'Projet:France/Annonces/Admissibilité'
-                        - '/Wikipédia:Le_saviez-vous_.+/Anecdotes_proposées/'
-                      it.wikipedia.org:
-                        - 'Utente:Effems/Sandbox7'
-                      nl.wikipedia.org:
-                        - 'Gebruiker:Eg-T2g/Kladblok'
-                      pt.wikipedia.org:
-                        - 'Wikipédia:Pedidos/Bloqueio'
-                      ru.wikipedia.org:
-                        - 'Википедия:Форум/Технический'
-                      sv.wikipedia.org:
-                        - 'Användare:Lsjbot/Anomalier-PRIVAT'
-                        - 'Användare:Lsjbot/Namnkonflikter-PRIVAT'
-                      ur.wikipedia.org:
-                        - 'نام_مقامات_ایل'
-                        - 'نام_مقامات_ڈی'
-                        - 'نام_مقامات_جے'
-                        - 'نام_مقامات_جی'
-                        - 'نام_مقامات_ایچ'
-                        - 'نام_مقامات_ایم'
-                        - 'نام_مقامات_ایس'
-                      zh.wikipedia.org:
-                        - 'Wikipedia:互助客栈/条目探讨'
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js
