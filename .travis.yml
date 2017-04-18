@@ -17,4 +17,4 @@ before_install:
   - tar -xzf ../apache-cassandra-2.2.6-bin.tar.gz -C ../
   - sh ../apache-cassandra-2.2.6/bin/cassandra > /dev/null
 
-script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
+script: (sh test/utils/run_tests.sh coverage all && npm run-script coveralls || exit 0)
