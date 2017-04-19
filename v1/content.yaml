@@ -211,6 +211,8 @@ paths:
         options:
           allowInlineStyles: true
     get:
+      x-route-filters:
+        - path: lib/ensure_content_type.js
       tags:
         - Page content
       summary: Get latest HTML for a title.
@@ -481,6 +483,8 @@ paths:
         options:
           allowInlineStyles: true
     get:
+      x-route-filters:
+        - path: lib/ensure_content_type.js
       tags:
         - Page content
       summary: Get HTML for a specific title/revision & optionally timeuuid.
@@ -601,6 +605,8 @@ paths:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
     get:
+      x-route-filters:
+        - path: lib/ensure_content_type.js
       tags:
         - Page content
       summary: Get data-parsoid metadata for a specific title/revision/tid.
