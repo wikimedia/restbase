@@ -64,7 +64,7 @@ parallel('400 handling', function() {
             uri: server.config.labsBucketURL + '/title/Main_Page'
         })
         .catch(function (e) {
-            assert.deepEqual(e.status, 400);
+            assert.deepEqual(e.status, 500);
             return preq.get({
                 uri: server.config.labsBucketURL + '/title/Main_Page'
             });
