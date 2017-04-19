@@ -227,6 +227,12 @@ class ActionService {
         }, buildEditResponse);
     }
 
+    /**
+     * Fetch the site info for this project's domain.
+     *
+     * Expects the project domain to be passed in req.params.domain. Fetching
+     * siteinfo for other projects / domains is not supported.
+     */
     siteinfo(hyper, req) {
         const rp = req.params;
         if (!this._siteInfoCache[rp.domain]) {
@@ -263,7 +269,16 @@ class ActionService {
             .catch((e) => {
                 hyper.log('error/site_info', e);
                 delete this._siteInfoCache[rp.domain];
-                throw e;
+                // The project domain is always expected to exist, so consider
+                // any error an internal error.
+                throw new HTTPError({
+                    status: 500,
+                    body: {
+                        type: 'server_error',
+                        title: 'Site info fetch failed.',
+                        detail: e.message
+                    }
+                });
             });
         }
         return this._siteInfoCache[rp.domain];
