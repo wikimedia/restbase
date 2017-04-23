@@ -1,9 +1,12 @@
+dist: trusty
+sudo: required
+
 language: node_js
 node_js:
     - "4"
     - "6"
 
-sudo: false
+jdk: oraclejdk8
 
 notifications:
   irc:
@@ -16,5 +19,15 @@ before_install:
   - wget https://archive.apache.org/dist/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-2.2.6-bin.tar.gz -C ../
   - sh ../apache-cassandra-2.2.6/bin/cassandra > /dev/null
+  
+addons:
+  sonarqube:
+    organization: "inverno-github"
+  github_token:
+    secure: "FRJ+WaAqqGxqTOm5tlVhpTBDm5EXFBB4JW5nlYnThXjCFowrWwOPgp8/RmJEOUat04Ka5SZBAgC+V50lTpatlwoWwgtD75ePKDWRbv4VKDknUqKE8v3icmKSjpfwXxWd6657Brs2XzZt1x42HxX7QQnfZVwEaV9k/YmeNfxOUV9pT79KE8N3cjE9I6WSZaK39Zmo5z6GB4KCejXo8oQLyrK52eU7sNc6bRc+QoDhXcDW5+tlKe1VcbNkRvEv24FsQLthXK0EdvUX8AsFn67guVK1VGMrfiY3qFmzuLINFT5+8b8I/sF4PR/t39/Im7+sif3ZY7Ptn6roxni8F2KypCJ7No8sDJvjOPhia9iPQv3gJleYW96nt6p2Y0nYqES9gXePKoFrWyP2yHwABHn8lu5hRjIzTBFHhymHglcPxkHwYplN3extMfi+Kk3X925BMs/IOhDCJp+xLi2N7fl2U78Y4bLNCJuLvELWMHLpkm/39dIRQoJBs584yTD69zjCoW3agj/Rg0z/Iq/ctzgSR2mISfoaYxRDHYWVTVvfhwZa86bWbOocxQmlwYGrUkV5XqtOUudFRKjUgG8pJE2RVq2NSeGG2PwKaKs++1VT35oSFTSLn9vxg4i9uXM6sPy4TUerz17HX3bisGQJe6TwM/JvbOcZPV6OIRxYB8gJOlA="
 
-script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
+script: ./travis.sh
+
+cache:
+  directories:
+    - '$HOME/.sonar/cache'
