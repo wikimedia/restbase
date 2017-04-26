@@ -88,8 +88,8 @@ wiktionary_project: &wiktionary_project
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   content_types:
-    html: text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.3.0"
-    data-parsoid: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.3.0"
+    html: text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.4.0"
+    data-parsoid: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.4.0"
     wikitext: text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
 
 
