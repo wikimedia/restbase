@@ -137,17 +137,8 @@ describe('Key value buckets', function() {
                 assert.deepEqual(e.status, 404);
             });
         });
-    }
 
-    parallel('key_value', function() { runTests('key_value') });
-    parallel('key_value_purged', function() { runTests('key_value_purged') });
-
-    describe('key_value_purged specific tests', () => {
-        const bucketName = 'key_value_purged';
-        const bucketBaseURI = server.config.baseURL + '/buckets/' + bucketName
-            + '/' + bucketName + 'TestingBucket';
-
-        it('key_value_purged should not overwrite same content', () => {
+        it('key_value should not overwrite same content with ignore_duplicates', () => {
             const testData = randomString(100);
             const tids = [ uuid.now().toString(),
                 uuid.now().toString(),
@@ -156,7 +147,10 @@ describe('Key value buckets', function() {
             return P.each(tids, function(tid) {
                 return preq.put({
                     uri: bucketBaseURI + '/List_Test_1/' + tid,
-                    body: new Buffer(testData)
+                    body: new Buffer(testData),
+                    query: {
+                        ignore_duplicates: true
+                    }
                 })
             })
             .then(function() {
@@ -173,5 +167,7 @@ describe('Key value buckets', function() {
                 assert.deepEqual(res.body.items[0], tids[0]);
             });
         });
-    });
+    }
+
+    parallel('key_value', function() { runTests('key_value') });
 });

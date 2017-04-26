@@ -7,6 +7,7 @@
 const uuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
+const stringify = require('json-stable-stringify');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 
@@ -160,7 +161,7 @@ class KVBucket {
             tid = tid || uuid.now().toString();
         }
 
-        return hyper.put({
+        const doPut = () => hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
@@ -194,6 +195,27 @@ class KVBucket {
             hyper.log('error/kv/putRevision', error);
             return { status: 400 };
         });
+
+        if (req.query.ignore_duplicates) {
+            return hyper.get({
+                uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, rp.key])
+            })
+            .then((oldContent) => {
+                if (stringify(req.body) === stringify(oldContent.body) &&
+                    (!req.headers['content-type']
+                        || req.headers['content-type'] === oldContent.headers['content-type'])) {
+                    hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
+                    return { status: 200 };
+                } else {
+                    throw new HTTPError({
+                        status: 404
+                    });
+                }
+            })
+            .catch({ status: 404 }, doPut);
+        } else {
+            return doPut();
+        }
     }
 }
 module.exports = (options) => {
