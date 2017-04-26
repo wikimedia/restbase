@@ -328,7 +328,9 @@ class ParsoidService {
                 if (format === 'html'
                         && currentContentRes
                         && currentContentRes.status === 200
-                        && sameHtml(res.body.html.body, currentContentRes.body)) {
+                        && sameHtml(res.body.html.body, currentContentRes.body)
+                        && currentContentRes.headers['content-type']
+                                === res.body.html.headers['content-type']) {
                     // New render is the same as the previous one, no need to store it.
                     hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
                     return currentContentRes;
