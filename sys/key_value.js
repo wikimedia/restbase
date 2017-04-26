@@ -205,7 +205,12 @@ class KVBucket {
                     (!req.headers['content-type']
                         || req.headers['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
-                    return { status: 200 };
+                    return {
+                        status: 200,
+                        headers: {
+                            etag: oldContent.headers.etag
+                        }
+                    };
                 } else {
                     throw new HTTPError({
                         status: 404
