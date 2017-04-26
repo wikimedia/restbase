@@ -122,9 +122,6 @@ paths:
             /buckets/key_value:
               x-modules:
                 - path: sys/key_value.js
-            /buckets/key_value_purged:
-              x-modules:
-                - path: sys/key_value_purged.js
 
             /events_no_config:
               x-modules:
