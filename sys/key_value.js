@@ -202,7 +202,7 @@ class KVBucket {
             })
             .then((oldContent) => {
                 if (stringify(req.body) === stringify(oldContent.body) &&
-                    (!req.headers['content-type']
+                        (!req.headers['content-type']
                         || req.headers['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
                     return {
@@ -211,11 +211,8 @@ class KVBucket {
                             etag: oldContent.headers.etag
                         }
                     };
-                } else {
-                    throw new HTTPError({
-                        status: 404
-                    });
                 }
+                throw new HTTPError({ status: 404 });
             })
             .catch({ status: 404 }, doPut);
         } else {
