@@ -123,7 +123,18 @@ paths:
             request:
               method: put
               uri: /{domain}/sys/key_value/term.definition/{request.params.term}
-              headers: '{{extract.headers}}'
+              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
+              body: '{{extract.body}}'
+            # With the ignore_duplicates parameter the storage will return 200 if the content is not changed,
+            # se we can return from the handler right away and avoid issuing purges.
+            return_if:
+              status: 204
+            return:
+              status: 200
+              headers:
+                content-type: '{{extract.headers.content-type}}'
+                etag: '{{store.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
         - emit_change_event:
             request:

@@ -148,8 +148,8 @@ describe('Key value buckets', function() {
                 return preq.put({
                     uri: bucketBaseURI + '/List_Test_1/' + tid,
                     body: new Buffer(testData),
-                    query: {
-                        ignore_duplicates: true
+                    headers: {
+                        'if-none-hash-match': '*'
                     }
                 })
             })
