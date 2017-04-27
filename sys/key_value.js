@@ -196,7 +196,8 @@ class KVBucket {
             return { status: 400 };
         });
 
-        if (req.query.ignore_duplicates) {
+        if (req.headers['if-none-hash-match']) {
+            delete req.headers['if-none-hash-match'];
             return hyper.get({
                 uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, rp.key])
             })
