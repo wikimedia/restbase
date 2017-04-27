@@ -145,7 +145,7 @@ paths:
               uri: /{domain}/sys/key_value/summary/{request.params.title}
               headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
               body: '{{extract.body}}'
-            # With the ignore_duplicates parameter the storage will return 200 if the content is not changed,
+            # With the if-none-hash-match header the storage will return 204 if the content is not changed,
             # se we can return from the handler right away and avoid issuing purges.
             return_if:
               status: 204
