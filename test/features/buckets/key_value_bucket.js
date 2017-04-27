@@ -152,6 +152,7 @@ describe('Key value buckets', function() {
                         'if-none-hash-match': '*'
                     }
                 })
+                .catch(() => {});
             })
             .then(function() {
                 return preq.get({

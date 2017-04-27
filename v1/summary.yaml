@@ -145,10 +145,13 @@ paths:
               uri: /{domain}/sys/key_value/summary/{request.params.title}
               headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
               body: '{{extract.body}}'
-            # With the if-none-hash-match header the storage will return 204 if the content is not changed,
-            # se we can return from the handler right away and avoid issuing purges.
+            # With the if-none-hash-match header the storage will return 412
+            # if the content is not changed. In that case, return from the
+            # handler completely, and avoid issuing purges.
+            catch:
+              status: 412
             return_if:
-              status: 204
+              status: 412
             return:
               status: 200
               headers:
