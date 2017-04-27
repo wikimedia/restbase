@@ -605,8 +605,6 @@ paths:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
     get:
-      x-route-filters:
-        - path: lib/ensure_content_type.js
       tags:
         - Page content
       summary: Get data-parsoid metadata for a specific title/revision/tid.
@@ -623,7 +621,7 @@ paths:
 
         Stability: [Stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.4.0"
       parameters:
         - name: title
           in: path
