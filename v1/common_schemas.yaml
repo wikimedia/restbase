@@ -51,6 +51,9 @@ definitions:
       title:
         type: string
         description: The page title
+      pageid:
+        type: integer
+        description: The page ID
       #timestamp:
       #  type: string
       #  format: date-time

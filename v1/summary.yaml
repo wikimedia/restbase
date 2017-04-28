@@ -131,6 +131,7 @@ paths:
                 etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
               body:
                 title: '{{extract.body.items[0].title}}'
+                pageid: '{{extract.body.items[0].pageid}}'
                 extract: '{{extract.body.items[0].extract}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 originalimage: '{{httpsSource(extract.body.items[0].original)}}'
