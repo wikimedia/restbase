@@ -51,6 +51,9 @@ definitions:
       title:
         type: string
         description: The page title
+      displaytitle:
+        type: string
+        description: The page title how it should be shown to the user
       pageid:
         type: integer
         description: The page ID
