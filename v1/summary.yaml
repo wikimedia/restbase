@@ -119,6 +119,7 @@ paths:
                 explaintext: true
                 exintro: true
                 piprop: 'thumbnail|original'
+                inprop: 'displaytitle'
                 pithumbsize: 320
                 pilicense: 'any'
                 rvprop: 'timestamp|ids'
@@ -131,6 +132,7 @@ paths:
                 etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
               body:
                 title: '{{extract.body.items[0].title}}'
+                displaytitle: '{{extract.body.items[0].displaytitle}}'
                 pageid: '{{extract.body.items[0].pageid}}'
                 extract: '{{extract.body.items[0].extract}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
