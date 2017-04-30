@@ -177,6 +177,7 @@ paths:
                         - 'نام_مقامات_ایس'
                       zh.wikipedia.org:
                         - 'Wikipedia:互助客栈/条目探讨'
+                        - 'Draft:日本人工湖列表'
                       # Wikisource
                       pl.wikisource.org:
                         - '/^Wśród_czarnych\//'
