@@ -135,6 +135,7 @@ paths:
                         - 'Gumagamit:Lsjbot/Anomalier-PRIVAT'
                         - 'Gumagamit:Lsjbot/Kartrutor2'
                       de.wikipedia.org:
+                        - '/The_Big_Bang_Theory\/Staffel/'
                         - 'Wikipedia:Café'
                         - 'Wikipedia:Defekte_Weblinks/Bot2015-Problem'
                         - 'Wikipedia_Diskussion:Hauptseite/Schon_gewusst'
