@@ -208,6 +208,7 @@ class ParsoidService {
             transformHtmlToHtml: this.makeTransform('html', 'html'),
             transformHtmlToWikitext: this.makeTransform('html', 'wikitext'),
             transformWikitextToHtml: this.makeTransform('wikitext', 'html'),
+            transformWikitextToLint: this.makeTransform('wikitext', 'lint'),
             transformChangesToWikitext: this.makeTransform('changes', 'wikitext')
         };
     }

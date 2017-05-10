@@ -210,6 +210,71 @@ paths:
               content-type: /^text\/html.+/
             body: /^<h2.*> Heading <\/h2>$/
 
+  /wikitext/to/lint{/title}:
+    post:
+      tags:
+        - Transforms
+      summary: Check Wikitext for lint errors
+      description: |
+        Parse the supplied wikitext and check it for lint errors.
+
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        - Rate limit: 5 req/s
+      consumes:
+        - multipart/form-data
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: false
+        - name: wikitext
+          in: formData
+          description: The Wikitext to check
+          type: string
+          required: true
+          x-textarea: true
+      responses:
+        '200':
+          description: Linter errors, if any, as a JSON blob
+          schema:
+            type: object
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        '409':
+          description: Latest revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          description: Page was deleted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 10
+              external: 5
+
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint{/title}
+              body:
+                wikitext: '{{wikitext}}'
+      x-monitor: false
+
 # Keeping this in, as we'll re-introduce a html2html end point later.
 #  /html/to/html{/title}{/revision}:
 #    post:
