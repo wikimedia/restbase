@@ -78,7 +78,7 @@ paths:
       summary: Transform wikitext to HTML.
       operationId: transformWikitextToHtml
 
-  /transform/wikitext/to/lint{/title}:
+  /transform/wikitext/to/lint{/title}{/revision}:
     post:
       summary: Check the wikitext for lint errors.
       operationId: transformWikitextToLint

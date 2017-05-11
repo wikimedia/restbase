@@ -210,7 +210,7 @@ paths:
               content-type: /^text\/html.+/
             body: /^<h2.*> Heading <\/h2>$/
 
-  /wikitext/to/lint{/title}:
+  /wikitext/to/lint{/title}{/revision}:
     post:
       tags:
         - Transforms
@@ -230,6 +230,11 @@ paths:
           in: path
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
           required: false
         - name: wikitext
           in: formData
@@ -270,7 +275,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint{/title}
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint{/title}{/revision}
               body:
                 wikitext: '{{wikitext}}'
       x-monitor: false
