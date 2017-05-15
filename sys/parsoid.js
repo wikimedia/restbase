@@ -785,7 +785,7 @@ class ParsoidService {
                 throw e;
             })
             .then((res) => {
-                if (to !== 'wikitext') {
+                if (to !== 'wikitext' && to !== 'lint') {
                     // Unwrap to the flat response format
                     res = res.body[to];
                     res.status = 200;

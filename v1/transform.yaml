@@ -218,7 +218,7 @@ paths:
       description: |
         Parse the supplied wikitext and check it for lint errors.
 
-        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 5 req/s
       consumes:
         - multipart/form-data

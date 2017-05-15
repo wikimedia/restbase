@@ -120,6 +120,30 @@ parallel('transform api', function() {
     });
 
 
+    it('wt2lint', function () {
+        return preq.post({
+            uri: server.config.labsURL + '/transform/wikitext/to/lint',
+            body: {
+                wikitext: '== Heading =='
+            }
+        }).then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, []);
+        });
+    });
+
+    it('wt2lint with errors', function () {
+        return preq.post({
+            uri: server.config.labsURL + '/transform/wikitext/to/lint',
+            body: {
+                wikitext: '<div>No div ending'
+            }
+        }).then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.length, 1);
+        });
+    });
+
     it('html2wt, no-selser', function () {
         return preq.post({
             uri: server.config.labsURL
