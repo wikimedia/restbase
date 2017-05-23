@@ -67,6 +67,22 @@ parallel('Responses should conform to the provided JSON schema of the response',
         });
     });
 
+    it('/page/summary/{title} with Accept header should conform schema', function() {
+        const accept = 'application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/2.0.0"';
+        return preq.get({
+            uri: server.config.baseURL + '/page/summary/Tank',
+            headers: { accept }
+        })
+        .then(function(res) {
+            assert.deepEqual(res.headers['content-type'], accept);
+            if (!ajv.validate('#/definitions/summary', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
+
     it('/feed/announcements should conform schema', function() {
         return preq.get({ uri: server.config.baseURL + '/feed/announcements' })
         .then(function(res) {
