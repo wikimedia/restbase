@@ -54,7 +54,7 @@ function remoteRequests(slice, expected) {
             return false;
         }
         hasRec = true;
-        return entry.req && /^http/.test(entry.req.uri);
+        return entry.req && /^https?/.test(entry.req.uri);
     });
     if (!hasRec) {
         // there were no records in the slice, so
@@ -75,8 +75,8 @@ function remoteRequests(slice, expected) {
  */
 function findParsoidRequest(slice) {
     var logEntry = slice.get().find(function(line) {
-            var entry = JSON.parse(line);
-            return entry.req && /^http:\/\/parsoid/.test(entry.req.uri);
+        var entry = JSON.parse(line);
+        return entry.req && /^https?:\/\/parsoid/.test(entry.req.uri);
     });
     return JSON.parse(logEntry).req;
 }

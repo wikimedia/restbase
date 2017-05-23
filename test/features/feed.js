@@ -17,7 +17,7 @@ function assertStorageRequest(requests, method, bucket, expected) {
 }
 
 function assertMCSRequest(requests, content, date, expected) {
-    let serviceURI = `http://appservice.wmflabs.org/en.wikipedia.org/v1/${content}`;
+    let serviceURI = `https://appservice.wmflabs.org/en.wikipedia.org/v1/${content}`;
     if (date) {
         serviceURI += `/${date}`;
     }
