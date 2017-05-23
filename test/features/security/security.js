@@ -76,7 +76,7 @@ describe('router - security', function() {
 
     it('should forward cookies on request to parsoid', function() {
         nock.enableNetConnect();
-        var parsoidURI = 'http://parsoid-beta.wmflabs.org';
+        var parsoidURI = 'https://parsoid-beta.wmflabs.org';
         var title = 'Test';
         var revision = 117795883;
         var api = nock(parsoidURI, {
