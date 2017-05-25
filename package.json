@@ -8,7 +8,9 @@
     "start": "service-runner",
     "test": "sh test/utils/run_tests.sh test",
     "coverage": "sh test/utils/run_tests.sh coverage",
-    "coveralls": "cat ./coverage/lcov.info | coveralls"
+    "coveralls": "cat ./coverage/lcov.info | coveralls",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -43,7 +45,8 @@
     "hyperswitch": "^0.9.0",
     "jsonwebtoken": "^7.3.0",
     "mediawiki-title": "^0.5.6",
-    "entities": "^1.1.1"
+    "entities": "^1.1.1",
+    "snyk": "^1.30.1"
   },
   "devDependencies": {
     "ajv": "^4.11.2",
@@ -76,5 +79,6 @@
     "dependencies": {
       "_all": []
     }
-  }
+  },
+  "snyk": true
 }
