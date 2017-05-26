@@ -4,6 +4,7 @@ const cType = require('content-type');
 const semver = require('semver');
 
 const TAGS_MATCH = /<\/?[a-zA-Z][\w-]*(?:\s+[a-zA-Z_-]+(?:=(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g;
+const LATEST_1_VERSION = '1.1.2';
 
 function splitProfile(profile) {
     const match = /^(.*)\/([0-9.]+)$/.exec(profile);
@@ -29,18 +30,18 @@ module.exports = (hyper, req, next) => {
         // for compatibility with older clients.
         // TODO: remove eventually and return the latest content-type by default
         // Normally we would set the latest version here
-        acceptVersion = '1.1.2';
+        acceptVersion = LATEST_1_VERSION;
     }
 
     return next(hyper, req)
     .then((res) => {
         if (semver.lt(acceptVersion, '2.0.0')) {
-            res.body.extract = res.body.extract.replace(/<[^>]+\/?>/g, '');
+            res.body.extract = res.body.extract.replace(TAGS_MATCH, '');
             res.headers['content-type'] = res.headers['content-type']
-                .replace(/[0-9.]+"$/, `${acceptVersion}"`);
+                .replace(/[0-9.]+"$/, `${LATEST_1_VERSION}"`);
         }
 
-        res.headers.vary = 'Accept';
+        res.headers.vary = 'accept';
         return res;
     });
 };
