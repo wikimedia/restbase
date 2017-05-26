@@ -3,6 +3,8 @@
 const cType = require('content-type');
 const semver = require('semver');
 
+const TAGS_MATCH = /<\/?[a-zA-Z][\w-]*(?:\s+[a-zA-Z_-]+(?:=(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g;
+
 function splitProfile(profile) {
     const match = /^(.*)\/([0-9.]+)$/.exec(profile);
     return {
