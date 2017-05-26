@@ -17,6 +17,9 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
+      # The order of transform and ensure filters is important to avoid
+      # re-rendering in case of a profile mismatch due to Accept header
+      - path: ./v1/summary_transform_filter.js
       - path: ./lib/ensure_content_type.js
     get:
       tags:
@@ -29,7 +32,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.1.2"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/2.0.0"
       parameters:
         - name: title
           in: path
@@ -116,7 +119,6 @@ paths:
               body:
                 prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
                 exsentences: 5
-                explaintext: true
                 exintro: true
                 piprop: 'thumbnail|original'
                 inprop: 'displaytitle'
@@ -128,7 +130,7 @@ paths:
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.1.2"
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/2.0.0"
                 etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
               body:
                 title: '{{extract.body.items[0].title}}'
