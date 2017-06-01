@@ -2,6 +2,7 @@
 
 const HyperSwitch = require('hyperswitch');
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/summary.yaml`);
+const entities = require('entities');
 
 /**
  * A RegExp to match all the tags with attributes.
@@ -57,7 +58,7 @@ module.exports = options => ({
                 return undefined;
             }
 
-            return extract.replace(TAGS_MATCH, '');
+            return entities.decodeHTML(extract.replace(TAGS_MATCH, ''));
         }
     }
 });
