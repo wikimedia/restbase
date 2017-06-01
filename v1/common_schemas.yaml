@@ -64,7 +64,7 @@ definitions:
       extract:
         type: string
         description: First several sentences of an article in plain text
-      html_extract:
+      extract_html:
         type: string
         description: First several sentences of an article in simple HTML format
       thumbnail:

@@ -134,7 +134,7 @@ paths:
                 displaytitle: '{{extract.body.items[0].displaytitle}}'
                 pageid: '{{extract.body.items[0].pageid}}'
                 extract: '{{stripTags(extract.body.items[0].extract)}}'
-                html_extract: '{{extract.body.items[0].extract}}'
+                extract_html: '{{extract.body.items[0].extract}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 originalimage: '{{httpsSource(extract.body.items[0].original)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
