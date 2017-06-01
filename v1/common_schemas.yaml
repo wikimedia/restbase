@@ -64,6 +64,9 @@ definitions:
       extract:
         type: string
         description: First several sentences of an article in plain text
+      html_extract:
+        type: string
+        description: First several sentences of an article in simple HTML format
       thumbnail:
         $ref: '#/definitions/thumbnail'
       originalimage:

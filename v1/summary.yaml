@@ -29,7 +29,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.1.2"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
       parameters:
         - name: title
           in: path
@@ -116,7 +116,6 @@ paths:
               body:
                 prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
                 exsentences: 5
-                explaintext: true
                 exintro: true
                 piprop: 'thumbnail|original'
                 inprop: 'displaytitle'
@@ -128,13 +127,14 @@ paths:
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.1.2"
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
                 etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
               body:
                 title: '{{extract.body.items[0].title}}'
                 displaytitle: '{{extract.body.items[0].displaytitle}}'
                 pageid: '{{extract.body.items[0].pageid}}'
-                extract: '{{extract.body.items[0].extract}}'
+                extract: '{{stripTags(extract.body.items[0].extract)}}'
+                html_extract: '{{extract.body.items[0].extract}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 originalimage: '{{httpsSource(extract.body.items[0].original)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
