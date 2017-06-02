@@ -191,6 +191,7 @@ paths:
               content-type: /^application\/json/
             body:
               extract: /.+/
+              extract_html: /.+/
               thumbnail:
                 source: /^https:/
               originalimage:
