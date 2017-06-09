@@ -55,7 +55,7 @@ module.exports = options => ({
         },
         stripTags(extract) {
             if (!extract) {
-                return undefined;
+                return "";
             }
 
             return entities.decodeHTML(extract.replace(TAGS_MATCH, ''));
