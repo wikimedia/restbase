@@ -37,6 +37,9 @@ paths:
                   options:
                     purged_cache_control: '{{options.purged_cache_control}}'
                 - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
+                - path: v1/mobileapps.yaml
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
@@ -44,6 +47,10 @@ paths:
               x-modules:
                 - path: v1/mathoid.yaml
                   options: '{{options.mathoid}}'
+            /data:
+              x-modules:
+                - path: v1/citoid.js
+                  options: '{{options.citoid}}'
         options: '{{options}}'
 
   /{api:sys}:
@@ -83,5 +90,10 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
+            /mobileapps:
+              x-modules:
+                - path: sys/mobileapps.js
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
         options: '{{options}}'
 
