@@ -79,7 +79,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
     });
 
     it('/feed/onthisday should conform schema', function() {
-        return preq.get({ uri: server.config.baseURL + '/feed/onthisday/all/01/01' })
+        return preq.get({ uri: server.config.baseURL + '/feed/onthisday/all/01/03' })
         .then(function(res) {
             if (!ajv.validate('#/definitions/onthisdayResponse', res.body)) {
                 throw new assert.AssertionError({
