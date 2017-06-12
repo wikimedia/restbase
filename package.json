@@ -65,7 +65,7 @@
     "nock": "^9.0.13",
     "preq": "^0.5.2",
     "restbase-mod-table-sqlite": "^0.1.20",
-    "swagger-test": "0.7.2"
+    "swagger-test": "0.5.1"
   },
   "engines": {
     "node": ">=4"
