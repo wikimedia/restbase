@@ -186,7 +186,6 @@ paths:
                       # Wikimedia
                       commons.wikimedia.org:
                         - '/Commons:Featured_picture_candidates\//'
-                        - 'Commons:Quality_images_candidates/candidate_list'
                         - 'Commons:Quality_images/Subject/Places/Natural_structures'
                         - '/Commons:Undeletion_requests\//'
                         - '/Commons:WikiProject_Aviation\/recent_uploads\//'
