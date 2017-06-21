@@ -36,6 +36,7 @@ paths:
                 - path: v1/content.yaml
                   options:
                     purged_cache_control: '{{options.purged_cache_control}}'
+                    cx_host: '{{options.transform.cx_host}}'
                 - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
                 - path: v1/mobileapps.yaml
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
