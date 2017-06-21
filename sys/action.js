@@ -243,7 +243,7 @@ class ActionService {
                 body: {
                     action: 'query',
                     meta: 'siteinfo|filerepoinfo',
-                    siprop: 'general|namespaces|namespacealiases',
+                    siprop: 'general|namespaces|namespacealiases|specialpagealiases',
                     format: 'json'
                 }
             }, {}, (apiReq, res) => {
@@ -261,6 +261,7 @@ class ActionService {
 
                         namespaces: res.body.query.namespaces,
                         namespacealiases: res.body.query.namespacealiases,
+                        specialpagealiases: res.body.query.specialpagealiases,
                         sharedRepoRootURI: findSharedRepoDomain(res),
                         baseUri: this._getBaseUri(req)
                     }
