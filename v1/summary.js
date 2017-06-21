@@ -1,6 +1,7 @@
 'use strict';
 
 const HyperSwitch = require('hyperswitch');
+const HTTPError = HyperSwitch.HTTPError;
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/summary.yaml`);
 const entities = require('entities');
 
@@ -53,12 +54,18 @@ module.exports = options => ({
             }
             return coord;
         },
-        stripTags(extract) {
-            if (!extract) {
-                return "";
+        stripTags(extractHtml) {
+            if (!extractHtml) {
+                throw new HTTPError({ status: 404 });
             }
 
-            return entities.decodeHTML(extract.replace(TAGS_MATCH, ''));
+            const extractText = entities.decodeHTML(extractHtml.replace(TAGS_MATCH, ''));
+
+            if (!extractText) {
+                throw new HTTPError({ status: 404 });
+            }
+
+            return extractText;
         }
     }
 });
