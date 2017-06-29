@@ -60,7 +60,8 @@ paths:
         - get_pdf_from_backend:
             request:
               method: get
-              uri: '{{options.uri}}/pdf?accessKey={options.secret}&url=https://{{domain}}/wiki/{title}%3Fprintable=yes'
+              # Note: The title needs to be encoded twice.
+              uri: '{{options.uri}}/pdf?accessKey={options.secret}&url=https://{{domain}}/wiki/{_encodeURIComponent(title)}%3Fprintable=yes'
             return:
               status: 200
               headers:
