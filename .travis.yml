@@ -22,10 +22,11 @@ env:
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
-  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle" JVM_OPTS=" -Xmx4g"
+  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
   - java -version
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
-  - cat -n /home/travis/.travis/job_stages
+  - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
+  - echo "-Xmx1g" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra -f
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
