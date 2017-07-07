@@ -16,10 +16,11 @@ addons:
     - oracle-java8-set-default
 
 env:
-  - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
-  - CASSANDRA_VERSION=3.11.0 TEST_TARGET=cassandra
+  - JAVA_HOME="/usr/lib/jvm/java-8-oracle" CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
+  - JAVA_HOME="/usr/lib/jvm/java-8-oracle" CASSANDRA_VERSION=3.11.0 TEST_TARGET=cassandra
 
 before_install:
+  - java -version
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
   - sh ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
