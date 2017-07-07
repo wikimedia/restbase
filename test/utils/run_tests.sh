@@ -14,7 +14,10 @@ runTest ( ) {
         if [ `nc localhost 9042 < /dev/null; echo $?` != 0 ]; then
           echo "Waiting for Cassandra to start..."
           while [ `nc -z localhost 9042; echo $?` != 0 ]; do
-            sleep 1
+            ps uax | grep cassandra
+            nc -z localhost 9042
+            tail ../apache-cassandra-${CASSANDRA_VERSION}/logs/system.log
+            sleep 10
           done
           echo "Cassandra is ready."
         fi
