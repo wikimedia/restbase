@@ -19,6 +19,6 @@ env:
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
-  - sh ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra > /dev/null
+  - sh ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
