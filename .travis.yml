@@ -1,7 +1,7 @@
 language: node_js
 node_js:
     - "4"
-    - "6"
+#    - "6"
 sudo: false
 
 notifications:
@@ -16,7 +16,7 @@ addons:
     - oracle-java8-set-default
 
 env:
-  - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
+#  - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
   - CASSANDRA_VERSION=3.11.0 TEST_TARGET=cassandra
 
 before_install:
