@@ -24,6 +24,6 @@ before_install:
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
   - export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
-  - sh ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
+  - ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra -f
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
