@@ -1,7 +1,7 @@
 language: node_js
 node_js:
     - "4"
-#    - "6"
+    - "6"
 sudo: false
 
 notifications:
@@ -16,17 +16,16 @@ addons:
     - oracle-java8-set-default
 
 env:
-#  - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
+  - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
   - CASSANDRA_VERSION=3.11.0 TEST_TARGET=cassandra
 
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
   - export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
-  - java -version
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
   - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - echo "-Xmx1g" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
-  - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra -f
+  - bash ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra > /dev/null
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
