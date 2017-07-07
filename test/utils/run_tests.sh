@@ -14,6 +14,8 @@ runTest ( ) {
         if [ `nc localhost 9042 < /dev/null; echo $?` != 0 ]; then
           echo "Waiting for Cassandra to start..."
           while [ `nc -z localhost 9042; echo $?` != 0 ]; do
+            nc -z localhost 9042
+            ps aux | grep cassandra
             sleep 10
           done
           echo "Cassandra is ready."
