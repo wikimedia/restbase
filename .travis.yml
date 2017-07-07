@@ -2,8 +2,6 @@ language: node_js
 node_js:
     - "4"
     - "6"
-jdk:
-  - oraclejdk8
 sudo: false
 
 notifications:
@@ -12,6 +10,10 @@ notifications:
       - "irc.freenode.org#wikimedia-services"
     on_success: change
     on_failure: always
+addons:
+  apt:
+    packages:
+    - oracle-java8-set-default
 
 env:
   - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
