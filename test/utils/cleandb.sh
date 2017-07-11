@@ -5,10 +5,10 @@ dropKeyspaces ( ) {
   then
     PATTERN=$1
     echo "looking for keyspaces named '*$PATTERN*'..."
-    for KEYSPACE in `echo 'select keyspace_name from system.schema_keyspaces;' | cqlsh | grep $PATTERN`
+    for KEYSPACE in `echo 'describe keyspaces;' | cqlsh | grep $PATTERN`
     do
       echo dropping keyspace $KEYSPACE
-      echo "drop keyspace if exists \"$KEYSPACE\";" | cqlsh
+      echo "drop keyspace if exists $KEYSPACE;" | cqlsh
     done
   fi
 }
