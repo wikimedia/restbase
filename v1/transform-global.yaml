@@ -7,7 +7,7 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /html/{from}/to/{to}{/provider}:
+  /html/from/{from_lang}/to/{to_lang}{/provider}:
     post:
       tags: ['Transform']
       summary: Machine-translate content
@@ -21,12 +21,12 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: from
+        - name: from_lang
           in: path
           description: The source language code
           type: string
           required: true
-        - name: to
+        - name: to_lang
           in: path
           description: The target language code
           type: string
@@ -41,7 +41,7 @@ paths:
            - Yandex
            - Youdao
         - name: html
-          in: formData
+          in: body
           description: The HTML content to translate
           type: string
           required: true
@@ -59,8 +59,8 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
-              uri: '{{options.cx_host}}/v1/mt/{from}/{to}/{provider}'
-  /word/{from}/to/{to}/{word}{/provider}:
+              uri: '{{options.cx_host}}/v1/mt/{from_lang}/{to_lang}/{provider}'
+  /word/from/{from_lang}/to/{to_lang}/{word}{/provider}:
     get:
       tags: ['Transform']
       summary: Fetch the dictionary meaning of a word
@@ -72,12 +72,12 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: from
+        - name: from_lang
           in: path
           description: The source language code
           type: string
           required: true
-        - name: to
+        - name: to_lang
           in: path
           description: The target language code
           type: string
@@ -108,7 +108,7 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
-              uri: '{{options.cx_host}}/v1/dictionary/{word}/{from}/{to}/{provider}'
+              uri: '{{options.cx_host}}/v1/dictionary/{word}/{from_lang}/{to_lang}/{provider}'
   /list/pair/{from}/{to}/:
     get:
       tags: ['Transform']
@@ -180,9 +180,9 @@ paths:
   /list/languagepairs/:
     get:
       tags: ['Transform']
-      summary: Lists the tools and language pairs available for the given tool category
+      summary: Lists the language pairs supported by the back-end
       description: |
-        Fetches the list of tools and all of the language pairs it can translate
+        Fetches the list of language pairs the back-end service can translate
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
@@ -199,33 +199,6 @@ paths:
               uri: '{{options.cx_host}}/v1/list/languagepairs'
 
 definitions:
-  cx_mt:
-    type: object
-    properties:
-      contents:
-        type: string
-        description: the translated content
-  cx_dict:
-    type: object
-    properties:
-      source:
-        type: string
-        description: the original word to look up
-      translations:
-        type: array
-        description: the translations found
-        items:
-          type: object
-          properties:
-            phrase:
-              type: string
-              description: the translated phrase
-            info:
-              type: string
-              description: extra information about the phrase
-            sources:
-              type: string
-              description: the source dictionary used for the translation
   cx_list_tools:
     type: object
     properties:
