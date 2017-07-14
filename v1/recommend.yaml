@@ -1,0 +1,77 @@
+info:
+  version: '1.0.0'
+  title: Recommendation API
+  description: Recommendation API
+  termsofservice: https://github.com/wikimedia/restbase
+  license:
+    name: Apache license, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /translation/articles/{source}{/seed}:
+    get:
+      tags:
+        - Recommend
+      summary: Recommend articles for translation.
+      description: |
+        Recommends articles to be translated from the source
+        to the domain language.
+
+        See more at [Recommendation API documentation](https://meta.wikimedia.org/wiki/Recommendation_API)
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - applicaiton/json
+      parameters:
+        - name: source
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: seed
+          in: path
+          description: The article to use as a search seed
+          type: string
+          required: false
+        - name: count
+          in: query
+          description: The max number of articles to return
+          type: int
+          required: false
+          default: 24
+      responses:
+        '200':
+          description: the list of articles recommended for translation
+          schema:
+            $ref: '#/definitions/translation_result'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{domain}}/translation/articles/{source}{/seed}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+definitions:
+  translation_result:
+    type: object
+    properties:
+      count:
+        type: int
+        description: the number of recommendations returned
+      articles:
+        type: array
+        description: the list of articles recommended for translation
+        items:
+          type: object
+          properties:
+            wikidata_id:
+              type: string
+              description: wikidata id for the item
+            title:
+              type: string
+              description: title of the article in the source language
+            sitelink_count:
+              type: int
+              description: count of sites the wikidata item is linked to
