@@ -80,6 +80,8 @@ paths:
             /transform:
               x-modules:
                 - path: v1/transform.yaml
+                - path: v1/transform-lang.js
+                  options: '{{options.transform}}'
             /media:
               x-modules:
                 - path: v1/mathoid.yaml

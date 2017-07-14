@@ -890,7 +890,7 @@ paths:
               body: '{{request.body}}'
       x-monitor: false
 
-  /segmented/{title}{/revision}:
+  /segments/{title}{/revision}:
     get:
       tags:
         - Page content
@@ -941,7 +941,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
         '404':
-          description: Unknown page, revision or tid
+          description: Unknown page or revision
           schema:
             $ref: '#/definitions/problem'
         default:

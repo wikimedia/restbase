@@ -99,3 +99,32 @@ definitions:
             description: The longitude
         requiredProperties: [ 'lat', 'lon' ]
     required: ['title', 'extract', 'lang', 'dir']
+
+  cx_mt:
+    type: object
+    properties:
+      contents:
+        type: string
+        description: the translated content
+
+  cx_dict:
+    type: object
+    properties:
+      source:
+        type: string
+        description: the original word to look up
+      translations:
+        type: array
+        description: the translations found
+        items:
+          type: object
+          properties:
+            phrase:
+              type: string
+              description: the translated phrase
+            info:
+              type: string
+              description: extra information about the phrase
+            sources:
+              type: string
+              description: the source dictionary used for the translation
