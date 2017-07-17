@@ -1,0 +1,18 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: RESTBase key-rev-value module
+  description: Revisioned blob storage with HTTP interface, backed by table storage
+paths:
+  /:
+    put:
+      operationId: createBucket
+  /{bucket}/{key}/:
+    get:
+      operationId: listRevisions
+  /{bucket}/{key}{/revision}{/tid}:
+    get:
+      operationId: getRevision
+  /all/{key}/{revision}{/tid}:
+    put:
+      operationId: putRevision

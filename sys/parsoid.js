@@ -235,6 +235,17 @@ class ParsoidService {
         return new URI(path);
     }
 
+    getNGBucketURI(rp, format, tid) {
+        const path = [rp.domain, 'sys', 'parsoid_bucket', `${format}`, rp.title];
+        if (rp.revision) {
+            path.push(rp.revision);
+            if (tid) {
+                path.push(tid);
+            }
+        }
+        return new URI(path);
+    }
+
     pagebundle(hyper, req) {
         const rp = req.params;
         const domain = rp.domain;
@@ -246,26 +257,21 @@ class ParsoidService {
         return hyper.request(newReq);
     }
 
-    saveParsoidResult(hyper, req, format, tid, parsoidResp) {
+    saveParsoidResult(hyper, req, tid, parsoidResp) {
         const rp = req.params;
-        return P.join(
-            hyper.put({
-                uri: this.getBucketURI(rp, 'data-parsoid', tid),
-                headers: parsoidResp.body['data-parsoid'].headers,
-                body: parsoidResp.body['data-parsoid'].body
-            }),
-            hyper.put({
-                uri: this.getBucketURI(rp, 'section.offsets', tid),
-                headers: { 'content-type': 'application/json' },
-                body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-            })
-        )
-        // Save HTML last, so that any error in metadata storage suppresses HTML.
-        .then(() => hyper.put({
-            uri: this.getBucketURI(rp, 'html', tid),
-            headers: parsoidResp.body.html.headers,
-            body: parsoidResp.body.html.body
-        }));
+        return hyper.put({
+            uri: this.getNGBucketURI(rp, 'all', tid),
+            body: {
+                html: parsoidResp.body.html,
+                'data-parsoid': parsoidResp.body['data-parsoid'],
+                'section-offsets': {
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: parsoidResp.body['data-parsoid'].body.sectionOffsets
+                }
+            }
+        });
     }
 
     generateAndSave(hyper, req, format, currentContentRes) {
@@ -299,7 +305,7 @@ class ParsoidService {
                 // Try to fetch the HTML corresponding to the requested revision,
                 // so that the change detection makes sense.
                 return hyper.get({
-                    uri: this.getBucketURI(rp, format, rp.tid)
+                    uri: this.getNGBucketURI(rp, format, rp.tid)
                 }).then(
                     (contentRes) => {
                         currentContentRes = contentRes;
@@ -354,7 +360,7 @@ class ParsoidService {
                         body: res.body[format].body
                     };
                     resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                    return this.saveParsoidResult(hyper, req, format, tid, res)
+                    return this.saveParsoidResult(hyper, req, tid, res)
                     .then(() => {
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
@@ -405,7 +411,7 @@ class ParsoidService {
                 tid: etagInfo.tid
             });
             return hyper.get({
-                uri: this.getBucketURI(sectionsRP, 'section.offsets', sectionsRP.tid)
+                uri: this.getNGBucketURI(sectionsRP, 'section-offsets', sectionsRP.tid)
             })
             .then(sectionOffsets => mwUtil.decodeBody(htmlRes).then((content) => {
                 const body = cheapBodyInnerHTML(content.body);
@@ -485,7 +491,7 @@ class ParsoidService {
         }
 
         let contentReq = hyper.get({
-            uri: this.getBucketURI(rp, format, rp.tid)
+            uri: this.getNGBucketURI(rp, format, rp.tid)
         });
 
         if (mwUtil.isNoCacheRequest(req)) {
@@ -527,8 +533,7 @@ class ParsoidService {
     listRevisions(format, hyper, req) {
         const rp = req.params;
         const revReq = {
-            uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                `parsoid.${format}-2`, rp.title, '']),
+            uri: new URI([rp.domain, 'sys', 'parsoid_bucket', format, rp.title, '']),
             body: {
                 limit: hyper.config.default_page_size
             }
@@ -863,7 +868,7 @@ module.exports = (options) => {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.html-2`,
+                uri: `/{domain}/sys/${options.bucket_type}/parsoid.html`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -875,13 +880,13 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.wikitext`,
+                uri: `/{domain}/sys/${options.bucket_type}/parsoid.wikitext`,
                 body: {
                     valueType: 'blob'
                 }
             },
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.data-parsoid-2`,
+                uri: `/{domain}/sys/${options.bucket_type}/parsoid.data-parsoid`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -893,7 +898,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.section.offsets-2`,
+                uri: `/{domain}/sys/${options.bucket_type}/parsoid.section.offsets`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -904,9 +909,8 @@ module.exports = (options) => {
                     version: 1
                 }
             },
-            /* This keyspace is not used yet - no need to create it
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.data-mw`,
+                uri: `/{domain}/sys/${options.bucket_type}/parsoid.data-mw`,
                 body: {
                     valueType: 'json'
                 }
@@ -945,6 +949,9 @@ module.exports = (options) => {
                     valueType: 'json',
                     version: 1
                 }
+            },
+            {
+                uri: '/{domain}/sys/parsoid_bucket/'
             }
         ]
     };

@@ -18,6 +18,16 @@ default_project: &default_project
             - name: test.group.local
               domains: /./
           dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+        table_ng:
+          backend: cassandra
+          hosts: [localhost]
+          keyspace: system
+          username: cassandra
+          password: cassandra
+          defaultConsistency: one # or 'localQuorum' for production
+          storage_groups:
+            - name: test.group.local
+              domains: /./
         parsoid:
           host: https://parsoid-beta.wmflabs.org
         action:
