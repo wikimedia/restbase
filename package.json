@@ -37,7 +37,7 @@
     "bluebird": "^3.5.0",
     "cassandra-uuid": "^0.0.2",
     "restbase-mod-table-cassandra": "^0.11.2",
-    "restbase-mod-table-cassandra-ng": "git@github.com:wikimedia/restbase-mod-table-cassandra.git",
+    "restbase-mod-table-cassandra-ng": "git@github.com:wikimedia/restbase-mod-table-cassandra.git#redesign",
     "service-runner": "^2.3.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
