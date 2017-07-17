@@ -236,7 +236,7 @@ class ParsoidService {
     }
 
     getNGBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'parsoid_bucket', `${format}`, rp.title];
+        const path = [rp.domain, 'sys', 'parsoid_bucket', format, rp.title];
         if (rp.revision) {
             path.push(rp.revision);
             if (tid) {

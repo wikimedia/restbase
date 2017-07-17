@@ -116,7 +116,7 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
-            /table-ng: &sys_table
+            /table-ng: &sys_table_ng
               x-modules:
                 - path: sys/table.js
                   options:
