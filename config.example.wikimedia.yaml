@@ -17,7 +17,7 @@ default_project: &default_project
             - name: default.group.local
               domains: /./
         table_ng:
-          backend: cassandra
+          backend: cassandra-ng
           hosts: [localhost]
           keyspace: system
           username: cassandra

@@ -19,7 +19,7 @@ default_project: &default_project
               domains: /./
           dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         table_ng:
-          backend: cassandra
+          backend: cassandra-ng
           hosts: [localhost]
           keyspace: system
           username: cassandra
