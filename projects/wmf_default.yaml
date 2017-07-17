@@ -114,6 +114,14 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
+            /table-ng: &sys_table
+              x-modules:
+                - path: sys/table.js
+                  options:
+                    conf: '{{options.table_ng}}'
+            /parsoid_bucket:
+              x-modules:
+                - path: sys/parsoid_bucket.js
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
