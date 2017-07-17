@@ -257,10 +257,13 @@ class ParsoidService {
         return hyper.request(newReq);
     }
 
-    saveParsoidResult(hyper, req, tid, parsoidResp) {
+    saveParsoidResult(hyper, req, tid, parsoidResp, prevEtag) {
         const rp = req.params;
         return hyper.put({
             uri: this.getNGBucketURI(rp, 'all', tid),
+            headers: {
+                'x-previous-etag': prevEtag
+            },
             body: {
                 html: parsoidResp.body.html,
                 'data-parsoid': parsoidResp.body['data-parsoid'],
@@ -360,7 +363,9 @@ class ParsoidService {
                         body: res.body[format].body
                     };
                     resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                    return this.saveParsoidResult(hyper, req, tid, res)
+                    return this.saveParsoidResult(hyper, req, tid, res,
+                        currentContentRes && currentContentRes.headers
+                            && currentContentRes.headers.etag)
                     .then(() => {
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
@@ -867,55 +872,6 @@ module.exports = (options) => {
         operations: ps.operations,
         // Dynamic resource dependencies, specific to implementation
         resources: [
-            {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.html`,
-                body: {
-                    revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 1,
-                        grace_ttl: 86400
-                    },
-                    valueType: 'blob',
-                    version: 1
-                }
-            },
-            {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.wikitext`,
-                body: {
-                    valueType: 'blob'
-                }
-            },
-            {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.data-parsoid`,
-                body: {
-                    revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 1,
-                        grace_ttl: 86400
-                    },
-                    valueType: 'json',
-                    version: 1
-                }
-            },
-            {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.section.offsets`,
-                body: {
-                    revisionRetentionPolicy: {
-                        type: 'latest',
-                        count: 1,
-                        grace_ttl: 86400
-                    },
-                    valueType: 'json',
-                    version: 1
-                }
-            },
-            {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.data-mw`,
-                body: {
-                    valueType: 'json'
-                }
-            },
-             */
             // stashing resources for HTML, wikitext and data-parsoid
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',

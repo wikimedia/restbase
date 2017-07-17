@@ -66,19 +66,37 @@ class ParsoidBucket {
                 })
 
             }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-index']),
+            hyper.put({ // TODO: add default TTL
+                uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline']),
                 body: {
-                    table: 'revision-index',
+                    table: 'revision-timeline',
                     version: 1,
                     attributes: {
                         key: 'string',
-                        tid: 'timeuuid',
+                        ts: 'timestamp',
                         rev: 'int'
                     },
                     index: [
                         { attribute: 'key', type: 'hash' },
-                        { attribute: 'tid', type: 'range', order: 'desc' },
+                        { attribute: 'ts', type: 'range', order: 'desc' },
+                    ]
+                }
+            }),
+            hyper.put({ // TODO: add default TTL
+                uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline']),
+                body: {
+                    table: 'render-timeline',
+                    version: 1,
+                    attributes: {
+                        key: 'string',
+                        ts: 'timestamp',
+                        rev: 'int',
+                        tid: 'timeuuid'
+                    },
+                    index: [
+                        { attribute: 'key', type: 'hash' },
+                        { attribute: 'rev', type: 'range', order: 'desc' },
+                        { attribute: 'ts', type: 'range', order: 'desc' },
                     ]
                 }
             })
@@ -136,9 +154,9 @@ class ParsoidBucket {
             }
         };
         if (rp.revision) {
-            storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
+            storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'parsoid_bucket');
             if (rp.tid) {
-                storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_rev_value');
+                storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'parsoid_bucket');
             }
         }
         return hyper.get(storeReq).then(returnRevision(req));
@@ -146,8 +164,8 @@ class ParsoidBucket {
 
     putRevision(hyper, req) {
         const rp = req.params;
-        const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') || uuid.now().toString();
+        const rev = mwUtil.parseRevision(rp.revision, 'parsoid_bucket');
+        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'parsoid_bucket') || uuid.now().toString();
 
         return P.join(
             hyper.put({
@@ -191,7 +209,118 @@ class ParsoidBucket {
                 }
             }
 
-        }));
+        }))
+        .tap(() => {
+            let previousRev;
+            let previousTid;
+            if (req.headers['x-previous-etag']) {
+                const parsedEtag = mwUtil.parseETag(req.headers['x-previous-etag']);
+                previousRev = parseInt(parsedEtag.rev, 10);
+                previousTid = parsedEtag.tid;
+            }
+
+            if (previousRev && previousTid) {
+                return P.join(hyper.put({
+                    uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                    body: {
+                        table: 'revision-timeline',
+                        attributes: {
+                            key: rp.key,
+                            ts: new Date(),
+                            rev: previousRev
+                        }
+                    }
+                }),
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
+                        body: {
+                            table: 'render-timeline',
+                            attributes: {
+                                key: rp.key,
+                                ts: new Date(),
+                                rev: previousRev,
+                                tid: previousTid
+                            }
+                        }
+                    })
+                );
+            }
+        })
+        .tap(() => {
+            // Now apply the deletes
+            // if (Math.random() < 0.5) { // TODO: make probability configurable
+            //    return;
+            // }
+
+            return P.join(
+                hyper.get({
+                    uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
+                    body: {
+                        table: 'render-timeline',
+                        attributes: {
+                            key: rp.key,
+                            rev,
+                            ts: {
+                                // TODO: replace with real value after testing
+                                le: new Date(Date.now() - 1)
+                            }
+                        }
+                    }
+                })
+                .then((res) => {
+                    if (res.body.items.length) {
+                        return hyper.delete({ // TODO: Delete other content too
+                            uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
+                            body: {
+                                table: 'html-ng',
+                                attributes: {
+                                    key: rp.key,
+                                    rev,
+                                    tid: {
+                                        le: res.body.items[0].tid
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch({ status: 404 }, () => {
+                    // Ignore the 404 if we don't have the timeline.
+                }),
+                hyper.get({
+                    uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                    body: {
+                        table: 'revision-timeline',
+                        attributes: {
+                            key: rp.key,
+                            ts: {
+                                // TODO: replace with real value after testing
+                                le: new Date(Date.now() - 86400000)
+                            }
+                        }
+                    }
+                })
+                .then((res) => {
+                    if (res.body.items.length) {
+                        return hyper.delete({ // TODO: Delete other content too
+                            uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
+                            body: {
+                                table: 'html-ng',
+                                attributes: {
+                                    key: rp.key,
+                                    rev: {
+                                        lt: res.body.items[0].rev
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch({ status: 404 }, () => {
+                    // Ignore the 404 if we don't have the timeline.
+                })
+            );
+        });
     }
 
     listRevisions(hyper, req) {
