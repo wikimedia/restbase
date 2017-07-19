@@ -286,28 +286,15 @@ class ParsoidService {
         .then((revInfo) => {
             rp.revision = `${revInfo.rev}`;
             if (reqRevision !== rp.revision) {
-
                 // Try to fetch the HTML corresponding to the requested revision,
                 // so that the change detection makes sense.
                 return hyper.get({
                     uri: this.getBucketURI(rp, format, rp.tid)
                 }).then(
                     (contentRes) => {
-                        // Temporary
-                        hyper.log('warn/revision_mismatch', {
-                            req_revision: reqRevision,
-                            received_revision: rp.revision,
-                            storage_resp_status: contentRes.status
-                        });
                         currentContentRes = contentRes;
                     },
                     (contentRes) => {
-                        // Temporary
-                        hyper.log('warn/revision_mismatch', {
-                            req_revision: reqRevision,
-                            received_revision: rp.revision,
-                            storage_resp_status: contentRes.status
-                        });
                         currentContentRes = contentRes;
                     }
                 );
