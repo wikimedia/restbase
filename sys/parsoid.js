@@ -264,7 +264,7 @@ class ParsoidService {
         const reqRevision = rp.revision;
         // Helper for retrieving original content from storage & posting it to
         // the Parsoid pagebundle end point
-        const getOrigAndPostToParsoid = (pageBundleUri, revision, contentName, updateMode) => {
+        /* const getOrigAndPostToParsoid = (pageBundleUri, revision, contentName, updateMode) => {
             return this._getOriginalContent(hyper, req, revision)
             .then((res) => {
                 const body = {
@@ -280,7 +280,7 @@ class ParsoidService {
                     body
                 });
             }, () => hyper.get({ uri: pageBundleUri })); // Fall back to plain GET
-        };
+        }; */
 
         return this.getRevisionInfo(hyper, req)
         .then((revInfo) => {
@@ -304,9 +304,11 @@ class ParsoidService {
             const pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
                 rp.title, rp.revision]);
 
-            const parentRev = parseInt(req.headers['x-restbase-parentrevision'], 10);
-            const updateMode = req.headers['x-restbase-mode'];
-            let parsoidReq;
+            // const parentRev = parseInt(req.headers['x-restbase-parentrevision'], 10);
+            // const updateMode = req.headers['x-restbase-mode'];
+            const parsoidReq =  hyper.get({ uri: pageBundleUri });
+            /* Switched off for the transition period to the new storage model. See T170997.
+
             if (parentRev) {
                 // OnEdit job update: pass along the predecessor version
                 parsoidReq = getOrigAndPostToParsoid(pageBundleUri, `${parentRev}`, 'previous');
@@ -319,7 +321,7 @@ class ParsoidService {
             } else {
                 // Plain render
                 parsoidReq = hyper.get({ uri: pageBundleUri });
-            }
+            } */
 
             return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
             .spread((res, currentContentRes) => {
