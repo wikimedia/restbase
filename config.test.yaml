@@ -77,7 +77,7 @@ wikimedia.org: &wikimedia.org
     - path: projects/wikimedia.org.yaml
       options:
         <<: *default_options
-        pageviews:
+        metrics:
           host: https://wikimedia.org/api/rest_v1/metrics
 
 wiktionary_project: &wiktionary_project
@@ -149,7 +149,7 @@ info:
 services:
   - name: restbase
     module: hyperswitch
-    conf: 
+    conf:
       port: 7231
       spec: *spec_root
       salt: secret
