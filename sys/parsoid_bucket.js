@@ -40,6 +40,52 @@ function returnRevision(req) {
     };
 }
 
+function createContentStoreRequests(hyper, req, rev, tid) {
+    const rp = req.params;
+    return P.join(
+        hyper.put({
+            uri: new URI([rp.domain, 'sys', 'table-ng', 'data-parsoid-ng', '']),
+            body: {
+                table: 'data-parsoid-ng',
+                attributes: {
+                    key: rp.key,
+                    rev,
+                    tid,
+                    'content-type': req.body['data-parsoid'].headers['content-type'],
+                    value: req.body['data-parsoid'].body
+                }
+            }
+        }),
+        hyper.put({
+            uri: new URI([rp.domain, 'sys', 'table-ng', 'section-offsets-ng', '']),
+            body: {
+                table: 'section-offsets-ng',
+                attributes: {
+                    key: rp.key,
+                    rev,
+                    tid,
+                    'content-type': req.body['section-offsets'].headers['content-type'],
+                    value: req.body['section-offsets'].body
+                }
+            }
+        })
+    )
+    // Save HTML last, so that any error in metadata storage suppresses HTML.
+    .then(() =>  hyper.put({
+        uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
+        body: {
+            table: 'html-ng',
+            attributes: {
+                key: rp.key,
+                rev,
+                tid,
+                'content-type': req.body.html.headers['content-type'],
+                value: req.body.html.body
+            }
+        }
+    }));
+}
+
 class ParsoidBucket {
     createBucket(hyper, req) {
         const rp = req.params;
@@ -167,70 +213,75 @@ class ParsoidBucket {
         const rev = mwUtil.parseRevision(rp.revision, 'parsoid_bucket');
         const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'parsoid_bucket') || uuid.now().toString();
 
-        return P.join(
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'data-parsoid-ng', '']),
-                body: {
-                    table: 'data-parsoid-ng',
-                    attributes: {
-                        key: rp.key,
-                        rev,
-                        tid,
-                        'content-type': req.body['data-parsoid'].headers['content-type'],
-                        value: req.body['data-parsoid'].body
-                    }
-                }
-            }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'section-offsets-ng', '']),
-                body: {
-                    table: 'section-offsets-ng',
-                    attributes: {
-                        key: rp.key,
-                        rev,
-                        tid,
-                        'content-type': req.body['section-offsets'].headers['content-type'],
-                        value: req.body['section-offsets'].body
-                    }
-                }
-            })
-        )
-        // Save HTML last, so that any error in metadata storage suppresses HTML.
-        .then(() =>  hyper.put({
+        // First, find out what was the previous revision stored to know what we are replacing
+        return hyper.get({
             uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
             body: {
-                table: 'html-ng',
+                table: `html-ng`,
                 attributes: {
-                    key: rp.key,
-                    rev,
-                    tid,
-                    'content-type': req.body.html.headers['content-type'],
-                    value: req.body.html.body
-                }
+                    key: rp.key
+                },
+                limit: 1,
+                proj: [ 'rev', 'tid']
             }
+        }).catchReturn({ status: 404 }, undefined)
+        .then((res) => {
+            let storeRequests = createContentStoreRequests(hyper, req, rev, tid);
 
-        }))
-        .tap(() => {
-            let previousRev;
-            let previousTid;
-            if (req.headers['x-previous-etag']) {
-                const parsedEtag = mwUtil.parseETag(req.headers['x-previous-etag']);
-                previousRev = parseInt(parsedEtag.rev, 10);
-                previousTid = parsedEtag.tid;
-            }
-
-            if (previousRev && previousTid) {
-                return P.join(hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
-                    body: {
-                        table: 'revision-timeline',
-                        attributes: {
-                            key: rp.key,
-                            ts: new Date(),
-                            rev: previousRev
+            if (res && res.body.items.length && res.body.items[0].rev < rev) {
+                // New revision is being written - update revision index and do the revision deletes
+                const replacedRev = res.body.items[0].rev;
+                storeRequests = storeRequests.tap(() => {
+                    // This can be done asyncronously!
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                        body: {
+                            table: 'revision-timeline',
+                            attributes: {
+                                key: rp.key,
+                                ts: new Date(),
+                                rev: replacedRev
+                            }
                         }
-                    }
-                }),
+                    })
+                    .then(() => hyper.get({
+                        uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                        body: {
+                            table: 'revision-timeline',
+                            attributes: {
+                                key: rp.key,
+                                ts: {
+                                    // TODO: replace with real value after testing
+                                    le: new Date(Date.now() - 10000)
+                                }
+                            }
+                        }
+                    }))
+                    .then((res) => {
+                        if (res.body.items.length) {
+                            return hyper.delete({ // TODO: Delete other content too
+                                uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
+                                body: {
+                                    table: 'html-ng',
+                                    attributes: {
+                                        key: rp.key,
+                                        rev: {
+                                            lt: res.body.items[0].rev
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch({ status: 404 }, () => {
+                        // Ignore the 404 if we don't have the timeline.
+                    });
+                });
+            } else if (res && res.body.items.length && res.body.items[0].rev === rev) {
+                // New render is being written - update render index and do the render deletes
+                const replacedTid = res.body.items[0].tid;
+                storeRequests = storeRequests.tap(() => {
+                    // This can be done asyncronously!
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
                         body: {
@@ -238,88 +289,56 @@ class ParsoidBucket {
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
-                                rev: previousRev,
-                                tid: previousTid
+                                rev,
+                                tid: replacedTid
                             }
                         }
                     })
-                );
+                    .then(() => hyper.get({
+                        uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
+                        body: {
+                            table: 'render-timeline',
+                            attributes: {
+                                key: rp.key,
+                                rev,
+                                ts: {
+                                    // TODO: replace with real value after testing
+                                    le: new Date(Date.now() - 10000)
+                                }
+                            }
+                        }
+                    }))
+                    .then((res) => {
+                        if (res.body.items.length) {
+                            return hyper.delete({ // TODO: Delete other content too
+                                uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
+                                body: {
+                                    table: 'html-ng',
+                                    attributes: {
+                                        key: rp.key,
+                                        rev,
+                                        tid: {
+                                            le: res.body.items[0].tid
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch({ status: 404 }, () => {
+                        // Ignore the 404 if we don't have the timeline.
+                    });
+                });
+            } else if (res && res.body.items.length && res.body.items[0].rev > rev) {
+                hyper.log('error/parsoid', {
+                    msg: 'Older content written to the latest bucket',
+                    title: rp.title,
+                    written_revision: rev,
+                    existing_revision: res.body.items[0].rev
+                });
             }
-        })
-        .tap(() => {
-            // Now apply the deletes
-            // if (Math.random() < 0.5) { // TODO: make probability configurable
-            //    return;
-            // }
 
-            return P.join(
-                hyper.get({
-                    uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
-                    body: {
-                        table: 'render-timeline',
-                        attributes: {
-                            key: rp.key,
-                            rev,
-                            ts: {
-                                // TODO: replace with real value after testing
-                                le: new Date(Date.now() - 1)
-                            }
-                        }
-                    }
-                })
-                .then((res) => {
-                    if (res.body.items.length) {
-                        return hyper.delete({ // TODO: Delete other content too
-                            uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
-                            body: {
-                                table: 'html-ng',
-                                attributes: {
-                                    key: rp.key,
-                                    rev,
-                                    tid: {
-                                        le: res.body.items[0].tid
-                                    }
-                                }
-                            }
-                        });
-                    }
-                })
-                .catch({ status: 404 }, () => {
-                    // Ignore the 404 if we don't have the timeline.
-                }),
-                hyper.get({
-                    uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
-                    body: {
-                        table: 'revision-timeline',
-                        attributes: {
-                            key: rp.key,
-                            ts: {
-                                // TODO: replace with real value after testing
-                                le: new Date(Date.now() - 86400000)
-                            }
-                        }
-                    }
-                })
-                .then((res) => {
-                    if (res.body.items.length) {
-                        return hyper.delete({ // TODO: Delete other content too
-                            uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
-                            body: {
-                                table: 'html-ng',
-                                attributes: {
-                                    key: rp.key,
-                                    rev: {
-                                        lt: res.body.items[0].rev
-                                    }
-                                }
-                            }
-                        });
-                    }
-                })
-                .catch({ status: 404 }, () => {
-                    // Ignore the 404 if we don't have the timeline.
-                })
-            );
+            return storeRequests;
         });
     }
 
