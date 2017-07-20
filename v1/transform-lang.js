@@ -22,7 +22,7 @@ class TransformLang {
             if (rp.provider) {
                 uri += `/${rp.provider}`;
             }
-            hyper.post({
+            return hyper.post({
                 uri,
                 body: req.body
             });
