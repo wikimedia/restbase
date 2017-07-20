@@ -86,6 +86,56 @@ function createContentStoreRequests(hyper, req, rev, tid) {
     }));
 }
 
+function deleteRenders(hyper, req, rev, tid) {
+    const rp = req.params;
+
+    function deleteRender(contentType) {
+        return hyper.delete({ // TODO: Delete other content too
+            uri: new URI([rp.domain, 'sys', 'table-ng', `${contentType}-ng`, '']),
+            body: {
+                table: `${contentType}-ng`,
+                attributes: {
+                    key: rp.key,
+                    rev,
+                    tid: {
+                        le: tid
+                    }
+                }
+            }
+        });
+    }
+
+    return deleteRender('html')
+    .then(() => P.join(
+        deleteRender('data-parsoid'),
+        deleteRender('section-offsets'))
+    );
+}
+
+function deleteRevisions(hyper, req, rev) {
+    const rp = req.params;
+    function deleteRevision(contentType) {
+        return hyper.delete({ // TODO: Delete other content too
+            uri: new URI([rp.domain, 'sys', 'table-ng', `${contentType}-ng`, '']),
+            body: {
+                table: `${contentType}-ng`,
+                attributes: {
+                    key: rp.key,
+                    rev: {
+                        le: rev
+                    }
+                }
+            }
+        });
+    }
+
+    return deleteRevision('html')
+    .then(() => P.join(
+        deleteRevision('data-parsoid'),
+        deleteRevision('section-offsets'))
+    );
+}
+
 class ParsoidBucket {
     createBucket(hyper, req) {
         const rp = req.params;
@@ -125,7 +175,10 @@ class ParsoidBucket {
                     index: [
                         { attribute: 'key', type: 'hash' },
                         { attribute: 'ts', type: 'range', order: 'desc' },
-                    ]
+                    ],
+                    options: {
+                        default_time_to_live: 864000
+                    }
                 }
             }),
             hyper.put({ // TODO: add default TTL
@@ -143,7 +196,10 @@ class ParsoidBucket {
                         { attribute: 'key', type: 'hash' },
                         { attribute: 'rev', type: 'range', order: 'desc' },
                         { attribute: 'ts', type: 'range', order: 'desc' },
-                    ]
+                    ],
+                    options: {
+                        default_time_to_live: 864000
+                    }
                 }
             })
         ]).thenReturn({ status: 201 });
@@ -251,26 +307,15 @@ class ParsoidBucket {
                             attributes: {
                                 key: rp.key,
                                 ts: {
-                                    // TODO: replace with real value after testing
-                                    le: new Date(Date.now() - 10000)
+                                    le: new Date(Date.now() - 86400000)
                                 }
-                            }
+                            },
+                            limit: 1
                         }
                     }))
                     .then((res) => {
                         if (res.body.items.length) {
-                            return hyper.delete({ // TODO: Delete other content too
-                                uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
-                                body: {
-                                    table: 'html-ng',
-                                    attributes: {
-                                        key: rp.key,
-                                        rev: {
-                                            lt: res.body.items[0].rev
-                                        }
-                                    }
-                                }
-                            });
+                            return deleteRevisions(hyper, req, rev);
                         }
                     })
                     .catch({ status: 404 }, () => {
@@ -302,27 +347,15 @@ class ParsoidBucket {
                                 key: rp.key,
                                 rev,
                                 ts: {
-                                    // TODO: replace with real value after testing
-                                    le: new Date(Date.now() - 10000)
+                                    le: new Date(Date.now() - 86400000)
                                 }
-                            }
+                            },
+                            limit: 1
                         }
                     }))
                     .then((res) => {
                         if (res.body.items.length) {
-                            return hyper.delete({ // TODO: Delete other content too
-                                uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
-                                body: {
-                                    table: 'html-ng',
-                                    attributes: {
-                                        key: rp.key,
-                                        rev,
-                                        tid: {
-                                            le: res.body.items[0].tid
-                                        }
-                                    }
-                                }
-                            });
+                            return deleteRenders(hyper, req, rev, res.body.items[0].tid);
                         }
                     })
                     .catch({ status: 404 }, () => {
