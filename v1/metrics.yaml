@@ -21,6 +21,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       responses:
@@ -44,6 +46,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       parameters:
@@ -119,6 +123,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       parameters:
@@ -212,6 +218,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       parameters:
@@ -275,6 +283,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       parameters:
@@ -339,6 +349,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       responses:
@@ -361,6 +373,8 @@ paths:
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
         - application/json
       parameters:
