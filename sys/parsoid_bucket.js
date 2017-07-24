@@ -315,7 +315,7 @@ class ParsoidBucket {
                     }))
                     .then((res) => {
                         if (res.body.items.length) {
-                            return deleteRevisions(hyper, req, rev);
+                            return deleteRevisions(hyper, req, res.body.items[0].rev);
                         }
                     })
                     .catch({ status: 404 }, () => {
