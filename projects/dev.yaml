@@ -1,4 +1,4 @@
-# RESTBase project config for small wiki installs
+# RESTBase project config for development environments
 paths:
   /{api:v1}:
     x-modules:
@@ -16,10 +16,27 @@ paths:
               x-modules:
                 - path: v1/content.yaml
                   options: '{{options}}'
+                - path: v1/content_segments.yaml
+                  options:
+                      purged_cache_control: '{{options.purged_cache_control}}'
+                      cx_host: '{{options.transform.cx_host}}'
                 - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
+                - path: v1/mobileapps.yaml
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
+                - path: v1/transform-lang.js
+                  options: '{{options.transform}}'
+            /media:
+              x-modules:
+                - path: v1/mathoid.yaml
+                  options: '{{options.mathoid}}'
+            /data:
+              x-modules:
+                - path: v1/citoid.js
+                  options: '{{options.citoid}}'
         options: '{{options}}'
 
   /{api:sys}:
@@ -59,5 +76,10 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
+            /mobileapps:
+              x-modules:
+                - path: sys/mobileapps.js
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
         options: '{{options}}'
 
