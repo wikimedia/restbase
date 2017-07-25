@@ -48,6 +48,8 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
+                  options: '{{options}}'
+                - path: v1/content_segments.yaml
                   options:
                     purged_cache_control: '{{options.purged_cache_control}}'
                     cx_host: '{{options.transform.cx_host}}'
