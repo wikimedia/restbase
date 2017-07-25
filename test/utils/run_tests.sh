@@ -11,7 +11,7 @@ runTest ( ) {
         rm -f test.db.sqlite3
     else
         echo "Running with Cassandra backend"
-        if [ `nc localhost 9042 < /dev/null; echo $?` != 0 ]; then
+        if [ `nc -z localhost 9042 < /dev/null; echo $?` != 0 ]; then
           echo "Waiting for Cassandra to start..."
           while [ `nc -z localhost 9042; echo $?` != 0 ]; do
             sleep 1
