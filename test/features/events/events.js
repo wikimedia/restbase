@@ -62,8 +62,11 @@ describe('Change event emitting', function() {
         var eventLogging;
 
         function really_done(e) {
-            if (eventLogging) eventLogging.close();
-            done(e)
+            if (eventLogging) {
+                eventLogging.close();
+                eventLogging = undefined;
+                done(e)
+            }
         }
 
         eventLogging = createEventLogging(really_done, {
@@ -98,8 +101,11 @@ describe('Change event emitting', function() {
         var eventLogging;
 
         function really_done(e) {
-            if (eventLogging) eventLogging.close();
-            done(e)
+            if (eventLogging) {
+                eventLogging.close();
+                eventLogging = undefined;
+                done(e)
+            }
         }
 
         eventLogging = createEventLogging(really_done, {
@@ -134,8 +140,11 @@ describe('Change event emitting', function() {
         var eventLogging;
 
         function really_done(e) {
-            if (eventLogging) eventLogging.close();
-            done(e)
+            if (eventLogging) {
+                eventLogging.close();
+                eventLogging = undefined;
+                done(e)
+            }
         }
 
         eventLogging = createEventLogging(really_done, {
