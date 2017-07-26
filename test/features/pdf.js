@@ -22,4 +22,19 @@ describe('PDF Service', () => {
             assert.ok(res.body.length !== 0);
         });
     });
+
+    it('Should get PDF for a page containing a quote in its title', () => {
+        return preq.get({
+            uri: `${server.config.hostPort}/en.wikipedia.org/v1/page/pdf/"...And_Ladies_of_the_Club"`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-disposition'],
+                'attachment; filename="%22...And_Ladies_of_the_Club%22.pdf";'
+                    + ' filename*=UTF-8\'\'%22...And_Ladies_of_the_Club%22.pdf');
+            assert.deepEqual(res.headers['content-type'], 'application/pdf');
+            assert.ok(/"\d+\/[\d\w-]+"/.test(res.headers.etag));
+            assert.ok(res.body.length !== 0);
+        });
+    });
 });
