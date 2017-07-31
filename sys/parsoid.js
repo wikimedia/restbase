@@ -904,45 +904,33 @@ module.exports = (options) => {
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
                 body: {
-                    revisionRetentionPolicy: {
-                        type: 'ttl',
-                        ttl: 86400
-                    },
                     valueType: 'blob',
-                    version: 1
+                    version: 2,
+                    default_time_to_live: 86400
                 }
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
                 body: {
-                    revisionRetentionPolicy: {
-                        type: 'ttl',
-                        ttl: 86400
-                    },
                     valueType: 'blob',
-                    version: 1
+                    version: 2,
+                    default_time_to_live: 86400
                 }
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
                 body: {
-                    revisionRetentionPolicy: {
-                        type: 'ttl',
-                        ttl: 86400
-                    },
                     valueType: 'json',
-                    version: 1
+                    version: 2,
+                    default_time_to_live: 86400
                 }
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.section-offsets',
                 body: {
-                    revisionRetentionPolicy: {
-                        type: 'ttl',
-                        ttl: 86400
-                    },
                     valueType: 'json',
-                    version: 1
+                    version: 2,
+                    default_time_to_live: 86400
                 }
             },
             {
