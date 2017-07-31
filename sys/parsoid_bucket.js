@@ -282,12 +282,14 @@ class ParsoidBucket {
             }
         }).catchReturn({ status: 404 }, undefined)
         .then((res) => {
-            let storeRequests = createContentStoreRequests(hyper, req, rev, tid);
-
-            if (res && res.body.items.length && res.body.items[0].rev < rev) {
+            if (!res || !res.body.items.length) {
+                // Noting was ever there - put the first render and no need to update the index
+                return createContentStoreRequests(hyper, req,rev, tid);
+            } else if (res && res.body.items.length && res.body.items[0].rev < rev) {
                 // New revision is being written - update revision index and do the revision deletes
                 const replacedRev = res.body.items[0].rev;
-                storeRequests = storeRequests.tap(() => {
+                return createContentStoreRequests(hyper, req, rev, tid)
+                .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
@@ -325,7 +327,8 @@ class ParsoidBucket {
             } else if (res && res.body.items.length && res.body.items[0].rev === rev) {
                 // New render is being written - update render index and do the render deletes
                 const replacedTid = res.body.items[0].tid;
-                storeRequests = storeRequests.tap(() => {
+                return createContentStoreRequests(hyper, req, rev, tid)
+                .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
@@ -363,15 +366,8 @@ class ParsoidBucket {
                     });
                 });
             } else if (res && res.body.items.length && res.body.items[0].rev > rev) {
-                hyper.log('error/parsoid', {
-                    msg: 'Older content written to the latest bucket',
-                    title: rp.title,
-                    written_revision: rev,
-                    existing_revision: res.body.items[0].rev
-                });
+                throw new HTTPError({ status: 412 });
             }
-
-            return storeRequests;
         });
     }
 

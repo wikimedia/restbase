@@ -261,18 +261,9 @@ class ParsoidService {
         return hyper.get({
             uri: this.getNGBucketURI(rp, format, tid)
         })
-        .then((res) => {
-            res.body.fromFallback = false;
-            return res;
-        })
         .catch({ status: 404 }, () => hyper.get({
             uri: this.getFallbackBucketURI(rp, format, tid)
-        }))
-        .then((res) => {
-            // TODO: implement TTL checking and renewing!
-            res.body.fromFallback = true;
-            return res;
-        });
+        }));
     }
 
     pagebundle(hyper, req) {
@@ -411,13 +402,9 @@ class ParsoidService {
                         body: res.body[format].body
                     };
                     resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                    return P.all([
-                        this.saveParsoidResultToLatest(hyper, req, tid, res),
-                        // TODO: This is not needed all the time - we can find out whether
-                        // to store to fallback by the contents of the latest bucket when
-                        // saving.
-                        this.saveParsoidResultToFallback(hyper, req, tid, res)
-                    ])
+                    return this.saveParsoidResultToLatest(hyper, req, tid, res)
+                    .catch({ status: 412 }, () =>
+                        this.saveParsoidResultToFallback(hyper, req, tid, res))
                     .then(() => {
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
