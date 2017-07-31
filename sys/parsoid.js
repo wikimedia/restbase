@@ -246,6 +246,35 @@ class ParsoidService {
         return new URI(path);
     }
 
+    getFallbackBucketURI(rp, format, tid) {
+        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}`, rp.title];
+        if (rp.revision) {
+            path.push(rp.revision);
+            if (tid) {
+                path.push(tid);
+            }
+        }
+        return new URI(path);
+    }
+
+    _getContentWithFallback(hyper, rp, format, tid) {
+        return hyper.get({
+            uri: this.getNGBucketURI(rp, format, tid)
+        })
+        .then((res) => {
+            res.body.fromFallback = false;
+            return res;
+        })
+        .catch({ status: 404 }, () => hyper.get({
+            uri: this.getFallbackBucketURI(rp, format, tid)
+        }))
+        .then((res) => {
+            // TODO: implement TTL checking and renewing!
+            res.body.fromFallback = true;
+            return res;
+        });
+    }
+
     pagebundle(hyper, req) {
         const rp = req.params;
         const domain = rp.domain;
@@ -257,13 +286,10 @@ class ParsoidService {
         return hyper.request(newReq);
     }
 
-    saveParsoidResult(hyper, req, tid, parsoidResp, prevEtag) {
+    saveParsoidResultToLatest(hyper, req, tid, parsoidResp) {
         const rp = req.params;
         return hyper.put({
             uri: this.getNGBucketURI(rp, 'all', tid),
-            headers: {
-                'x-previous-etag': prevEtag
-            },
             body: {
                 html: parsoidResp.body.html,
                 'data-parsoid': parsoidResp.body['data-parsoid'],
@@ -275,6 +301,29 @@ class ParsoidService {
                 }
             }
         });
+    }
+
+    saveParsoidResultToFallback(hyper, req, tid, parsoidResp) {
+        const rp = req.params;
+        return P.all([
+            hyper.put({
+                uri: this.getFallbackBucketURI(rp, 'data-parsoid', tid),
+                headers: parsoidResp.body['data-parsoid'].headers,
+                body: parsoidResp.body['data-parsoid'].body
+            }),
+            hyper.put({
+                uri: this.getFallbackBucketURI(rp, 'section-offsets', tid),
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: parsoidResp.body['data-parsoid'].body.sectionOffsets
+            }),
+        ])
+        .then(() => hyper.put({
+            uri: this.getFallbackBucketURI(rp, 'html', tid),
+            headers: parsoidResp.body.html.headers,
+            body: parsoidResp.body.html.body
+        }));
     }
 
     generateAndSave(hyper, req, format, currentContentRes) {
@@ -307,9 +356,8 @@ class ParsoidService {
             if (reqRevision !== rp.revision) {
                 // Try to fetch the HTML corresponding to the requested revision,
                 // so that the change detection makes sense.
-                return hyper.get({
-                    uri: this.getNGBucketURI(rp, format, rp.tid)
-                }).then(
+                return this._getContentWithFallback(hyper, rp, format)
+                .then(
                     (contentRes) => {
                         currentContentRes = contentRes;
                     },
@@ -363,9 +411,13 @@ class ParsoidService {
                         body: res.body[format].body
                     };
                     resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                    return this.saveParsoidResult(hyper, req, tid, res,
-                        currentContentRes && currentContentRes.headers
-                            && currentContentRes.headers.etag)
+                    return P.all([
+                        this.saveParsoidResultToLatest(hyper, req, tid, res),
+                        // TODO: This is not needed all the time - we can find out whether
+                        // to store to fallback by the contents of the latest bucket when
+                        // saving.
+                        this.saveParsoidResultToFallback(hyper, req, tid, res)
+                    ])
                     .then(() => {
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
@@ -415,9 +467,8 @@ class ParsoidService {
                 revision: etagInfo.rev,
                 tid: etagInfo.tid
             });
-            return hyper.get({
-                uri: this.getNGBucketURI(sectionsRP, 'section-offsets', sectionsRP.tid)
-            })
+            return this._getContentWithFallback(hyper, sectionsRP,
+                'section-offsets', sectionsRP.tid)
             .then(sectionOffsets => mwUtil.decodeBody(htmlRes).then((content) => {
                 const body = cheapBodyInnerHTML(content.body);
                 const chunks = sections.reduce((result, id) => {
@@ -495,9 +546,7 @@ class ParsoidService {
             });
         }
 
-        let contentReq = hyper.get({
-            uri: this.getNGBucketURI(rp, format, rp.tid)
-        });
+        let contentReq = this._getContentWithFallback(hyper, rp, format, rp.tid);
 
         if (mwUtil.isNoCacheRequest(req)) {
             // Check content generation either way
@@ -897,6 +946,17 @@ module.exports = (options) => {
             },
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
+                    valueType: 'json',
+                    version: 1
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.section-offsets',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
