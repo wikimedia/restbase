@@ -33,6 +33,8 @@ default_project: &default_project
           host: https://appservice.wmflabs.org
         citoid:
           host: https://citoid-beta.wmflabs.org
+        recommendation:
+          host: https://recommendation-api-beta.wmflabs.org
         events: {}
         purged_cache_control: test_purged_cache_control
         # Cache control for purged endpoints allowing short-term client caching
