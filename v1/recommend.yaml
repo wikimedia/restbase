@@ -51,6 +51,7 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/{domain}/v1/translation/articles/{from_lang}/{seed_article}'
+      x-monitor: false
 definitions:
   translation_result:
     type: object
