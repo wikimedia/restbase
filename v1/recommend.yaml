@@ -42,7 +42,7 @@ paths:
         '200':
           description: the list of articles recommended for translation
           schema:
-            $ref: '#/definitions/translation_result'
+            $ref: '#/definitions/recommendation_result'
         default:
           description: Error
           schema:
@@ -50,10 +50,10 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: '{{options.host}}/{domain}/v1/translation/articles/{from_lang}/{seed_article}'
+              uri: '{{options.host}}/{domain}/v1/translation/articles/{from_lang}/{{default(seed_article,"")}}'
       x-monitor: false
 definitions:
-  translation_result:
+  recommendation_result:
     type: object
     properties:
       count:
