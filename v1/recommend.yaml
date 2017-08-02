@@ -59,7 +59,7 @@ definitions:
       count:
         type: integer
         description: the number of recommendations returned
-      articles:
+      items:
         type: array
         description: the list of articles recommended for translation
         items:
