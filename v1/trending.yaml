@@ -1,0 +1,104 @@
+# Trending-edits endpoints powered by the the trending service
+paths:
+  /trending/edits{/period}:
+    get:
+      tags:
+        - Feed
+      summary: Trending articles feed
+      description: |
+        Provides a list of articles that are trending right now (receiving the most edits)
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      parameters:
+        - name: period
+          description: |
+            The period, expressed in hours, for which to obtain the list of trending articles. Default: 1 hour
+          in: path
+          required: false
+          type: integer
+          minimum: 1
+          maximum: 24
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: JSON containing all of the featured content
+          schema:
+            $ref: '#/definitions/trendingResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      operationId: trendingEdits
+      x-monitor: false # Can't monitor since we can't be sure something will be trending all the time
+
+definitions:
+  trendingPage:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: The page ID
+      title:
+        type: string
+        description: Article title in a form of DB key
+      thumbnail:
+        description: Lead image for the article
+        $ref: '#/definitions/thumbnail'
+      originalimage:
+        description: The original of the lead image for the article
+        $ref: '#/definitions/originalimage'
+      description:
+        type: string
+        description: Wikidata description of the article
+      extract:
+        type: string
+        description: First several sentences of an article in plain text
+      totalEdits:
+        type: integer
+        description: The number of edits for this page
+      trendiness:
+        type: integer
+        description: The page score based on edits
+      isNew:
+        type: boolean
+        description: Was the page created during this trend period
+      updated:
+        type: string
+        format: date-time
+        description: Timestamp when the page was last updated
+      editors:
+        type: integer
+        description: Number of unique editors who changed the page
+      coordinates:
+        type: object
+        description: The coordinates of the item
+        properties:
+          lat:
+            type: number
+            description: The latitude
+          lon:
+            type: number
+            description: The longitude
+        requiredProperties: [ 'lat', 'lon' ]
+    required:
+      - title
+
+  trendingResponse:
+    type: object
+    description: The response of the trending feed
+    properties:
+      pages:
+        description: Data about the featured article of the day
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/trendingPage'
+      ts:
+        description: Timestamp of the data
+        type: string
+        format: date-time
+    additionalProperties: false
+    required:
+      - pages
+      - ts

@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: '1.0.0-beta'
+  version: '1.0.0'
   title: MediaWiki Content API
   description: Basic MediaWiki content api.
   termsofservice: https://github.com/wikimedia/restbase#restbase
@@ -21,7 +21,7 @@ paths:
         - Page content
       summary: List page-related API entry points.
       description: |
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json
       responses:
@@ -41,7 +41,8 @@ paths:
         - Page content
       summary: List all pages.
       description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
+        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
+        To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -73,7 +74,8 @@ paths:
         - Page content
       summary: Get latest revision metadata for a title.
       description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
+        To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -87,6 +89,22 @@ paths:
           description: The latest revision metadata for the provided title.
           schema:
             $ref: '#/definitions/revision'
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid these redirects, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title or no revisions found.
           schema:
@@ -150,7 +168,8 @@ paths:
         linear history (across renames) of the page currently using this
         title.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
+        To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -192,11 +211,13 @@ paths:
         options:
           allowInlineStyles: true
     get:
+      x-route-filters:
+        - path: lib/ensure_content_type.js
       tags:
         - Page content
       summary: Get latest HTML for a title.
       description: |
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       parameters:
         - name: title
           in: path
@@ -217,7 +238,7 @@ paths:
           type: boolean
           required: false
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
       responses:
         '200':
           description: |
@@ -240,6 +261,22 @@ paths:
                 the exact corresponding data-parsoid metadata, by requesting
                 the specific `revision` and `tid` indicated by the `ETag`.
               type: string
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title
           schema:
@@ -446,14 +483,16 @@ paths:
         options:
           allowInlineStyles: true
     get:
+      x-route-filters:
+        - path: lib/ensure_content_type.js
       tags:
         - Page content
       summary: Get HTML for a specific title/revision & optionally timeuuid.
       description: |
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       operationId: getFormatRevision
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
       parameters:
         - name: title
           in: path
@@ -513,6 +552,22 @@ paths:
                 the exact corresponding data-parsoid metadata, by requesting
                 the specific `revision` and `tid` indicated by the `ETag`.
               type: string
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page revision contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '400':
           description: Invalid revision or tid
           schema:
@@ -564,9 +619,9 @@ paths:
         For this reason, you need to supply the exact `revision` and `tid` as
         provided in the `ETag` header of the HTML response.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: [Stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.5.0"
       parameters:
         - name: title
           in: path
@@ -601,6 +656,22 @@ paths:
             ETag:
               description: 'Revision / tid: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"'
               type: string
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual data-parsoid for the redirect page.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '400':
           description: Invalid revision
           schema:
@@ -634,8 +705,8 @@ paths:
         - Page content
       summary: List all page revisions.
       description: |
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental).
-        Don't rely on this.
+        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
+        To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -667,7 +738,8 @@ paths:
         - Page content
       summary: Get metadata about a specific revision.
       description: |
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
+        To be removed on May, 1st 2017
       produces:
         - application/json
       parameters:
@@ -818,21 +890,8 @@ paths:
               body: '{{request.body}}'
       x-monitor: false
 
-definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
 
+definitions:
   revisions:
     description: The result format for revision listing
     required:

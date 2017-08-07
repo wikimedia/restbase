@@ -1,0 +1,96 @@
+info:
+  version: '1.0.0'
+  title: Transform API
+  description: Transform API
+  termsofservice: https://github.com/wikimedia/restbase
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /html/from/{from}{/provider}:
+    post:
+      tags: ['Transforms']
+      summary: Machine-translate content
+      description: |
+        Fetches the machine translation for the posted content from the source
+        to the language of this wiki.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: from
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: provider
+          in: path
+          description: The machine translation provider id
+          type: string
+          required: false
+          enum:
+           - Apertium
+           - Yandex
+           - Youdao
+        - name: html
+          in: body
+          description: The HTML content to translate
+          type: string
+          required: true
+          x-textarea: true
+      responses:
+        '200':
+          description: The translated content
+          schema:
+            $ref: '#/definitions/cx_mt'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+      operationId: doMT
+  /word/from/{from}/{word}{/provider}:
+    get:
+      tags: ['Transforms']
+      summary: Fetch the dictionary meaning of a word
+      description: |
+        Fetches the dictionary meaning of a word from a language and displays
+        it in the target language.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json
+      parameters:
+        - name: from
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: word
+          in: path
+          description: The word to lookup
+          type: string
+          required: true
+        - name: provider
+          in: path
+          description: The dictionary provider id
+          type: string
+          required: false
+          enum:
+           - JsonDict
+           - Dictd
+      responses:
+        '200':
+          description: the dictionary translation for the given word
+          schema:
+            $ref: '#/definitions/cx_dict'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+      operationId: doDict
+

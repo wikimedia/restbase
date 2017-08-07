@@ -7,6 +7,7 @@ var assert = require('assert');
 var preq   = require('preq');
 var Router = require('hyperswitch/lib/router');
 var server = require('../../utils/server');
+const parallel = require('mocha.parallel');
 
 var rootSpec = {
     paths: {
@@ -24,7 +25,7 @@ var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
 
 var fakeHyperSwitch = { config: {} };
 
-describe('tree building', function() {
+parallel('tree building', function() {
 
     before(function() { server.start(); });
 

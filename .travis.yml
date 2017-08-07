@@ -1,10 +1,7 @@
 language: node_js
 node_js:
-    - "0.10"
-    - "0.12"
     - "4"
     - "6"
-
 sudo: false
 
 notifications:
@@ -13,10 +10,22 @@ notifications:
       - "irc.freenode.org#wikimedia-services"
     on_success: change
     on_failure: always
+addons:
+  apt:
+    packages:
+    - oracle-java8-set-default
+
+env:
+  - CASSANDRA_VERSION=2.2.6 TEST_TARGET=all
+  - CASSANDRA_VERSION=3.11.0 TEST_TARGET=cassandra
 
 before_install:
-  - wget https://archive.apache.org/dist/cassandra/2.2.6/apache-cassandra-2.2.6-bin.tar.gz -P ../
-  - tar -xzf ../apache-cassandra-2.2.6-bin.tar.gz -C ../
-  - sh ../apache-cassandra-2.2.6/bin/cassandra > /dev/null
+  - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
+  - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
+  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
+  - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
+  - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
+  - echo "-Xmx1g" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
+  - bash ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra > /dev/null
 
-script: sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)
+script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)

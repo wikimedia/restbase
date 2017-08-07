@@ -48,6 +48,8 @@ services:
                   action:
                     # XXX Check API URL!
                     apiUriTemplate: http://localhost/w/api.php
+                    # XXX Check the base RESTBase URI
+                    baseUriTemplate: "{{'http://{domain}:7231/{domain}/v1'}}"
                   parsoid:
                     # XXX Check Parsoid URL!
                     host: http://localhost:8142
@@ -58,6 +60,14 @@ services:
                     retry_delay: 250
                     retry_limit: 10
                     show_sql: false
+                  citoid:
+                    host: http://citoid-beta.wmflabs.org
+                  mathoid:
+                    host: http://mathoid-tester.wmflabs.org
+                  mobileapps:
+                    host: http://appservice.wmflabs.org
+                  purged_cache_control: s-maxage=0, max-age=86400
+                  purged_cache_control_client_cache: s-maxage=0, max-age=300
 
 # Finally, a standard service-runner config.
 info:

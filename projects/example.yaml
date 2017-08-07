@@ -1,29 +1,10 @@
-# RESTBase config for small wiki installs
-#
-# - sqlite backend
-# - parsoid at http://localhost:8142
-# - wiki at http://localhost/w/api.php
-# 
-# Quick setup:
-# - npm install
-#   If you see errors about sqlite, you might have to `apt-get install
-#   libsqlite3-dev`.
-# - cp config.example.yaml config.yaml
-# - double-check and possibly modify lines marked with XXX, then start restbase with
-#
-#   node server
-#
-# - If all went well, http://localhost:7231/localhost/v1/page/html/Main_Page
-# should show your wiki's [[Main Page]].
-
-# First, we define some project templates. These are referenced / shared
-# between domains in the root_spec further down.
+# RESTBase project config for small wiki installs
 paths:
   /{api:v1}:
     x-modules:
       - spec:
           info:
-            version: 1.0.0-beta
+            version: 1.0.0
             title: Wikimedia REST API
             description: Welcome to your RESTBase API.
           x-route-filters:
@@ -34,8 +15,8 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
-                  options:
-                    purged_cache_control: '{{options.purged_cache_control}}'
+                  options: '{{options}}'
+                - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
             /transform:
               x-modules:
                 - path: v1/transform.yaml

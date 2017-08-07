@@ -78,6 +78,11 @@ paths:
       summary: Transform wikitext to HTML.
       operationId: transformWikitextToHtml
 
+  /transform/wikitext/to/lint{/title}{/revision}:
+    post:
+      summary: Check the wikitext for lint errors.
+      operationId: transformWikitextToLint
+
   /transform/changes/to/wikitext/{title}/{revision}:
     post:
       summary: Transform section changes to wikitext.

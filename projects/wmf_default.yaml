@@ -4,20 +4,30 @@ paths:
         # swagger options, overriding the shared ones from the merged specs (?)
       - spec:
           info:
-            version: 1.0.0-beta
+            version: 1.0.0
             title: Wikimedia REST API
             description: >
-                This API aims to provide coherent and low-latency access to
-                Wikimedia content and services. It is currently in beta testing, so
-                things aren't completely locked down yet. Each entry point has
-                explicit stability markers to inform you about development status
-                and change policy, according to [our API version
-                policy](https://www.mediawiki.org/wiki/API_versioning).
+                This API provides cacheable and straightforward access to
+                Wikimedia content and data, in machine-readable formats. Each
+                entry point has explicit stability markers to inform you about
+                development status and change policy, according to [our API
+                version policy](https://www.mediawiki.org/wiki/API_versioning).
+
+                See https://www.mediawiki.org/wiki/REST_API for background and details.
 
                 ### High-volume access
-                  - Don't perform more than 200 requests/s to this API.
-                  - Set a unique `User-Agent` header that allows us to contact you
-                    quickly. Email addresses or URLs of contact pages work well.
+                  - Limit your clients to no more than 200 requests/s to this API.
+                  - Set a unique `User-Agent` or `Api-User-Agent` header that
+                    allows us to contact you quickly. Email addresses or URLs
+                    of contact pages work well.
+
+                By using this API, you agree to Wikimedia's 
+                [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
+                [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy), and
+                you irrevocably agree to release modifications or additions
+                made through this API under the 
+                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
+                License and the [GFDL](https://www.gnu.org/copyleft/fdl.html).
 
             termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
             contact:
@@ -30,6 +40,7 @@ paths:
           # we proxy https://{domain}/api/rest_v1/ to the API.
           x-host-basePath: /api/rest_v1
           x-route-filters:
+            - path: lib/content_location_filter.js
             - path: ./lib/normalize_title_filter.js
               options:
                 redirect_cache_control: '{{options.purged_cache_control}}'
@@ -37,8 +48,11 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
+                  options: '{{options}}'
+                - path: v1/content_segments.yaml
                   options:
                     purged_cache_control: '{{options.purged_cache_control}}'
+                    cx_host: '{{options.transform.cx_host}}'
                 - path: v1/mobileapps.yaml
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
@@ -46,24 +60,38 @@ paths:
                   options: '{{options.graphoid}}'
                 - path: v1/summary.js
                   options:
-                    response_cache_control: '{{options.purged_cache_control}}'
+                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
                   options: '{{merge({"random_cache_control": "s-maxage=2, max-age=1"},
                                 options.mobileapps)}}'
+                - path: v1/pdf.js
+                  options: '{{options.pdf}}'
+                - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
             /feed:
               x-modules:
                 - path: v1/feed.js
-                  options: '{{merge({"feed_cache_control": "s-maxage=30, max-age=15", "ttl": 600},
-                                options.mobileapps)}}'
+                  options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60", "ttl": 7200}, options.mobileapps)}}'
+                - path: v1/announcements.yaml
+                  options: '{{merge({"announcement_cache_control": "s-maxage=86400, max-age=86400"}, options.mobileapps)}}'
+                - path: v1/onthisday.js
+                  options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60", "ttl": 7200}, options.mobileapps)}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
+                - path: v1/transform-lang.js
+                  options: '{{options.transform}}'
             /media:
               x-modules:
                 - path: v1/mathoid.yaml
                   options: '{{options.mathoid}}'
+            /data:
+              x-modules:
+                - path: v1/citoid.js
+                  options: '{{options.citoid}}'
+                - path: v1/recommend.yaml
+                  options: '{{options.recommendation}}'
         options: '{{options}}'
 
   /{api:sys}:
@@ -107,48 +135,87 @@ paths:
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
                     rerenderBlacklist:
-                      www.wikidata.org:
-                        Q21558717: true
-                        Q21505108: true
-                        Q21481867: true
-                        Q21521425: true
-                      en.wikipedia.org:
-                        Wikipedia:Administrators'_noticeboard/Incidents: true
-                        User:JamesR/AdminStats: true
-                        User:Kudpung/Dashboard: true
-                        # Various dashboards
-                        User:Breawycker/Wikipedia: true
-                        User:Sonia/dashboard: true
-                        User:Ocaasi/dashboard: true
-                        User:Nolelover: true
-                        User:Calmer_Waters: true
-                        User:Technical_13/dashboard: true
-                        Template:Cratstats: true
-                        # Cyberbot is creating 90% of null edits
-                        User:Cyberbot_I/Status: true
-                        User:Cyberbot_II/Status: true
-                        صارف:Cyberbot_I/Run/Adminstats: true
-                        User:Cyberbot_I/Run/Adminstats: true
-                        Defnyddiwr:Cyberbot_I/Run/Adminstats: true
-                        User:Cyberbot_I/Run/Datefixer: true
-                        User:Cyberbot_I/adminrights-admins.js: true
-                        User:Cyberpower678/Tally: true
-                        User:Pentjuuu!.!/sandbox: true
-                      ur.wikipedia.org:
-                        نام_مقامات_ایل: true
-                        نام_مقامات_ڈی: true
-                        نام_مقامات_جے: true
-                        نام_مقامات_جی: true
-                        نام_مقامات_ایچ: true
-                        نام_مقامات_ایم: true
-                        نام_مقامات_ایس: true
-                      commons.wikipedia.org:
-                        Commons:Quality_images_candidates/candidate_list: true
+                      # Wikipedia
+                      ca.wikipedia.org:
+                        - 'Usuari:TronaBot/log:Activitat_reversors_per_hores'
                       ceb.wikipedia.org:
-                        Gumagamit:Lsjbot/Anomalier-PRIVAT: true
+                        - 'Gumagamit:Lsjbot/Anomalier-PRIVAT'
+                        - 'Gumagamit:Lsjbot/Kartrutor2'
+                      de.wikipedia.org:
+                        - '/The_Big_Bang_Theory\/Staffel/'
+                        - 'Wikipedia:Café'
+                        - 'Wikipedia:Defekte_Weblinks/Bot2015-Problem'
+                        - 'Wikipedia_Diskussion:Hauptseite/Schon_gewusst'
+                        - 'Benutzer:Anglo-Araneophilus/Almigdad_Mojalli'
+                        - 'Benutzer:Wartungsstube/Berlin'
+                        - 'Benutzer:Wartungsstube/Musik'
+                        - 'Benutzer:Wartungsstube/Unternehmen'
+                        - 'Benutzer:Wartungsstube/Schifffahrt'
+                        - 'Benutzer:Verum/ege'
+                        - 'Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z'
+                        - 'Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel'
+                      es.wikipedia.org:
+                        - 'Wikipedia:Café/Archivo/Miscelánea/Actual'
+                      fr.wikipedia.org:
+                        - 'Utilisateur:ZéroBot/Log/Erreurs'
+                        - 'Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité'
+                        - '/^Utilisateur:[\s\S]+[Bb]rouillon'
+                        - 'Discussion_utilisateur:NaggoBot/CommonsDR'
+                        - 'Projet:France/Annonces/Admissibilité'
+                        - '/Wikipédia:Le_saviez-vous_.+/Anecdotes_proposées/'
+                      hy.wikipedia.org:
+                        - "/Մասնակից:Omicroñ\\'R/"
+                      it.wikipedia.org:
+                        - 'Utente:Effems/Sandbox7'
+                      nl.wikipedia.org:
+                        - 'Gebruiker:Eg-T2g/Kladblok'
+                      pt.wikipedia.org:
+                        - 'Wikipédia:Pedidos/Bloqueio'
+                      ru.wikipedia.org:
+                        - 'Википедия:Форум/Технический'
+                        - 'Портал:Герпетология'
+                      sv.wikipedia.org:
+                        - 'Användare:Lsjbot/Anomalier-PRIVAT'
+                        - 'Användare:Lsjbot/Namnkonflikter-PRIVAT'
+                      ur.wikipedia.org:
+                        - 'نام_مقامات_ایل'
+                        - 'نام_مقامات_ڈی'
+                        - 'نام_مقامات_جے'
+                        - 'نام_مقامات_جی'
+                        - 'نام_مقامات_ایچ'
+                        - 'نام_مقامات_ایم'
+                        - 'نام_مقامات_ایس'
+                      zh.wikipedia.org:
+                        - 'Wikipedia:互助客栈/条目探讨'
+                        - 'Draft:日本人工湖列表'
+                      # Wikisource
+                      pl.wikisource.org:
+                        - '/^Wśród_czarnych\//'
+                      # Wikimedia
+                      commons.wikimedia.org:
+                        - '/Commons:Featured_picture_candidates\//'
+                        - 'Commons:Quality_images/Subject/Places/Natural_structures'
+                        - '/Commons:Undeletion_requests\//'
+                        - '/Commons:WikiProject_Aviation\/recent_uploads\//'
+                        - '/^(?:User|Benutzer):/'
+#                        - '/^User:Darafsh\//'
+#                        - '/^User:Darkweasel94\/Vienna\//'
+#                        - '/User:Huckety\//'
+#                        - '/^User:J_budissin\/Uploads\/BiH\//'
+#                        - 'User:Jarekt/d'
+#                        - '/^User:JJMC89_bot\/report\/BSicons\/changes\//'
+#                        - '/^User:Marcus_Cyron\/OgreBotCeramics\//'
+#                        - '/^User:Marek_Mazurkiewicz\/nowe_biologia\//'
+#                        - '/User:Multichill\//'
+#                        - '/^(?:User|Benutzer):Nicolas_Rück_\(WMDE\)\/Supported_by_Wikimedia_Deutschland_2015/'
+#                        - 'User:OgreBot/Uploads_by_new_users'
+#                        - '/^User:Oxyman\/Buildings_in_London\//'
+#                        - '/^User:Oxyman\/London\//'
+#                        - 'User:Stunteltje/gallery'
+#                        - 'User:PIERRE_ANDRE_LECLERCQ/gallery'
             /mobileapps:
               x-modules:
-                - path: sys/mobileapps.yaml
+                - path: sys/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
             /events:

@@ -1,5 +1,6 @@
 'use strict';
 
+const parallel = require('mocha.parallel');
 var preq   = require('preq');
 var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
@@ -90,6 +91,33 @@ function validateTestResponse(testCase, res) {
     validateBody(res.body || '', expRes.body);
 }
 
+function validateArray(val, resVal, key) {
+    assert.deepEqual(Array.isArray(resVal), true, 'Body field ' + key + ' is not an array!');
+    var arrVal;
+    if(val.length === 1) {
+        // special case: we have specified only one item in the expected body,
+        // but what we really want is to check all of the returned items so
+        // fill the expected array with as many items as the returned one
+        if (resVal.length < 1) {
+            throw new assert.AssertionError({
+                message: 'Expected more then one element in the field: ' + key
+            });
+        }
+        arrVal = [];
+        while(arrVal.length < resVal.length) {
+            arrVal.push(val[0]);
+        }
+    } else {
+        arrVal = val;
+    }
+    assert.deepEqual(arrVal.length, resVal.length,
+        'Different size of array for field ' + key + ', expected ' + arrVal.length +
+        ' actual ' + resVal.length);
+    arrVal.forEach(function(item, index) {
+        validateBody(resVal[index], item);
+    });
+}
+
 function validateBody(resBody, expBody) {
     if(!expBody) {
         return true;
@@ -109,37 +137,15 @@ function validateBody(resBody, expBody) {
             if (val.constructor === Object) {
                 validateBody(resBody[key], val)
             } else if (val.constructor === Array) {
-                assert.deepEqual(Array.isArray(resBody[key]), true,
-                    'Body field ' + key + ' is not an array!');
-                var arrVal;
-                if(val.length === 1) {
-                    // special case: we have specified only one item in the expected body,
-                    // but what we really want is to check all of the returned items so
-                    // fill the expected array with as many items as the returned one
-                    if (resBody[key].length < 1) {
-                        throw new assert.AssertionError({
-                            message: 'Expected more then one element in the field: ' + key
-                        });
-                    }
-                    arrVal = [];
-                    while(arrVal.length < resBody[key].length) {
-                        arrVal.push(val[0]);
-                    }
-                } else {
-                    arrVal = val;
-                }
-                assert.deepEqual(arrVal.length, resBody[key].length,
-                    'Different size of array for field ' + key + ', expected ' + arrVal.length +
-                    ' actual ' + resBody[key].length);
-                arrVal.forEach(function(item, index) {
-                    validateBody(resBody[key][index], item);
-                });
+                validateArray(val, resBody[key], key);
             } else {
                 cmp(resBody[key], val, key + ' body field mismatch!');
             }
         });
+    } else if (Array.isArray(expBody)) {
+        validateArray(expBody, resBody, 'body');
     } else {
-        cmp(resBody, expBody.body, 'Body mismatch!');
+        cmp(resBody, expBody, 'Body mismatch!');
     }
     return true;
 }
@@ -174,7 +180,7 @@ describe('Monitoring tests', function() {
                 return res.body;
             })
             .then(function(spec) {
-                describe('Monitoring routes, ' + options.domain + ' domain', function() {
+                parallel('Monitoring routes, ' + options.domain + ' domain', function() {
                     constructTests(spec, options).forEach(function(testCase) {
                         it(testCase.title, function() {
                             return preq(testCase.request)

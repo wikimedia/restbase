@@ -1,10 +1,11 @@
 "use strict";
 
-var preq   = require('preq');
-var assert = require('../../utils/assert.js');
-var server = require('../../utils/server.js');
-var uuid = require('cassandra-uuid').TimeUuid;
-var P = require('bluebird');
+const preq   = require('preq');
+const assert = require('../../utils/assert.js');
+const server = require('../../utils/server.js');
+const uuid = require('cassandra-uuid').TimeUuid;
+const P = require('bluebird');
+const parallel = require('mocha.parallel');
 
 describe('Key value buckets', function() {
 
@@ -13,15 +14,15 @@ describe('Key value buckets', function() {
     });
 
     function randomString(length) {
-        var result = '';
-        for (var i = 0; i < length / 10; i++) {
+        let result = '';
+        for (let i = 0; i < length / 10; i++) {
             result += Math.random().toString(36).slice(2);
         }
         return result;
     }
 
     function runTests(bucketName) {
-        var bucketBaseURI = server.config.baseURL + '/buckets/' + bucketName
+        const bucketBaseURI = server.config.baseURL + '/buckets/' + bucketName
         + '/' + bucketName + 'TestingBucket';
 
         before(function() {
@@ -29,7 +30,7 @@ describe('Key value buckets', function() {
         });
 
         it('stores a content in a bucket and gets it back', function() {
-            var testData = randomString(60000);
+            const testData = randomString(60000);
             return preq.put({
                 uri: bucketBaseURI + '/Test1',
                 body: new Buffer(testData)
@@ -47,7 +48,7 @@ describe('Key value buckets', function() {
         });
 
         it('assigns etag to a value', function() {
-            var testData = randomString(100);
+            const testData = randomString(100);
             return preq.put({
                 uri: bucketBaseURI + '/Test3',
                 body: new Buffer(testData)
@@ -66,8 +67,8 @@ describe('Key value buckets', function() {
         });
 
         it('preserves the tid on write and in etag', function() {
-            var tid = uuid.now().toString();
-            var testData = randomString(100);
+            const tid = uuid.now().toString();
+            const testData = randomString(100);
             return preq.put({
                 uri: bucketBaseURI + '/Test3/' + tid,
                 body: new Buffer(testData)
@@ -86,14 +87,15 @@ describe('Key value buckets', function() {
         });
 
         it('lists value tids', function() {
-            var testData = randomString(100);
-            var tids = [ uuid.now().toString(),
+            const testData = randomString(100);
+            const tids = [ uuid.now().toString(),
                 uuid.now().toString(),
                 uuid.now().toString() ];
+            let i = 0;
             return P.each(tids, function(tid) {
                 return preq.put({
                     uri: bucketBaseURI + '/List_Test/' + tid,
-                    body: new Buffer(testData)
+                    body: new Buffer(testData + i++)
                 })
             })
             .then(function() {
@@ -112,7 +114,7 @@ describe('Key value buckets', function() {
         });
 
         it('throws error on invalid tid parameter', function() {
-            var testData = randomString(100);
+            const testData = randomString(100);
             return preq.put({
                 uri: bucketBaseURI + '/Test4/some_invalid_tid',
                 body: new Buffer(testData)
@@ -125,7 +127,7 @@ describe('Key value buckets', function() {
         });
 
         it('throws 404 error if key not found', function() {
-            var testData = randomString(100);
+            const testData = randomString(100);
             return preq.get({
                 uri: bucketBaseURI + '/some_not_existing_key'
             })
@@ -135,7 +137,38 @@ describe('Key value buckets', function() {
                 assert.deepEqual(e.status, 404);
             });
         });
+
+        it('key_value should not overwrite same content with ignore_duplicates', () => {
+            const testData = randomString(100);
+            const tids = [ uuid.now().toString(),
+                uuid.now().toString(),
+                uuid.now().toString() ];
+            let i = 0;
+            return P.each(tids, function(tid) {
+                return preq.put({
+                    uri: bucketBaseURI + '/List_Test_1/' + tid,
+                    body: new Buffer(testData),
+                    headers: {
+                        'if-none-hash-match': '*'
+                    }
+                })
+                .catch(() => {});
+            })
+            .then(function() {
+                return preq.get({
+                    uri: bucketBaseURI + '/List_Test_1/',
+                    query: {
+                        limit: 10
+                    }
+                });
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body.items.length, 1);
+                assert.deepEqual(res.body.items[0], tids[0]);
+            });
+        });
     }
 
-    describe('key_value', function() { runTests('key_value') });
+    parallel('key_value', function() { runTests('key_value') });
 });

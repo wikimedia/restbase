@@ -1,0 +1,72 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: MediaWiki Section Content API
+  description: Adding translated section content to the content API.
+tags:
+  - name: Page content
+    description: page content in different formats
+paths:
+  /segments/{title}{/revision}:
+    get:
+      tags:
+        - Page content
+      summary: Fetches a segmented page to be used in machine translation
+      description: |
+        Use this end point to fetch the segmented content of a page. Clients should
+        use the returned content in conjunction with the [language transform
+        API](https://wikimedia.org/api/rest_v1/#!/Transform).
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: false
+      responses:
+        '200':
+          description: The segmented page for the given title and revision
+          schema:
+            type: object
+            properties:
+              sourceLanguage:
+                type: string
+                description: The source language of the page
+              title:
+                type: string
+                description: The title of the segmented page returned
+              revision:
+                type: integer
+                description: The revision ID of the segmented page
+              segmentedContent:
+                type: string
+                description: The segmented HTML body of the contents of the page
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/problem'
+        '403':
+          description: Access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page or revision
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_cx:
+            request:
+              uri: '{{options.cx_host}}/v1/page/{domain}/{title}/{revision}'
+      x-monitor: false

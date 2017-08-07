@@ -1,0 +1,117 @@
+# On this day endpoints powered by MCS
+
+paths:
+  /onthisday/{type}/{mm}/{dd}:
+    get:
+      tags:
+        - Feed
+      summary: Events on this day
+      description: |
+        Provides events that historically happened on the provided day and month.
+        Supported types of events are:
+         - All: all of the following
+         - Selected: a list of a few selected anniversaries which occur on the provided day and month; often the entries are curated for the current year
+         - Births: a list of birthdays which happened on the provided day and month
+         - Deaths: a list of deaths which happened on the provided day and month
+         - Holidays: a list of fixed holidays celebrated on the provided day and month
+         - Events: a list of significant events which happened on the provided day and month and which are not covered by the other types yet
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: 'Type of events'
+          type: string
+          required: true
+          enum:
+            - all
+            - selected
+            - births
+            - deaths
+            - events
+            - holidays
+        - name: mm
+          in: path
+          description: 'Month events are requested for, 0-padded'
+          type: string
+          required: true
+        - name: dd
+          in: path
+          description: 'Day of the month events are requested for, 0-padded'
+          type: string
+          required: true
+      responses:
+        '200':
+          description: JSON containing all of the featured content
+          schema:
+            $ref: '#/definitions/onthisdayResponse'
+        '404':
+          description: No data found for the requested date
+          schema:
+            $ref: '#/definitions/problem'
+        '501':
+          description: Unsupported language
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      operationId: aggregatedFeed
+      x-monitor: true
+      x-amples:
+        - title: Retrieve selected the events for Jan 01
+          request:
+            params:
+              domain: en.wikipedia.org
+              type: 'selected'
+              mm: '01'
+              dd: '01'
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              selected:
+                - text: /.+/
+                  pages:
+                    - title: /.+/
+                      extract: /.+/
+
+definitions:
+  onthisday:
+    type: array
+    items:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Short description of the event
+        pages:
+          type: array
+          description: List of pages related to the event
+          items:
+            $ref: '#/definitions/summary'
+
+  onthisdayResponse:
+    type: object
+    description: Lists of events which happened on the provided day and month
+    properties:
+      births:
+        description: A list of birthdays which happened on the provided day and month
+        $ref: '#/definitions/onthisday'
+      deaths:
+        description: A list of deaths which happened on the provided day and month
+        $ref: '#/definitions/onthisday'
+      events:
+        description: A list of significant events which happened on the provided day and month and which are not covered by the other types yet
+        $ref: '#/definitions/onthisday'
+      holidays:
+        description: A list of fixed holidays celebrated on the provided day and month
+        $ref: '#/definitions/onthisday'
+      selected:
+        description: A list of a few selected anniversaries which occur on the provided day and month; often the entries are curated for the current year
+        $ref: '#/definitions/onthisday'
+    additionalProperties: false

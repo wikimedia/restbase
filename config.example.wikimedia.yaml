@@ -20,6 +20,7 @@ default_project: &default_project
           host: http://parsoid-beta.wmflabs.org
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+          baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
         graphoid:
           host: http://graphoid.wikimedia.org
         mathoid:
@@ -30,9 +31,32 @@ default_project: &default_project
           host: http://appservice.wmflabs.org
         related:
           cache_control: s-maxage=86400, max-age=86400
+        citoid:
+          host: http://citoid-beta.wmflabs.org
+        recommendation:
+          host: https://recommendation-api-beta.wmflabs.org
         # 10 days Varnish caching, one day client-side
         purged_cache_control: s-maxage=864000, max-age=86400
+        # Cache control for purged endpoints allowing short-term client caching
+        purged_cache_control_client_cache: s-maxage=1209600, max-age=300
+        pdf:
+          # Cache PDF for 5 minutes since it's not purged
+          cache_control: s-maxage=600, max-age=600
+          uri: https://pdfrender-beta.wmflabs.org
+          secret: secret
+        transform:
+          cx_host: https://cxserver-beta.wmflabs.org
         skip_updates: false
+
+# A separate project for en.wikipedia because it is more feature-rich
+en.wikipedia.org: &en.wikipedia.org
+  x-modules:
+    - path: projects/wmf_enwiki.yaml
+      options:
+        <<: *default_options
+        trending:
+          host: https://trending-beta.wmflabs.org
+          cache_control: s-maxage=1800, max-age=1800
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
@@ -43,6 +67,10 @@ wikimedia.org: &wikimedia.org
         pageviews:
           host: https://wikimedia.org/api/rest_v1/metrics
 
+wikidata.org: &wikidata.org
+  x-modules:
+    - path: projects/wmf_wikidata.yaml
+      options: *default_options
 
 wiktionary_project: &wiktionary_project
   x-modules:
@@ -66,7 +94,7 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
-    /{domain:en.wikipedia.org}: *default_project
+    /{domain:en.wikipedia.org}: *en.wikipedia.org
     /{domain:fr.wikipedia.org}: *default_project
     /{domain:de.wikipedia.org}: *default_project
     /{domain:es.wikipedia.org}: *default_project
@@ -79,6 +107,9 @@ spec_root: &spec_root
 
     # global domain
     /{domain:wikimedia.org}: *wikimedia.org
+
+    # special case for wikidata
+    /{domain:www.wikidata.org}: *wikidata.org
 
     # A robots.txt to make sure that the content isn't indexed.
     /robots.txt:

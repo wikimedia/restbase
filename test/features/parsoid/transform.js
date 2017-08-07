@@ -6,6 +6,7 @@
 var assert = require('../../utils/assert.js');
 var server = require('../../utils/server.js');
 var preq   = require('preq');
+const parallel = require('mocha.parallel');
 
 var testPage = {
     title: 'User:Pchelolo%2fRestbase_Test',
@@ -14,7 +15,7 @@ var testPage = {
     // html is fetched dynamically
 };
 
-describe('transform api', function() {
+parallel('transform api', function() {
     this.timeout(20000);
 
     before(function () {
@@ -119,6 +120,30 @@ describe('transform api', function() {
     });
 
 
+    it('wt2lint', function () {
+        return preq.post({
+            uri: server.config.labsURL + '/transform/wikitext/to/lint',
+            body: {
+                wikitext: '== Heading =='
+            }
+        }).then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body, []);
+        });
+    });
+
+    it('wt2lint with errors', function () {
+        return preq.post({
+            uri: server.config.labsURL + '/transform/wikitext/to/lint',
+            body: {
+                wikitext: '<div>No div ending'
+            }
+        }).then(function (res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.length, 1);
+        });
+    });
+
     it('html2wt, no-selser', function () {
         return preq.post({
             uri: server.config.labsURL
@@ -178,8 +203,8 @@ describe('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ html: "<h2>First Section replaced</h2>" }],
-                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
+                    First_Section: [{ html: "<h2>First Section replaced</h2>" }],
+                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
                 }
             }
         })
@@ -202,8 +227,8 @@ describe('transform api', function() {
             body: {
                 changes: JSON.stringify({
                     mwAQ: [],
-                    mwAg: [{ html: "<h2>First Section replaced</h2>" }],
-                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
+                    First_Section: [{ html: "<h2>First Section replaced</h2>" }],
+                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
                 }),
                 scrub_wikitext: 'true'
             }
@@ -230,8 +255,8 @@ describe('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ html: "<h2></h2>" }],
-                    mwAw: [{ html: "<h2>Second Section replaced</h2>" }]
+                    First_Section: [{ html: "<h2></h2>" }],
+                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
                 },
                 scrub_wikitext: true
             }
@@ -257,8 +282,8 @@ describe('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ id: 'mwAg' }, { html: '<h2>Appended Section</h2>' }],
-                    mwAw: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwAw'}]
+                    First_Section: [{ id: 'First_Section' }, { html: '<h2>Appended Section</h2>' }],
+                    Second_Section: [{ html: '<h2>Prepended section</h2>' }, { id: 'Second_Section'}]
                 }
             }
         })
@@ -284,8 +309,8 @@ describe('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    mwAg: [{ id: 'mwAw' }, { id: 'mwAg' }],
-                    mwAw: []
+                    First_Section: [{ id: 'Second_Section' }, { id: 'First_Section' }],
+                    Second_Section: []
                 }
             },
             headers: {
@@ -336,7 +361,7 @@ describe('transform api', function() {
             + '/' + pageWithSectionsRev,
             body: {
                 changes: {
-                    mwAg:[ { id: 'mwAASDC'}, { id: 'mwAg'} ]
+                    First_Section:[ { id: 'mwAASDC'}, { id: 'First_Section'} ]
                 }
             },
             headers: {
@@ -412,7 +437,7 @@ describe('transform api', function() {
                     'if-match': etag
                 },
                 body: {
-                    html: res.body.replace('ABCDEF', 'FECDBA')
+                    html: res.body.replace(' ABCDEF ', ' FECDBA ')
                 }
             });
         })
@@ -483,7 +508,7 @@ describe('storage-backed transform api', function() {
             headers: { 'content-type': 'application/json' },
             body: {
                 headers: {
-                  'content-type': 'text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"'
+                  'content-type': 'text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"'
                 },
                 body: '<html>The modified HTML</html>'
             }

@@ -1,98 +1,100 @@
 "use strict";
 
-var P         = require('bluebird');
-var HTTPError = require('hyperswitch').HTTPError;
-var uuid = require('cassandra-uuid').TimeUuid;
+const P         = require('bluebird');
+const uuid = require('cassandra-uuid').TimeUuid;
 
-var EventService = function(options) {
-    if (options && options.eventlogging_service) {
-        // TODO: remove eventually
-        // keep compat with old config
-        options = options.eventlogging_service;
-    }
-    if (options && options.purge) {
-        // TODO: remove eventually
-        // disregard old-config purge stanzas
-        options.purge = undefined;
-    }
-    this.options = options;
-};
-
-EventService.prototype.emitEvent = function(hyper, req) {
-    var self = this;
-    if (!(self.options && self.options.uri && self.options.topic)) {
-        return { status: 200 };
-    }
-    return P.try(function() {
-        // Change-propagation will set up the x-triggered-by header, indicating
-        // the event which caused the rerender. In case RESTBase is about to emit
-        // the same event, it will cause a rerender loop. So, log an error and skip
-        // the event.
-        var triggeredBy = req.headers && req.headers['x-triggered-by']
-            || hyper._rootReq && hyper._rootReq.headers && hyper._rootReq.headers['x-triggered-by'];
-        var topic = self.options.topic;
-        if (triggeredBy && self.options.transcludes_topic
-                && /transcludes/.test(triggeredBy)) {
-            topic = self.options.transcludes_topic;
+class EventService {
+    constructor(options) {
+        if (options && options.eventlogging_service) {
+            // TODO: remove eventually
+            // keep compat with old config
+            options = options.eventlogging_service;
         }
+        if (options && options.purge) {
+            // TODO: remove eventually
+            // disregard old-config purge stanzas
+            options.purge = undefined;
+        }
+        this.options = options;
+    }
 
-        var events = req.body.map(function(event) {
-            if (!event.meta || !event.meta.uri || !/^\/\//.test(event.meta.uri)) {
-                hyper.log('error/events/emit', {
-                    message: 'Invalid event URI',
-                    event: event
-                });
-                return undefined;
+    emitEvent(hyper, req) {
+        if (!(this.options && this.options.uri && this.options.topic)) {
+            return { status: 200 };
+        }
+        return P.try(() => {
+            // Change-propagation will set up the x-triggered-by header, indicating
+            // the event which caused the rerender. In case RESTBase is about to emit
+            // the same event, it will cause a rerender loop. So, log an error and skip
+            // the event.
+            let triggeredBy = req.headers && req.headers['x-triggered-by']
+                || hyper._rootReq && hyper._rootReq.headers
+                    && hyper._rootReq.headers['x-triggered-by'];
+            let topic = this.options.topic;
+            if (triggeredBy && this.options.transcludes_topic
+                    && /transcludes/.test(triggeredBy)) {
+                topic = this.options.transcludes_topic;
             }
-            event.meta.uri = 'http:' + event.meta.uri;
-            event.meta.topic = topic;
-            event.meta.request_id = hyper.reqId;
-            event.meta.id = uuid.now().toString();
-            event.meta.dt = new Date().toISOString();
-            event.meta.domain = req.params.domain;
-            event.tags = event.tags || [];
-            if (event.tags.indexOf('restbase') < 0) {
-                event.tags.push('restbase');
-            }
-            return event;
-        })
-        .filter(function(event) { return !!event; });
 
-        if (triggeredBy) {
-            triggeredBy = triggeredBy.replace(/https?:/g, '');
-            events = events.filter(function(event) {
-                var eventId = event.meta.topic + ':' + event.meta.uri.replace(/^https?:/, '');
-                if (triggeredBy.indexOf(eventId) !== -1) {
-                    hyper.log('error/events/rerender_loop', {
-                        message: 'Rerender loop detected',
-                        event: event
+            let events = req.body.map((event) => {
+                if (!event.meta || !event.meta.uri || !/^\/\//.test(event.meta.uri)) {
+                    hyper.log('error/events/emit', {
+                        message: 'Invalid event URI',
+                        event
                     });
-                    return false;
+                    return undefined;
                 }
-                return true;
-            });
-        }
+                event.meta.uri = `http:${event.meta.uri}`;
+                event.meta.topic = topic;
+                event.meta.request_id = hyper.reqId;
+                event.meta.id = uuid.now().toString();
+                event.meta.dt = new Date().toISOString();
+                event.meta.domain = req.params.domain;
+                event.tags = event.tags || [];
+                if (event.tags.indexOf('restbase') < 0) {
+                    event.tags.push('restbase');
+                }
+                event.triggered_by = triggeredBy;
+                return event;
+            })
+            .filter(event => !!event);
 
-        if (events && events.length) {
-            if (self.options.skip_updates) {
-                return P.resolve();
+            if (triggeredBy) {
+                triggeredBy = triggeredBy.replace(/https?:/g, '');
+                events = events.filter((event) => {
+                    const eventId = `${event.meta.topic}:${event.meta.uri.replace(/^https?:/, '')}`;
+                    if (triggeredBy.indexOf(eventId) !== -1) {
+                        hyper.log('error/events/rerender_loop', {
+                            message: 'Rerender loop detected',
+                            event
+                        });
+                        return false;
+                    }
+                    return true;
+                });
             }
-            return hyper.post({
-                uri: self.options.uri,
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: events
-            });
-        }
-    })
-    .catch(function(e) {
-        hyper.log('error/events/emit', e);
-    }).thenReturn({ status: 200 });
-};
 
-module.exports = function(options) {
-    var es = new EventService(options);
+            if (events && events.length) {
+                if (this.options.skip_updates) {
+                    return P.resolve();
+                }
+                return hyper.post({
+                    uri: this.options.uri,
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: events
+                });
+            }
+        })
+        .catch((e) => {
+            hyper.log('error/events/emit', e);
+        }).thenReturn({ status: 200 });
+    }
+}
+
+module.exports = (options) => {
+    const es = new EventService(options);
 
     return {
         spec: {

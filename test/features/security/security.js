@@ -7,6 +7,7 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var nock   = require('nock');
+var P      = require('bluebird');
 
 describe('router - security', function() {
     this.timeout(20000);
@@ -14,10 +15,15 @@ describe('router - security', function() {
     before(function () {
         return server.start()
         .then(function() {
-            // Do a preparation request to force siteinfo fetch so that we don't need to mock it
-            return preq.get({
-                uri: server.config.bucketURL + '/html/Main_Page'
-            });
+            // Do preparation requests to force siteInfo fetch so that we don't need to mock it
+            return P.join(
+                preq.get({
+                    uri: server.config.baseURL + '/page/title/Main_Page'
+                }),
+                preq.get({
+                    uri: server.config.secureURL + '/page/title/Wikipédia:Accueil_principal'
+                })
+            )
         });
     });
 
@@ -70,7 +76,7 @@ describe('router - security', function() {
 
     it('should forward cookies on request to parsoid', function() {
         nock.enableNetConnect();
-        var parsoidURI = 'http://parsoid-beta.wmflabs.org';
+        var parsoidURI = 'https://parsoid-beta.wmflabs.org';
         var title = 'Test';
         var revision = 117795883;
         var api = nock(parsoidURI, {

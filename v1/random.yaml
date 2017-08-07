@@ -8,7 +8,7 @@ paths:
       description: |
         Redirects the client to the URI for the desired format for a random page title.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: format
           in: path

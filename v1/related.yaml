@@ -44,55 +44,14 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-
-      x-request-handler:
-        # Storage miss. Call the Action API to get the textextract.
-        - api_request:
-            request:
-              method: 'post'
-              uri: /{domain}/sys/action/query
-              body:
-                format: 'json'
-                prop: 'pageterms|pageimages|pageprops'
-                ppprop: 'mainpage|disambiguation'
-                wbptterms: 'description'
-                generator: 'search'
-                gsrsearch: 'morelike:{{request.params.title}}'
-                gsrnamespace: 0
-                gsrwhat: 'text'
-                gsrinfo: ''
-                gsrprop: 'redirecttitle'
-                gsrlimit: 5
-                piprop: 'thumbnail'
-                pithumbsize: 320
-            return:
-              status: 200
-              headers:
-                content-type: application/json
-                cache-control: '{{options.cache_control}}'
-              body:
-                items: '{{httpsSource(api_request.body.items)}}'
+      operationId: getRelatedPages
       x-monitor: false
 
 definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
-
   related:
     type: object
     properties:
-      items:
+      pages:
         type: array
         items:
           type: object
@@ -100,34 +59,31 @@ definitions:
             pageid:
               type: integer
               description: Page ID
-            title:
-              type: string
-              description: Page title
             ns:
               type: integer
               description: The page namespace number
             index:
               type: integer
               description: Relevance index of this result
-            term:
-              type: object
-              properties:
-                description:
-                  type: array
-                  items:
-                    type: string
-                    description: First several sentences of an article in plain text
+            title:
+              type: string
+              description: Article title in a form of DB key
+            normalizedtitle:
+              type: string
+              description: Article title as it should be presented to the user
             thumbnail:
-              type: object
-              properties:
-                source:
-                  type: string
-                  description: Thumbnail image URI
-                width:
-                  type: integer
-                  description: Thumbnail width
-                height:
-                  type: integer
-                  description: Thumnail height
-              required: ['source', 'width', 'height']
-          required: ['title', 'ns']
+              description: Lead image for the article
+              $ref: '#/definitions/thumbnail'
+            originalimage:
+              description: The original of the lead image for the article
+              $ref: '#/definitions/originalimage'
+            description:
+              type: string
+              description: Wikidata description of the article
+            extract:
+              type: string
+              description: First several sentences of an article in plain text
+          required:
+            - title
+            - normalizedtitle
+        required: ['title', 'ns']

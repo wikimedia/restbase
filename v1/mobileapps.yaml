@@ -3,7 +3,7 @@ tags:
   - name: Mobile
     description: mobile-friendly page content
 paths:
-  /mobile-sections/{title}:
+  /mobile-sections/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -25,6 +25,12 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
         - name: redirect
           in: query
           description: >
@@ -45,6 +51,22 @@ paths:
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title
           schema:
@@ -57,10 +79,10 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}{/revision}
               headers:
                 cache-control: '{{cache-control}}'
-            return: 
+            return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
                             from_backend.headers) }}'
@@ -80,7 +102,7 @@ paths:
               lead: /.+/
               remaining: /.+/
 
-  /mobile-sections-lead/{title}:
+  /mobile-sections-lead/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -102,6 +124,12 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
         - name: redirect
           in: query
           description: >
@@ -122,6 +150,22 @@ paths:
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title
           schema:
@@ -134,15 +178,15 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
-            return: 
+              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
+            return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
                             from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
-  /mobile-sections-remaining/{title}:
+  /mobile-sections-remaining/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -165,6 +209,12 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
         - name: redirect
           in: query
           description: >
@@ -185,6 +235,22 @@ paths:
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
           description: Unknown page title
           schema:
@@ -197,61 +263,11 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}
-            return: 
+              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
+            return:
               status: '{{from_backend.status}}'
-              headers: '{{ merge({"cache-control": options.response_cache_control}, 
+              headers: '{{ merge({"cache-control": options.response_cache_control},
                             from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
-  /mobile-text/{title}:
-    get:
-      tags:
-        - Mobile
-      summary: Get mobile-optimized text and metadata for a title.
-      description: |
-        Retrieve the *lite* (text-only) version of the latest HTML for a page
-        title optimised for viewing with native mobile applications.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental). Don't rely on this.
-      produces:
-        - application/json
-      parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: true
-      responses:
-        '200':
-          description: >
-            JSON comprising the HTML and various page attributes for the given page title.
-          schema:
-            type: object
-          headers:
-            ETag:
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-
-        '404':
-          description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - from_backend:
-            request:
-              method: get
-              uri: '{{options.host}}/{domain}/v1/page/mobile-text/{title}'
-              headers:
-                cache-control: '{{cache-control}}'
-            return:
-              status: '{{from_backend.status}}'
-              headers: '{{ merge({"cache-control": "s-maxage=3600, max-age=3600"}, from_backend.headers) }}'
-              body: '{{from_backend.body}}'
-      x-monitor: false

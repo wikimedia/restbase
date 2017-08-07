@@ -6,7 +6,9 @@
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
-var nock = require('nock');
+var nock   = require('nock');
+var P      = require('bluebird');
+const parallel = require('mocha.parallel');
 
 describe('Access checks', function() {
 
@@ -49,17 +51,13 @@ describe('Access checks', function() {
 
     before(function() {
         return server.start()
-        .then(function() {
-            // Do a preparation request to force siteinfo fetch so that we don't need to mock it
-            return preq.get({
-                uri: server.config.bucketURL + '/html/Main_Page'
-            });
-        })
-        .then(function() {
-            return preq.get({
-                uri: server.config.labsBucketURL + '/html/Main_Page'
-            });
-        })
+        // Do a preparation request to force siteinfo fetch so that we don't need to mock it
+        .then(() => P.join(
+            preq.get({ uri: `${server.config.bucketURL}/html/Main_Page` })
+            .catch(e => { console.log('a', e); throw e;}),
+            preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page` })
+            .catch(e => { console.log(`${server.config.labsBucketURL}/html/Main_Page`, e); throw e;})
+        ))
         // Load in the revisions
         .then(function() {
             var api = nock(server.config.apiURL);
@@ -97,68 +95,30 @@ describe('Access checks', function() {
         });
     });
 
-    it('should understand the page was deleted', function() {
-        var api = nock(server.config.apiURL)
-        // Other requests return nothing as if the page is deleted.
-        .post('').reply(200, emptyResponse);
-        // Fetch the page
-        return preq.get({
-            uri: server.config.bucketURL + '/title/' + encodeURIComponent(deletedPageTitle),
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-        .then(function() {
-            throw new Error('404 should have been returned for a deleted page');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-            assert.contentType(e, 'application/problem+json');
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
-    });
-
-    it('should restrict access to deleted page latest revision', function() {
-        // This is only required until the hack for no-cache header is in place
-        var api = nock(server.config.apiURL)
-        .post('').reply(200, emptyResponse);
-
-        return preq.get({uri: server.config.bucketURL + '/revision/' + deletedPageRevision})
-        .then(function() {
-            throw new Error('404 should have been returned for a deleted page');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-            assert.contentType(e, 'application/problem+json');
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
-    });
-
-    it('should restrict access to older revision of a deleted page', function() {
-        // This is only required until the hack for no-cache header is in place
-        var api = nock(server.config.apiURL)
-        .post('').reply(200, emptyResponse);
-
-        return preq.get({uri: server.config.bucketURL + '/revision/' + deletedPageOlderRevision})
-        .then(function() {
-            throw new Error('404 should have been returned for a deleted page');
-        }, function(e) {
-            assert.deepEqual(e.status, 404);
-            assert.contentType(e, 'application/problem+json');
-        })
-        .then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
+    describe('Deleting', () => {
+        it('should understand the page was deleted', function() {
+            var api = nock(server.config.apiURL)
+            // Other requests return nothing as if the page is deleted.
+            .post('').reply(200, emptyResponse);
+            // Fetch the page
+            return preq.get({
+                uri: server.config.bucketURL + '/title/' + encodeURIComponent(deletedPageTitle),
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .then(function() {
+                throw new Error('404 should have been returned for a deleted page');
+            }, function(e) {
+                assert.deepEqual(e.status, 404);
+                assert.contentType(e, 'application/problem+json');
+            })
+            .then(function() {
+                api.done();
+            })
+            .finally(function() {
+                nock.cleanAll();
+            });
         });
     });
 
@@ -173,7 +133,7 @@ describe('Access checks', function() {
                 uri += '/' + rev;
             }
             return preq.get({uri: uri})
-            .then(function() {
+            .then(function(res) {
                 throw new Error('404 should have been returned for a deleted page');
             }, function(e) {
                 assert.deepEqual(e.status, 404);
@@ -182,137 +142,183 @@ describe('Access checks', function() {
         });
     }
 
-    testAccess('html', 'deleted', deletedPageTitle);
-    testAccess('data-parsoid', 'deleted', deletedPageTitle);
-    testAccess('html', 'deleted', deletedPageTitle, deletedPageOlderRevision);
-    testAccess('data-parsoid', 'deleted', deletedPageTitle, deletedPageOlderRevision);
-    testAccess('mobile-sections', 'deleted', deletedPageTitle);
-    testAccess('mobile-sections-lead', 'deleted', deletedPageTitle);
-    testAccess('mobile-sections-remaining', 'deleted', deletedPageTitle);
-    testAccess('summary', 'deleted', deletedPageTitle);
+    parallel('Checking deletions', () => {
+        it('should restrict access to deleted page latest revision', function() {
+            // This is only required until the hack for no-cache header is in place
+            var api = nock(server.config.apiURL)
+            .post('').reply(200, emptyResponse);
 
-    it('Should understand that the page was undeleted', function() {
-        return preq.get({
-            uri: server.config.bucketURL + '/title/' + encodeURIComponent(deletedPageTitle),
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            return preq.get({
-                uri: server.config.bucketURL + '/html/' + encodeURIComponent(deletedPageTitle) + '/' + deletedPageOlderRevision,
+            return preq.get({uri: server.config.bucketURL + '/revision/' + deletedPageRevision})
+            .then(function() {
+                throw new Error('404 should have been returned for a deleted page');
+            }, function(e) {
+                assert.deepEqual(e.status, 404);
+                assert.contentType(e, 'application/problem+json');
+            })
+            .then(function() {
+                api.done();
+            })
+            .finally(function() {
+                nock.cleanAll();
             });
-        })
-        .then(function (res) {
-            assert.deepEqual(res.status, 200);
+        });
+
+        it('should restrict access to older revision of a deleted page', function() {
+            // This is only required until the hack for no-cache header is in place
+            var api = nock(server.config.apiURL)
+            .post('').reply(200, emptyResponse);
+
+            return preq.get({uri: server.config.bucketURL + '/revision/' + deletedPageOlderRevision})
+            .then(function() {
+                throw new Error('404 should have been returned for a deleted page');
+            }, function(e) {
+                assert.deepEqual(e.status, 404);
+                assert.contentType(e, 'application/problem+json');
+            })
+            .then(function() {
+                api.done();
+            })
+            .finally(function() {
+                nock.cleanAll();
+            });
+        });
+
+        testAccess('html', 'deleted', deletedPageTitle);
+        testAccess('data-parsoid', 'deleted', deletedPageTitle);
+        testAccess('html', 'deleted', deletedPageTitle, deletedPageOlderRevision);
+        testAccess('data-parsoid', 'deleted', deletedPageTitle, deletedPageOlderRevision);
+        testAccess('mobile-sections', 'deleted', deletedPageTitle);
+        testAccess('mobile-sections-lead', 'deleted', deletedPageTitle);
+        testAccess('mobile-sections-remaining', 'deleted', deletedPageTitle);
+        testAccess('summary', 'deleted', deletedPageTitle);
+    });
+
+    describe('Undeleting', () => {
+        it('Should understand that the page was undeleted', function() {
+            return preq.get({
+                uri: server.config.bucketURL + '/title/' + encodeURIComponent(deletedPageTitle),
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                return preq.get({
+                    uri: server.config.bucketURL + '/html/' + encodeURIComponent(deletedPageTitle) + '/' + deletedPageOlderRevision,
+                });
+            })
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+            });
         });
     });
 
-    var pageTitle = 'User:Pchelolo/restriction_testing_mock';
-    var pageRev = 301375;
-    it('should correctly fetch updated restrictions', function() {
-        var normalRev = {
-            "revid": pageRev,
-            "user": "Pchelolo",
-            "userid": 6591,
-            "timestamp": "2015-02-03T21:15:55Z",
-            "size": 7700,
-            "contentmodel": "wikitext",
-            "tags": []
-        };
-        var normalResponse = {
-            "pageid": 152993,
-            "ns": 3,
-            "title": pageTitle,
-            "contentmodel": "wikitext",
-            "pagelanguage": "en",
-            "pagelanguagehtmlcode": "en",
-            "pagelanguagedir": "ltr",
-            "touched": "2015-12-10T23:41:54Z",
-            "lastrevid": pageRev,
-            "length": 23950,
-            "revisions": [normalRev]
-        };
-        var restrictedRev = Object.assign({}, normalRev);
-        restrictedRev.texthidden = true;
-        restrictedRev.sha1hidden = true;
-        var restrictedResponse = Object.assign({}, normalResponse);
-        restrictedResponse.revisions = [restrictedRev];
-        var api = nock(server.config.labsApiURL)
-        .post('').reply(200, {
-            "batchcomplete": "",
-            "query": {"pages": {"45161196": normalResponse}}
-        }).post('').reply(200, {
-            "batchcomplete": "",
-            "query": {"pages": {"45161196": restrictedResponse}}
+    describe('Restricting', () => {
+        var pageTitle = 'User:Pchelolo/restriction_testing_mock';
+        var pageRev = 301375;
+        it('should correctly fetch updated restrictions', function() {
+            var normalRev = {
+                "revid": pageRev,
+                "user": "Pchelolo",
+                "userid": 6591,
+                "timestamp": "2015-02-03T21:15:55Z",
+                "size": 7700,
+                "contentmodel": "wikitext",
+                "tags": []
+            };
+            var normalResponse = {
+                "pageid": 152993,
+                "ns": 3,
+                "title": pageTitle,
+                "contentmodel": "wikitext",
+                "pagelanguage": "en",
+                "pagelanguagehtmlcode": "en",
+                "pagelanguagedir": "ltr",
+                "touched": "2015-12-10T23:41:54Z",
+                "lastrevid": pageRev,
+                "length": 23950,
+                "revisions": [normalRev]
+            };
+            var restrictedRev = Object.assign({}, normalRev);
+            restrictedRev.texthidden = true;
+            restrictedRev.sha1hidden = true;
+            var restrictedResponse = Object.assign({}, normalResponse);
+            restrictedResponse.revisions = [restrictedRev];
+            var api = nock(server.config.labsApiURL)
+            .post('').reply(200, {
+                "batchcomplete": "",
+                "query": {"pages": {"45161196": normalResponse}}
+            }).post('').reply(200, {
+                "batchcomplete": "",
+                "query": {"pages": {"45161196": restrictedResponse}}
+            });
+
+            // First fetch a non-restricted revision
+            return preq.get({
+                uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle)
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body.items.length, 1);
+                // Now fetch update with restrictions
+                return preq.get({
+                    uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
+                    headers: {
+                        'cache-control': 'no-cache'
+                    }
+                });
+            }).then(function() {
+                throw new Error('403 should be thrown');
+            }, function(e) {
+                assert.deepEqual(e.status, 403);
+            }).then(function() {
+                api.done();
+            })
+            .finally(function() {
+                nock.cleanAll();
+            });
         });
 
-        // First fetch a non-restricted revision
-        return preq.get({
-            uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle)
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body.items.length, 1);
-            // Now fetch update with restrictions
+
+        it('should store updated restrictions', function() {
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle)
+            })
+            .then(function() {
+                throw new Error('403 should be thrown');
+            }, function(e) {
+                assert.deepEqual(e.status, 403);
+            });
+        });
+
+        it('should restrict access to restricted revision html', function() {
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev
+            })
+            .then(function() {
+                throw new Error('403 should have been returned for a deleted page');
+            }, function(e) {
+                assert.deepEqual(e.status, 403);
+                assert.contentType(e, 'application/problem+json');
+            });
+        });
+
+        it('should allow to view content if restrictions disappeared', function() {
             return preq.get({
                 uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
                 headers: {
                     'cache-control': 'no-cache'
                 }
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                return preq.get({
+                    uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev,
+                });
+            })
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
             });
-        }).then(function() {
-            throw new Error('403 should be thrown');
-        }, function(e) {
-            assert.deepEqual(e.status, 403);
-        }).then(function() {
-            api.done();
-        })
-        .finally(function() {
-            nock.cleanAll();
-        });
-    });
-
-
-    it('should store updated restrictions', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle)
-        })
-        .then(function() {
-            throw new Error('403 should be thrown');
-        }, function(e) {
-            assert.deepEqual(e.status, 403);
-        });
-    });
-
-    it('should restrict access to restricted revision html', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev
-        })
-        .then(function() {
-            throw new Error('403 should have been returned for a deleted page');
-        }, function(e) {
-            assert.deepEqual(e.status, 403);
-            assert.contentType(e, 'application/problem+json');
-        });
-    });
-
-    it('should allow to view content if restrictions disappeared', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/title/' + encodeURIComponent(pageTitle),
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            return preq.get({
-                uri: server.config.labsBucketURL + '/html/' + encodeURIComponent(pageTitle) + '/' + pageRev,
-            });
-        })
-        .then(function (res) {
-            assert.deepEqual(res.status, 200);
         });
     });
 });

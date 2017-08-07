@@ -8,10 +8,12 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var nock = require('nock');
+const parallel = require('mocha.parallel');
 
 describe('Redirects', function() {
     before(function() { return server.start(); });
 
+    parallel('', () => {
     it('should redirect to a normalized version of a title', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ',
@@ -59,22 +61,24 @@ describe('Redirects', function() {
     });
     it('should redirect to commons for missing file pages', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg'
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
+            followRedirect: false
         })
         .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
+            assert.deepEqual(res.status, 302);
+            assert.deepEqual(res.headers['location'],
                 'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
         });
     });
 
     it('should redirect to commons for missing file pages, dewiki', function() {
         return preq.get({
-            uri: server.config.hostPort + '/de.wikipedia.org/v1/page/html/Datei:Name.jpg'
+            uri: server.config.hostPort + '/de.wikipedia.org/v1/page/html/Datei:Name.jpg',
+            followRedirect: false
         })
         .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-location'],
+            assert.deepEqual(res.status, 302);
+            assert.deepEqual(res.headers['location'],
                 'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AName.jpg');
         });
     });
@@ -106,7 +110,7 @@ describe('Redirects', function() {
 
     it('should append ?redirect=false to self-redirecting pages', function() {
         return preq.get({
-            uri: server.config.bucketURL + '/html/User:Pchelolo%2FSelf_Redirect',
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2FSelf_Redirect',
             followRedirect: false
         })
         .then(function(res) {
@@ -146,12 +150,13 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers.location, undefined);
+            assert.deepEqual(res.headers['content-location'],
+                'https://en.wikipedia.org/api/rest_v1/page/html/User%3APchelolo%2FRedirect_Test2?redirect=false')
             assert.deepEqual(res.body.length > 0, true);
         });
     });
 
-    var etag;
-    it('should return 302 for redirect pages html', function() {
+    it('should return 302 for redirect pages html and data-parsoid', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test',
             followRedirect: false
@@ -162,24 +167,19 @@ describe('Redirects', function() {
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body.length > 0, true);
             assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
-            etag = res.headers.etag;
-        });
-    });
-
-    it('should return 302 for redirect pages data-parsoid', function() {
-        assert.notDeepEqual(etag, undefined);
-        var renderInfo = mwUtil.parseETag(etag);
-        return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/User:Pchelolo%2fRedirect_Test/'
+            var renderInfo = mwUtil.parseETag(res.headers.etag);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/data-parsoid/User:Pchelolo%2fRedirect_Test/'
                     + renderInfo.rev + '/' + renderInfo.tid,
-            followRedirect: false
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 302);
-            assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25');
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-            assert.deepEqual(res.headers['content-type'], server.config.conf.test.content_types['data-parsoid']);
-            assert.deepEqual(Object.keys(res.body).length > 0, true);
+                followRedirect: false
+            })
+            .then(function(res) {
+                assert.deepEqual(res.status, 302);
+                assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25');
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+                assert.deepEqual(res.headers['content-type'], server.config.conf.test.content_types['data-parsoid']);
+                assert.deepEqual(Object.keys(res.body).length > 0, true);
+            });
         });
     });
 
@@ -274,7 +274,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.body.length, 0);
         });
     });
@@ -313,5 +313,84 @@ describe('Redirects', function() {
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
             assert.deepEqual(res.body.length, 0);
         });
+    });
+
+    it('should attach correct content-location', () => {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/Main_Page'
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'], 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page');
+        })
+    });
+
+    it('should return 200 for redirect pages html, cross-origin', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+            assert.deepEqual(res.body.length > 0, true);
+            assert.deepEqual(/Redirect Target/.test(res.body.toString()), true);
+        });
+    });
+
+    it('should return 200 for redirect pages html, cross-origin, with title normalization', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect%20Test',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+            assert.deepEqual(res.body.length > 0, true);
+            assert.deepEqual(/Redirect Target/.test(res.body.toString()), true);
+        });
+    });
+
+    it('should redirect to commons for missing file pages, cross-origin', function() {
+        return preq.get({
+            uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(function(res) {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-location'],
+                'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+        });
+    });
+
+    it('should stop redirect cycles, cross-origin', function() {
+        return preq.get({
+            uri: server.config.labsBucketURL + '/html/User:Pchelolo%2fRedirect_Test_One',
+            headers: {
+                origin: 'test.com'
+            },
+            followRedirect: false
+        })
+        .then(() => {
+            throw new Error('Error must be thrown');
+        }, (e) => {
+            assert.deepEqual(e.status, 504);
+            assert.deepEqual(/Exceeded maxRedirects/.test(e.body.detail), true);
+        });
+    });
     });
 });

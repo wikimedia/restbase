@@ -16,7 +16,7 @@ paths:
         formats. Just append the value of the header to `/media/math/{format}/`
         and perform a GET request against that URL.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
       parameters:
@@ -79,7 +79,7 @@ paths:
         Returns the previously-stored formula via `/media/math/check/{type}` for
         the given hash.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
       parameters:
@@ -88,6 +88,7 @@ paths:
           description: The hash string of the previous POST data
           type: string
           required: true
+          minLength: 1
       responses:
         '200':
           description: Information about the checked formula
@@ -118,7 +119,7 @@ paths:
         `x-resource-location` header denoting the hash ID of the POST data. Once
         obtained, this endpoint has to be used to obtain the actual render.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#unstable).
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - image/svg+xml
         - application/mathml+xml
@@ -138,6 +139,7 @@ paths:
           description: The hash string of the previous POST data
           type: string
           required: true
+          minLength: 1
       responses:
         '200':
           description: The rendered formula

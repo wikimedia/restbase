@@ -4,14 +4,14 @@
  * Simple wrapper for the PHP action API
  */
 
-var HyperSwitch = require('hyperswitch');
-var HTTPError = HyperSwitch.HTTPError;
-var Template = HyperSwitch.Template;
+const HyperSwitch = require('hyperswitch');
+const HTTPError = HyperSwitch.HTTPError;
+const Template = HyperSwitch.Template;
 
 /**
  * Error translation
  */
-var errDefs = {
+const errDefs = {
     400: { status: 400, type: 'bad_request' },
     401: { status: 401, type: 'unauthorized' },
     403: { status: 403, type: 'forbidden#edit' },
@@ -22,7 +22,7 @@ var errDefs = {
     501: { status: 501, type: 'not_supported' }
 };
 
-var errCodes = {
+const errCodes = {
     /* 400 - bad request */
     articleexists: errDefs['400'],
     badformat: errDefs['400'],
@@ -84,10 +84,9 @@ var errCodes = {
 };
 
 function apiError(apiErr) {
-    var ret;
     apiErr = apiErr || {};
-    ret = {
-        message: 'MW API call error ' + apiErr.code,
+    const  ret = {
+        message: `MW API call error ${apiErr.code}`,
         status: errDefs['500'].status,
         body: {
             type: errDefs['500'].type,
@@ -95,44 +94,17 @@ function apiError(apiErr) {
             description: apiErr.info || 'Unknown MW API error'
         }
     };
-    if (apiErr.code && errCodes.hasOwnProperty(apiErr.code)) {
+    if (apiErr.code && {}.hasOwnProperty.call(errCodes, apiErr.code)) {
         ret.status = errCodes[apiErr.code].status;
         ret.body.type = errCodes[apiErr.code].type;
     }
     return new HTTPError(ret);
 }
 
-
-/**
- * Action module code
- */
-function ActionService(options) {
-    if (!options) { throw new Error("No options supplied for action module"); }
-    if (options.apiRequest && typeof options.apiRequest === 'function') {
-        this.apiRequestTemplate = options.apiRequest;
-    } else if (options.apiUriTemplate) {
-        this.apiRequestTemplate = new Template({
-            uri: options.apiUriTemplate,
-            method: 'post',
-            headers: {
-                host: '{{request.params.domain}}'
-            },
-            body: '{{request.body}}',
-        }).expand;
-    } else {
-        var e = new Error('Missing parameter in action module:\n'
-                + '- apiRequest template function, or\n'
-                + '- apiUriTemplate string parameter.');
-        e.options = options;
-        throw e;
-    }
-}
-
 function buildQueryResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
-            info: 'Unexpected response status ('
-                    + res.status + ') from the PHP action API.'
+            info: `Unexpected response status (${res.status}) from the PHP action API.`
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
@@ -150,10 +122,8 @@ function buildQueryResponse(apiReq, res) {
     if (res.body.query.pages) {
         // Rewrite res.body
         // XXX: Rethink!
-        var pages = res.body.query.pages;
-        var newBody = Object.keys(pages).map(function(key) {
-            return pages[key];
-        });
+        const pages = res.body.query.pages;
+        const newBody = Object.keys(pages).map(key => pages[key]);
 
         // XXX: Clean this up!
         res.body = {
@@ -172,8 +142,7 @@ function buildQueryResponse(apiReq, res) {
 function buildEditResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
-            info: 'Unexpected response status ('
-                    + res.status + ') from the PHP action API.'
+            info: `Unexpected response status (${res.status}) from the PHP action API.`
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
@@ -185,46 +154,140 @@ function buildEditResponse(apiReq, res) {
     return res;
 }
 
-ActionService.prototype._doRequest = function(hyper, req, defBody, cont) {
-    var apiRequest = this.apiRequestTemplate({
-        request: req
-    });
-    apiRequest.body.action = defBody.action;
-    apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
-    apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
-    apiRequest.body.meta = apiRequest.body.meta || defBody.meta;
-    if (!apiRequest.body.hasOwnProperty('continue') && apiRequest.action === 'query') {
-        apiRequest.body.continue = '';
+function findSharedRepoDomain(siteInfoRes) {
+    const sharedRepo = (siteInfoRes.body.query.repos || []).find(repo => repo.name === 'shared');
+    if (sharedRepo) {
+        const domainMatch = /^((:?https?:)?\/\/[^/]+)/.exec(sharedRepo.descBaseUrl);
+        if (domainMatch) {
+            return domainMatch[0];
+        }
     }
-    return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
-};
+}
 
-ActionService.prototype.query = function(hyper, req) {
-    return this._doRequest(hyper, req, {
-        action: 'query',
-        format: 'json'
-    }, buildQueryResponse);
-};
+/**
+ * Action module code
+ */
+class ActionService {
+    constructor(options) {
+        if (!options) { throw new Error("No options supplied for action module"); }
+        if (!options.apiUriTemplate || !options.baseUriTemplate) {
+            const e = new Error('Missing parameter in action module:\n'
+                    + '- baseUriTemplate string parameter, or\n'
+                    + '- apiUriTemplate string parameter.');
+            e.options = options;
+            throw e;
+        }
 
-ActionService.prototype.edit = function(hyper, req) {
-    return this._doRequest(hyper, req, {
-        action: 'edit',
-        format: 'json',
-        formatversion: 2
-    }, buildEditResponse);
-};
+        this.apiRequestTemplate = new Template({
+            uri: options.apiUriTemplate,
+            method: 'post',
+            headers: {
+                host: '{{request.params.domain}}'
+            },
+            body: '{{request.body}}',
+        });
+        this.baseUriTemplate = new Template({
+            uri: options.baseUriTemplate
+        });
 
-ActionService.prototype.siteinfo = function(hyper, req) {
-    return this._doRequest(hyper, req, {
-        action: 'query',
-        meta: 'siteinfo|filerepoinfo',
-        format: 'json'
-    }, function(apiReq, res) { return res; });
-};
+        this._siteInfoCache = {};
+    }
 
+    _doRequest(hyper, req, defBody, cont) {
+        const apiRequest = this.apiRequestTemplate.expand({
+            request: req
+        });
+        apiRequest.body = apiRequest.body || {};
+        apiRequest.body.action = apiRequest.body.action || defBody.action;
+        apiRequest.body.format = apiRequest.body.format || defBody.format || 'json';
+        apiRequest.body.formatversion = apiRequest.body.formatversion || defBody.formatversion || 1;
+        apiRequest.body.meta = apiRequest.body.meta || defBody.meta;
+        if (!{}.hasOwnProperty.call(apiRequest.body, 'continue') && apiRequest.action === 'query') {
+            apiRequest.body.continue = '';
+        }
+        return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
+    }
 
-module.exports = function(options) {
-    var actionService = new ActionService(options);
+    _getBaseUri(req) {
+        return this.baseUriTemplate.expand({ request: req }).uri;
+    }
+
+    query(hyper, req) {
+        return this._doRequest(hyper, req, {
+            action: 'query',
+            format: 'json'
+        }, buildQueryResponse);
+    }
+
+    edit(hyper, req) {
+        return this._doRequest(hyper, req, {
+            action: 'edit',
+            format: 'json',
+            formatversion: 2
+        }, buildEditResponse);
+    }
+
+    /**
+     * Fetch the site info for this project's domain.
+     *
+     * Expects the project domain to be passed in req.params.domain. Fetching
+     * siteinfo for other projects / domains is not supported.
+     */
+    siteinfo(hyper, req) {
+        const rp = req.params;
+        if (!this._siteInfoCache[rp.domain]) {
+            this._siteInfoCache[rp.domain] = this._doRequest(hyper, {
+                method: 'post',
+                params: req.params,
+                headers: req.headers,
+                body: {
+                    action: 'query',
+                    meta: 'siteinfo|filerepoinfo',
+                    siprop: 'general|namespaces|namespacealiases|specialpagealiases',
+                    format: 'json'
+                }
+            }, {}, (apiReq, res) => {
+                if (!res || !res.body || !res.body.query || !res.body.query.general) {
+                    throw new Error(`SiteInfo is unavailable for ${rp.domain}`);
+                }
+                return {
+                    status: 200,
+                    body: {
+                        general: {
+                            lang: res.body.query.general.lang,
+                            legaltitlechars: res.body.query.general.legaltitlechars,
+                            case: res.body.query.general.case
+                        },
+
+                        namespaces: res.body.query.namespaces,
+                        namespacealiases: res.body.query.namespacealiases,
+                        specialpagealiases: res.body.query.specialpagealiases,
+                        sharedRepoRootURI: findSharedRepoDomain(res),
+                        baseUri: this._getBaseUri(req)
+                    }
+                };
+            })
+            .catch((e) => {
+                hyper.log('error/site_info', e);
+                delete this._siteInfoCache[rp.domain];
+                // The project domain is always expected to exist, so consider
+                // any error an internal error.
+                throw new HTTPError({
+                    status: 500,
+                    body: {
+                        type: 'server_error',
+                        title: 'Site info fetch failed.',
+                        detail: e.message
+                    }
+                });
+            });
+        }
+        return this._siteInfoCache[rp.domain];
+    }
+}
+
+module.exports = (options) => {
+    const actionService = new ActionService(options);
     return {
         spec: {
             paths: {

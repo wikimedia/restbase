@@ -1,0 +1,85 @@
+# RESTBase project config for development environments
+paths:
+  /{api:v1}:
+    x-modules:
+      - spec:
+          info:
+            version: 1.0.0
+            title: Wikimedia REST API
+            description: Welcome to your RESTBase API.
+          x-route-filters:
+            - path: ./lib/normalize_title_filter.js
+              options:
+                redirect_cache_control: '{{options.purged_cache_control}}'
+          paths:
+            /page:
+              x-modules:
+                - path: v1/content.yaml
+                  options: '{{options}}'
+                - path: v1/content_segments.yaml
+                  options:
+                      purged_cache_control: '{{options.purged_cache_control}}'
+                      cx_host: '{{options.transform.cx_host}}'
+                - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
+                - path: v1/mobileapps.yaml
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
+            /transform:
+              x-modules:
+                - path: v1/transform.yaml
+                - path: v1/transform-lang.js
+                  options: '{{options.transform}}'
+            /media:
+              x-modules:
+                - path: v1/mathoid.yaml
+                  options: '{{options.mathoid}}'
+            /data:
+              x-modules:
+                - path: v1/citoid.js
+                  options: '{{options.citoid}}'
+        options: '{{options}}'
+
+  /{api:sys}:
+    x-modules:
+      - spec:
+          paths:
+            /table:
+              x-modules:
+                - path: sys/table.js
+                  options:
+                    conf: '{{options.table}}'
+            /key_value:
+              x-modules:
+                - path: sys/key_value.js
+            /key_rev_value:
+              x-modules:
+                - path: sys/key_rev_value.js
+            /key_rev_latest_value:
+              x-modules:
+                - path: sys/key_rev_latest_value.js
+            /page_revisions:
+              x-modules:
+                - path: sys/page_revisions.js
+            /post_data:
+              x-modules:
+                - path: sys/post_data.js
+            /action:
+              x-modules:
+                - path: sys/action.js
+                  options: '{{options.action}}'
+            /page_save:
+              x-modules:
+                - path: sys/page_save.js
+            /parsoid:
+              x-modules:
+                - path: sys/parsoid.js
+                  options:
+                    parsoidHost: '{{options.parsoid.host}}'
+                    response_cache_control: '{{options.purged_cache_control}}'
+            /mobileapps:
+              x-modules:
+                - path: sys/mobileapps.js
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                options.mobileapps)}}'
+        options: '{{options}}'
+

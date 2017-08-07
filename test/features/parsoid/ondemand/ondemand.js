@@ -149,7 +149,7 @@ describe('on-demand generation of html and data-parsoid', function() {
     });
     */
 
-    it('should pass (stored) revision B content to Parsoid for image update',
+    it.skip('should pass (stored) revision B content to Parsoid for image update',
     function () {
         // Start watching for new log entries
         var slice = server.config.logStream.slice();
@@ -183,7 +183,7 @@ describe('on-demand generation of html and data-parsoid', function() {
         });
     });
 
-    it('should pass (stored) revision B content to Parsoid for edit update',
+    it.skip('should pass (stored) revision B content to Parsoid for edit update',
     function () {
         // Start watching for new log entries
         var slice = server.config.logStream.slice();

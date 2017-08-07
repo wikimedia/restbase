@@ -30,7 +30,7 @@ paths:
         syntactic variations in wikitext, which ensures that diffs are
         readable.
 
-        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 5 req/s
       consumes:
         - multipart/form-data
@@ -119,12 +119,12 @@ paths:
         Transform wikitext to HTML. Note that if you set `stash: true`, you
         also need to supply the title.
 
-        - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 5 req/s
       consumes:
         - multipart/form-data
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/html/1.2.1"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
       parameters:
         - name: title
           in: path
@@ -210,6 +210,76 @@ paths:
               content-type: /^text\/html.+/
             body: /^<h2.*> Heading <\/h2>$/
 
+  /wikitext/to/lint{/title}{/revision}:
+    post:
+      tags:
+        - Transforms
+      summary: Check Wikitext for lint errors
+      description: |
+        Parse the supplied wikitext and check it for lint errors.
+
+        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        - Rate limit: 5 req/s
+      consumes:
+        - multipart/form-data
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: false
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: false
+        - name: wikitext
+          in: formData
+          description: The Wikitext to check
+          type: string
+          required: true
+          x-textarea: true
+      responses:
+        '200':
+          description: Linter errors, if any, as a JSON blob
+          schema:
+            type: object
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        '409':
+          description: Latest revision was restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '410':
+          description: Page was deleted
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 10
+              external: 5
+
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint{/title}{/revision}
+              body:
+                wikitext: '{{wikitext}}'
+      x-monitor: false
+
 # Keeping this in, as we'll re-introduce a html2html end point later.
 #  /html/to/html{/title}{/revision}:
 #    post:
@@ -223,7 +293,7 @@ paths:
 #      consumes:
 #        - multipart/form-data
 #      produces:
-#        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.2.1"
+#        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
 #      parameters:
 #        - name: title
 #          in: path
@@ -392,18 +462,3 @@ paths:
                 changes: '{{changes}}'
                 scrub_wikitext: '{{scrub_wikitext}}'
       x-monitor: false
-
-definitions:
-  # A https://tools.ietf.org/html/draft-nottingham-http-problem
-  problem:
-    required:
-      - type
-    properties:
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      instance:
-        type: string
