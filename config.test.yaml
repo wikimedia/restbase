@@ -30,6 +30,7 @@ default_project: &default_project
               domains: /./
         parsoid:
           host: https://parsoid-beta.wmflabs.org
+          time_to_live: 1
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
