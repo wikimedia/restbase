@@ -97,6 +97,8 @@ paths:
             /parsoid_bucket:
               x-modules:
                 - path: sys/parsoid_bucket.js
+                  options:
+                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
@@ -125,6 +127,7 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
+                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
             /events:
               x-modules:
                 - path: sys/events.js

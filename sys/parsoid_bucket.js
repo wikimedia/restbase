@@ -137,6 +137,11 @@ function deleteRevisions(hyper, req, rev) {
 }
 
 class ParsoidBucket {
+    constructor(options) {
+        this.options = options;
+        this.options.time_to_live = this.options.time_to_live || 86400;
+    }
+
     createBucket(hyper, req) {
         const rp = req.params;
         return P.all([
@@ -177,7 +182,7 @@ class ParsoidBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: 864000
+                        default_time_to_live: this.options.time_to_live * 10
                     }
                 }
             }),
@@ -198,7 +203,7 @@ class ParsoidBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: 864000
+                        default_time_to_live: this.options.time_to_live * 10
                     }
                 }
             })
@@ -309,7 +314,7 @@ class ParsoidBucket {
                             attributes: {
                                 key: rp.key,
                                 ts: {
-                                    le: new Date(Date.now() - 86400000)
+                                    le: new Date(Date.now() - this.options.time_to_live * 1000)
                                 }
                             },
                             limit: 1
@@ -350,7 +355,7 @@ class ParsoidBucket {
                                 key: rp.key,
                                 rev,
                                 ts: {
-                                    le: new Date(Date.now() - 86400000)
+                                    le: new Date(Date.now() - this.options.time_to_live * 1000)
                                 }
                             },
                             limit: 1
