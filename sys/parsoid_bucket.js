@@ -140,6 +140,7 @@ class ParsoidBucket {
     constructor(options) {
         this.options = options;
         this.options.time_to_live = this.options.time_to_live || 86400;
+        this.options.delete_probability = this.options.delete_probability || 1;
     }
 
     createBucket(hyper, req) {
@@ -307,23 +308,28 @@ class ParsoidBucket {
                             }
                         }
                     })
-                    .then(() => hyper.get({
-                        uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
-                        body: {
-                            table: 'revision-timeline',
-                            attributes: {
-                                key: rp.key,
-                                ts: {
-                                    le: new Date(Date.now() - this.options.time_to_live * 1000)
-                                }
-                            },
-                            limit: 1
+                    .then(() => {
+                        if (Math.random() > this.options.delete_probability) {
+                            return;
                         }
-                    }))
-                    .then((res) => {
-                        if (res.body.items.length) {
-                            return deleteRevisions(hyper, req, res.body.items[0].rev);
-                        }
+                        return hyper.get({
+                            uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                            body: {
+                                table: 'revision-timeline',
+                                attributes: {
+                                    key: rp.key,
+                                    ts: {
+                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
+                                    }
+                                },
+                                limit: 1
+                            }
+                        })
+                        .then((res) => {
+                            if (res.body.items.length) {
+                                return deleteRevisions(hyper, req, res.body.items[0].rev);
+                            }
+                        });
                     })
                     .catch({ status: 404 }, () => {
                         // Ignore the 404 if we don't have the timeline.
@@ -347,24 +353,29 @@ class ParsoidBucket {
                             }
                         }
                     })
-                    .then(() => hyper.get({
-                        uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
-                        body: {
-                            table: 'render-timeline',
-                            attributes: {
-                                key: rp.key,
-                                rev,
-                                ts: {
-                                    le: new Date(Date.now() - this.options.time_to_live * 1000)
-                                }
-                            },
-                            limit: 1
+                    .then(() => {
+                        if (Math.random() > this.options.delete_probability) {
+                            return;
                         }
-                    }))
-                    .then((res) => {
-                        if (res.body.items.length) {
-                            return deleteRenders(hyper, req, rev, res.body.items[0].tid);
-                        }
+                        return hyper.get({
+                            uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
+                            body: {
+                                table: 'render-timeline',
+                                attributes: {
+                                    key: rp.key,
+                                    rev,
+                                    ts: {
+                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
+                                    }
+                                },
+                                limit: 1
+                            }
+                        })
+                        .then((res) => {
+                            if (res.body.items.length) {
+                                return deleteRenders(hyper, req, rev, res.body.items[0].tid);
+                            }
+                        });
                     })
                     .catch({ status: 404 }, () => {
                         // Ignore the 404 if we don't have the timeline.

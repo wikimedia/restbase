@@ -124,6 +124,7 @@ paths:
                 - path: sys/parsoid_bucket.js
                   options:
                     time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
