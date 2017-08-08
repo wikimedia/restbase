@@ -267,7 +267,41 @@ class ParsoidBucket {
                 storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'parsoid_bucket');
             }
         }
-        return hyper.get(storeReq).then(returnRevision(req));
+
+        let indexCheck = P.resolve();
+        if (rp.bucket === 'html' && rp.revision) {
+            // If it's the primary content - check whether it's about to expire
+            indexCheck = hyper.get({
+                uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                body: {
+                    table: 'revision-timeline',
+                    attributes: {
+                        key: rp.key,
+                        ts: {
+                            le: new Date(Date.now() - this.options.time_to_live * 1000 / 2)
+                        }
+                    },
+                    limit: 1
+                }
+            })
+            .then((res) => {
+                if (res && res.body.items.length && res.body.items[0].rev >= rp.revision) {
+                    throw new HTTPError({
+                        status: 404
+                    });
+                }
+            }, (e) => {
+                if (e.status !== 404) {
+                    throw e;
+                }
+            });
+        }
+        return P.props({
+            content: hyper.get(storeReq),
+            indexCheck
+        })
+        .get('content')
+        .then(returnRevision(req));
     }
 
     putRevision(hyper, req) {
