@@ -248,7 +248,9 @@ class ParsoidService {
                 })
             })
             .then((res) => {
-                req.params.revision = mwUtil.parseETag(res.html.headers.etag).rev;
+                const parsedETag = mwUtil.parseETag(res.html.headers.etag);
+                req.params.revision = parsedETag.rev;
+                tid = tid || parsedETag.tid;
                 return this.saveParsoidResult(hyper, req, format, tid, {
                     body: res
                 }, true)
