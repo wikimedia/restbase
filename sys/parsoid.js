@@ -241,10 +241,10 @@ class ParsoidService {
                     uri: this.getBucketURI(rp, 'html', tid, false, false)
                 }),
                 'data-parsoid': hyper.get({
-                    uri: this.getBucketURI(rp, 'html', tid, false, false)
+                    uri: this.getBucketURI(rp, 'data-parsoid', tid, false, false)
                 }),
                 'section.offsets': hyper.get({
-                    uri: this.getBucketURI(rp, 'html', tid, false, false)
+                    uri: this.getBucketURI(rp, 'section.offsets', tid, false, false)
                 })
             })
             .then((res) => {
