@@ -527,7 +527,7 @@ class ParsoidService {
     listRevisions(format, hyper, req) {
         const rp = req.params;
         const revReq = {
-            uri: new URI([rp.domain, 'sys', this.options.bucket_type,
+            uri: new URI([rp.domain, 'sys', 'key_rev_value',
                 `parsoid.${format}-2`, rp.title, '']),
             body: {
                 limit: hyper.config.default_page_size
@@ -855,8 +855,6 @@ class ParsoidService {
 
 module.exports = (options) => {
     options = options || {};
-    // Default to key_rev_value for now, switch to key_rev_latest_value later.
-    options.bucket_type = options.bucket_type || 'key_rev_value';
     const ps = new ParsoidService(options);
 
     return {
@@ -865,7 +863,7 @@ module.exports = (options) => {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.html-2`,
+                uri: `/{domain}/sys/key_rev_value/parsoid.html-2`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -877,13 +875,13 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.wikitext`,
+                uri: `/{domain}/sys/key_rev_value/parsoid.wikitext`,
                 body: {
                     valueType: 'blob'
                 }
             },
             {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.data-parsoid-2`,
+                uri: `/{domain}/sys/key_rev_value/parsoid.data-parsoid-2`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -895,7 +893,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.section.offsets-2`,
+                uri: `/{domain}/sys/key_rev_value/parsoid.section.offsets-2`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -907,7 +905,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/${options.bucket_type}/parsoid.data-mw`,
+                uri: `/{domain}/sys/key_rev_value/parsoid.data-mw`,
                 body: {
                     valueType: 'json'
                 }
