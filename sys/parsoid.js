@@ -904,12 +904,14 @@ module.exports = (options) => {
                     version: 1
                 }
             },
+            /* This keyspace is not used yet - no need to create it
             {
                 uri: `/{domain}/sys/key_rev_value/parsoid.data-mw`,
                 body: {
                     valueType: 'json'
                 }
             },
+             */
             // stashing resources for HTML, wikitext and data-parsoid
             {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
