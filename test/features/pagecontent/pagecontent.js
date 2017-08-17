@@ -21,10 +21,11 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['access-control-allow-origin'], '*');
-            assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
-            assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type, cache-control, ' +
+            assert.deepEqual(res.headers['access-control-allow-methods'], 'GET,HEAD');
+            assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type, content-length, cache-control, ' +
                 'accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding');
             assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
+            assert.deepEqual(res.headers['referrer-policy'], 'origin-when-cross-origin');
         });
     });
     it('should transparently create a new HTML revision for Main_Page', function() {
