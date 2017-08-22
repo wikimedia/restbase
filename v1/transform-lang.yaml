@@ -17,7 +17,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
-        - application/json
+        - application/x-www-form-urlencoded
       produces:
         - application/json
       parameters:
@@ -36,7 +36,7 @@ paths:
            - Yandex
            - Youdao
         - name: html
-          in: body
+          in: formData
           description: The HTML content to translate
           type: string
           required: true
@@ -93,4 +93,3 @@ paths:
             $ref: '#/definitions/problem'
       x-monitor: false
       operationId: doDict
-
