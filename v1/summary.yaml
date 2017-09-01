@@ -109,14 +109,15 @@ paths:
               body: '{{storage.body}}'
 
         # Storage miss. Call the Action API to get the textextract.
-        - extract:
+        - get_extracts:
+            request: get
+            uri: '{{options.host}}/{domain}/v1/page/preview-html/{title}'
+          get_properties:
             request:
               method: post
               uri: /{domain}/sys/action/query
               body:
-                prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
-                exsentences: 5
-                exintro: true
+                prop: 'info|pageimages|revisions|pageterms|coordinates'
                 piprop: 'thumbnail|original'
                 inprop: 'displaytitle'
                 pithumbsize: 320
@@ -127,14 +128,14 @@ paths:
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/2.0.0"
                 etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
               body:
                 title: '{{extract.body.items[0].title}}'
                 displaytitle: '{{extract.body.items[0].displaytitle}}'
                 pageid: '{{extract.body.items[0].pageid}}'
-                extract: '{{stripTags(extract.body.items[0].extract)}}'
-                extract_html: '{{extract.body.items[0].extract}}'
+                extract: '{{get_extracts.body.extract}}'
+                extract_html: '{{get_extracts.body.extract_html}}'
                 thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
                 originalimage: '{{httpsSource(extract.body.items[0].original)}}'
                 lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'

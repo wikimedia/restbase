@@ -2,19 +2,6 @@
 
 const HyperSwitch = require('hyperswitch');
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/summary.yaml`);
-const entities = require('entities');
-
-/**
- * A RegExp to match all the tags with attributes.
- *
- * A tag starts with < and a letter, contains of a number of alphanumeric characters,
- * attributes are separated by spaces, attribute might have a value surrounded by ' or ",
- * the value is allowed to have any character.
- *
- * @const
- * @type {RegExp}
- */
-const TAGS_MATCH = /<\/?[a-zA-Z][\w-]*(?:\s+[a-zA-Z_\-:]+(?:=\\?(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g;
 
 module.exports = options => ({
     spec,
@@ -52,13 +39,6 @@ module.exports = options => ({
                 return undefined;
             }
             return coord;
-        },
-        stripTags(extract) {
-            if (!extract) {
-                return "";
-            }
-
-            return entities.decodeHTML(extract.replace(TAGS_MATCH, ''));
         }
     }
 });
