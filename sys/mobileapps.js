@@ -19,10 +19,8 @@ class MobileApps {
 
         const rp = req.params;
         const fetchPaths = {
-            lead: [rp.domain, 'sys', 'key_rev_value',
-                'mobile-sections-lead', rp.title],
-            remaining: [rp.domain, 'sys', 'key_rev_value',
-                'mobile-sections-remaining', rp.title]
+            lead: [rp.domain, 'sys', 'mobile_bucket', 'lead', rp.title],
+            remaining: [rp.domain, 'sys', 'mobile_bucket', 'remaining', rp.title],
         };
         if (rp.revision) {
             fetchPaths.lead.push(rp.revision);
@@ -61,8 +59,7 @@ class MobileApps {
             return fetchAndReturnPart();
         }
 
-        const fetchPath = [rp.domain, 'sys', 'key_rev_value',
-            `mobile-sections-${part}`, rp.title];
+        const fetchPath = [rp.domain, 'sys', 'mobile_bucket', part, rp.title];
         if (rp.revision) {
             fetchPath.push(rp.revision);
         }
@@ -122,8 +119,7 @@ class MobileApps {
             // to issue a purge for the latest revision nor store it in the
             // key_rev bucket, so check if it's indeed the latest
             requests.latestRev = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                    'mobile-sections-lead', rp.title])
+                uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'lead', rp.title])
             })
             .then(res => res.body.revision)
             .catch({ status: 404 }, () => {
@@ -141,21 +137,20 @@ class MobileApps {
             const newContent = res.newContent;
             let storeRequests = P.resolve();
             if (shouldStoreNewRev(res.latestRev)) {
-                storeRequests = P.join(
-                    hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                            'mobile-sections-lead', rp.title,
-                            newContent.body.lead.revision]),
-                        headers: newContent.headers,
-                        body: newContent.body.lead
-                    }),
-                    hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                            'mobile-sections-remaining', rp.title,
-                            newContent.body.lead.revision]),
-                        headers: newContent.headers,
-                        body: newContent.body.remaining
-                    }));
+                storeRequests = hyper.put({
+                    uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
+                        newContent.body.lead.revision]),
+                    body: {
+                        lead: {
+                            headers: newContent.headers,
+                            body: newContent.body.lead
+                        },
+                        remaining: {
+                            headers: newContent.headers,
+                            body: newContent.body.remaining
+                        }
+                    }
+                });
             }
             return storeRequests
             .tap(() => this._purgeURIs(hyper, req,
@@ -177,35 +172,8 @@ module.exports = (options) => {
         },
         resources: [
             {
-                uri: '/{domain}/sys/key_rev_value/mobile-sections-lead',
-                body: {
-                    version: 4,
-                    revisionRetentionPolicy: {
-                        type: 'latest_hash',
-                        count: 1,
-                        grace_ttl: 1
-                    },
-                    valueType: 'json',
-                    updates: {
-                        pattern: 'timeseries'
-                    }
-                }
-            },
-            {
-                uri: '/{domain}/sys/key_rev_value/mobile-sections-remaining',
-                body: {
-                    version: 4,
-                    revisionRetentionPolicy: {
-                        type: 'latest_hash',
-                        count: 1,
-                        grace_ttl: 1
-                    },
-                    valueType: 'json',
-                    updates: {
-                        pattern: 'timeseries'
-                    }
-                }
-            },
+                uri: '/{domain}/sys/mobile_bucket/',
+            }
         ]
     };
 };

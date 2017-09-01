@@ -124,6 +124,7 @@ paths:
                 - path: sys/multi_content_bucket.js
                   options:
                     time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    renew_expiring: true
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: parsoid
                     main_content_type:
@@ -133,6 +134,20 @@ paths:
                       - name: data-parsoid
                         value_type: json
                       - name: section-offsets
+                        value_type: json
+            /mobile_bucket:
+              x-modules:
+                - path: sys/multi_content_bucket.js
+                  options:
+                    # TODO: Decide on the retention period
+                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
+                    table_name_prefix: mobile
+                    main_content_type:
+                      name: lead
+                      value_type: json
+                    dependent_content_types:
+                      - name: remaining
                         value_type: json
             /key_value: &sys_key_value
               x-modules:

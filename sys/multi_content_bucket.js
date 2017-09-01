@@ -271,7 +271,9 @@ class MultiContentBucket {
         }
 
         let indexCheck = P.resolve();
-        if (rp.content === this.options.main_content_type.name && rp.revision) {
+        if (rp.content === this.options.main_content_type.name
+                && rp.revision
+                && this.options.renew_expiring) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
                 uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
