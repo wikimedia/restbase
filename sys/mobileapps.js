@@ -108,54 +108,32 @@ class MobileApps {
             serviceURI += `/${rp.revision}`;
         }
 
-        const requests = {
-            newContent: hyper.get({
-                uri: new URI(serviceURI)
-            })
-        };
-
-        if (rp.revision) {
-            // This might be a request to the old revision and we don't want
-            // to issue a purge for the latest revision nor store it in the
-            // key_rev bucket, so check if it's indeed the latest
-            requests.latestRev = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'lead', rp.title])
-            })
-            .then(res => res.body.revision)
-            .catch({ status: 404 }, () => {
-                // We have no revisions for this title, so it's certainly latest.
-                return -1;
-            });
-        } else {
-            requests.latestRev = P.resolve(-1);
-        }
-
-        const shouldStoreNewRev = latestRev => !rp.revision || rp.revision >= latestRev;
-
-        return P.props(requests)
+        return hyper.get({
+            uri: new URI(serviceURI)
+        })
         .then((res) => {
-            const newContent = res.newContent;
-            let storeRequests = P.resolve();
-            if (shouldStoreNewRev(res.latestRev)) {
-                storeRequests = hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
-                        newContent.body.lead.revision]),
-                    body: {
-                        lead: {
-                            headers: newContent.headers,
-                            body: newContent.body.lead
-                        },
-                        remaining: {
-                            headers: newContent.headers,
-                            body: newContent.body.remaining
-                        }
+            return hyper.put({
+                uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
+                    res.body.lead.revision]),
+                body: {
+                    lead: {
+                        headers: res.headers,
+                        body: res.body.lead
+                    },
+                    remaining: {
+                        headers: res.headers,
+                        body: res.body.remaining
                     }
-                });
-            }
-            return storeRequests
-            .tap(() => this._purgeURIs(hyper, req,
-                newContent.body.lead.revision, shouldStoreNewRev(res.latestRev)))
-            .thenReturn(newContent);
+                }
+            })
+            .tap(() =>
+                this._purgeURIs(hyper, req, res.body.lead.revision, true))
+            // TODO: This means we never store older revisions for mobile!
+            // Need to add the fallback when mobile-references get implemented!
+            .catch({ status: 412 }, () =>
+                // 412 means that it's an older revision
+                this._purgeURIs(hyper, req, res.body.lead.revision, false))
+            .thenReturn(res);
         });
     }
 }
