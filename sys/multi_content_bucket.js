@@ -10,7 +10,7 @@ const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
-const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid_bucket.yaml`);
+const spec = HyperSwitch.utils.loadSpec(`${__dirname}/multi_content_bucket.yaml`);
 
 // Format a revision response. Shared between different ways to retrieve a
 // revision (latest & with explicit revision).
@@ -40,136 +40,135 @@ function returnRevision(req) {
     };
 }
 
-function createContentStoreRequests(hyper, req, rev, tid) {
-    const rp = req.params;
-    return P.join(
-        hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table-ng', 'data-parsoid-ng', '']),
-            body: {
-                table: 'data-parsoid-ng',
-                attributes: {
-                    key: rp.key,
-                    rev,
-                    tid,
-                    'content-type': req.body['data-parsoid'].headers['content-type'],
-                    value: req.body['data-parsoid'].body
-                }
-            }
-        }),
-        hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table-ng', 'section-offsets-ng', '']),
-            body: {
-                table: 'section-offsets-ng',
-                attributes: {
-                    key: rp.key,
-                    rev,
-                    tid,
-                    'content-type': req.body['section-offsets'].headers['content-type'],
-                    value: req.body['section-offsets'].body
-                }
-            }
-        })
-    )
-    // Save HTML last, so that any error in metadata storage suppresses HTML.
-    .then(() =>  hyper.put({
-        uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
-        body: {
-            table: 'html-ng',
-            attributes: {
-                key: rp.key,
-                rev,
-                tid,
-                'content-type': req.body.html.headers['content-type'],
-                value: req.body.html.body
-            }
-        }
-    }));
-}
-
-function deleteRenders(hyper, req, rev, tid) {
-    const rp = req.params;
-
-    function deleteRender(contentType) {
-        return hyper.delete({ // TODO: Delete other content too
-            uri: new URI([rp.domain, 'sys', 'table-ng', `${contentType}-ng`, '']),
-            body: {
-                table: `${contentType}-ng`,
-                attributes: {
-                    key: rp.key,
-                    rev,
-                    tid: {
-                        le: tid
-                    }
-                }
-            }
-        });
-    }
-
-    return deleteRender('html')
-    .then(() => P.join(
-        deleteRender('data-parsoid'),
-        deleteRender('section-offsets'))
-    );
-}
-
-function deleteRevisions(hyper, req, rev) {
-    const rp = req.params;
-    function deleteRevision(contentType) {
-        return hyper.delete({ // TODO: Delete other content too
-            uri: new URI([rp.domain, 'sys', 'table-ng', `${contentType}-ng`, '']),
-            body: {
-                table: `${contentType}-ng`,
-                attributes: {
-                    key: rp.key,
-                    rev: {
-                        le: rev
-                    }
-                }
-            }
-        });
-    }
-
-    return deleteRevision('html')
-    .then(() => P.join(
-        deleteRevision('data-parsoid'),
-        deleteRevision('section-offsets'))
-    );
-}
-
-class ParsoidBucket {
+class MultiContentBucket {
     constructor(options) {
         this.options = options;
+
+        if (!options.table_name_prefix) {
+            throw new Error('table_name_prefix prefix must be provided');
+        }
+        if (!options.main_content_type) {
+            throw new Error('Main content type must be specified');
+        }
+        if (!options.main_content_type.name) {
+            throw new Error('Main content type must specify the name');
+        }
+        if (!options.main_content_type.value_type) {
+            throw new Error('Main content type must specify the value_type');
+        }
+        if (!options.dependent_content_types || !Array.isArray(options.dependent_content_types)) {
+            throw new Error('Dependent content types must be specified');
+        }
+        options.dependent_content_types.forEach((cTypeSpec) => {
+            if (!cTypeSpec.name) {
+                throw new Error('Dependent content type must specify name');
+            }
+            if (!cTypeSpec.value_type) {
+                throw new Error(`Dependent content ${cTypeSpec.name} must specify value_type`);
+            }
+        });
+
         this.options.time_to_live = this.options.time_to_live || 86400;
         this.options.delete_probability = this.options.delete_probability || 1;
     }
 
+    _createContentStoreRequests(hyper, req, rev, tid) {
+        const rp = req.params;
+        const mainCTypeName = this.options.main_content_type.name;
+        const prefix = this.options.table_name_prefix;
+        return P.join(this.options.dependent_content_types
+        .map(cTypeSpec => hyper.put({
+            uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${cTypeSpec.name}`, '']),
+            body: {
+                table: `${prefix}.${cTypeSpec.name}`,
+                attributes: {
+                    key: rp.key,
+                    rev,
+                    tid,
+                    'content-type': req.body[cTypeSpec.name].headers['content-type'],
+                    value: req.body[cTypeSpec.name].body
+                }
+            }
+        })))
+        // Save main content last, so that any error in metadata storage suppresses main content.
+        .then(() => hyper.put({
+            uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${mainCTypeName}`, '']),
+            body: {
+                table: `${prefix}.${mainCTypeName}`,
+                attributes: {
+                    key: rp.key,
+                    rev,
+                    tid,
+                    'content-type': req.body[mainCTypeName].headers['content-type'],
+                    value: req.body[mainCTypeName].body
+                }
+            }
+        }));
+    }
+
+    _deleteRenders(hyper, req, rev, tid) {
+        const rp = req.params;
+        const prefix = this.options.table_name_prefix;
+        function deleteRender(contentType) {
+            return hyper.delete({
+                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${contentType}`, '']),
+                body: {
+                    table: `${prefix}.${contentType}`,
+                    attributes: {
+                        key: rp.key,
+                        rev,
+                        tid: {
+                            le: tid
+                        }
+                    }
+                }
+            });
+        }
+
+        return deleteRender(this.options.main_content_type.name)
+        .then(() => P.all(this.options.dependent_content_types
+            .map(cTypeSpec => deleteRender(cTypeSpec.name))));
+    }
+
+    _deleteRevisions(hyper, req, rev) {
+        const rp = req.params;
+        const prefix = this.options.table_name_prefix;
+        function deleteRevision(contentType) {
+            return hyper.delete({
+                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${contentType}`, '']),
+                body: {
+                    table: `${prefix}.${contentType}`,
+                    attributes: {
+                        key: rp.key,
+                        rev: {
+                            le: rev
+                        }
+                    }
+                }
+            });
+        }
+
+        return deleteRevision(this.options.main_content_type.name)
+        .then(() => P.all(this.options.dependent_content_types
+        .map(cTypeSpec => deleteRevision(cTypeSpec.name))));
+    }
+
+
     createBucket(hyper, req) {
         const rp = req.params;
-        return P.all([
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng']),
-                body: this.makeSchema({
-                    valueType: 'blob',
-                    table: 'html-ng'
-                })
-            }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'data-parsoid-ng']),
-                body: this.makeSchema({
-                    valueType: 'json',
-                    table: 'data-parsoid-ng'
-                })
-            }),
-            hyper.put({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'section-offsets-ng']),
-                body: this.makeSchema({
-                    valueType: 'json',
-                    table: 'section-offsets-ng'
-                })
-
-            }),
-            hyper.put({ // TODO: add default TTL
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline']),
+        const prefix = this.options.table_name_prefix;
+        const createRequests = this.options.dependent_content_types
+        .concat([this.options.main_content_type])
+        .map(cTypeSpec => ({
+            uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${cTypeSpec.name}`]),
+            body: this.makeSchema({
+                valueType: cTypeSpec.value_type,
+                table: `${prefix}.${cTypeSpec.name}`
+            })
+        }))
+        .concat([
+            {
+                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline']),
                 body: {
                     table: 'revision-timeline',
                     version: 1,
@@ -186,9 +185,9 @@ class ParsoidBucket {
                         default_time_to_live: this.options.time_to_live * 10
                     }
                 }
-            }),
-            hyper.put({ // TODO: add default TTL
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline']),
+            },
+            {
+                uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline']),
                 body: {
                     table: 'render-timeline',
                     version: 1,
@@ -207,8 +206,10 @@ class ParsoidBucket {
                         default_time_to_live: this.options.time_to_live * 10
                     }
                 }
-            })
-        ]).thenReturn({ status: 201 });
+            }
+        ])
+        .map(storeReq => hyper.put(storeReq));
+        return P.all(createRequests).thenReturn({ status: 201 });
     }
 
     makeSchema(opts) {
@@ -251,10 +252,11 @@ class ParsoidBucket {
 
     getRevision(hyper, req) {
         const rp = req.params;
+        const tablePrefix = this.options.table_name_prefix;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table-ng', `${rp.bucket}-ng`, '']),
+            uri: new URI([rp.domain, 'sys', 'table3', `${tablePrefix}.${rp.content}`, '']),
             body: {
-                table: `${rp.bucket}-ng`,
+                table: `${tablePrefix}.${rp.content}`,
                 attributes: {
                     key: rp.key
                 },
@@ -262,17 +264,17 @@ class ParsoidBucket {
             }
         };
         if (rp.revision) {
-            storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'parsoid_bucket');
+            storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'multi_content');
             if (rp.tid) {
-                storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'parsoid_bucket');
+                storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'multi_content');
             }
         }
 
         let indexCheck = P.resolve();
-        if (rp.bucket === 'html' && rp.revision) {
+        if (rp.content === this.options.main_content_type.name && rp.revision) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
                 body: {
                     table: 'revision-timeline',
                     attributes: {
@@ -306,14 +308,15 @@ class ParsoidBucket {
 
     putRevision(hyper, req) {
         const rp = req.params;
-        const rev = mwUtil.parseRevision(rp.revision, 'parsoid_bucket');
-        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'parsoid_bucket') || uuid.now().toString();
-
+        const rev = mwUtil.parseRevision(rp.revision, 'multi_content');
+        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'multi_content') || uuid.now().toString();
+        const tablePrefix = this.options.table_name_prefix;
+        const mainContentTable = `${tablePrefix}.${this.options.main_content_type.name}`;
         // First, find out what was the previous revision stored to know what we are replacing
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table-ng', 'html-ng', '']),
+            uri: new URI([rp.domain, 'sys', 'table3', mainContentTable, '']),
             body: {
-                table: `html-ng`,
+                table: mainContentTable,
                 attributes: {
                     key: rp.key
                 },
@@ -324,15 +327,15 @@ class ParsoidBucket {
         .then((res) => {
             if (!res || !res.body.items.length) {
                 // Noting was ever there - put the first render and no need to update the index
-                return createContentStoreRequests(hyper, req,rev, tid);
+                return this._createContentStoreRequests(hyper, req,rev, tid);
             } else if (res && res.body.items.length && res.body.items[0].rev < rev) {
                 // New revision is being written - update revision index and do the revision deletes
                 const replacedRev = res.body.items[0].rev;
-                return createContentStoreRequests(hyper, req, rev, tid)
+                return this._createContentStoreRequests(hyper, req, rev, tid)
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                        uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
                         body: {
                             table: 'revision-timeline',
                             attributes: {
@@ -347,7 +350,7 @@ class ParsoidBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table-ng', 'revision-timeline', '']),
+                            uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
                             body: {
                                 table: 'revision-timeline',
                                 attributes: {
@@ -361,7 +364,7 @@ class ParsoidBucket {
                         })
                         .then((res) => {
                             if (res.body.items.length) {
-                                return deleteRevisions(hyper, req, res.body.items[0].rev);
+                                return this._deleteRevisions(hyper, req, res.body.items[0].rev);
                             }
                         });
                     })
@@ -372,11 +375,11 @@ class ParsoidBucket {
             } else if (res && res.body.items.length && res.body.items[0].rev === rev) {
                 // New render is being written - update render index and do the render deletes
                 const replacedTid = res.body.items[0].tid;
-                return createContentStoreRequests(hyper, req, rev, tid)
+                return this._createContentStoreRequests(hyper, req, rev, tid)
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
+                        uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
                         body: {
                             table: 'render-timeline',
                             attributes: {
@@ -392,7 +395,7 @@ class ParsoidBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table-ng', 'render-timeline', '']),
+                            uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
                             body: {
                                 table: 'render-timeline',
                                 attributes: {
@@ -407,7 +410,7 @@ class ParsoidBucket {
                         })
                         .then((res) => {
                             if (res.body.items.length) {
-                                return deleteRenders(hyper, req, rev, res.body.items[0].tid);
+                                return this._deleteRenders(hyper, req, rev, res.body.items[0].tid);
                             }
                         });
                     })
@@ -423,10 +426,11 @@ class ParsoidBucket {
 
     listRevisions(hyper, req) {
         const rp = req.params;
+        const tableName = `${this.options.table_name_prefix}.${rp.content}`;
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table-ng', `${rp.bucket}-ng`, '']),
+            uri: new URI([rp.domain, 'sys', 'table3', tableName, '']),
             body: {
-                table: `${rp.bucket}-ng`,
+                table: tableName,
                 attributes: {
                     key: req.params.key
                 },
@@ -454,15 +458,15 @@ class ParsoidBucket {
 }
 
 module.exports = (options) => {
-    const krvBucket = new ParsoidBucket(options);
+    const mkBucket = new MultiContentBucket(options);
 
     return {
         spec, // Re-export from spec module
         operations: {
-            createBucket: krvBucket.createBucket.bind(krvBucket),
-            getRevision: krvBucket.getRevision.bind(krvBucket),
-            putRevision: krvBucket.putRevision.bind(krvBucket),
-            listRevisions: krvBucket.listRevisions.bind(krvBucket),
+            createBucket: mkBucket.createBucket.bind(mkBucket),
+            getRevision: mkBucket.getRevision.bind(mkBucket),
+            putRevision: mkBucket.putRevision.bind(mkBucket),
+            listRevisions: mkBucket.listRevisions.bind(mkBucket),
         }
     };
 };
