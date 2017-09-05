@@ -16,8 +16,7 @@ addons:
     - oracle-java8-set-default
 
 env:
-  - CASSANDRA_VERSION=3.11.0 TEST_TARGET=cassandra
-  - CASSANDRA_VERSION=3.11.0 TEST_TARGET=sqlite # The cassandra version doesn't really matter here, but we still specify it
+  - CASSANDRA_VERSION=3.11.0 TEST_TARGET=all
 
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
