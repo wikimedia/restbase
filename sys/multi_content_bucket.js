@@ -213,7 +213,7 @@ class MultiContentBucket {
     }
 
     makeSchema(opts) {
-        const schemaVersionMajor = 2;
+        const schemaVersionMajor = 3;
 
         return {
             table: opts.table,
