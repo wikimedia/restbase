@@ -925,7 +925,7 @@ module.exports = (options) => {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
                 body: {
                     valueType: 'blob',
-                    version: 2,
+                    version: 3,
                     default_time_to_live: options.time_to_live
                 }
             },
@@ -933,7 +933,7 @@ module.exports = (options) => {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
                 body: {
                     valueType: 'blob',
-                    version: 2,
+                    version: 3,
                     default_time_to_live: options.time_to_live
                 }
             },
@@ -941,7 +941,7 @@ module.exports = (options) => {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
                 body: {
                     valueType: 'json',
-                    version: 2,
+                    version: 3,
                     default_time_to_live: options.time_to_live
                 }
             },
@@ -949,7 +949,7 @@ module.exports = (options) => {
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.section-offsets',
                 body: {
                     valueType: 'json',
-                    version: 2,
+                    version: 3,
                     default_time_to_live: options.time_to_live
                 }
             },
