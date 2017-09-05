@@ -98,7 +98,7 @@ paths:
               x-modules:
                 - path: sys/multi_content_bucket.js
                   options:
-                    table_name_prefix: parsoid
+                    table_name_prefix: parsoid_ng
                     renew_expiring: true
                     time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'

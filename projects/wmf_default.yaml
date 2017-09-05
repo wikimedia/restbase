@@ -126,7 +126,7 @@ paths:
                     time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
                     renew_expiring: true
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
-                    table_name_prefix: parsoid
+                    table_name_prefix: parsoid_ng
                     main_content_type:
                       name: html
                       value_type: blob
@@ -142,7 +142,7 @@ paths:
                     # TODO: Decide on the retention period
                     time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
-                    table_name_prefix: mobile
+                    table_name_prefix: mobile_ng
                     main_content_type:
                       name: lead
                       value_type: json
