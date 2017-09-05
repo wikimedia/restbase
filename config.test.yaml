@@ -28,7 +28,7 @@ default_project: &default_project
           storage_groups:
             - name: test.group.local
               domains: /./
-          dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+          dbname: test-ng.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         parsoid:
           host: https://parsoid-beta.wmflabs.org
           time_to_live: 2
