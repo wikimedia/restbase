@@ -171,7 +171,7 @@ class MultiContentBucket {
                 uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline']),
                 body: {
                     table: 'revision-timeline',
-                    version: 1,
+                    version: 2,
                     attributes: {
                         key: 'string',
                         ts: 'timestamp',
@@ -190,7 +190,7 @@ class MultiContentBucket {
                 uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline']),
                 body: {
                     table: 'render-timeline',
-                    version: 1,
+                    version: 2,
                     attributes: {
                         key: 'string',
                         ts: 'timestamp',
