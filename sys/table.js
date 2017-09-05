@@ -10,7 +10,8 @@ module.exports = (options) => {
 
     if (options.conf.backend !== 'cassandra'
             && options.conf.backend !== 'cassandra-ng'
-            && options.conf.backend !== 'sqlite') {
+            && options.conf.backend !== 'sqlite'
+            && options.conf.backend !== 'sqlite-ng') {
         throw new Error(`Unsupported backend version specified: ${options.conf.backend}`);
     }
 
