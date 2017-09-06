@@ -136,6 +136,8 @@ paths:
               body:
                 title: '{{get_properties.body.items[0].title}}'
                 displaytitle: '{{get_properties.body.items[0].displaytitle}}'
+                revision: '{{get_extracts.body.revision}}'
+                type: '{{get_extracts.body.type}}'
                 pageid: '{{get_properties.body.items[0].pageid}}'
                 extract: '{{get_extracts.body.extract}}'
                 extract_html: '{{get_extracts.body.extract_html}}'
