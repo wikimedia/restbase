@@ -31,7 +31,7 @@ default_project: &default_project
           dbname: test-ng.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         parsoid:
           host: https://parsoid-beta.wmflabs.org
-          time_to_live: 2
+          grace_ttl: 2
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
