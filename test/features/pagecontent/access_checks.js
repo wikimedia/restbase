@@ -53,10 +53,8 @@ describe('Access checks', function() {
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
         .then(() => P.join(
-            preq.get({ uri: `${server.config.bucketURL}/html/Main_Page` })
-            .catch(e => { console.log('a', e); throw e;}),
+            preq.get({ uri: `${server.config.bucketURL}/html/Main_Page` }),
             preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page` })
-            .catch(e => { console.log(`${server.config.labsBucketURL}/html/Main_Page`, e); throw e;})
         ))
         // Load in the revisions
         .then(function() {
