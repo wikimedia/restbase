@@ -68,7 +68,7 @@ class MultiContentBucket {
             }
         });
 
-        this.options.time_to_live = this.options.time_to_live || 86400;
+        this.options.grace_ttl = this.options.grace_ttl || 86400;
         this.options.delete_probability = this.options.delete_probability || 1;
     }
 
@@ -182,7 +182,7 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.time_to_live * 10
+                        default_time_to_live: this.options.grace_ttl * 10
                     }
                 }
             },
@@ -203,7 +203,7 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.time_to_live * 10
+                        default_time_to_live: this.options.grace_ttl * 10
                     }
                 }
             }
@@ -282,7 +282,7 @@ class MultiContentBucket {
                     attributes: {
                         key: rp.key,
                         ts: {
-                            le: new Date(Date.now() - this.options.time_to_live * 1000 / 2)
+                            le: new Date(Date.now() - this.options.grace_ttl * 1000 / 2)
                         }
                     },
                     limit: 1
@@ -358,7 +358,7 @@ class MultiContentBucket {
                                 attributes: {
                                     key: rp.key,
                                     ts: {
-                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
+                                        le: new Date(Date.now() - this.options.grace_ttl * 1000)
                                     }
                                 },
                                 limit: 1
@@ -404,7 +404,7 @@ class MultiContentBucket {
                                     key: rp.key,
                                     rev,
                                     ts: {
-                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
+                                        le: new Date(Date.now() - this.options.grace_ttl * 1000)
                                     }
                                 },
                                 limit: 1
