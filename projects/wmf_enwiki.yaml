@@ -149,7 +149,7 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
-                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     # A list of pages that we don't currently want to re-render on
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
@@ -204,7 +204,7 @@ paths:
                 - path: sys/multi_content_bucket.js
                   options:
                     # TODO: Decide on the retention period
-                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: mobile_ng
                     main_content_type:
