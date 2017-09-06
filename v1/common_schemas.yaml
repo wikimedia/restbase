@@ -54,6 +54,12 @@ definitions:
       displaytitle:
         type: string
         description: The page title how it should be shown to the user
+      revision:
+        type: string
+        description: The revision of the page when the summary was produced
+      type:
+        type: string
+        description: Type of page summary
       pageid:
         type: integer
         description: The page ID
