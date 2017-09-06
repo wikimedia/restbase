@@ -28,6 +28,7 @@ function loadConfig(path) {
         }
         if (backendImpl === 'sqlite') {
             confString = confString.replace(/backend: cassandra/, "backend: sqlite");
+            confString = confString.replace(/backend: cassandra-ng/, "backend: sqlite-ng");
         }
     }
     return yaml.safeLoad(confString);
