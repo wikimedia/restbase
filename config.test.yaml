@@ -18,8 +18,20 @@ default_project: &default_project
             - name: test.group.local
               domains: /./
           dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+        table_ng:
+          backend: cassandra-ng
+          hosts: [localhost]
+          keyspace: system
+          username: cassandra
+          password: cassandra
+          defaultConsistency: one # or 'localQuorum' for production
+          storage_groups:
+            - name: test.group.local
+              domains: /./
+          dbname: test-ng.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         parsoid:
           host: https://parsoid-beta.wmflabs.org
+          time_to_live: 2
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"

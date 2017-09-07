@@ -91,7 +91,7 @@ describe('Change event emitting', function() {
                 {should_not_be: 'here'}
             ]
         })
-        .delay(10000)
+        .delay(20000)
         .finally(function() {
             really_done(new Error('HTTP event server timeout!'));
         });
@@ -130,7 +130,7 @@ describe('Change event emitting', function() {
                 }
             ]
         })
-        .delay(10000)
+        .delay(20000)
         .finally(function() {
             really_done(new Error('HTTP event server timeout!'));
         });
@@ -174,7 +174,7 @@ describe('Change event emitting', function() {
                 }
             ]
         })
-        .delay(10000)
+        .delay(20000)
         .finally(function() {
             really_done(new Error('HTTP event server timeout!'));
         });

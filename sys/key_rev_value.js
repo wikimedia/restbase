@@ -69,6 +69,7 @@ class KRVBucket {
                 updates: opts.updates || {
                     pattern: 'timeseries'
                 },
+                default_time_to_live: opts.default_time_to_live
             },
             revisionRetentionPolicy: opts.retention_policy
             // Deprecated version. TODO: Remove eventually.
