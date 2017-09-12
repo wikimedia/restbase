@@ -168,9 +168,9 @@ class MultiContentBucket {
         }))
         .concat([
             {
-                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline']),
+                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-revision-timeline`]),
                 body: {
-                    table: 'revision-timeline',
+                    table: `${prefix}-revision-timeline`,
                     version: 2,
                     attributes: {
                         key: 'string',
@@ -187,9 +187,9 @@ class MultiContentBucket {
                 }
             },
             {
-                uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline']),
+                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-render-timeline`]),
                 body: {
-                    table: 'render-timeline',
+                    table: `${prefix}-render-timeline`,
                     version: 2,
                     attributes: {
                         key: 'string',
@@ -276,9 +276,9 @@ class MultiContentBucket {
                 && this.options.renew_expiring) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
+                uri: new URI([rp.domain, 'sys', 'table3', `${tablePrefix}-revision-timeline`, '']),
                 body: {
-                    table: 'revision-timeline',
+                    table: `${tablePrefix}-revision-timeline`,
                     attributes: {
                         key: rp.key,
                         ts: {
@@ -337,9 +337,10 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
+                        uri: new URI([rp.domain, 'sys', 'table3',
+                            `${tablePrefix}-revision-timeline`, '']),
                         body: {
-                            table: 'revision-timeline',
+                            table: `${tablePrefix}-revision-timeline`,
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
@@ -352,9 +353,10 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
+                            uri: new URI([rp.domain, 'sys', 'table3',
+                                `${tablePrefix}-revision-timeline`, '']),
                             body: {
-                                table: 'revision-timeline',
+                                table: `${tablePrefix}-revision-timeline`,
                                 attributes: {
                                     key: rp.key,
                                     ts: {
@@ -381,9 +383,10 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
+                        uri: new URI([rp.domain, 'sys', 'table3',
+                            `${tablePrefix}-render-timeline`, '']),
                         body: {
-                            table: 'render-timeline',
+                            table: `${tablePrefix}-render-timeline`,
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
@@ -397,9 +400,10 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
+                            uri: new URI([rp.domain, 'sys', 'table3',
+                                `${tablePrefix}-render-timeline`, '']),
                             body: {
-                                table: 'render-timeline',
+                                table: `${tablePrefix}-render-timeline`,
                                 attributes: {
                                     key: rp.key,
                                     rev,
