@@ -73,9 +73,8 @@ development environment), set `defaultConsistency` to `one` in
 
 ## Usage
 
-See the [Wikimedia REST content API
-sandbox](https://rest.wikimedia.org/en.wikipedia.org/v1/?doc) for a fine
-example of what RESTBase can do.
+See the [Wikimedia REST content API sandbox](https://en.wikipedia.org/api/rest_v1/)
+for a fine example of what RESTBase can do.
 
 ## Development
 
