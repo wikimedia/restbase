@@ -243,13 +243,18 @@ class ActionService {
                 body: {
                     action: 'query',
                     meta: 'siteinfo|filerepoinfo',
-                    siprop: 'general|namespaces|namespacealiases|specialpagealiases',
+                    siprop: 'general|namespaces|namespacealiases|specialpagealiases|extensions',
                     format: 'json'
                 }
             }, {}, (apiReq, res) => {
                 if (!res || !res.body || !res.body.query || !res.body.query.general) {
                     throw new Error(`SiteInfo is unavailable for ${rp.domain}`);
                 }
+                // convert the list of extensions into an object
+                const extensions = {};
+                (res.body.query.extensions || []).forEach((ext) => {
+                    extensions[ext.name] = ext;
+                });
                 return {
                     status: 200,
                     body: {
@@ -258,7 +263,7 @@ class ActionService {
                             legaltitlechars: res.body.query.general.legaltitlechars,
                             case: res.body.query.general.case
                         },
-
+                        extensions,
                         namespaces: res.body.query.namespaces,
                         namespacealiases: res.body.query.namespacealiases,
                         specialpagealiases: res.body.query.specialpagealiases,
