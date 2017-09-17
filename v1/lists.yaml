@@ -1,0 +1,928 @@
+swagger: '2.0'
+info:
+  version: '0.1'
+  title: MediaWiki Reading Lists API
+  description: API for manipulating private [reading lists](https://www.mediawiki.org/wiki/Reading/Reading_Lists)
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  x-configuration:
+    maxListsPerUser: &maxListsPerUser 100
+    maxEntriesPerList: &maxEntriesPerList 1000
+    deletedRetentionDays: &deletedRetentionDays 30
+x-yaml-anchors:
+  csrf_token: &csrf_token
+    type: string
+    description: "The CRSF edit token provided by the MediaWiki API"
+    example: "f63c343876da566045e6b59c4532450559c828d3+\\"
+  list_common: &list_common
+    name:
+      type: string
+      example: "Planets"
+    description:
+      type: string
+      example: "Planets of the Solar System"
+    color:
+      type: string
+      description: "A CSS3 color name"
+      example: "blue"
+    image:
+      type: string
+      description: "A Wikimedia Commons image name"
+      example: "Solar_system.jpg"
+    icon:
+      type: string
+      description: "(semantics TBD)"
+      example: "planet"
+  list_entry_common: &list_entry_common
+    project: &list_entry_common_project
+      type: string
+      description: 'Domain of the wiki containing the page.'
+      example: 'en.wikipedia.org'
+    title: &list_entry_common_title
+      type: string
+      description: 'Title of the page containing the page, in database format.'
+      example: 'Barack_Obama'
+paths:
+  /lists/setup:
+    post:
+      tags:
+        - Reading lists
+      summary: Opt in to use reading lists.
+      description: |
+        Must precede other list operations.
+
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: setup
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+  /lists/teardown:
+    post:
+      tags:
+        - Reading lists
+      summary: Opt out from using reading lists.
+      description: |
+        Deletes all data. User needs to opt in again before being able to do anything.
+
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: teardown
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+  /lists/:
+    get:
+      tags:
+        - Reading lists
+      summary: Get all lists of the current user.
+      description: |
+        Returns metadata describing the lists of the current user. Might be truncated and include
+        a continuation token.
+
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: next
+          in: query
+          description: Continuation parameter from previous request
+          type: string
+          required: false
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+      responses:
+        '200':
+          description: An array of list metadata.
+          schema:
+            type: object
+            properties:
+              lists:
+                type: array
+                items:
+                  $ref: '#/definitions/list_read'
+              next:
+                type: string
+                description: Continuation token.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: query
+                meta: readinglists
+                rllimit: max
+                continue: '{{unflattenContinuation(request.query.next).continue}}'
+                rlcontinue: '{{unflattenContinuation(request.query.next).rlcontinue}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+                cache-control: "no-cache"
+              body:
+                lists: '{{forward_to_mw.body.query.readinglists}}'
+                next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+    post:
+      tags:
+        - Reading lists
+      summary: Create a new lists for the current user.
+      description: |
+        Creates a new empty list.
+
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: list
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/list_write'
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: The ID of the new list.
+          schema:
+            type: object
+            title: response
+            properties:
+              create:
+                type: object
+                title: result
+                properties:
+                  id:
+                    type: integer
+                    description: List ID
+                    example: 7
+                    required: true
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: create
+                name: '{{request.body.name}}'
+                description: '{{request.body.description}}'
+                color: '{{request.body.color}}'
+                image: '{{request.body.image}}'
+                icon: '{{request.body.icon}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+              body:
+                id: '{{forward_to_mw.body.create.id}}'
+      x-monitor: false
+  /lists/{id}:
+    put:
+      tags:
+        - Reading lists
+      summary: Update a list.
+      description: |
+        List must belong to current user and request must be authenticated with
+        a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          example: 42
+          required: true
+        - name: list
+          in: body
+          schema:
+            $ref: '#/definitions/list_write'
+        - <<: *csrf_token
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: update
+                list: '{{request.params.id}}'
+                name: '{{request.body.name}}'
+                description: '{{request.body.description}}'
+                color: '{{request.body.color}}'
+                image: '{{request.body.image}}'
+                icon: '{{request.body.icon}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+    delete:
+      tags:
+        - Reading lists
+      summary: Delete a list.
+      description: |
+        List must belong to current user and request must be authenticated with
+        a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          example: 42
+          required: true
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: delete
+                list: '{{request.params.id}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+  /lists/{id}/entries/:
+    get:
+      tags:
+        - Reading lists
+      summary: Get all entries of a given list.
+      description: |
+        Returns pages contained by the given list. Might be truncated and include
+        a continuation token.
+
+        List must belong to current user and request must be authenticated with
+        a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          example: 42
+          required: true
+        - name: next
+          in: query
+          description: Continuation parameter from previous request
+          type: string
+          required: false
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+      responses:
+        '200':
+          description: An array of list entries.
+          schema:
+            type: object
+            properties:
+              entries:
+                type: array
+                items:
+                  $ref: '#/definitions/list_entry_read'
+              next:
+                type: string
+                description: Continuation token.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: query
+                list: readinglistentries
+                rlelists: '{{request.params.id}}'
+                rlelimit: max
+                # FIXME there should be a nicer way to do this
+                continue: '{{unflattenContinuation(request.query.next).continue}}'
+                rlecontinue: '{{unflattenContinuation(request.query.next).rlecontinue}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+                cache-control: "no-cache"
+              body:
+                entries: '{{forward_to_mw.body.query.readinglistentries}}'
+                next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+    post:
+      tags:
+        - Reading lists
+      summary: Create a new list entry.
+      description: |
+        Creates a new list entry in the given list.
+
+        The list must belong to the current user and the request must be
+        authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          example: 42
+          required: true
+        - name: list_entry
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/list_entry_write'
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: The id of the new list entry.
+          schema:
+            type: object
+            title: response
+            properties:
+              createentry:
+                type: object
+                title: result
+                properties:
+                  id:
+                    type: integer
+                    description: List entry ID
+                    example: 13
+                    required: true
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: createentry
+                list: '{{request.params.id}}'
+                project: '{{request.body.project}}'
+                title: '{{request.body.title}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+              body:
+                id: '{{forward_to_mw.body.createentry.id}}'
+      x-monitor: false
+  /lists/{id}/entries/{entry_id}:
+    delete:
+      tags:
+        - Reading lists
+      summary: Delete a list entry.
+      description: |
+        Deletes a given list entry.
+
+        The list must belong to the current user and the request must be
+        authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          example: 42
+          required: true
+        - name: entry_id
+          in: path
+          type: integer
+          example: 64
+          required: true
+        - <<: *csrf_token
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: deleteentry
+                entry: '{{request.params.entry_id}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+  /lists/order:
+    get:
+      tags:
+        - Reading lists
+      summary: Get the order of the lists of the current user.
+      description: |
+        Returns list IDs in the user-defined order.
+
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        '200':
+          description: An array of list IDs.
+          schema:
+            type: array
+            title: list_ids
+            example: [3, 4, 2, 1, 6, 5]
+            uniqueItems: true
+            items:
+              type: integer
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: query
+                meta: readinglistorder
+                rlolistorder: 1
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+              body:
+                # TODO verify this is the right array item
+                list_ids: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
+    put:
+      tags:
+        - Reading lists
+      summary: Reorder the lists.
+      description: |
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: list_ids
+          in: body
+          description: |
+            List IDs in the desired order. Must contain all lists of the current user
+            and nothing else.
+          required: true
+          schema:
+            type: array
+            title: list_ids
+            example: [3, 4, 2, 1, 6, 5]
+            uniqueItems: true
+            items:
+              type: integer
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: order
+                order: '{{flattenMultivalue(request.body)}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+  /lists/{id}/order:
+    get:
+      tags:
+        - Reading lists
+      summary: Get the order of entries in a given list.
+      description: |
+        Returns a list of list entry IDs in the user-defined order.
+
+        List must belong to current user and request must be authenticated with
+        a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: id
+          in: path
+          description: List ID
+          type: integer
+          required: true
+      produces:
+        - application/json; charset=utf-8
+      responses:
+        '200':
+          description: An array of list entry IDs.
+          schema:
+            type: array
+            example: [5, 2, 3, 1, 4]
+            uniqueItems: true
+            items:
+              type: integer
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: query
+                meta: readinglistorder
+                rlolists: '{{request.params.id}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+              body:
+                # TODO verify this is the right array item
+                lists: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
+    put:
+      tags:
+        - Reading lists
+      summary: Reorder a list.
+      description: |
+        List must belong to current user and request must be authenticated with
+        a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          description: List ID
+          type: integer
+          required: true
+        - name: list_entries
+          in: body
+          description: |
+            List IDs in the desired order. Must contain all entries of the list and nothing else.
+          required: true
+          schema:
+            type: array
+            example: [5, 2, 3, 1, 4]
+            uniqueItems: true
+            items:
+              type: integer
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: Success.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: orderentry
+                list: '{{request.params.id}}'
+                order: '{{flattenMultivalue(request.body)}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+                cache-control: "no-cache"
+      x-monitor: false
+  /lists/pages/{project}/{title}:
+    get:
+      tags:
+        - Reading lists
+      summary: Get lists of the current user which contain a given page.
+      description: |
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: project
+          in: path
+          <<: *list_entry_common_project
+          required: true
+        - name: title
+          in: path
+          <<: *list_entry_common_title
+          required: true
+        - name: next
+          in: query
+          description: Continuation parameter from previous request
+          type: string
+          required: false
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+      responses:
+        '200':
+          description: An array of list metadata.
+          schema:
+            type: object
+            properties:
+              lists:
+                type: array
+                items:
+                  $ref: '#/definitions/list_read'
+              next:
+                type: string
+                description: Continuation token.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: query
+                meta: readinglists
+                rllimit: max
+                rlproject: '{{request.params.project}}'
+                rltitle: '{{request.params.title}}'
+                # FIXME there should be a nicer way to do this
+                continue: '{{unflattenContinuation(request.query.next).continue}}'
+                rlcontinue: '{{unflattenContinuation(request.query.next).rlcontinue}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+                cache-control: "no-cache"
+              body:
+                lists: '{{forward_to_mw.body.query.readinglists}}'
+                next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+  /lists/changes/since/{date}:
+    get:
+      tags:
+        - Reading lists
+      summary: Get recent changes to the lists
+      description: |
+        Returns metadata describing lists and entries which have changed. Might be truncated
+        and include a continuation token.
+
+        Request must be authenticated with a MediaWiki session cookie.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      parameters:
+        - name: date
+          in: path
+          description: Cutoff date (in ISO 8601)
+          type: string
+          format: date-time
+          required: true
+        - name: next
+          in: query
+          description: Continuation parameter from previous request
+          type: string
+          required: false
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+      responses:
+        '200':
+          description: An array of list and entry metadata.
+          schema:
+            type: object
+            properties:
+              lists:
+                type: array
+                items:
+                  $ref: '#/definitions/list_read'
+              next:
+                type: string
+                description: Continuation token.
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: query
+                meta: readinglists
+                list: readinglistentries
+                rllimit: max
+                rlelimit: max
+                rlchangedsince: '{{request.params.date}}'
+                rlechangedsince: '{{request.params.date}}'
+                # FIXME there should be a nicer way to do this
+                continue: '{{unflattenContinuation(request.query.next).continue}}'
+                rlcontinue: '{{unflattenContinuation(request.query.next).rlcontinue}}'
+                rlecontinue: '{{unflattenContinuation(request.query.next).rlecontinue}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+                cache-control: "no-cache"
+              body:
+                lists: '{{forward_to_mw.body.query.readinglists}}'
+                entries: '{{forward_to_mw.body.query.readinglistentries}}'
+                next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+tags:
+  - name: Reading lists
+    description: Private lists of selected pages
+    externalDocs:
+      description: Project documentation
+      url: https://www.mediawiki.org/wiki/Reading/Reading_Lists
+definitions:
+  list_read:
+    title: list
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 42
+      <<: *list_common
+      created:
+        type: string
+        format: date-time
+        description: "Creation date (in ISO 8601)"
+      updated:
+        type: string
+        format: date-time
+        description: "Last modification date (in ISO 8601)"
+      order:
+        type: array
+        description: All list IDs in the user-defined order
+        items:
+          type: integer
+        example: [1, 3, 2]
+        uniqueItems: true
+        maxItems: *maxListsPerUser
+    required:
+      - id
+      - name
+      - created
+      - updated
+      - order
+  list_write:
+    type: object
+    properties:
+      <<: *list_common
+    required:
+      - name
+  list_entry_read:
+    title: list_entry
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 64
+      <<: *list_entry_common
+      created:
+        type: string
+        format: date-time
+        description: "Creation date (in ISO 8601)"
+      updated:
+        type: string
+        format: date-time
+        description: "Last modification date (in ISO 8601)"
+      order:
+        type: array
+        description: All IDs of the entries of the list in the user-defined order
+        items:
+          type: integer
+        example: [1, 3, 2]
+        uniqueItems: true
+        maxItems: *maxEntriesPerList
+  list_entry_write:
+    type: object
+    properties:
+      <<: *list_entry_common
+    required:
+      - project
+      - title
