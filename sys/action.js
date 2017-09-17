@@ -101,14 +101,20 @@ function apiError(apiErr) {
     return new HTTPError(ret);
 }
 
-function buildQueryResponse(apiReq, res) {
+function checkQueryResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
             info: `Unexpected response status (${res.status}) from the PHP action API.`
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
-    } else if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
+    }
+    return res;
+}
+
+function buildQueryResponse(apiReq, res) {
+    checkQueryResponse(apiReq, res);
+    if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
         throw new HTTPError({
             status: 404,
             body: {
@@ -219,6 +225,13 @@ class ActionService {
         }, buildQueryResponse);
     }
 
+    rawQuery(hyper, req) {
+        return this._doRequest(hyper, req, {
+            format: 'json',
+            formatversion: 2
+        }, checkQueryResponse);
+    }
+
     edit(hyper, req) {
         return this._doRequest(hyper, req, {
             action: 'edit',
@@ -296,6 +309,11 @@ module.exports = (options) => {
                         operationId: 'mwApiQuery'
                     }
                 },
+                '/rawquery': {
+                    all: {
+                        operationId: 'mwRawApiQuery'
+                    }
+                },
                 '/siteinfo': {
                     all: {
                         operationId: 'mwApiSiteInfo'
@@ -310,6 +328,7 @@ module.exports = (options) => {
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
+            mwRawApiQuery: actionService.rawQuery.bind(actionService),
             mwApiEdit: actionService.edit.bind(actionService),
             mwApiSiteInfo: actionService.siteinfo.bind(actionService)
         }
