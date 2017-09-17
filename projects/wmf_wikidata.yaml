@@ -78,6 +78,10 @@ paths:
               x-modules:
                 - path: v1/mathoid.yaml
                   options: '{{options.mathoid}}'
+            /data:
+              x-modules:
+                - path: v1/lists.js
+                  options: '{{options.lists}}'
         options: '{{options}}'
 
   /{api:sys}:

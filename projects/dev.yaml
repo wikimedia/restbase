@@ -37,6 +37,8 @@ paths:
               x-modules:
                 - path: v1/citoid.js
                   options: '{{options.citoid}}'
+                - path: v1/lists.js
+                  options: '{{options.lists}}'
         options: '{{options}}'
 
   /{api:sys}:
