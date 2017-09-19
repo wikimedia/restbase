@@ -8,7 +8,8 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/mobileapps.yaml`);
 
 class MobileApps {
     constructor(options) {
-        this._options = options;
+        this._options = options || {};
+        this._options.storage = this._options.storage || 'both';
     }
 
     _generateDoubleFetching(hyper, req, oldPath, newPath) {
@@ -64,6 +65,18 @@ class MobileApps {
         if (rp.revision) {
             newPath.push(rp.revision);
         }
+        if (this._options.storage === 'new') {
+            return hyper.get({
+                uri: new URI(newPath),
+                headers: req.headers
+            });
+        }
+        if (this._options.storage === 'old') {
+            return hyper.get({
+                uri: new URI(oldPath),
+                headers: req.headers
+            });
+        }
         return this._generateDoubleFetching(hyper, req, oldPath, newPath);
     }
 
@@ -76,6 +89,18 @@ class MobileApps {
         const newPath = [rp.domain, 'sys', 'mobileapps_new', `mobile-sections-${part}`, rp.title];
         if (rp.revision) {
             newPath.push(rp.revision);
+        }
+        if (this._options.storage === 'new') {
+            return hyper.get({
+                uri: new URI(newPath),
+                headers: req.headers
+            });
+        }
+        if (this._options.storage === 'old') {
+            return hyper.get({
+                uri: new URI(oldPath),
+                headers: req.headers
+            });
         }
         return this._generateDoubleFetching(hyper, req, oldPath, newPath);
     }
