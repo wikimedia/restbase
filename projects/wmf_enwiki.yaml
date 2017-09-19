@@ -189,6 +189,7 @@ paths:
             /mobileapps:
               x-modules:
                 - path: sys/mobile_proxy.js
+                  options: '{{options.mobileapps}}'
             /mobileapps_old:
               x-modules:
                 - path: sys/mobileapps_old.js
