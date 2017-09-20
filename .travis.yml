@@ -24,7 +24,7 @@ before_install:
   - export JAVA_HOME="/usr/lib/jvm/java-8-oracle"
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
   - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
-  - echo "-Xmx1g" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
+  - echo "-Xmx512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - bash ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra > /dev/null
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
