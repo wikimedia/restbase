@@ -157,6 +157,7 @@ class MultiContentBucket {
     createBucket(hyper, req) {
         const rp = req.params;
         const prefix = this.options.table_name_prefix;
+
         const createRequests = this.options.dependent_content_types
         .concat([this.options.main_content_type])
         .map(cTypeSpec => ({
@@ -207,9 +208,12 @@ class MultiContentBucket {
                     }
                 }
             }
-        ])
-        .map(storeReq => hyper.put(storeReq));
-        return P.all(createRequests).thenReturn({ status: 201 });
+        ]);
+
+        // Execute store requests strictly sequentially. Concurrent schema
+        // changes are not supported in Cassandra.
+        return P.each(createRequests, storeReq => hyper.put(storeReq))
+        .thenReturn({ status: 201 });
     }
 
     makeSchema(opts) {
