@@ -21,11 +21,10 @@ env:
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
-  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle" PATH=`pwd`/../apache-cassandra-${CASSANDRA_VERSION}/bin:$PATH _JAVA_OPTIONS=""
+  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle" PATH=`pwd`/../apache-cassandra-${CASSANDRA_VERSION}/bin:$PATH _JAVA_OPTIONS= MALLOC_ARENA_MAX=
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
   - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - echo "-Xmx1024m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
-  - echo "-XX:OnError='cat hs_err_pid%p.log'" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra -f
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
