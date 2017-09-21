@@ -26,6 +26,6 @@ before_install:
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
   - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - echo "-Xmx1024m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
-  - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra -f
+  - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
