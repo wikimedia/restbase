@@ -3,6 +3,7 @@
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
+const mwUtils = require('../lib/mwUtil');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/mobileapps.yaml`);
 
@@ -40,7 +41,10 @@ class MobileApps {
             const oldBucket = results[0];
             const newBucket = results[1];
 
-            if (oldBucket && newBucket) {
+            // Only check it for update requests - the new storage is empty so
+            // new renders are done from scratch, so comparing makes no sence as
+            // templates might be dynamic.
+            if (mwUtils.isNoCacheRequest(req) && oldBucket && newBucket) {
                 if (JSON.stringify(oldBucket.body) !== JSON.stringify(newBucket.body)) {
                     hyper.log('error/mobileapps', {
                         message: 'Content mismatch between old and new bucket',
