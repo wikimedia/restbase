@@ -3,7 +3,7 @@ dist: trusty
 node_js:
     - "4"
     - "6"
-sudo: required
+#sudo: required
 
 notifications:
   irc:
@@ -24,8 +24,8 @@ before_install:
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
   - export JAVA_HOME="/usr/lib/jvm/java-8-oracle" PATH=`pwd`/../apache-cassandra-${CASSANDRA_VERSION}/bin:$PATH
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
-  - echo "-Xms512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
-  - echo "-Xmx1024m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
+  - echo "-Xms256m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
+  - echo "-Xmx512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
 
 script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
