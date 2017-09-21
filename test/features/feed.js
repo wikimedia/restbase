@@ -113,8 +113,6 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', true);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
             assertMCSRequest(requests, 'page/featured', date, true);
             assertMCSRequest(requests, 'page/most-read', date, true);
@@ -123,7 +121,7 @@ describe('Featured feed', () => {
         });
     });
 
-    it('Should not rerender available current content', () => {
+    it('Should rerender available current content', () => {
         const now = new Date();
         const date = now.toISOString().split('T').shift().split('-').join('/');
         const slice = server.config.logStream.slice();
@@ -134,11 +132,10 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', true);
-            assertMCSRequest(requests, 'page/featured', date, false);
-            assertMCSRequest(requests, 'page/most-read', date, false);
-            assertMCSRequest(requests, 'media/image/featured', date, false);
-            assertMCSRequest(requests, 'page/news', undefined, false);
+            assertMCSRequest(requests, 'page/featured', date, true);
+            assertMCSRequest(requests, 'page/most-read', date, true);
+            assertMCSRequest(requests, 'media/image/featured', date, true);
+            assertMCSRequest(requests, 'page/news', undefined, true);
         });
     });
 
@@ -156,7 +153,6 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
             assertMCSRequest(requests, 'page/featured', date, true);
             assertMCSRequest(requests, 'page/most-read', date, true);
@@ -243,6 +239,6 @@ describe('Trending feed', () => {
             assert.deepEqual(page.normalizedtitle, 'Trending article');
         })
         .then(() => api.done())
-        .finally(() => nock.cleanAll())
+        .finally(() => nock.cleanAll());
     });
 });
