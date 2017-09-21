@@ -188,15 +188,6 @@ paths:
                         - 'Wikipedia:Administrators%27_noticeboard/Incidents'
             /mobileapps:
               x-modules:
-                - path: sys/mobile_proxy.js
-                  options: '{{options.mobileapps}}'
-            /mobileapps_old:
-              x-modules:
-                - path: sys/mobileapps_old.js
-                  options: '{{merge({"response_cache_control": options.purged_cache_control},
-                                options.mobileapps)}}'
-            /mobileapps_new:
-              x-modules:
                 - path: sys/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
