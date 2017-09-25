@@ -143,6 +143,8 @@ spec_root: &spec_root
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *labs_project
+    # dewiki is here for FlaggedRevs tests
+    /{domain:de.wikipedia.beta.wmflabs.org}: *labs_project
 
     # For security testing we rely on mocks, so it's OK to use French wiki.
     /{domain:fr.wikipedia.org}:

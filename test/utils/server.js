@@ -18,6 +18,8 @@ var secureURL = hostPort + '/fr.wikipedia.org/v1';
 var secureBucketURL = secureURL + '/page';
 var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
 var labsBucketURL = labsURL + '/page';
+var deLabsURL   = hostPort + '/de.wikipedia.beta.wmflabs.org/v1';
+var deLabsBucketURL = deLabsURL + '/page';
 
 function loadConfig(path) {
     var confString = fs.readFileSync(path).toString();
@@ -48,6 +50,8 @@ var config = {
     secureApiURL: 'https://fr.wikipedia.org/w/api.php',
     labsURL: labsURL,
     labsBucketURL: labsBucketURL,
+    deLabsURL: deLabsURL,
+    deLabsBucketURL: deLabsBucketURL,
     labsApiURL: 'https://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
     conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : __dirname + '/../../config.test.yaml')

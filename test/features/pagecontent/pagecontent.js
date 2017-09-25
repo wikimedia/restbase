@@ -7,6 +7,7 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var P      = require('bluebird');
+var mwUtil = require('../../../lib/mwUtil.js');
 var pagingToken = '';
 
 describe('item requests', function() {
@@ -331,7 +332,7 @@ describe('page content access', function() {
         });
     });
 
-    it('Should throw error for invalid title access', function() {
+    it('should throw error for invalid title access', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/[asdf]'
         })
@@ -342,6 +343,28 @@ describe('page content access', function() {
             assert.deepEqual(e.body.detail, 'title-invalid-characters');
         });
     });
+
+    it('should return the latest revision for flagged titles on no-cache', function() {
+        return preq.get({
+            uri: server.config.deLabsBucketURL + '/html/FRtest',
+            headers: { 'cache-control': 'no-cache' }
+        }).then(function(res) {
+            const retRev = mwUtil.parseETag(res.headers.etag).rev;
+            assert.deepEqual(res.status, 200);
+            assert.notDeepEqual(retRev, 20657);
+        });
+    });
+
+    it('should return the stable revision for flagged titles', function() {
+        return preq.get({
+            uri: server.config.deLabsBucketURL + '/html/FRtest'
+        }).then(function(res) {
+            const retRev = mwUtil.parseETag(res.headers.etag).rev;
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(retRev, 20657);
+        });
+    });
+
 });
 
 describe('page content hierarchy', function() {
