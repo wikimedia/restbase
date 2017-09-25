@@ -213,6 +213,7 @@ paths:
     get:
       x-route-filters:
         - path: lib/ensure_content_type.js
+        - path: lib/flagged_revs_filter.js
       tags:
         - Page content
       summary: Get latest HTML for a title.

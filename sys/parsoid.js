@@ -198,7 +198,7 @@ class ParsoidService {
             getPageBundle: this.pagebundle.bind(this),
             // Revision retrieval per format
             getWikitext: this.getFormat.bind(this, 'wikitext'),
-            getHtml: this.getHtml.bind(this),
+            getHtml: this.getFormat.bind(this, 'html'),
             getDataParsoid: this.getFormat.bind(this, 'data-parsoid'),
             // Listings
             listWikitextRevisions: this.listRevisions.bind(this, 'wikitext'),
@@ -455,67 +455,6 @@ class ParsoidService {
         return true;
     }
 
-    getHtml(hyper, req) {
-        if (req.query.sections) {
-            return this.getSections(hyper, req);
-        }
-        if (mwUtil.isNoCacheRequest(req)) {
-            // assume this is an update request
-            return this.getFormat('html', hyper, req);
-        }
-        return mwUtil.getSiteInfo(hyper, req).then((siteinfo) => {
-            if (!siteinfo.extensions['Flagged Revisions']) {
-                // the project does not have the FlaggedRevs extension
-                // enabled so proceed as normal
-                return this.getFormat('html', hyper, req);
-            }
-            const rp = req.params;
-            const queryReq = {
-                uri: new URI([rp.domain, 'sys', 'action', 'query']),
-                method: 'post',
-                body: {
-                    prop: 'flagged',
-                    formatversion: 2
-                }
-            };
-            if (rp.revision) {
-                queryReq.body.revids = rp.revision;
-            } else {
-                queryReq.body.titles = rp.title;
-            }
-            return P.props({
-                html: this.getFormat('html', hyper, req),
-                revinfo: hyper.post(queryReq)
-            }).then((res) => {
-                const html = res.html;
-                const retrev = mwUtil.parseETag(html.headers.etag).rev;
-                const revinfo = res.revinfo.body.items[0];
-                if (!revinfo.flagged || revinfo.flagged.stable_revid === retrev) {
-                    // the revision is not flagged, or the client is
-                    // fetching a stable revision, so it's safe to return it
-                    return html;
-                }
-                if (!rp.revision) {
-                    // the client is looking for the latest revision, so
-                    // redo the request with the stable revision
-                    req.params.revision = revinfo.flagged.stable_revid;
-                    return this.getFormat('html', hyper, req);
-                }
-                // the client supplied a revision, but that one is
-                // flagged, so bail out
-                // XXX: this is a problematic case, we need to find
-                // a solution for this
-                throw new HTTPError({
-                    status: 403,
-                    body: {
-                        type: 'bad_request#flagged_revision',
-                        description: 'The sought revision has been flagged.'
-                    }
-                });
-            });
-        });
-    }
-
     getFormat(format, hyper, req) {
         const rp = req.params;
         const generateContent = (storageRes) => {
@@ -526,6 +465,10 @@ class ParsoidService {
                 throw storageRes;
             }
         };
+
+        if (format === 'html' && req.query.sections) {
+            return this.getSections(hyper, req);
+        }
 
         if (!this._okayToRerender(req)) {
             // Still update the revision metadata.
