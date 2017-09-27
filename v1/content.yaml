@@ -200,6 +200,78 @@ paths:
                 page: '{{page}}'
       x-monitor: false
 
+  /title/{title}/{revision}:
+    get:
+      tags:
+        - Page content
+      summary: Get metadata about a specific revision for a title.
+      description: |
+        Retrieves the metadata about a specific revision for the given title.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: The revision's properties
+          schema:
+            $ref: '#/definitions/revision'
+        '400':
+          description: Invalid revision
+          schema:
+            $ref: '#/definitions/problem'
+        '403':
+          description: Access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown title, revision id or domain
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              # FIXME: use /sys/page_revisions/page/{title}/{revision} once
+              # the code in sys/page_revisions.js has been refactored
+              uri: /{domain}/sys/page_revisions/rev/{revision}
+              headers:
+                # FIXME: Temporary work-around (see T120212).
+                cache-control: 'no-cache'
+      x-monitor: true
+      x-amples:
+        - title: Get rev by title and ID
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Foobar
+              revision: 642497713
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: application/json
+            body:
+              items:
+                - title: 'Foobar'
+                  rev: /\d+/
+                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+                  comment: /.*/
+
   /html/{title}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
@@ -776,24 +848,7 @@ paths:
               headers:
                 # FIXME: Temporary work-around (see T120212).
                 cache-control: 'no-cache'
-      x-monitor: true
-      x-amples:
-        - title: Get rev by ID
-          request:
-            params:
-              domain: en.wikipedia.org
-              revision: 642497713
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: application/json
-            body:
-              items:
-                - title: 'Foobar'
-                  rev: /\d+/
-                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-                  comment: /.*/
+      x-monitor: false
 
   /wikitext/{title}:
     post:

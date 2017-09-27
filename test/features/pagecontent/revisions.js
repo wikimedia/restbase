@@ -17,7 +17,7 @@ function generateTests(options) {
     });
 
     it('should return valid revision info', function() {
-        return preq.get({ uri: bucketURL + '/revision/' + options.revOk })
+        return preq.get({ uri: `${bucketURL}/title/Foobar/${options.revOk}` })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
@@ -40,7 +40,7 @@ function generateTests(options) {
     it('should query the MW API for revision info', function() {
         var slice = server.config.logStream.slice();
         return preq.get({
-            uri: bucketURL + '/revision/' + options.revOk,
+            uri: `${bucketURL}/title/Foobar/${options.revOk}`,
             headers: { 'cache-control': 'no-cache' }
         })
         .then(function(res) {
@@ -54,7 +54,7 @@ function generateTests(options) {
     });
 
     it('should fail for an invalid revision', function() {
-        return preq.get({ uri: bucketURL + '/revision/faultyrevid' })
+        return preq.get({ uri: bucketURL + '/title/Foobar/faultyrevid' })
         .then(function(res) {
             throw new Error('Expected status 400 for an invalid revision, got ' + res.status);
         },
@@ -65,7 +65,7 @@ function generateTests(options) {
 
     it('should query the MW API for a non-existent revision and return a 404', function() {
         var slice = server.config.logStream.slice();
-        return preq.get({ uri: bucketURL + '/revision/0' })
+        return preq.get({ uri: bucketURL + '/title/Foobar/0' })
         .then(function(res) {
             slice.halt();
             throw new Error('Expected status 404 for an invalid revision, got ' + res.status);
