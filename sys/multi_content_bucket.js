@@ -68,7 +68,7 @@ class MultiContentBucket {
             }
         });
 
-        this.options.grace_ttl = this.options.grace_ttl || 86400;
+        this.options.time_to_live = this.options.time_to_live || 86400;
         this.options.delete_probability = this.options.delete_probability || 1;
     }
 
@@ -157,7 +157,6 @@ class MultiContentBucket {
     createBucket(hyper, req) {
         const rp = req.params;
         const prefix = this.options.table_name_prefix;
-
         const createRequests = this.options.dependent_content_types
         .concat([this.options.main_content_type])
         .map(cTypeSpec => ({
@@ -169,9 +168,9 @@ class MultiContentBucket {
         }))
         .concat([
             {
-                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-revision-timeline`]),
+                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline']),
                 body: {
-                    table: `${prefix}-revision-timeline`,
+                    table: 'revision-timeline',
                     version: 2,
                     attributes: {
                         key: 'string',
@@ -183,14 +182,14 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.grace_ttl * 10
+                        default_time_to_live: this.options.time_to_live * 10
                     }
                 }
             },
             {
-                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-render-timeline`]),
+                uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline']),
                 body: {
-                    table: `${prefix}-render-timeline`,
+                    table: 'render-timeline',
                     version: 2,
                     attributes: {
                         key: 'string',
@@ -204,16 +203,13 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.grace_ttl * 10
+                        default_time_to_live: this.options.time_to_live * 10
                     }
                 }
             }
-        ]);
-
-        // Execute store requests strictly sequentially. Concurrent schema
-        // changes are not supported in Cassandra.
-        return P.each(createRequests, storeReq => hyper.put(storeReq))
-        .thenReturn({ status: 201 });
+        ])
+        .map(storeReq => hyper.put(storeReq));
+        return P.all(createRequests).thenReturn({ status: 201 });
     }
 
     makeSchema(opts) {
@@ -280,13 +276,13 @@ class MultiContentBucket {
                 && this.options.renew_expiring) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'table3', `${tablePrefix}-revision-timeline`, '']),
+                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
                 body: {
-                    table: `${tablePrefix}-revision-timeline`,
+                    table: 'revision-timeline',
                     attributes: {
                         key: rp.key,
                         ts: {
-                            le: new Date(Date.now() - this.options.grace_ttl * 1000 / 2)
+                            le: new Date(Date.now() - this.options.time_to_live * 1000 / 2)
                         }
                     },
                     limit: 1
@@ -341,10 +337,9 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3',
-                            `${tablePrefix}-revision-timeline`, '']),
+                        uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
                         body: {
-                            table: `${tablePrefix}-revision-timeline`,
+                            table: 'revision-timeline',
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
@@ -357,14 +352,13 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3',
-                                `${tablePrefix}-revision-timeline`, '']),
+                            uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
                             body: {
-                                table: `${tablePrefix}-revision-timeline`,
+                                table: 'revision-timeline',
                                 attributes: {
                                     key: rp.key,
                                     ts: {
-                                        le: new Date(Date.now() - this.options.grace_ttl * 1000)
+                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
                                     }
                                 },
                                 limit: 1
@@ -387,10 +381,9 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3',
-                            `${tablePrefix}-render-timeline`, '']),
+                        uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
                         body: {
-                            table: `${tablePrefix}-render-timeline`,
+                            table: 'render-timeline',
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
@@ -404,15 +397,14 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3',
-                                `${tablePrefix}-render-timeline`, '']),
+                            uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
                             body: {
-                                table: `${tablePrefix}-render-timeline`,
+                                table: 'render-timeline',
                                 attributes: {
                                     key: rp.key,
                                     rev,
                                     ts: {
-                                        le: new Date(Date.now() - this.options.grace_ttl * 1000)
+                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
                                     }
                                 },
                                 limit: 1
