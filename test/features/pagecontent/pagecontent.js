@@ -1,4 +1,4 @@
-'use strict';
+    'use strict';
 
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
