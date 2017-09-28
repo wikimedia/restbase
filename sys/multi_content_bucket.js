@@ -213,7 +213,7 @@ class MultiContentBucket {
         // Execute store requests strictly sequentially. Concurrent schema
         // changes are not supported in Cassandra.
         return P.each(createRequests, storeReq => hyper.put(storeReq))
-        .thenReturn({status: 201});
+        .thenReturn({ status: 201 });
     }
 
     makeSchema(opts) {
@@ -280,13 +280,13 @@ class MultiContentBucket {
                 && this.options.renew_expiring) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
+                uri: new URI([rp.domain, 'sys', 'table3', `${tablePrefix}-revision-timeline`, '']),
                 body: {
-                    table: 'revision-timeline',
+                    table: `${tablePrefix}-revision-timeline`,
                     attributes: {
                         key: rp.key,
                         ts: {
-                            le: new Date(Date.now() - this.options.time_to_live * 1000 / 2)
+                            le: new Date(Date.now() - this.options.grace_ttl * 1000 / 2)
                         }
                     },
                     limit: 1

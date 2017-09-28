@@ -906,7 +906,7 @@ module.exports = (options) => {
                 body: {
                     valueType: 'blob',
                     version: 3,
-                    default_time_to_live: options.time_to_live
+                    default_time_to_live: options.grace_ttl
                 }
             },
             {
@@ -914,7 +914,7 @@ module.exports = (options) => {
                 body: {
                     valueType: 'blob',
                     version: 3,
-                    default_time_to_live: options.time_to_live
+                    default_time_to_live: options.grace_ttl
                 }
             },
             {
@@ -922,7 +922,7 @@ module.exports = (options) => {
                 body: {
                     valueType: 'json',
                     version: 3,
-                    default_time_to_live: options.time_to_live
+                    default_time_to_live: options.grace_ttl
                 }
             },
             {
@@ -930,7 +930,7 @@ module.exports = (options) => {
                 body: {
                     valueType: 'json',
                     version: 3,
-                    default_time_to_live: options.time_to_live
+                    default_time_to_live: options.grace_ttl
                 }
             },
             {
