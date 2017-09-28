@@ -68,7 +68,7 @@ class MultiContentBucket {
             }
         });
 
-        this.options.time_to_live = this.options.time_to_live || 86400;
+        this.options.grace_ttl = this.options.grace_ttl || 86400;
         this.options.delete_probability = this.options.delete_probability || 1;
     }
 
@@ -157,6 +157,7 @@ class MultiContentBucket {
     createBucket(hyper, req) {
         const rp = req.params;
         const prefix = this.options.table_name_prefix;
+
         const createRequests = this.options.dependent_content_types
         .concat([this.options.main_content_type])
         .map(cTypeSpec => ({
@@ -168,9 +169,9 @@ class MultiContentBucket {
         }))
         .concat([
             {
-                uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline']),
+                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-revision-timeline`]),
                 body: {
-                    table: 'revision-timeline',
+                    table: `${prefix}-revision-timeline`,
                     version: 2,
                     attributes: {
                         key: 'string',
@@ -182,14 +183,14 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.time_to_live * 10
+                        default_time_to_live: this.options.grace_ttl * 10
                     }
                 }
             },
             {
-                uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline']),
+                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-render-timeline`]),
                 body: {
-                    table: 'render-timeline',
+                    table: `${prefix}-render-timeline`,
                     version: 2,
                     attributes: {
                         key: 'string',
@@ -203,13 +204,16 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.time_to_live * 10
+                        default_time_to_live: this.options.grace_ttl * 10
                     }
                 }
             }
-        ])
-        .map(storeReq => hyper.put(storeReq));
-        return P.all(createRequests).thenReturn({ status: 201 });
+        ]);
+
+        // Execute store requests strictly sequentially. Concurrent schema
+        // changes are not supported in Cassandra.
+        return P.each(createRequests, storeReq => hyper.put(storeReq))
+        .thenReturn({status: 201});
     }
 
     makeSchema(opts) {
@@ -337,9 +341,10 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
+                        uri: new URI([rp.domain, 'sys', 'table3',
+                            `${tablePrefix}-revision-timeline`, '']),
                         body: {
-                            table: 'revision-timeline',
+                            table: `${tablePrefix}-revision-timeline`,
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
@@ -352,13 +357,14 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3', 'revision-timeline', '']),
+                            uri: new URI([rp.domain, 'sys', 'table3',
+                                `${tablePrefix}-revision-timeline`, '']),
                             body: {
-                                table: 'revision-timeline',
+                                table: `${tablePrefix}-revision-timeline`,
                                 attributes: {
                                     key: rp.key,
                                     ts: {
-                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
+                                        le: new Date(Date.now() - this.options.grace_ttl * 1000)
                                     }
                                 },
                                 limit: 1
@@ -381,9 +387,10 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
+                        uri: new URI([rp.domain, 'sys', 'table3',
+                            `${tablePrefix}-render-timeline`, '']),
                         body: {
-                            table: 'render-timeline',
+                            table: `${tablePrefix}-render-timeline`,
                             attributes: {
                                 key: rp.key,
                                 ts: new Date(),
@@ -397,14 +404,15 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3', 'render-timeline', '']),
+                            uri: new URI([rp.domain, 'sys', 'table3',
+                                `${tablePrefix}-render-timeline`, '']),
                             body: {
-                                table: 'render-timeline',
+                                table: `${tablePrefix}-render-timeline`,
                                 attributes: {
                                     key: rp.key,
                                     rev,
                                     ts: {
-                                        le: new Date(Date.now() - this.options.time_to_live * 1000)
+                                        le: new Date(Date.now() - this.options.grace_ttl * 1000)
                                     }
                                 },
                                 limit: 1

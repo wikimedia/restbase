@@ -19,7 +19,7 @@ runTest ( ) {
           echo "Cassandra is ready."
         fi
         export RB_TEST_BACKEND=cassandra
-        sh ./test/utils/cleandb.sh
+        sh ./test/utils/cleandb.sh local_group_test
     fi
 
     if [ "$2" = "test" ]; then
