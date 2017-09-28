@@ -45,12 +45,17 @@ function returnRevision(req) {
 }
 
 class KVBucket {
+    constructor(options) {
+        this._options = options || {};
+        this._options.backend = this._options.backend || 'table';
+    }
+
     createBucket(hyper, req) {
         const schema = this.makeSchema(req.body || {});
         schema.table = req.params.bucket;
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket]),
             body: schema
         };
         return hyper.put(storeRequest);
@@ -107,7 +112,7 @@ class KVBucket {
 
         const rp = req.params;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -126,7 +131,7 @@ class KVBucket {
     listRevisions(hyper, req) {
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket, '']),
             body: {
                 table: req.params.bucket,
                 attributes: {
@@ -162,7 +167,7 @@ class KVBucket {
         }
 
         const doPut = () => hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {

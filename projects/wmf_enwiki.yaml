@@ -124,6 +124,13 @@ paths:
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
+                  options:
+                    backend: table
+            /key_value3: &sys_key_value
+              x-modules:
+                - path: sys/key_value.js
+                  options:
+                    backend: table3
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
