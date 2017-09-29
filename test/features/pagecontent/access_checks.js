@@ -10,7 +10,6 @@ const preq   = require('preq');
 const server = require('../../utils/server.js');
 const nock   = require('nock');
 const P      = require('bluebird');
-const parallel = require('mocha.parallel');
 
 describe('Access checks', () => {
 
@@ -125,7 +124,7 @@ describe('Access checks', () => {
         });
     }
 
-    parallel('Checking deletions', () => {
+    describe('Checking deletions', () => {
         it('should restrict access to deleted page latest revision', () => {
             // This is only required until the hack for no-cache header is in place
             const api = nock(server.config.apiURL)
