@@ -8,12 +8,11 @@ var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
 var nock = require('nock');
-const parallel = require('mocha.parallel');
 
 describe('Redirects', function() {
     before(function() { return server.start(); });
 
-    parallel('', () => {
+    describe('', () => {
     it('should redirect to a normalized version of a title', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/Main%20Page?test=mwAQ',

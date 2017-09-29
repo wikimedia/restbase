@@ -20,11 +20,6 @@ const P = require('bluebird');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/page_revisions.yaml`);
 
-// Const TimeUuid to enable partial restriction updates.
-const tidNode = new Buffer([0x01, 0x23, 0x45, 0x67, 0x89, 0xab]);
-const tidClock = new Buffer([0x12, 0x34]);
-const restrictionsTid = new TimeUuid(new Date(0), 0, tidNode, tidClock).toString();
-
 const tableName = 'title_revisions';
 
 /**
@@ -117,7 +112,7 @@ class PRS {
      * @return {URI} suppression table URI
      */
     restrictionsTableURI(domain) {
-        return new URI([domain, 'sys', 'table', restrictionsTableName, '']);
+        return new URI([domain, 'sys', 'table3', restrictionsTableName, '']);
     }
 
     getRestrictions(hyper, req) {
@@ -198,9 +193,7 @@ class PRS {
             // Have restrictions or a redirect. Update storage.
             const attributes = {
                 title: revision.title,
-                rev: revision.rev,
-                // Always use the same tid to allow partial updates.
-                _tid: restrictionsTid,
+                rev: revision.rev
             };
             Object.assign(attributes, restrictionObject);
             return hyper.put({
@@ -234,7 +227,6 @@ class PRS {
                             attributes: {
                                 title: revision.title,
                                 rev: revision.rev,
-                                _tid: restrictionsTid,
                                 restrictions: [],
                                 // TODO: Reset page_deleted to actual start
                                 // revision!
@@ -631,7 +623,7 @@ module.exports = (options) => {
                 body: prs.getTableSchema()
             },
             {
-                uri: `/{domain}/sys/table/${restrictionsTableName}`,
+                uri: `/{domain}/sys/table3/${restrictionsTableName}`,
                 body: prs.restrictionsTableSchema()
             }
         ]
