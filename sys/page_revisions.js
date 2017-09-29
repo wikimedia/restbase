@@ -141,7 +141,7 @@ class PRS {
             // the page deletion info
             const restrictions = res.body && res.body.items && res.body.items[0] || null;
             if (restrictions) {
-                if (rp.revision && parseInt(restrictions.rev) !== parseInt(rp.revision)) {
+                if (rp.revision && parseInt(restrictions.rev, 10) !== parseInt(rp.revision, 10)) {
                     restrictions.restrictions = [];
                     restrictions.redirect = undefined;
                 }
