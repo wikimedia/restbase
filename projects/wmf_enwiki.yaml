@@ -222,7 +222,6 @@ paths:
               x-modules:
                 - path: sys/multi_content_bucket.js
                   options:
-                    # TODO: Decide on the retention period
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: mobile_ng
