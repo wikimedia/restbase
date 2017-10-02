@@ -61,9 +61,9 @@ class ParsoidProxy {
         };
     }
 
-    _createDoubleProcessingRequest(hyper, req, oldPath, newPath, listing) {
-        const oldRequest = this._buildRequest(oldPath, req, listing);
-        const newRequest = this._buildRequest(newPath, req, listing);
+    _createDoubleProcessingRequest(hyper, req, path, listing) {
+        const oldRequest = this._buildRequest(['parsoid_old'].concat(path), req, listing);
+        const newRequest = this._buildRequest(['parsoid_new'].concat(path), req, listing);
 
         const backend = this._chooseBackend(req);
         if (backend === 'old') {
@@ -76,18 +76,22 @@ class ParsoidProxy {
             return P.join(
                 hyper.request(oldRequest)
                 .catch((e) => {
-                    hyper.log('error/parsoid', {
-                        message: 'Error fetching old parsoid content',
-                        error: e
-                    });
-                    throw e;
+                    if (e.status !== 412) {
+                        hyper.log('error/parsoid', {
+                            message: 'Error fetching old parsoid content',
+                            error: e
+                        });
+                        throw e;
+                    }
                 }),
                 hyper.request(newRequest)
                 .catch((e) => {
-                    hyper.log('error/parsoid', {
-                        message: 'Error fetching new parsoid content',
-                        error: e
-                    });
+                    if (e.status !== 412) {
+                        hyper.log('error/parsoid', {
+                            message: 'Error fetching new parsoid content',
+                            error: e
+                        });
+                    }
                 })
             )
             .then((results) => {
@@ -96,7 +100,7 @@ class ParsoidProxy {
 
                 if (oldContent && newContent && mwUtil.isNoCacheRequest(req)) {
                     if (oldContent.body !== newContent.body) {
-                        hyper.log('error/mobileapps', {
+                        hyper.log('error/parsoid', {
                             message: 'Content mismatch between old and new bucket',
                             old_etag: oldContent.headers.etag,
                             new_etag:  newContent.headers.etag
@@ -114,8 +118,7 @@ class ParsoidProxy {
         return this._createDoubleProcessingRequest(
             hyper,
             req,
-            ['parsoid_old', 'pagebundle'],
-            ['parsoid_new', 'pagebundle']
+            ['pagebundle']
         );
     }
 
@@ -123,8 +126,7 @@ class ParsoidProxy {
         return this._createDoubleProcessingRequest(
             hyper,
             req,
-            ['parsoid_old', format],
-            ['parsoid_new', format]
+            [format]
         );
     }
 
@@ -132,8 +134,7 @@ class ParsoidProxy {
         return this._createDoubleProcessingRequest(
             hyper,
             req,
-            ['parsoid_old', format],
-            ['parsoid_new', format],
+            [format],
             true
         );
 
@@ -143,8 +144,7 @@ class ParsoidProxy {
         return (hyper, req) => this._createDoubleProcessingRequest(
             hyper,
             req,
-            ['parsoid_old', 'transform', from, 'to', to],
-            ['parsoid_new', 'transform', from, 'to', to]
+            ['transform', from, 'to', to]
         );
 
     }
