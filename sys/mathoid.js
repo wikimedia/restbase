@@ -30,16 +30,16 @@ class MathoidService {
             }
             // check the post storage
             return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash])
+                uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.check', hash])
             }).catch({ status: 404 }, () => // let's try to find an indirection
                 hyper.get({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])
+                    uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.hash_table', hash])
                 }).then((hashRes) => {
                     // we have a normalised version of the formula
                     hash = hashRes.body;
                     // grab that version from storage
                     return hyper.get({
-                        uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash])
+                        uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.check', hash])
                     });
                 }));
         }).catch({ status: 404 }, () => // if we are here, it means this is a new input formula
@@ -68,7 +68,7 @@ class MathoidService {
             // add the indirection to the hash table if the hashes don't match
             if (hash !== origHash) {
                 indirectionP = hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table',
+                    uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.hash_table',
                         origHash]),
                     headers: { 'content-type': 'text/plain' },
                     body: hash
@@ -82,7 +82,7 @@ class MathoidService {
             };
             return P.join(
                 hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash]),
+                    uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.check', hash]),
                     headers: checkRes.headers,
                     body: checkRes.body
                 }),
@@ -115,7 +115,7 @@ class MathoidService {
             }
             // construct the request object that will be emitted
             const reqObj = {
-                uri: new URI([domain, 'sys', 'key_value', `mathoid.${format}`, hash]),
+                uri: new URI([domain, 'sys', 'key_value_old', `mathoid.${format}`, hash]),
                 headers: Object.assign(
                     completeBody[format].headers, { 'x-resource-location': hash }),
                 body: completeBody[format].body
@@ -190,7 +190,7 @@ class MathoidService {
             return res;
         }).catch({ status: 404 }, () => // let's try to find an indirection
             hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])
+                uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.hash_table', hash])
             }).then((hashRes) => {
                 // we have a normalised version of the formula
                 hash = hashRes.body;
@@ -238,10 +238,10 @@ module.exports = (options) => {
             {
                 uri: '/{domain}/sys/post_data/mathoid.input'
             }, {
-                uri: '/{domain}/sys/key_value/mathoid.hash_table',
+                uri: '/{domain}/sys/key_value_old/mathoid.hash_table',
                 body: { valueType: 'string' }
             }, {
-                uri: '/{domain}/sys/key_value/mathoid.check',
+                uri: '/{domain}/sys/key_value_old/mathoid.check',
                 body: { valueType: 'json' }
             }
         ]

@@ -84,7 +84,7 @@ paths:
         # Set up a simple key-value bucket.
         - init:
             method: 'put'
-            uri: /{domain}/sys/key_value/summary
+            uri: /{domain}/sys/key_value_old/summary
             body:
               valueType: 'json'
 
@@ -94,7 +94,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/summary/{request.params.title}
+              uri: /{domain}/sys/key_value_old/summary/{request.params.title}
             catch:
               status: 404
             return_if:
@@ -145,7 +145,7 @@ paths:
         - store_and_return:
             request:
               method: put
-              uri: /{domain}/sys/key_value/summary/{request.params.title}
+              uri: /{domain}/sys/key_value_old/summary/{request.params.title}
               headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412

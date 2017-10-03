@@ -12,7 +12,7 @@ paths:
     get:
       operationId: listRevisions
 
-  /{bucket}/{key}:
+  /{bucket}/{key}{/tid}:
     get:
       operationId: getRevision
     put:
