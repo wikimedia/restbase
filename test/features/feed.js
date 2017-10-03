@@ -7,7 +7,7 @@ const nock   = require('nock');
 
 function assertStorageRequest(requests, method, bucket, expected) {
     const storageRequests = requests.filter((log) =>
-        log.req && log.req.uri === `/en.wikipedia.org/sys/table/${bucket}/`
+        log.req && log.req.uri === `/en.wikipedia.org/sys/table3/${bucket}/`
             && log.req.method === method);
     if (expected) {
         assert.deepEqual(storageRequests.length > 0, true, `Should have made ${method} request to ${bucket}`);
@@ -46,10 +46,8 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated.historic', true);
-            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', false);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
+            assertStorageRequest(requests, 'get', 'feed.aggregated', true);
+            assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertMCSRequest(requests, 'page/featured', date, true);
             assertMCSRequest(requests, 'page/most-read', date, true);
             assertMCSRequest(requests, 'media/image/featured', date, true);
@@ -67,9 +65,7 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated.historic', true);
-            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', false);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', false);
+            assertStorageRequest(requests, 'get', 'feed.aggregated', true);
             assertStorageRequest(requests, 'put', 'feed.aggregated', false);
             assertMCSRequest(requests, 'page/featured', date, false);
             assertMCSRequest(requests, 'page/most-read', date, false);
@@ -91,10 +87,8 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated.historic', true);
-            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', false);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
+            assertStorageRequest(requests, 'get', 'feed.aggregated', true);
+            assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertMCSRequest(requests, 'page/featured', date, true);
             assertMCSRequest(requests, 'page/most-read', date, true);
             assertMCSRequest(requests, 'media/image/featured', date, true);
@@ -113,7 +107,7 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
+            assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertMCSRequest(requests, 'page/featured', date, true);
             assertMCSRequest(requests, 'page/most-read', date, true);
             assertMCSRequest(requests, 'media/image/featured', date, true);
@@ -153,7 +147,7 @@ describe('Featured feed', () => {
         .then(() => {
             slice.halt();
             const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'put', 'feed.aggregated.historic', true);
+            assertStorageRequest(requests, 'put', 'feed.aggregated', true);
             assertMCSRequest(requests, 'page/featured', date, true);
             assertMCSRequest(requests, 'page/most-read', date, true);
             assertMCSRequest(requests, 'media/image/featured', date, true);
