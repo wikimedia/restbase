@@ -81,8 +81,8 @@ class ParsoidProxy {
                             message: 'Error fetching old parsoid content',
                             error: e
                         });
-                        throw e;
                     }
+                    throw e;
                 }),
                 hyper.request(newRequest)
                 .catch((e) => {
