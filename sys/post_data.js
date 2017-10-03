@@ -28,7 +28,7 @@ class PostDataBucket {
             body: key
         }))
         .catch({ status: 404 }, () => hyper.put({
-            uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, key]),
+            uri: new URI([rp.domain, 'sys', 'key_value_old', rp.bucket, key]),
             headers: {
                 'content-type': 'application/json',
             },
@@ -56,7 +56,7 @@ class PostDataBucket {
     createBucket(hyper, req) {
         const rp = req.params;
         return hyper.put({
-            uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket]),
+            uri: new URI([rp.domain, 'sys', 'key_value_old', rp.bucket]),
             body: {
                 keyType: 'string',
                 valueType: 'json'
@@ -66,7 +66,7 @@ class PostDataBucket {
 
     getRevision(hyper, req) {
         const rp = req.params;
-        const path = [rp.domain, 'sys', 'key_value', rp.bucket, rp.key];
+        const path = [rp.domain, 'sys', 'key_value_old', rp.bucket, rp.key];
         if (rp.tid) {
             path.push(rp.tid);
         }
