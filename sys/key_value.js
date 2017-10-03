@@ -11,7 +11,7 @@ const stringify = require('json-stable-stringify');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 
-const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value_old.yaml`);
+const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value.yaml`);
 
 // Format a revision response. Shared between different ways to retrieve a
 // revision (latest & with explicit revision).
