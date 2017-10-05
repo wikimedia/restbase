@@ -44,6 +44,11 @@ function returnRevision(req) {
 }
 
 class KVBucket {
+    constructor(options) {
+        this._options = options || {};
+        this._options.backend = this._options.backend || 'table';
+    }
+
     createBucket(hyper, req) {
         const schema = this.makeSchema(req.body || {});
         schema.table = req.params.bucket;
