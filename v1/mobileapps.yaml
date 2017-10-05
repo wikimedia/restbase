@@ -93,7 +93,7 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:

@@ -200,7 +200,7 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
             body:
               wikitext: == Heading ==
               body_only: true
