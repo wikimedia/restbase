@@ -68,7 +68,7 @@ paths:
                 page: '{{page}}'
       x-monitor: false
 
-  /title/{title}:
+  /title/{title}{/revision}:
     get:
       tags:
         - Page content
@@ -84,6 +84,11 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: false
       responses:
         '200':
           description: The latest revision metadata for the provided title.
@@ -116,7 +121,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/page_revisions/page/{title}
+              uri: /{domain}/sys/page_revisions/page/{title}{/revision}
               headers:
                 # FIXME: Temporary work-around (see T120212).
                 cache-control: 'no-cache'
@@ -752,85 +757,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-      x-monitor: false
-
-  /revision/:
-    get:
-      tags:
-        - Page content
-      summary: List all page revisions.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The queriable sub-items
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/rev/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
-  /revision/{revision}:
-    get:
-      tags:
-        - Page content
-      summary: Get metadata about a specific revision.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: revision
-          in: path
-          description: The revision id
-          type: integer
-          required: true
-      responses:
-        '200':
-          description: The revision's properties
-          schema:
-            $ref: '#/definitions/revision'
-        '400':
-          description: Invalid revision
-          schema:
-            $ref: '#/definitions/problem'
-        '403':
-          description: Access to the specific revision is restricted
-          schema:
-            $ref: '#/definitions/problem'
-        '404':
-          description: Unknown revision id or domain
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/rev/{revision}
-              headers:
-                # FIXME: Temporary work-around (see T120212).
-                cache-control: 'no-cache'
       x-monitor: false
 
   /wikitext/{title}:

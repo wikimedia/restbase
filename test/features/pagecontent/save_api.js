@@ -1,34 +1,35 @@
 'use strict';
 
 
-var assert = require('../../utils/assert.js');
-var preq   = require('preq');
-var server = require('../../utils/server.js');
-var P      = require('bluebird');
-var nock   = require('nock');
+const assert = require('../../utils/assert.js');
+const preq   = require('preq');
+const server = require('../../utils/server.js');
+const P      = require('bluebird');
+const nock   = require('nock');
 
-var NOCK_TESTS = true;
+const NOCK_TESTS = true;
 
 describe('page save api', function() {
 
-    var wikitextUri = server.config.labsBucketURL + '/wikitext/Save_test';
-    var htmlUri = server.config.labsBucketURL + '/html/Save_test';
-    var token = '';
-    var oldETag = '';
-    var saveText = "Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
+    const pageTitle = 'Save_test';
+    const wikitextUri = `${server.config.labsBucketURL}/wikitext/${pageTitle}`;
+    const htmlUri = `${server.config.labsBucketURL}/html/${pageTitle}`;
+    let token = '';
+    let oldETag = '';
+    const saveText = `${"Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
         "API! This page is created by an automated test to make sure RESTBase works " +
         "with the current version of MediaWiki.\n\n" +
-        "== Date ==\nText generated on " + new Date().toUTCString() + "\n\n" +
-        "== Random ==\nHere's a random number: " + Math.floor(Math.random() * 32768);
-    var oldRev = 259419;
-    var lastRev = 0;
-    var lastETag = '';
-    var labsApiURL = server.config.labsApiURL;
+        "== Date ==\nText generated on "}${new Date().toUTCString()}\n\n` +
+        `== Random ==\nHere's a random number: ${Math.floor(Math.random() * 32768)}`;
+    const oldRev = 259419;
+    let lastRev = 0;
+    let lastETag = '';
+    const labsApiURL = server.config.labsApiURL;
 
     this.timeout(20000);
 
-    before(function () {
-        return server.start().then(function() {
+    before(() => {
+        return server.start().then(() => {
             return P.all([
                 preq.get({
                     uri: server.config.labsApiURL,
@@ -39,56 +40,56 @@ describe('page save api', function() {
                         formatversion: 2
                     }
                 })
-                .then(function(res) {
+                .then((res) => {
                     token = res.body.query.tokens.csrftoken;
                 }),
 
                 preq.get({
-                    uri: server.config.labsBucketURL + '/revision/' + oldRev
+                    uri: `${server.config.labsBucketURL}/title/${pageTitle}/${oldRev}`
                 })
-                .then(function(res) {
+                .then((res) => {
                     oldETag = res.headers.etag;
                 })
             ]);
         })
-        .then(function() {
+        .then(() => {
             // Do a preparation request to force siteinfo fetch so that we don't need to mock it
             return preq.get({
-                uri: server.config.labsBucketURL + '/html/Main_Page'
+                uri: `${server.config.labsBucketURL}/html/Main_Page`
             });
         });
     });
 
-    it('fail for missing content', function() {
+    it('fail for missing content', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
                 wikitext: '',
                 csrf_token: token
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Missing parameters');
         });
     });
 
-    it('fail for missing token', function() {
+    it('fail for missing token', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
                 wikitext: 'abcd'
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.detail, "data.body should have required property 'csrf_token'");
         });
     });
 
-    it('fail for bad token', function() {
+    it('fail for bad token', () => {
         function test() {
             return preq.post({
                 uri: wikitextUri,
@@ -96,16 +97,16 @@ describe('page save api', function() {
                     wikitext: 'abcd',
                     csrf_token: 'this_is_a_bad_token'
                 }
-            }).then(function(res) {
-                throw new Error('Expected an error, but got status: ' + res.status);
-            }, function(err) {
+            }).then((res) => {
+                throw new Error(`Expected an error, but got status: ${res.status}`);
+            }, (err) => {
                 assert.deepEqual(err.status, 400);
                 assert.deepEqual(err.body.title, 'badtoken');
             });
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURL)
+            const api = nock(labsApiURL)
                 // Mock MW API badtoken response
             .post('')
             .reply(200, {
@@ -117,14 +118,14 @@ describe('page save api', function() {
             });
 
             return test()
-            .then(function() { api.done(); })
-            .finally(function() { nock.cleanAll(); });
+            .then(() => { api.done(); })
+            .finally(() => { nock.cleanAll(); });
         } else {
             return test();
         }
     });
 
-    it('fail for bad base_etag', function() {
+    it('fail for bad base_etag', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
@@ -132,31 +133,31 @@ describe('page save api', function() {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Bad base_etag');
         });
     });
 
-    it('fails for bad base_etag timestamp', function() {
+    it('fails for bad base_etag timestamp', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
-                base_etag: oldETag + 'this_should_not_be_here',
+                base_etag: `${oldETag}this_should_not_be_here`,
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Bad base_etag');
         });
     });
 
-    it('fail for bad if-match etag', function() {
+    it('fail for bad if-match etag', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
@@ -166,15 +167,15 @@ describe('page save api', function() {
             headers: {
                 'if-match': 'this_is_a_bad_ETag'
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Bad ETag in If-Match');
         });
     });
 
-    it('fail for bad if-match etag timestamp', function() {
+    it('fail for bad if-match etag timestamp', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
@@ -182,17 +183,17 @@ describe('page save api', function() {
                 csrf_token: 'this_is_a_bad_token'
             },
             headers: {
-                'if-match': lastETag + 'this_should_not_be_here'
+                'if-match': `${lastETag}this_should_not_be_here`
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Bad ETag in If-Match');
         });
     });
 
-    it('fail for bad if-match etag revision', function() {
+    it('fail for bad if-match etag revision', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
@@ -200,17 +201,17 @@ describe('page save api', function() {
                 csrf_token: 'this_is_a_bad_token'
             },
             headers: {
-                'if-match': 'this_should_not_be_here' + lastETag
+                'if-match': `this_should_not_be_here${lastETag}`
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Bad ETag in If-Match');
         });
     });
 
-    it('fail for bad revision', function() {
+    it('fail for bad revision', () => {
         return preq.post({
             uri: wikitextUri,
             body: {
@@ -218,15 +219,15 @@ describe('page save api', function() {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
             }
-        }).then(function(res) {
-            throw new Error('Expected an error, but got status: ' + res.status);
-        }, function(err) {
+        }).then((res) => {
+            throw new Error(`Expected an error, but got status: ${res.status}`);
+        }, (err) => {
             assert.deepEqual(err.status, 400);
             assert.deepEqual(err.body.title, 'Bad revision');
         });
     });
 
-    it('save page', function() {
+    it('save page', () => {
         function test() {
             return preq.post({
                 uri: wikitextUri,
@@ -235,21 +236,21 @@ describe('page save api', function() {
                     csrf_token: token
                 }
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 201);
                 lastRev = res.body.newrevid;
                 return preq.get({
-                    uri: server.config.labsBucketURL + '/revision/' + lastRev
+                    uri: `${server.config.labsBucketURL}/title/${pageTitle}/${lastRev}`
                 });
             })
-            .then(function(res) {
+            .then((res) => {
                 lastETag = res.headers.etag;
             });
         }
 
         if (NOCK_TESTS) {
-            var now = new Date().toISOString();
-            var api = nock(labsApiURL)
+            const now = new Date().toISOString();
+            const api = nock(labsApiURL)
             .post('')
             .reply(200, {
                 edit: {
@@ -292,14 +293,14 @@ describe('page save api', function() {
                 }
             });
             return test()
-            .then(function() { api.done(); })
-            .finally(function() { nock.cleanAll(); });
+            .then(() => { api.done(); })
+            .finally(() => { nock.cleanAll(); });
         } else {
             return test();
         }
     });
 
-    it('no change', function() {
+    it('no change', () => {
         function test() {
             return preq.post({
                 uri: wikitextUri,
@@ -311,14 +312,14 @@ describe('page save api', function() {
                     'if-match': lastETag
                 }
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body.nochange, true);
             });
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURL)
+            const api = nock(labsApiURL)
                 // Mock MW API nochange response
             .post('')
             .reply(200, {
@@ -332,35 +333,35 @@ describe('page save api', function() {
             });
 
             return test()
-            .then(function() { api.done(); })
-            .finally(function() { nock.cleanAll(); });
+            .then(() => { api.done(); })
+            .finally(() => { nock.cleanAll(); });
         } else {
             return test();
         }
     });
 
-    it('detect conflict', function() {
+    it('detect conflict', () => {
         function test() {
             return preq.post({
                 uri: wikitextUri,
                 body: {
                     base_etag: oldETag,
-                    wikitext: saveText + "\n\nExtra text",
+                    wikitext: `${saveText}\n\nExtra text`,
                     csrf_token: token
                 },
                 headers: {
                     'if-match': lastETag
                 }
-            }).then(function(res) {
-                throw new Error('Expected an error, but got status: ' + res.status);
-            }, function(err) {
+            }).then((res) => {
+                throw new Error(`Expected an error, but got status: ${res.status}`);
+            }, (err) => {
                 assert.deepEqual(err.status, 409);
                 assert.deepEqual(err.body.title, 'editconflict');
             });
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURL)
+            const api = nock(labsApiURL)
                 // Mock MW API editconflict response
             .post('')
             .reply(200, {
@@ -372,18 +373,18 @@ describe('page save api', function() {
             });
 
             return test()
-            .then(function() { api.done(); })
-            .finally(function() { nock.cleanAll(); });
+            .then(() => { api.done(); })
+            .finally(() => { nock.cleanAll(); });
         } else {
             return test();
         }
     });
 
-    it('save HTML', function() {
+    it('save HTML', () => {
         function test() {
             return preq.get({
-                uri: htmlUri + '/' + lastRev
-            }).then(function(res) {
+                uri: `${htmlUri}/${lastRev}`
+            }).then((res) => {
                 assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
                 return preq.post({
                     uri: htmlUri,
@@ -393,21 +394,21 @@ describe('page save api', function() {
                     },
                     body: {
                         html: res.body.replace(/\<\/body\>/,
-                        '<p>Generated via direct HTML save! Random ' + Math.floor(Math.random() * 32768) + ' </p></body>'),
+                        `<p>Generated via direct HTML save! Random ${Math.floor(Math.random() * 32768)} </p></body>`),
                         csrf_token: token
                     }
                 });
-            }).then(function(res) {
+            }).then((res) => {
                 assert.deepEqual(res.status, 201);
                 lastETag = res.headers.etag;
             });
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURL, {
+            const api = nock(labsApiURL, {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
-                    'x-forwarded-for': function(headerValue) {
+                    'x-forwarded-for'(headerValue) {
                         return headerValue.indexOf('127.0.0.1') >= 0;
                     },
                     cookie: 'test'
@@ -427,8 +428,8 @@ describe('page save api', function() {
             });
 
             return test()
-            .then(function() { api.done(); })
-            .finally(function() { nock.cleanAll(); });
+            .then(() => { api.done(); })
+            .finally(() => { nock.cleanAll(); });
         } else {
             return test();
         }
