@@ -123,28 +123,11 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
       x-monitor: true
       x-amples:
-        #- title: Get rev of by title from MW
-        #  request:
-        #    params:
-        #      title: Foobar
-        #    headers:
-        #      cache-control: no-cache
-        #  response:
-        #    status: 200
-        #    headers:
-        #      etag: /.+/
-        #      content-type: application/json
-        #    body:
-        #      items:
-        #        - title: 'Foobar'
-        #          rev: /\d+/
-        #          tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-        #          comment: /.*/
         - title: Get rev by title from storage
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:
@@ -152,7 +135,7 @@ paths:
               content-type: application/json
             body:
               items:
-                - title: 'Foobar'
+                - title: 'User:BSitzmann_(WMF)/MCS/Test/Frankenstein'
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
@@ -258,8 +241,8 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
-              revision: 642497713
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+              revision: 802766066
           response:
             status: 200
             headers:
@@ -267,7 +250,7 @@ paths:
               content-type: application/json
             body:
               items:
-                - title: 'Foobar'
+                - title: 'User:BSitzmann_(WMF)/MCS/Test/Frankenstein'
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
@@ -394,7 +377,7 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:

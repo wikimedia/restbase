@@ -182,8 +182,8 @@ paths:
         - title: Get summary from storage
           request:
             params:
-              domain: en.wikipedia.org
-              title: Barack_Obama
+              domain: test.wikipedia.org
+              title: Summary_Test_Page
           response:
             status: 200
             headers:
