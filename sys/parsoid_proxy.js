@@ -70,7 +70,8 @@ class ParsoidProxy {
             return hyper.request(oldRequest);
         }
         if (backend === 'new') {
-            return hyper.request(newRequest);
+            return hyper.request(newRequest)
+            .catch({ status: 404 }, () => hyper.request(oldRequest));
         }
         if (backend === 'both') {
             return P.join(
