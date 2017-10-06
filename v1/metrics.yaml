@@ -81,12 +81,12 @@ paths:
           required: true
         - name: start
           in: path
-          description: The date of the first day to include, in YYYYMMDD format
+          description: The date of the first day to include, in YYYYMMDD or YYYYMMDDHH format
           type: string
           required: true
         - name: end
           in: path
-          description: The date of the last day to include, in YYYYMMDD format
+          description: The date of the last day to include, in YYYYMMDD or YYYYMMDDHH format
           type: string
           required: true
       responses:
