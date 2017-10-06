@@ -48,7 +48,7 @@ class PRS {
     getTableSchema() {
         return {
             table: tableName,
-            version: 4,
+            version: 5,
             attributes: {
                 // Listing: /titles.rev/Barack_Obama/master/
                 // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
@@ -325,7 +325,7 @@ class PRS {
                 body: {
                     table: tableName,
                     attributes: {
-                        title: rp.title,
+                        title: rp.title
                     },
                     limit: 1
                 }
