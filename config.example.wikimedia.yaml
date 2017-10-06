@@ -24,7 +24,7 @@ default_project: &default_project
           password: cassandra
           defaultConsistency: one # or 'localQuorum' for production
           storage_groups:
-            - name: test.group.local
+            - name: default.group.local
               domains: /./
         parsoid:
           host: http://parsoid-beta.wmflabs.org
