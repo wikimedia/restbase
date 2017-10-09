@@ -181,7 +181,7 @@ describe('revision requests with test2.wikipedia.org', function() {
         revOk: 51098,
         revRedirect: 157490,
         pageName: 'User:Pchelolo%2fDate',
-        pageLastRev: 157487
+        pageLastRev: 329034
     });
 });
 
