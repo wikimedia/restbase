@@ -16,6 +16,9 @@ info:
     deletedRetentionDays: &deletedRetentionDays 30
 x-yaml-anchors:
   csrf_token: &csrf_token
+    name: csrf_token
+    in: query
+    required: true
     type: string
     description: "The CRSF edit token provided by the MediaWiki API"
     example: "f63c343876da566045e6b59c4532450559c828d3+\\"
@@ -84,7 +87,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
   /lists/teardown:
     post:
@@ -122,7 +124,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
   /lists/:
     get:
@@ -177,14 +178,14 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "no-cache"
+                cache-control: "max-age=0, s-maxage=0"
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
     post:
       tags:
         - Reading lists
-      summary: Create a new lists for the current user.
+      summary: Create a new list for the current user.
       description: |
         Creates a new empty list.
 
@@ -239,7 +240,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
               body:
                 id: '{{forward_to_mw.body.create.id}}'
       x-monitor: false
@@ -293,7 +293,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
     delete:
       tags:
@@ -335,7 +334,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
   /lists/{id}/entries/:
     get:
@@ -380,28 +378,9 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
+      operationId: getListEntries
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
-      x-request-handler:
-        - forward_to_mw:
-            request:
-              uri: /{domain}/sys/action/rawquery
-              body:
-                action: query
-                list: readinglistentries
-                rlelists: '{{request.params.id}}'
-                rlelimit: max
-                # FIXME there should be a nicer way to do this
-                continue: '{{unflattenContinuation(request.query.next).continue}}'
-                rlecontinue: '{{unflattenContinuation(request.query.next).rlecontinue}}'
-            return:
-              status: 200
-              headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "no-cache"
-              body:
-                entries: '{{forward_to_mw.body.query.readinglistentries}}'
-                next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
     post:
       tags:
         - Reading lists
@@ -464,7 +443,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
               body:
                 id: '{{forward_to_mw.body.createentry.id}}'
       x-monitor: false
@@ -516,7 +494,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
   /lists/order:
     get:
@@ -559,7 +536,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
+                cache-control: "max-age=0, s-maxage=0"
               body:
                 # TODO verify this is the right array item
                 list_ids: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
@@ -610,7 +587,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
   /lists/{id}/order:
     get:
@@ -659,7 +635,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
+                cache-control: "max-age=0, s-maxage=0"
               body:
                 # TODO verify this is the right array item
                 lists: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
@@ -715,7 +691,6 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8
-                cache-control: "no-cache"
       x-monitor: false
   /lists/pages/{project}/{title}:
     get:
@@ -778,7 +753,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "no-cache"
+                cache-control: "max-age=0, s-maxage=0"
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
@@ -847,7 +822,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "no-cache"
+                cache-control: "max-age=0, s-maxage=0"
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 entries: '{{forward_to_mw.body.query.readinglistentries}}'
