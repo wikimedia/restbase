@@ -182,8 +182,8 @@ paths:
         - title: Get summary from storage
           request:
             params:
-              domain: test.wikipedia.org
-              title: Summary_Test_Page
+              domain: en.wikipedia.org
+              title: San_Francisco
           response:
             status: 200
             headers:
