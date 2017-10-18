@@ -108,9 +108,28 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table_ng}}'
+            /parsoid_bucket:
+              x-modules:
+                - path: sys/multi_content_bucket.js
+                  options:
+                    table_name_prefix: parsoid_ng
+                    renew_expiring: true
+                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
+                    main_content_type:
+                      name: html
+                      value_type: blob
+                    dependent_content_types:
+                      - name: data-parsoid
+                        value_type: json
+                      - name: section-offsets
+                        value_type: json
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
+            /key_value_old: &sys_key_value_old
+              x-modules:
+                - path: sys/key_value_old.js
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
@@ -132,11 +151,19 @@ paths:
                 - path: sys/page_save.js
             /parsoid:
               x-modules:
+                - path: sys/parsoid_proxy.js
+                  options: '{{options.parsoid.backends}}'
+            /parsoid_new:
+              x-modules:
                 - path: sys/parsoid.js
-                  options:
+                  options: &parsoid_options
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
+            /parsoid_old:
+              x-modules:
+                - path: sys/parsoid_old.js
+                  options: *parsoid_options
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js
@@ -146,7 +173,6 @@ paths:
               x-modules:
                 - path: sys/multi_content_bucket.js
                   options:
-                    # TODO: Decide on the retention period
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: mobile_ng

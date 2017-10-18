@@ -69,9 +69,8 @@ paths:
                                 options.mobileapps)}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
-                - path: v1/summary.js
-                  options:
-                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
+                - path: v1/summary_proxy.js
+                  options: '{{merge(options.summary, {"response_cache_control": options.purged_cache_control_client_cache})}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
@@ -121,9 +120,28 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table_ng}}'
+            /parsoid_bucket:
+              x-modules:
+                - path: sys/multi_content_bucket.js
+                  options:
+                    table_name_prefix: parsoid_ng
+                    renew_expiring: true
+                    time_to_live: '{{default(options.parsoid.time_to_live, 84600)}}'
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
+                    main_content_type:
+                      name: html
+                      value_type: blob
+                    dependent_content_types:
+                      - name: data-parsoid
+                        value_type: json
+                      - name: section-offsets
+                        value_type: json
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
+            /key_value_old: &sys_key_value_old
+              x-modules:
+                - path: sys/key_value_old.js
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
@@ -145,8 +163,13 @@ paths:
                 - path: sys/page_save.js
             /parsoid:
               x-modules:
-                - path: sys/parsoid.js
+                - path: sys/parsoid_proxy.js
                   options:
+                    backends: '{{options.parsoid.backends}}'
+            /parsoid_new:
+              x-modules:
+                - path: sys/parsoid.js
+                  options: &parsoid_options
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
@@ -186,6 +209,10 @@ paths:
                         - 'Wikipedia:WikiProject_Deletion_sorting/United_States_of_America'
                         - 'Wikipedia:Articles_for_creation/Redirects'
                         - 'Wikipedia:Administrators%27_noticeboard/Incidents'
+            /parsoid_old:
+              x-modules:
+                - path: sys/parsoid_old.js
+                  options: *parsoid_options
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js
@@ -195,7 +222,6 @@ paths:
               x-modules:
                 - path: sys/multi_content_bucket.js
                   options:
-                    # TODO: Decide on the retention period
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: mobile_ng
@@ -209,4 +235,18 @@ paths:
               x-modules:
                 - path: sys/events.js
                   options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
+            /summary_old:
+              x-modules:
+                - path: sys/summary.js
+                  options:
+                    backend: key_value_old
+                    table: summary
+                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
+            /summary_new:
+              x-modules:
+                - path: sys/summary.js
+                  options:
+                    backend: key_value
+                    table: page_summary
+                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
         options: '{{options}}'

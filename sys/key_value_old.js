@@ -11,7 +11,7 @@ const stringify = require('json-stable-stringify');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 
-const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value.yaml`);
+const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value_old.yaml`);
 
 // Format a revision response. Shared between different ways to retrieve a
 // revision (latest & with explicit revision).
@@ -20,7 +20,8 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
             let headers = {
-                etag: row.headers.etag || mwUtil.makeETag('0', row.tid)
+                etag: row.headers.etag || mwUtil.makeETag('0', row.tid),
+                'content-type': row['content-type']
             };
             if (row.headers) {
                 headers = Object.assign(headers, row.headers);
@@ -44,12 +45,17 @@ function returnRevision(req) {
 }
 
 class KVBucket {
+    constructor(options) {
+        this._options = options || {};
+        this._options.backend = this._options.backend || 'table';
+    }
+
     createBucket(hyper, req) {
         const schema = this.makeSchema(req.body || {});
         schema.table = req.params.bucket;
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket]),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket]),
             body: schema
         };
         return hyper.put(storeRequest);
@@ -74,14 +80,26 @@ class KVBucket {
                     pattern: 'timeseries'
                 },
             },
+            revisionRetentionPolicy: opts.retention_policy || {
+                type: 'latest',
+                count: 1,
+                grace_ttl: 86400
+            },
             attributes: {
                 key: opts.keyType || 'string',
                 tid: 'timeuuid',
-                headers: 'json',
-                value: opts.valueType || 'blob'
+                latestTid: 'timeuuid',
+                value: opts.valueType || 'blob',
+                'content-type': 'string',
+                'content-sha256': 'blob',
+                // Redirect
+                'content-location': 'string',
+                tags: 'set<string>',
+                headers: 'json'
             },
             index: [
-                { attribute: 'key', type: 'hash' }
+                { attribute: 'key', type: 'hash' },
+                { attribute: 'tid', type: 'range', order: 'desc' }
             ]
         };
     }
@@ -94,7 +112,7 @@ class KVBucket {
 
         const rp = req.params;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -103,6 +121,9 @@ class KVBucket {
                 limit: 1
             }
         };
+        if (rp.tid) {
+            storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_value_old');
+        }
         return hyper.get(storeReq).then(returnRevision(req));
     }
 
@@ -110,7 +131,7 @@ class KVBucket {
     listRevisions(hyper, req) {
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket, '']),
             body: {
                 table: req.params.bucket,
                 attributes: {
@@ -123,9 +144,11 @@ class KVBucket {
         return hyper.get(storeRequest)
         .then(res => ({
             status: 200,
+
             headers: {
                 'content-type': 'application/json'
             },
+
             body: {
                 items: res.body.items.map(row => row.tid)
             }
@@ -134,6 +157,7 @@ class KVBucket {
 
 
     putRevision(hyper, req) {
+        // TODO: support other formats! See cassandra backend getRevision impl.
         const rp = req.params;
         let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value_old');
 
@@ -143,7 +167,7 @@ class KVBucket {
         }
 
         const doPut = () => hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', this._options.backend, rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -151,6 +175,8 @@ class KVBucket {
                     tid,
                     value: req.body,
                     headers: req.headers,
+                    'content-type': req.headers && req.headers['content-type']
+                    // TODO: include other data!
                 }
             }
         })
@@ -178,7 +204,7 @@ class KVBucket {
         if (req.headers['if-none-hash-match']) {
             delete req.headers['if-none-hash-match'];
             return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, rp.key])
+                uri: new URI([rp.domain, 'sys', 'key_value_old', rp.bucket, rp.key])
             })
             .then((oldContent) => {
                 if (stringify(req.body) === stringify(oldContent.body) &&

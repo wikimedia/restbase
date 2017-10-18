@@ -1,8 +1,8 @@
 swagger: '2.0'
 info:
   version: '1.0.0-beta'
-  title: MediaWiki Definition API
-  description: Wikitionary word definition API
+  title: MediaWiki Summary API
+  description: Page content summary API
   termsofservice: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Services
@@ -12,30 +12,23 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /definition/{term}:
-    x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
-        options:
-          title: term
-          redirect_cache_control: '{{options.response_cache_control}}'
+  /summary/{title}:
     get:
       tags:
         - Page content
-      summary: Get term definitions based on Wiktionary content.
+      summary: Get a text extract & thumb summary of a page.
       description: |
-        Experimental end point providing term definitions extracted from
-        Wiktionary content. Currently, only English Wiktionary is supported.
-        See [this wiki
-        page](https://www.mediawiki.org/wiki/Wikimedia_Apps/Wiktionary_definition_popups_in_the_Android_Wikipedia_Beta_app)
-        for background and considerations for further development.
+        The summary response includes a text extract of the first several
+        sentences, as well as information about a thumbnail that represents
+        the page.
 
-        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
       parameters:
-        - name: term
+        - name: title
           in: path
-          description: The term to define
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
         - name: redirect
@@ -49,9 +42,14 @@ paths:
           required: false
       responses:
         '200':
-          description: The definition for the given term
+          description: The summary for the given page
           schema:
-            $ref: '#/definitions/definitionsResponse'
+            $ref: '#/definitions/summary'
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
         '301':
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
@@ -69,11 +67,7 @@ paths:
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '404':
-          description: Unknown term
-          schema:
-            $ref: '#/definitions/problem'
-        '501':
-          description: Term definitions not supported for this language
+          description: Unknown page title
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -81,21 +75,13 @@ paths:
           schema:
             $ref: '#/definitions/problem'
 
-      x-setup-handler:
-        # Set up a simple key-value bucket.
-        - init:
-            method: 'put'
-            uri: /{domain}/sys/key_value_old/term.definition
-            body:
-              valueType: 'json'
-
       x-request-handler:
         - storage:
             request:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value_old/term.definition/{request.params.term}
+              uri: /{domain}/sys/{{globals.options.backend}}/{{globals.options.table}}/{request.params.title}
             catch:
               status: 404
             return_if:
@@ -109,20 +95,44 @@ paths:
                 cache-control: '{{options.response_cache_control}}'
               body: '{{storage.body}}'
 
-        # Storage miss. Call mobile content service to get the definition.
+        # Storage miss. Call the Action API to get the textextract.
         - extract:
             request:
-              method: get
-              uri: '{{$$.options.host}}/{domain}/v1/page/definition/{term}'
+              method: post
+              uri: /{domain}/sys/action/query
+              body:
+                prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
+                exsentences: 5
+                exintro: true
+                piprop: 'thumbnail|original'
+                inprop: 'displaytitle'
+                pithumbsize: 320
+                pilicense: 'any'
+                rvprop: 'timestamp|ids'
+                titles: '{{request.params.title}}'
+                wbptterms: 'description'
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json
-              body: '{{extract.body}}'
-        - store:
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
+                etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
+              body:
+                title: '{{extract.body.items[0].title}}'
+                displaytitle: '{{extract.body.items[0].displaytitle}}'
+                pageid: '{{extract.body.items[0].pageid}}'
+                extract: '{{stripTags(extract.body.items[0].extract)}}'
+                extract_html: '{{extract.body.items[0].extract}}'
+                thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
+                originalimage: '{{httpsSource(extract.body.items[0].original)}}'
+                lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
+                dir: '{{extract.body.items[0].pagelanguagedir}}'
+                timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
+                description: '{{extractDescription(extract.body.items[0].terms)}}'
+                coordinates: '{{processCoords(extract.body.items[0].coordinates)}}'
+        - store_and_return:
             request:
               method: put
-              uri: /{domain}/sys/key_value_old/term.definition/{request.params.term}
+              uri: /{domain}/sys/{{globals.options.backend}}/{{globals.options.table}}/{request.params.title}
               headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
@@ -136,7 +146,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store.headers.etag}}'
+                etag: '{{store_and_return.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
         - emit_change_event:
@@ -145,61 +155,12 @@ paths:
               uri: /{domain}/sys/events/
               body:
                 - meta:
-                    uri: //{request.params.domain}/api/rest_v1/page/definition/{request.params.title}
-          response:
+                    uri: //{request.params.domain}/api/rest_v1/page/summary/{request.params.title}
             return:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store.headers.etag}}'
+                etag: '{{store_and_return.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
 
-      x-monitor: true
-      x-amples:
-        - title: Get definition from storage
-          request:
-            params:
-              domain: en.wiktionary.org
-              term: cat
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: /^application\/json$/
-
-definitions:
-  definition:
-    type: object
-    description: Describes a single definition of a term
-    properties:
-      definition:
-        type: string
-        description: A term definition
-      examples:
-        type: array
-        items:
-          type: string
-          description: An example of word usage
-    required: [ 'definition' ]
-
-  usageDescription:
-    type: object
-    properties:
-      partOfSpeech:
-        type: string
-        description: Part of speech (e.g. 'Noun' or 'Verb')
-      definitions:
-        type: array
-        items:
-          $ref: definition
-    required: [ 'partOfSpeech', 'definitions' ]
-
-  definitionsResponse:
-    type: object
-    properties:
-      usages:
-        type: array
-        items:
-          $ref: usageDescription
-    required: [ 'usages' ]

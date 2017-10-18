@@ -32,6 +32,9 @@ default_project: &default_project
         parsoid:
           host: https://parsoid-beta.wmflabs.org
           grace_ttl: 2
+          backends:
+            both:
+              - '/.*/'
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
@@ -58,6 +61,9 @@ default_project: &default_project
           secret: secret
         transform:
           cx_host: https://cxserver-beta.wmflabs.org
+        summary:
+          new_storage_enabled:
+            - en.wikipedia.org
         skip_updates: false
 
 # A separate project for en.wikipedia because it is more feature-rich

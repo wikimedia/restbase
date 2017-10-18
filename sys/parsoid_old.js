@@ -18,8 +18,8 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 // https://phabricator.wikimedia.org/T93715
 function normalizeHtml(html) {
     return html && html.toString
-    && html.toString()
-    .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
+        && html.toString()
+        .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
 }
 function sameHtml(a, b) {
     return normalizeHtml(a) === normalizeHtml(b);
@@ -57,7 +57,7 @@ function insertTidMeta(html, tid) {
 function extractTidMeta(html) {
     // Fall back to an inline meta tag in the HTML
     const tidMatch = new RegExp('<meta\\s+(?:content="([^"]+)"\\s+)?' +
-            'property="mw:TimeUuid"(?:\\s+content="([^"]+)")?\\s*\\/?>')
+        'property="mw:TimeUuid"(?:\\s+content="([^"]+)")?\\s*\\/?>')
     .exec(html);
     return tidMatch && (tidMatch[1] || tidMatch[2]);
 }
@@ -159,9 +159,29 @@ function _dependenciesUpdate(hyper, req) {
 
 function compileReRenderBlacklist(blacklist) {
     const result = {};
+
+    /**
+     * From a list of regexes and strings, constructs a regex that
+     * matches any of list items
+     */
+    const constructRegex = (pages) => {
+        let regex = (pages || []).map((regexString) => {
+            regexString = regexString.trim();
+            if (/^\/.+\/$/.test(regexString)) {
+                return `(?:${regexString.substring(1, regexString.length - 1)})`;
+            }
+            // Compare strings, instead
+            return `(?:^${decodeURIComponent(regexString)
+            .replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&")}$)`;
+        }).join('|');
+        regex = regex && regex.length > 0 ? new RegExp(regex) : undefined;
+        return regex;
+    };
+
+
     blacklist = blacklist || {};
     Object.keys(blacklist).forEach((domain) => {
-        result[domain] = mwUtil.constructRegex(blacklist[domain]);
+        result[domain] = constructRegex(blacklist[domain]);
     });
     return result;
 }
@@ -215,50 +235,6 @@ class ParsoidService {
         return new URI(path);
     }
 
-    getNGBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'parsoid_bucket', format, rp.title];
-        if (rp.revision) {
-            path.push(rp.revision);
-            if (tid) {
-                path.push(tid);
-            }
-        }
-        return new URI(path);
-    }
-
-    getFallbackBucketURI(rp, format, tid) {
-        // TODO: We're adding the -ng only to avoid table name clashing in dev cluster. Remove!
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}-ng`, rp.title];
-        if (rp.revision) {
-            path.push(rp.revision);
-            if (tid) {
-                path.push(tid);
-            }
-        }
-        return new URI(path);
-    }
-
-    _getContentWithFallback(hyper, rp, format, tid) {
-        return hyper.get({
-            uri: this.getNGBucketURI(rp, format, tid)
-        })
-        .catch({ status: 404 }, () => hyper.get({
-            uri: this.getFallbackBucketURI(rp, format, tid)
-        })
-        .then((res) => {
-            // Now check the result ETag and see if the content is close to expiration
-            const contentTid = uuid.fromString(mwUtil.parseETag(res.headers.etag).tid);
-            const expirationTime =  new Date(Date.now() + this.options.time_to_live * 1000 / 2);
-            if (format === 'html' && contentTid.getDate() > expirationTime) {
-                // Content is half-expired. Regenerate.
-                throw new HTTPError({
-                    status: 404
-                });
-            }
-            return res;
-        }));
-    }
-
     pagebundle(hyper, req) {
         const rp = req.params;
         const domain = rp.domain;
@@ -270,41 +246,23 @@ class ParsoidService {
         return hyper.request(newReq);
     }
 
-    saveParsoidResultToLatest(hyper, req, tid, parsoidResp) {
+    saveParsoidResult(hyper, req, format, tid, parsoidResp) {
         const rp = req.params;
-        return hyper.put({
-            uri: this.getNGBucketURI(rp, 'all', tid),
-            body: {
-                html: parsoidResp.body.html,
-                'data-parsoid': parsoidResp.body['data-parsoid'],
-                'section-offsets': {
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-                }
-            }
-        });
-    }
-
-    saveParsoidResultToFallback(hyper, req, tid, parsoidResp) {
-        const rp = req.params;
-        return P.all([
+        return P.join(
             hyper.put({
-                uri: this.getFallbackBucketURI(rp, 'data-parsoid', tid),
+                uri: this.getBucketURI(rp, 'data-parsoid', tid),
                 headers: parsoidResp.body['data-parsoid'].headers,
                 body: parsoidResp.body['data-parsoid'].body
             }),
             hyper.put({
-                uri: this.getFallbackBucketURI(rp, 'section-offsets', tid),
-                headers: {
-                    'content-type': 'application/json'
-                },
+                uri: this.getBucketURI(rp, 'section.offsets', tid),
+                headers: { 'content-type': 'application/json' },
                 body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-            }),
-        ])
+            })
+        )
+        // Save HTML last, so that any error in metadata storage suppresses HTML.
         .then(() => hyper.put({
-            uri: this.getFallbackBucketURI(rp, 'html', tid),
+            uri: this.getBucketURI(rp, 'html', tid),
             headers: parsoidResp.body.html.headers,
             body: parsoidResp.body.html.body
         }));
@@ -317,22 +275,22 @@ class ParsoidService {
         // Helper for retrieving original content from storage & posting it to
         // the Parsoid pagebundle end point
         /* const getOrigAndPostToParsoid = (pageBundleUri, revision, contentName, updateMode) => {
-            return this._getOriginalContent(hyper, req, revision)
-            .then((res) => {
-                const body = {
-                    update: updateMode
-                };
-                body[contentName] = res;
-                return hyper.post({
-                    uri: pageBundleUri,
-                    headers: {
-                        'content-type': 'application/json',
-                        'user-agent': req.headers['user-agent'],
-                    },
-                    body
-                });
-            }, () => hyper.get({ uri: pageBundleUri })); // Fall back to plain GET
-        }; */
+         return this._getOriginalContent(hyper, req, revision)
+         .then((res) => {
+         const body = {
+         update: updateMode
+         };
+         body[contentName] = res;
+         return hyper.post({
+         uri: pageBundleUri,
+         headers: {
+         'content-type': 'application/json',
+         'user-agent': req.headers['user-agent'],
+         },
+         body
+         });
+         }, () => hyper.get({ uri: pageBundleUri })); // Fall back to plain GET
+         }; */
 
         return this.getRevisionInfo(hyper, req)
         .then((revInfo) => {
@@ -340,8 +298,9 @@ class ParsoidService {
             if (reqRevision !== rp.revision) {
                 // Try to fetch the HTML corresponding to the requested revision,
                 // so that the change detection makes sense.
-                return this._getContentWithFallback(hyper, rp, format)
-                .then(
+                return hyper.get({
+                    uri: this.getBucketURI(rp, format, rp.tid)
+                }).then(
                     (contentRes) => {
                         currentContentRes = contentRes;
                     },
@@ -360,19 +319,19 @@ class ParsoidService {
             const parsoidReq =  hyper.get({ uri: pageBundleUri });
             /* Switched off for the transition period to the new storage model. See T170997.
 
-            if (parentRev) {
-                // OnEdit job update: pass along the predecessor version
-                parsoidReq = getOrigAndPostToParsoid(pageBundleUri, `${parentRev}`, 'previous');
-            } else if (updateMode) {
-                // Template or image updates. Similar to html2wt, pass:
-                // - current data-parsoid and html
-                // - the edit mode
-                parsoidReq = getOrigAndPostToParsoid(pageBundleUri, rp.revision,
-                        'original', updateMode);
-            } else {
-                // Plain render
-                parsoidReq = hyper.get({ uri: pageBundleUri });
-            } */
+             if (parentRev) {
+             // OnEdit job update: pass along the predecessor version
+             parsoidReq = getOrigAndPostToParsoid(pageBundleUri, `${parentRev}`, 'previous');
+             } else if (updateMode) {
+             // Template or image updates. Similar to html2wt, pass:
+             // - current data-parsoid and html
+             // - the edit mode
+             parsoidReq = getOrigAndPostToParsoid(pageBundleUri, rp.revision,
+             'original', updateMode);
+             } else {
+             // Plain render
+             parsoidReq = hyper.get({ uri: pageBundleUri });
+             } */
 
             return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
             .spread((res, currentContentRes) => {
@@ -380,11 +339,11 @@ class ParsoidService {
                 res.body.html.body = insertTidMeta(res.body.html.body, tid);
 
                 if (format === 'html'
-                        && currentContentRes
-                        && currentContentRes.status === 200
-                        && sameHtml(res.body.html.body, currentContentRes.body)
-                        && currentContentRes.headers['content-type']
-                                === res.body.html.headers['content-type']) {
+                    && currentContentRes
+                    && currentContentRes.status === 200
+                    && sameHtml(res.body.html.body, currentContentRes.body)
+                    && currentContentRes.headers['content-type']
+                    === res.body.html.headers['content-type']) {
                     // New render is the same as the previous one, no need to store it.
                     hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
                     return currentContentRes;
@@ -395,9 +354,7 @@ class ParsoidService {
                         body: res.body[format].body
                     };
                     resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                    return this.saveParsoidResultToLatest(hyper, req, tid, res)
-                    .catch({ status: 412 }, () =>
-                        this.saveParsoidResultToFallback(hyper, req, tid, res))
+                    return this.saveParsoidResult(hyper, req, format, tid, res)
                     .then(() => {
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
@@ -447,8 +404,9 @@ class ParsoidService {
                 revision: etagInfo.rev,
                 tid: etagInfo.tid
             });
-            return this._getContentWithFallback(hyper, sectionsRP,
-                'section-offsets', sectionsRP.tid)
+            return hyper.get({
+                uri: this.getBucketURI(sectionsRP, 'section.offsets', sectionsRP.tid)
+            })
             .then(sectionOffsets => mwUtil.decodeBody(htmlRes).then((content) => {
                 const body = cheapBodyInnerHTML(content.body);
                 const chunks = sections.reduce((result, id) => {
@@ -526,7 +484,9 @@ class ParsoidService {
             });
         }
 
-        let contentReq = this._getContentWithFallback(hyper, rp, format, rp.tid);
+        let contentReq = hyper.get({
+            uri: this.getBucketURI(rp, format, rp.tid)
+        });
 
         if (mwUtil.isNoCacheRequest(req)) {
             // Check content generation either way
@@ -542,7 +502,7 @@ class ParsoidService {
                 }
                 return generateContent(res);
             },
-                generateContent);
+            generateContent);
         } else {
             // Only (possibly) generate content if there was an error
             contentReq = contentReq.catch(generateContent);
@@ -567,7 +527,8 @@ class ParsoidService {
     listRevisions(format, hyper, req) {
         const rp = req.params;
         const revReq = {
-            uri: new URI([rp.domain, 'sys', 'parsoid_bucket', format, rp.title, '']),
+            uri: new URI([rp.domain, 'sys', 'key_rev_value',
+                `parsoid.${format}-2`, rp.title, '']),
             body: {
                 limit: hyper.config.default_page_size
             }
@@ -637,7 +598,7 @@ class ParsoidService {
                     body: {
                         type: 'bad_request',
                         description: 'No or invalid If-Match header supplied, '
-                            + 'or missing mw:TimeUuid meta element in the supplied HTML.',
+                        + 'or missing mw:TimeUuid meta element in the supplied HTML.',
                     }
                 });
             }
@@ -652,8 +613,8 @@ class ParsoidService {
         return contentPromise.then((original) => {
             // Check if parsoid metadata is present as it's required by parsoid.
             if (!original['data-parsoid'].body
-                    || original['data-parsoid'].body.constructor !== Object
-                    || !original['data-parsoid'].body.ids) {
+                || original['data-parsoid'].body.constructor !== Object
+                || !original['data-parsoid'].body.ids) {
                 throw new HTTPError({
                     status: 400,
                     body: {
@@ -723,19 +684,19 @@ class ParsoidService {
                     body: req.body.wikitext
                 })
             ])
-        // Save HTML last, so that any error in metadata storage suppresses
-        // HTML.
-        .then(() => hyper.put({
-            uri: this.getStashBucketURI(rp, 'html', tid),
-            headers: original.body.html.headers,
-            body: original.body.html.body
-        }))
-        // Add the ETag to the original response so it can be propagated
-        // back to the client
-        .then(() => {
-            original.body.html.headers.etag = mwUtil.makeETag(rp.revision, tid, 'stash');
-            return original;
-        }));
+            // Save HTML last, so that any error in metadata storage suppresses
+            // HTML.
+            .then(() => hyper.put({
+                uri: this.getStashBucketURI(rp, 'html', tid),
+                headers: original.body.html.headers,
+                body: original.body.html.body
+            }))
+            // Add the ETag to the original response so it can be propagated
+            // back to the client
+            .then(() => {
+                original.body.html.headers.etag = mwUtil.makeETag(rp.revision, tid, 'stash');
+                return original;
+            }));
     }
 
     callParsoidTransform(hyper, req, from, to) {
@@ -764,7 +725,7 @@ class ParsoidService {
 
         const parsoidReq = {
             uri: `${this.parsoidHost}/${rp.domain}/v3/transform/`
-                + `${parsoidFrom}/to/${parsoidTo}${parsoidExtraPath}`,
+            + `${parsoidFrom}/to/${parsoidTo}${parsoidExtraPath}`,
             headers: {
                 'content-type': 'application/json',
                 'user-agent': req['user-agent'],
@@ -784,7 +745,7 @@ class ParsoidService {
         return (hyper, req) => {
             const rp = req.params;
             if ((!req.body && req.body !== '')
-                    || (!req.body[from] && req.body[from] !== '')) {
+                || (!req.body[from] && req.body[from] !== '')) {
                 throw new HTTPError({
                     status: 400,
                     body: {
@@ -820,9 +781,9 @@ class ParsoidService {
                 // In case a page was deleted/revision restricted while edit was happening,
                 // return 410 Gone or 409 Conflict error instead of a general 400
                 const pageDeleted = e.status === 404 && e.body
-                        && /Page was deleted/.test(e.body.description);
+                    && /Page was deleted/.test(e.body.description);
                 const revisionRestricted = e.status === 403 && e.body
-                        && /Access is restricted/.test(e.body.description);
+                    && /Access is restricted/.test(e.body.description);
                 if (pageDeleted || revisionRestricted) {
                     throw new HTTPError({
                         status: pageDeleted ? 410 : 409,
@@ -901,47 +862,89 @@ module.exports = (options) => {
         operations: ps.operations,
         // Dynamic resource dependencies, specific to implementation
         resources: [
+            {
+                uri: `/{domain}/sys/key_rev_value/parsoid.html-2`,
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'blob',
+                    version: 1
+                }
+            },
+            {
+                uri: `/{domain}/sys/key_rev_value/parsoid.wikitext`,
+                body: {
+                    valueType: 'blob'
+                }
+            },
+            {
+                uri: `/{domain}/sys/key_rev_value/parsoid.data-parsoid-2`,
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'json',
+                    version: 1
+                }
+            },
+            {
+                uri: `/{domain}/sys/key_rev_value/parsoid.section.offsets-2`,
+                body: {
+                    revisionRetentionPolicy: {
+                        type: 'latest',
+                        count: 1,
+                        grace_ttl: 86400
+                    },
+                    valueType: 'json',
+                    version: 1
+                }
+            },
+            /* This keyspace is not used yet - no need to create it
+             {
+             uri: `/{domain}/sys/key_rev_value/parsoid.data-mw`,
+             body: {
+             valueType: 'json'
+             }
+             },
+             */
             // stashing resources for HTML, wikitext and data-parsoid
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html-ng',
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
                 body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
                     valueType: 'blob',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
+                    version: 1
                 }
             },
             {
-                // TODO: the `-ng` is only here because we have just one cass cluster
-                // in dev. Remove before deploying to production
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext-ng',
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
                 body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
                     valueType: 'blob',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
+                    version: 1
                 }
             },
             {
-                // TODO: the `-ng` is only here because we have just one cass cluster
-                // in dev. Remove before deploying to production
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid-ng',
+                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
                 body: {
+                    revisionRetentionPolicy: {
+                        type: 'ttl',
+                        ttl: 86400
+                    },
                     valueType: 'json',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
+                    version: 1
                 }
-            },
-            {
-                // TODO: the `-ng` is only here because we have just one cass cluster
-                // in dev. Remove before deploying to production
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.section-offsets-ng',
-                body: {
-                    valueType: 'json',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
-                }
-            },
-            {
-                uri: '/{domain}/sys/parsoid_bucket/'
             }
         ]
     };

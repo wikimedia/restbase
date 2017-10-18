@@ -170,5 +170,5 @@ describe('Key value buckets', function() {
         });
     }
 
-    parallel('key_value', function() { runTests('key_value') });
+    parallel('key_value', function() { runTests('key_value_old') });
 });

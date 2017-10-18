@@ -14,12 +14,12 @@ paths:
               get:
                 x-setup-handler:
                   - init_storage:
-                      uri: /{domain}/sys/key_value/testservice.test
+                      uri: /{domain}/sys/key_value_old/testservice.test
 
                 x-request-handler:
                   - get_from_storage:
                       request:
-                        uri: /{domain}/sys/key_value/testservice.test/{title}
+                        uri: /{domain}/sys/key_value_old/testservice.test/{title}
                         headers:
                           'cache-control': '{{cache-control}}'
                       catch:
@@ -33,7 +33,7 @@ paths:
                   - store:
                       request:
                         method: put
-                        uri: /{domain}/sys/key_value/testservice.test/{title}
+                        uri: /{domain}/sys/key_value_old/testservice.test/{title}
                         headers: '{{get_from_api.headers}}'
                         body: '{{get_from_api.body}}'
                   - return_response:
@@ -119,9 +119,9 @@ paths:
             /buckets/key_rev_latest_value:
               x-modules:
                 - path: sys/key_rev_latest_value.js
-            /buckets/key_value:
+            /buckets/key_value_old:
               x-modules:
-                - path: sys/key_value.js
+                - path: sys/key_value_old.js
 
             /events_no_config:
               x-modules:

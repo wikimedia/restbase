@@ -79,103 +79,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-
       x-setup-handler:
         # Set up a simple key-value bucket.
+        # TODO: move back to the nomal summary
         - init:
             method: 'put'
-            uri: /{domain}/sys/key_value/summary
+            uri: /{domain}/sys/key_value/page_summary
+            body:
+              valueType: 'json'
+        # TODO: remove
+        - init:
+            method: 'put'
+            uri: /{domain}/sys/key_value_old/summary
             body:
               valueType: 'json'
 
-      x-request-handler:
-        - storage:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/summary/{request.params.title}
-            catch:
-              status: 404
-            return_if:
-              # Typical case: Return straight from storage.
-              status: '2xx'
-            return:
-              status: 200
-              headers:
-                content-type: '{{storage.headers.content-type}}'
-                etag: '{{storage.headers.etag}}'
-                cache-control: '{{options.response_cache_control}}'
-              body: '{{storage.body}}'
-
-        # Storage miss. Call the Action API to get the textextract.
-        - extract:
-            request:
-              method: post
-              uri: /{domain}/sys/action/query
-              body:
-                prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
-                exsentences: 5
-                exintro: true
-                piprop: 'thumbnail|original'
-                inprop: 'displaytitle'
-                pithumbsize: 320
-                pilicense: 'any'
-                rvprop: 'timestamp|ids'
-                titles: '{{request.params.title}}'
-                wbptterms: 'description'
-            response:
-              # Define the response to save & return.
-              headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
-                etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
-              body:
-                title: '{{extract.body.items[0].title}}'
-                displaytitle: '{{extract.body.items[0].displaytitle}}'
-                pageid: '{{extract.body.items[0].pageid}}'
-                extract: '{{stripTags(extract.body.items[0].extract)}}'
-                extract_html: '{{extract.body.items[0].extract}}'
-                thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
-                originalimage: '{{httpsSource(extract.body.items[0].original)}}'
-                lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
-                dir: '{{extract.body.items[0].pagelanguagedir}}'
-                timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
-                description: '{{extractDescription(extract.body.items[0].terms)}}'
-                coordinates: '{{processCoords(extract.body.items[0].coordinates)}}'
-        - store_and_return:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/summary/{request.params.title}
-              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
-              body: '{{extract.body}}'
-            # With the if-none-hash-match header the storage will return 412
-            # if the content is not changed. In that case, return from the
-            # handler completely, and avoid issuing purges.
-            catch:
-              status: 412
-            return_if:
-              status: 412
-            return:
-              status: 200
-              headers:
-                content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
-                cache-control: '{{options.response_cache_control}}'
-              body: '{{extract.body}}'
-        - emit_change_event:
-            request:
-              method: post
-              uri: /{domain}/sys/events/
-              body:
-                - meta:
-                    uri: //{request.params.domain}/api/rest_v1/page/summary/{request.params.title}
-            return:
-              status: 200
-              headers:
-                content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
-                cache-control: '{{options.response_cache_control}}'
-              body: '{{extract.body}}'
+      operationId: 'getSummary'
 
       x-monitor: true
       x-amples:
@@ -183,7 +102,7 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Barack_Obama
+              title: San_Francisco
           response:
             status: 200
             headers:

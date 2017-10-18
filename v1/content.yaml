@@ -68,7 +68,7 @@ paths:
                 page: '{{page}}'
       x-monitor: false
 
-  /title/{title}:
+  /title/{title}{/revision}:
     get:
       tags:
         - Page content
@@ -84,6 +84,11 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: false
       responses:
         '200':
           description: The latest revision metadata for the provided title.
@@ -116,35 +121,18 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/page_revisions/page/{title}
+              uri: /{domain}/sys/page_revisions/page/{title}{/revision}
               headers:
                 # FIXME: Temporary work-around (see T120212).
                 cache-control: 'no-cache'
                 if-unmodified-since: '{{if-unmodified-since}}'
       x-monitor: true
       x-amples:
-        #- title: Get rev of by title from MW
-        #  request:
-        #    params:
-        #      title: Foobar
-        #    headers:
-        #      cache-control: no-cache
-        #  response:
-        #    status: 200
-        #    headers:
-        #      etag: /.+/
-        #      content-type: application/json
-        #    body:
-        #      items:
-        #        - title: 'Foobar'
-        #          rev: /\d+/
-        #          tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-        #          comment: /.*/
         - title: Get rev by title from storage
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:
@@ -152,7 +140,7 @@ paths:
               content-type: application/json
             body:
               items:
-                - title: 'Foobar'
+                - title: 'User:BSitzmann_(WMF)/MCS/Test/Frankenstein'
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
@@ -199,78 +187,6 @@ paths:
               query:
                 page: '{{page}}'
       x-monitor: false
-
-  /title/{title}/{revision}:
-    get:
-      tags:
-        - Page content
-      summary: Get metadata about a specific revision for a title.
-      description: |
-        Retrieves the metadata about a specific revision for the given title.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-      parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: true
-        - name: revision
-          in: path
-          description: The revision id
-          type: integer
-          required: true
-      responses:
-        '200':
-          description: The revision's properties
-          schema:
-            $ref: '#/definitions/revision'
-        '400':
-          description: Invalid revision
-          schema:
-            $ref: '#/definitions/problem'
-        '403':
-          description: Access to the specific revision is restricted
-          schema:
-            $ref: '#/definitions/problem'
-        '404':
-          description: Unknown title, revision id or domain
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              # FIXME: use /sys/page_revisions/page/{title}/{revision} once
-              # the code in sys/page_revisions.js has been refactored
-              uri: /{domain}/sys/page_revisions/rev/{revision}
-              headers:
-                # FIXME: Temporary work-around (see T120212).
-                cache-control: 'no-cache'
-      x-monitor: true
-      x-amples:
-        - title: Get rev by title and ID
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Foobar
-              revision: 642497713
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: application/json
-            body:
-              items:
-                - title: 'Foobar'
-                  rev: /\d+/
-                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-                  comment: /.*/
 
   /html/{title}:
     x-route-filters:
@@ -394,7 +310,7 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:
@@ -769,85 +685,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-      x-monitor: false
-
-  /revision/:
-    get:
-      tags:
-        - Page content
-      summary: List all page revisions.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The queriable sub-items
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/rev/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
-  /revision/{revision}:
-    get:
-      tags:
-        - Page content
-      summary: Get metadata about a specific revision.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: revision
-          in: path
-          description: The revision id
-          type: integer
-          required: true
-      responses:
-        '200':
-          description: The revision's properties
-          schema:
-            $ref: '#/definitions/revision'
-        '400':
-          description: Invalid revision
-          schema:
-            $ref: '#/definitions/problem'
-        '403':
-          description: Access to the specific revision is restricted
-          schema:
-            $ref: '#/definitions/problem'
-        '404':
-          description: Unknown revision id or domain
-          schema:
-            $ref: '#/definitions/problem'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/rev/{revision}
-              headers:
-                # FIXME: Temporary work-around (see T120212).
-                cache-control: 'no-cache'
       x-monitor: false
 
   /wikitext/{title}:

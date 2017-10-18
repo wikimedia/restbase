@@ -48,7 +48,7 @@ class PRS {
     getTableSchema() {
         return {
             table: tableName,
-            version: 4,
+            version: 5,
             attributes: {
                 // Listing: /titles.rev/Barack_Obama/master/
                 // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
@@ -83,15 +83,7 @@ class PRS {
                 { attribute: 'latest_rev', type: 'static' },
                 { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'page_deleted', type: 'static' }
-            ],
-            secondaryIndexes: {
-                by_rev: [
-                    { attribute: 'rev', type: 'hash' },
-                    { attribute: 'tid', type: 'range', order: 'desc' },
-                    { attribute: 'title', type: 'range', order: 'asc' },
-                    { attribute: 'restrictions', type: 'proj' }
-                ]
-            }
+            ]
         };
     }
 
@@ -269,56 +261,66 @@ class PRS {
         const rp = req.params;
         return this.fetchMWRevision(hyper, req)
         .then(revision => // Check if the same revision is already in storage
-            P.join(hyper.get({
-                uri: this.tableURI(rp.domain),
-                body: {
-                    table: tableName,
-                    attributes: {
-                        title: revision.title,
-                        rev: revision.rev
+            P.join(
+                hyper.get({
+                    uri: this.tableURI(rp.domain),
+                    body: {
+                        table: tableName,
+                        attributes: {
+                            title: revision.title,
+                            rev: revision.rev
+                        }
                     }
-                }
-            }),
-            // TODO: Before we fill in the restrictions table we need
-            // to store the restriction regardless of the revision change
+                }),
+                // TODO: Before we fill in the restrictions table we need
+                // to store the restriction regardless of the revision change
 
-            this.storeRestrictions(hyper, req, revision))
-        .spread((res) => {
-            const sameRev = res && res.body.items
+                this.storeRestrictions(hyper, req, revision)
+            )
+            .spread((res) => {
+                const sameRev = res && res.body.items
                     && res.body.items.length > 0
                     && this._checkSameRev(revision, res.body.items[0]);
-            if (!sameRev) {
-                throw new HTTPError({ status: 404 });
-            }
-        })
-        .catch({ status: 404 }, () => {
-            if (!revision.page_deleted) {
-                // Clear up page_deleted
-                revision.page_deleted = null;
-            }
-
-            return hyper.put({ // Save / update the revision entry
-                uri: this.tableURI(rp.domain),
-                body: {
-                    table: tableName,
-                    attributes: revision
+                if (!sameRev) {
+                    throw new HTTPError({ status: 404 });
                 }
-            });
-        })
-        .then(() => {
-            this._checkRevReturn(revision);
-            // No restrictions, continue
-            rp.revision = `${revision.rev}`;
-            rp.title = revision.title;
-            return this.getTitleRevision(hyper, req);
-        }));
+            })
+            .catch({ status: 404 }, () => {
+                if (!revision.page_deleted) {
+                    // Clear up page_deleted
+                    revision.page_deleted = null;
+                }
+
+                return hyper.put({ // Save / update the revision entry
+                    uri: this.tableURI(rp.domain),
+                    body: {
+                        table: tableName,
+                        // TODO: Workaround for a bug in sqlite that stringifies the array
+                        // in place while saving.
+                        attributes: Object.assign({}, revision)
+                    }
+                });
+            })
+            .then(() => {
+                this._checkRevReturn(revision);
+                return {
+                    status: 200,
+                    headers: {
+                        etag: mwUtil.makeETag(revision.rev, revision.tid)
+                    },
+                    body: {
+                        items: [ revision ]
+                    }
+                };
+            })
+        );
     }
 
     getTitleRevision(hyper, req) {
         const rp = req.params;
         let revisionRequest;
-        const getLatestTitleRevision = () => {
-            return hyper.get({
+        const titleRevisionRequest = () => {
+            const revReqObject = {
                 uri: this.tableURI(rp.domain),
                 body: {
                     table: tableName,
@@ -327,27 +329,26 @@ class PRS {
                     },
                     limit: 1
                 }
-            });
+            };
+            if (rp.revision) {
+                revReqObject.body.attributes.rev = parseInt(rp.revision, 10);
+            }
+            return hyper.get(revReqObject);
         };
 
-        if (/^[0-9]+$/.test(rp.revision)) {
-            // Check the local db
-            revisionRequest = hyper.get({
-                uri: this.tableURI(rp.domain),
+        if (rp.revision && !/^[0-9]+$/.test(rp.revision)) {
+            throw new HTTPError({
+                status: 400,
                 body: {
-                    table: tableName,
-                    attributes: {
-                        title: rp.title,
-                        rev: parseInt(rp.revision, 10)
-                    },
-                    limit: 1
+                    message: `Invalid revision: ${rp.revision}`
                 }
-            })
-            .catch({ status: 404 }, () => this.fetchAndStoreMWRevision(hyper, req));
-        } else if (!rp.revision) {
-            if (mwUtil.isNoCacheRequest(req)) {
-                revisionRequest = this.fetchAndStoreMWRevision(hyper, req)
-                .catch({ status: 404 }, e => getLatestTitleRevision()
+            });
+        }
+
+        if (mwUtil.isNoCacheRequest(req)) {
+            revisionRequest = this.fetchAndStoreMWRevision(hyper, req)
+            .catch({ status: 404 },
+                e => titleRevisionRequest()
                 // In case 404 is returned by MW api, the page is deleted
                 // TODO: Handle this directly with more targeted page
                 // deletion/ un-deletion events.
@@ -355,24 +356,22 @@ class PRS {
                     result = result.body.items[0];
                     result.tid = TimeUuid.now().toString();
                     result.page_deleted = result.rev;
-                    return P.join(hyper.put({
-                        uri: this.tableURI(rp.domain),
-                        body: {
-                            table: tableName,
-                            attributes: Object.assign({}, result)
-                        }
-                    }),
+                    return P.join(
+                        hyper.put({
+                            uri: this.tableURI(rp.domain),
+                            body: {
+                                table: tableName,
+                                attributes: Object.assign({}, result)
+                            }
+                        }),
                         // TODO: Object.assign here is to avoid a bug in sqlite
                         // backend that modifies original attribute.
                         this.storePageDeletion(hyper, req, Object.assign({}, result))
-                    ).throw(e);
+                ).throw(e);
                 }));
-            } else {
-                revisionRequest = getLatestTitleRevision()
-                .catch({ status: 404 }, () => this.fetchAndStoreMWRevision(hyper, req));
-            }
         } else {
-            throw new Error(`Invalid revision: ${rp.revision}`);
+            revisionRequest = titleRevisionRequest()
+            .catch({ status: 404 }, () => this.fetchAndStoreMWRevision(hyper, req));
         }
         return revisionRequest
         .then((res) => {
@@ -389,7 +388,6 @@ class PRS {
             res.headers.etag = mwUtil.makeETag(info.rev, info.tid);
             return res;
         });
-        // TODO: handle other revision formats (tid)
     }
 
     listTitleRevisions(hyper, req) {
@@ -430,52 +428,6 @@ class PRS {
             res.body.items = items;
             return res;
         });
-    }
-
-    getRevision(hyper, req) {
-        const rp = req.params;
-        // Sanity check
-        if (!/^[0-9]+$/.test(rp.revision)) {
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request#invalid_revision',
-                    description: 'Invalid revision specified',
-                    rev: rp.revision
-                }
-            });
-        }
-        if (mwUtil.isNoCacheRequest(req)) {
-            // Ask the MW API directly and
-            // store and return its result
-            return this.fetchAndStoreMWRevision(hyper, req);
-        }
-        // Check the storage, and, if no match is found
-        // ask the MW API about the revision
-        return hyper.get({
-            uri: this.tableURI(rp.domain),
-            body: {
-                table: tableName,
-                index: 'by_rev',
-                attributes: {
-                    rev: parseInt(rp.revision, 10)
-                },
-                limit: 1
-            }
-        })
-        .then((res) => {
-            // Check the return
-            this._checkRevReturn(res.body.items.length && res.body.items[0]);
-
-            // Clear paging info
-            delete res.body.next;
-
-            // And get the revision info for the
-            // page now that we have the title
-            rp.title = res.body.items[0].title;
-            return this.getTitleRevision(hyper, req);
-        })
-        .catch({ status: 404 }, () => this.fetchAndStoreMWRevision(hyper, req));
     }
 
     /**
@@ -654,49 +606,6 @@ class PRS {
             });
         });
     }
-
-    listRevisions(hyper, req) {
-        const rp = req.params;
-
-        const listReq = {
-            uri: new URI([rp.domain, 'sys', 'action', 'query']),
-            method: 'post',
-            body: {
-                generator: 'allpages',
-                gaplimit: hyper.config.default_page_size,
-                prop: 'revisions',
-                format: 'json'
-            }
-        };
-        if (req.query.page) {
-            Object.assign(listReq.body, mwUtil.decodePagingToken(hyper, req.query.page));
-        }
-        return hyper.get(listReq)
-        .then((res) => {
-            const pages = res.body.items;
-            const items = [];
-            Object.keys(pages).forEach((pageId) => {
-                const article = pages[pageId];
-                items.push(article.revisions[0].revid);
-            });
-            let next = {};
-            if (res.body.next) {
-                next = {
-                    next: {
-                        href: `?page=${mwUtil.encodePagingToken(hyper, res.body.next)}`
-                    }
-                };
-            }
-
-            return {
-                status: 200,
-                body: {
-                    items,
-                    _links: next
-                }
-            };
-        });
-    }
 }
 
 module.exports = (options) => {
@@ -708,8 +617,6 @@ module.exports = (options) => {
             listTitles: prs.listTitles.bind(prs),
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
             getTitleRevision: prs.getTitleRevision.bind(prs),
-            listRevisions: prs.listRevisions.bind(prs),
-            getRevision: prs.getRevision.bind(prs),
             getRestrictions: prs.getRestrictions.bind(prs),
             postRestrictions: prs.postRestrictions.bind(prs),
         },
