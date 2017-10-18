@@ -1,0 +1,166 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki Summary API
+  description: Page content summary API
+  termsofservice: https://github.com/wikimedia/restbase#restbase
+  contact:
+    name: Services
+    email: services@lists.wikimedia.org
+    url: https://www.mediawiki.org/wiki/Services
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /summary/{title}:
+    get:
+      tags:
+        - Page content
+      summary: Get a text extract & thumb summary of a page.
+      description: |
+        The summary response includes a text extract of the first several
+        sentences, as well as information about a thumbnail that represents
+        the page.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: The summary for the given page
+          schema:
+            $ref: '#/definitions/summary'
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+
+      x-request-handler:
+        - storage:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: /{domain}/sys/{{globals.options.backend}}/{{globals.options.table}}/{request.params.title}
+            catch:
+              status: 404
+            return_if:
+              # Typical case: Return straight from storage.
+              status: '2xx'
+            return:
+              status: 200
+              headers:
+                content-type: '{{storage.headers.content-type}}'
+                etag: '{{storage.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
+              body: '{{storage.body}}'
+
+        # Storage miss. Call the Action API to get the textextract.
+        - extract:
+            request:
+              method: post
+              uri: /{domain}/sys/action/query
+              body:
+                prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
+                exsentences: 5
+                exintro: true
+                piprop: 'thumbnail|original'
+                inprop: 'displaytitle'
+                pithumbsize: 320
+                pilicense: 'any'
+                rvprop: 'timestamp|ids'
+                titles: '{{request.params.title}}'
+                wbptterms: 'description'
+            response:
+              # Define the response to save & return.
+              headers:
+                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
+                etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
+              body:
+                title: '{{extract.body.items[0].title}}'
+                displaytitle: '{{extract.body.items[0].displaytitle}}'
+                pageid: '{{extract.body.items[0].pageid}}'
+                extract: '{{stripTags(extract.body.items[0].extract)}}'
+                extract_html: '{{extract.body.items[0].extract}}'
+                thumbnail: '{{httpsSource(extract.body.items[0].thumbnail)}}'
+                originalimage: '{{httpsSource(extract.body.items[0].original)}}'
+                lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
+                dir: '{{extract.body.items[0].pagelanguagedir}}'
+                timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
+                description: '{{extractDescription(extract.body.items[0].terms)}}'
+                coordinates: '{{processCoords(extract.body.items[0].coordinates)}}'
+        - store_and_return:
+            request:
+              method: put
+              uri: /{domain}/sys/{{globals.options.backend}}/{{globals.options.table}}/{request.params.title}
+              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
+              body: '{{extract.body}}'
+            # With the if-none-hash-match header the storage will return 412
+            # if the content is not changed. In that case, return from the
+            # handler completely, and avoid issuing purges.
+            catch:
+              status: 412
+            return_if:
+              status: 412
+            return:
+              status: 200
+              headers:
+                content-type: '{{extract.headers.content-type}}'
+                etag: '{{store_and_return.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
+              body: '{{extract.body}}'
+        - emit_change_event:
+            request:
+              method: post
+              uri: /{domain}/sys/events/
+              body:
+                - meta:
+                    uri: //{request.params.domain}/api/rest_v1/page/summary/{request.params.title}
+            return:
+              status: 200
+              headers:
+                content-type: '{{extract.headers.content-type}}'
+                etag: '{{store_and_return.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
+              body: '{{extract.body}}'
+
