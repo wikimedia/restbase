@@ -70,9 +70,7 @@ paths:
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
                 - path: v1/summary_proxy.js
-                  options:
-                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
-                    new_storage_enabled: '{{options.summary.new_storage_enabled}}'
+                  options: '{{merge(options.summary, {"response_cache_control": options.purged_cache_control_client_cache})}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
