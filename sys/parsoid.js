@@ -159,29 +159,9 @@ function _dependenciesUpdate(hyper, req) {
 
 function compileReRenderBlacklist(blacklist) {
     const result = {};
-
-    /**
-     * From a list of regexes and strings, constructs a regex that
-     * matches any of list items
-     */
-    const constructRegex = (pages) => {
-        let regex = (pages || []).map((regexString) => {
-            regexString = regexString.trim();
-            if (/^\/.+\/$/.test(regexString)) {
-                return `(?:${regexString.substring(1, regexString.length - 1)})`;
-            }
-            // Compare strings, instead
-            return `(?:^${decodeURIComponent(regexString)
-                .replace(/[-[\]/{}()*+?.\\^$|]/g, "\\$&")}$)`;
-        }).join('|');
-        regex = regex && regex.length > 0 ? new RegExp(regex) : undefined;
-        return regex;
-    };
-
-
     blacklist = blacklist || {};
     Object.keys(blacklist).forEach((domain) => {
-        result[domain] = constructRegex(blacklist[domain]);
+        result[domain] = mwUtil.constructRegex(blacklist[domain]);
     });
     return result;
 }
