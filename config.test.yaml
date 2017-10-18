@@ -33,7 +33,8 @@ default_project: &default_project
           host: https://parsoid-beta.wmflabs.org
           grace_ttl: 2
           backends:
-            default: both
+            both:
+              - '/.*/'
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
