@@ -267,6 +267,6 @@ paths:
                 - path: sys/summary.js
                   options:
                     backend: key_value
-                    table: page_  summary
+                    table: page_summary
                     response_cache_control: '{{options.purged_cache_control_client_cache}}'
         options: '{{options}}'
