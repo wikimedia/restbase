@@ -8,12 +8,13 @@ const stringify = require('json-stable-stringify');
 const spec = require('hyperswitch').utils.loadSpec(`${__dirname}/summary.yaml`);
 
 module.exports = (options) => {
+    options = options || {};
+    options.new_storage_enabled = options.new_storage_enabled || [];
     const isNewStorageEnabled = (() => {
         const checkEnableRegex = options.new_storage_enabled
             && mwUtil.constructRegex(options.new_storage_enabled);
         return domain => checkEnableRegex && checkEnableRegex.test(domain);
     })();
-
     return {
         spec,
         globals: { options },
