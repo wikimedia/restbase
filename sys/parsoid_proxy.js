@@ -11,8 +11,14 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 class ParsoidProxy {
     constructor(options) {
         this.options = options || {};
-        this.options.backends = this.options.backends || { default: 'old' };
-
+        if (this.options.backends) {
+            if (this.options.backends.new) {
+                this._newBackendRegex = mwUtil.constructRegex(this.options.backends.new);
+            }
+            if (this.options.backends.both) {
+                this._bothBackendRegex = mwUtil.constructRegex(this.options.backends.both);
+            }
+        }
         // Set up operations
         this.operations = {
             getPageBundle: this.pagebundle.bind(this),
@@ -34,7 +40,13 @@ class ParsoidProxy {
     }
 
     _chooseBackend(req) {
-        return this.options.backends[req.params.domain] || this.options.backends.default;
+        if (this._newBackendRegex && this._newBackendRegex.test(req.params.domain)) {
+            return 'new';
+        }
+        if (this._bothBackendRegex && this._bothBackendRegex.test(req.params.domain)) {
+            return 'both';
+        }
+        return 'old';
     }
 
     _buildRequest(prefix, req, listing) {
