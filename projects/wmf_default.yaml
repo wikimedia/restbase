@@ -72,8 +72,7 @@ paths:
                 - path: v1/summary_proxy.js
                   options:
                     response_cache_control: '{{options.purged_cache_control_client_cache}}'
-                    new_storage_enabled:
-                      - '/.*\.wikipedia\.org/'
+                    new_storage_enabled: '{{options.summary.new_storage_enabled}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
