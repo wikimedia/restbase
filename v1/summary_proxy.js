@@ -3,6 +3,7 @@
 const mwUtil = require('../lib/mwUtil');
 const URI = require('hyperswitch').URI;
 const P = require('bluebird');
+const stringify = require('json-stable-stringify');
 
 const spec = require('hyperswitch').utils.loadSpec(`${__dirname}/summary.yaml`);
 
@@ -33,9 +34,27 @@ module.exports = (options) => {
                             headers: req.headers,
                             query: req.query
                         })
-                        .catch(e => undefined),
+                        .catch((e) => {
+                            hyper.log('error/summary_proxy', {
+                                msg: 'New content fetch failure',
+                                error: e
+                            });
+                        }),
                     })
-                    .get('oldContent');
+                    .then((result) => {
+                        const oldContent = result.oldContent;
+                        const newContent = result.newContent;
+                        if (oldContent && newContent) {
+                            const newBody = stringify(newContent.body);
+                            const oldBody = stringify(oldContent.body);
+                            if (newBody !== oldBody) {
+                                hyper.log('error/summary_proxy', {
+                                    msg: 'Content mismatch', oldBody, newBody
+                                });
+                            }
+                        }
+                        return oldContent;
+                    });
                 } else {
                     return hyper.get({
                         uri: oldURI,
