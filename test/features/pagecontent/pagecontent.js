@@ -268,28 +268,6 @@ describe('item requests', function() {
         });
     });
 
-    it('should list revisions for a title', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/title/Foobar/'
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [252937]);
-            pagingToken = res.body._links.next.href;
-        });
-    });
-
-    it('should list next set of revisions for a title using pagination', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/title/Foobar/' + pagingToken
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [241155]);
-        });
-    });
     //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
     //    this.timeout(20000);
     //    return preq.get({

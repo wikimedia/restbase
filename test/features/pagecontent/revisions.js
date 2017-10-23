@@ -78,40 +78,6 @@ function generateTests(options) {
         });
     });
 
-    it('should list stored revisions', () => {
-        return preq.get({
-            // Using Foobar here because we've already made a request for it before
-            uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}/`
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            if (!res.body.items || !res.body.items.length) {
-                throw new Error("No revisions returned!");
-            }
-            if (typeof res.body.items[0] !== 'number') {
-                throw new Error("Expected a numeric revision id!");
-            }
-            pagingToken = res.body._links.next.href;
-        });
-    });
-
-    it('should list next set of stored revisions using pagination', () => {
-        return preq.get({
-            uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}/${pagingToken}`
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            if (!res.body.items || !res.body.items.length) {
-                throw new Error("No revisions returned!");
-            }
-            if (typeof res.body.items[0] !== 'number') {
-                throw new Error("Expected a numeric revision id!");
-            }
-        });
-    });
-
     it('should return latest revision for a page', () => {
         return preq.get({
             uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}`,
