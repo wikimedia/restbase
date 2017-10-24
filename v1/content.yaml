@@ -35,47 +35,16 @@ paths:
             $ref: '#/definitions/problem'
       x-monitor: false
 
-  /title/:
-    get:
-      tags:
-        - Page content
-      summary: List all pages.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: A pageable list of page titles.
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/page/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
   /title/{title}{/revision}:
     get:
       tags:
         - Page content
-      summary: Get latest revision metadata for a title.
+      summary: Get revision metadata for a title.
       description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
+        Returns the revision metadata for the given title. If a revision ID is provided,
+        metadata for that revision is returned, otherwise the latest revision ID is assumed.
+
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
       parameters:
@@ -144,49 +113,6 @@ paths:
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
-
-  /title/{title}/:
-    get:
-      tags:
-        - Page content
-      summary: List revisions for a title.
-      description: |
-        Currently this lists all revisions that ever used this title and are
-        stored in RESTBase, but eventually it should return the
-        linear history (across renames) of the page currently using this
-        title.
-
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: true
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: A list of revisions for a title.
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/page/{title}/
-              query:
-                page: '{{page}}'
-      x-monitor: false
 
   /html/{title}:
     x-route-filters:
