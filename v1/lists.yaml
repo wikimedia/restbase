@@ -85,8 +85,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/teardown:
     post:
@@ -122,8 +120,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/:
     get:
@@ -291,8 +287,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
     delete:
       tags:
@@ -332,8 +326,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/{id}/entries/:
     get:
@@ -492,8 +484,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/order:
     get:
@@ -585,8 +575,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/{id}/order:
     get:
@@ -689,8 +677,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/pages/{project}/{title}:
     get:
