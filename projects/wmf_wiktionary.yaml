@@ -152,7 +152,8 @@ paths:
             /parsoid:
               x-modules:
                 - path: sys/parsoid_proxy.js
-                  options: '{{options.parsoid.backends}}'
+                  options:
+                    backends: '{{options.parsoid.backends}}'
             /parsoid_new:
               x-modules:
                 - path: sys/parsoid.js
