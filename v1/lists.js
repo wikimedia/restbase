@@ -81,7 +81,7 @@ class ReadingLists {
                 headers: {
                     'content-type': 'application/json; charset=utf-8;'
                         + 'profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"',
-                    'cache-control': 'no-cache',
+                    'cache-control': 'max-age=0, s-maxage=0',
                 },
                 body: {
                     entries,
