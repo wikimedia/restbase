@@ -202,17 +202,12 @@ paths:
           description: The ID of the new list.
           schema:
             type: object
-            title: response
             properties:
-              create:
-                type: object
-                title: result
-                properties:
-                  id:
-                    type: integer
-                    description: List ID
-                    example: 7
-                    required: true
+              id:
+                type: integer
+                description: List ID
+                example: 7
+                required: true
         default:
           description: Error
           schema:
@@ -403,17 +398,12 @@ paths:
           description: The id of the new list entry.
           schema:
             type: object
-            title: response
             properties:
-              createentry:
-                type: object
-                title: result
-                properties:
-                  id:
-                    type: integer
-                    description: List entry ID
-                    example: 13
-                    required: true
+              id:
+                type: integer
+                description: List entry ID
+                example: 13
+                required: true
         default:
           description: Error
           schema:
