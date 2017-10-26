@@ -8,6 +8,13 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/lists.yaml`);
 
 class ReadingLists {
     /**
+     * @param {!Object} options RESTBase options object.
+     */
+    constructor(options) {
+        this.options = options;
+    }
+
+    /**
      * Transform the continuation data into a string so it is easier for clients to deal with.
      * @param {!Object|undefined} continuation Continuation object returned by the MediaWiki API.
      * @return {!String|undefined} Continuation string.
@@ -26,20 +33,27 @@ class ReadingLists {
         if (typeof continuation === 'string') {
             try {
                 continuation = JSON.parse(continuation);
+                // Make sure nothing malicious can be done by splicing the continuation data
+                // into the API parameters.
+                const allowedKeys = ['continue', 'rlcontinue', 'rlecontinue'];
+                for (const key of allowedKeys) {
+                    if (typeof continuation[key] !== 'object') {
+                        sanitizedContinuation[key] = continuation[key];
+                    }
+                }
             } catch (e) {
                 this.options.log('error/unflatten', {
                     msg: e.message,
                     json: continuation,
                 });
-                throw e;
-            }
-            // Make sure nothing malicious can be done by splicing the continuation data
-            // into the API parameters.
-            const allowedKeys = ['continue', 'rlcontinue', 'rlecontinue'];
-            for (const key of allowedKeys) {
-                if (typeof continuation[key] !== 'object') {
-                    sanitizedContinuation[key] = continuation[key];
-                }
+                throw new HyperSwitch.HTTPError({
+                    status: 400,
+                    body: {
+                        type: 'server_error#invalid_paging_parameter',
+                        title: 'Invalid paging parameter',
+                        parameter: continuation,
+                    },
+                });
             }
         }
         return sanitizedContinuation;
