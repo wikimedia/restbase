@@ -61,9 +61,6 @@ default_project: &default_project
           secret: secret
         transform:
           cx_host: https://cxserver-beta.wmflabs.org
-        summary:
-          new_storage_enabled:
-            - en.wikipedia.org
         skip_updates: false
 
 # A separate project for en.wikipedia because it is more feature-rich

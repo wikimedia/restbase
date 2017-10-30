@@ -69,8 +69,9 @@ paths:
                                 options.mobileapps)}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
-                - path: v1/summary_proxy.js
-                  options: '{{merge(options.summary, {"response_cache_control": options.purged_cache_control_client_cache})}}'
+                - path: v1/summary.js
+                  options:
+                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
@@ -279,18 +280,4 @@ paths:
               x-modules:
                 - path: sys/events.js
                   options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
-            /summary_old:
-              x-modules:
-                - path: sys/summary.js
-                  options:
-                    backend: key_value_old
-                    table: summary
-                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
-            /summary_new:
-              x-modules:
-                - path: sys/summary.js
-                  options:
-                    backend: key_value
-                    table: page_summary
-                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
         options: '{{options}}'
