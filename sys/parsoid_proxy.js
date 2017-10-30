@@ -92,6 +92,7 @@ class ParsoidProxy {
                     if (e.status !== 412) {
                         hyper.log('error/parsoid', {
                             message: 'Error fetching old parsoid content',
+                            cause: e.message,
                             error: e
                         });
                     }
@@ -107,22 +108,7 @@ class ParsoidProxy {
                     }
                 })
             )
-            .then((results) => {
-                const oldContent = results[0];
-                const newContent = results[1];
-
-                if (oldContent && newContent && mwUtil.isNoCacheRequest(req)) {
-                    if (oldContent.body !== newContent.body) {
-                        hyper.log('error/parsoid', {
-                            message: 'Content mismatch between old and new bucket',
-                            old_etag: oldContent.headers.etag,
-                            new_etag:  newContent.headers.etag
-                        });
-                    }
-                }
-
-                return oldContent;
-            });
+            .then(results => results[0]);
         }
         throw new Error(`Unrecognised parsoid backend ${backend}`);
     }

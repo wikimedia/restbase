@@ -19,7 +19,7 @@ function returnRevision(req) {
             const row = dbResult.body.items[0];
             const headers = {
                 etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row.headers['content-type']
+                'content-type': row['content-type']
             };
             return {
                 status: 200,
@@ -45,14 +45,14 @@ class KRVBucket {
         schema.table = req.params.bucket;
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket]),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
             body: schema
         };
         return hyper.put(storeRequest);
     }
 
     makeSchema(opts) {
-        const schemaVersionMajor = 1;
+        const schemaVersionMajor = 2;
 
         return {
             // Combine option & bucket version into a monotonically increasing
@@ -71,12 +71,20 @@ class KRVBucket {
                 },
                 default_time_to_live: opts.default_time_to_live
             },
+            revisionRetentionPolicy: opts.retention_policy
+            // Deprecated version. TODO: Remove eventually.
+            || opts.revisionRetentionPolicy,
             attributes: {
                 key: opts.keyType || 'string',
                 rev: 'int',
                 tid: 'timeuuid',
+                latestTid: 'timeuuid',
                 value: opts.valueType || 'blob',
-                headers: 'json'
+                'content-type': 'string',
+                'content-sha256': 'blob',
+                // Redirect
+                'content-location': 'string',
+                tags: 'set<string>'
             },
             index: [
                 { attribute: 'key', type: 'hash' },
@@ -89,7 +97,7 @@ class KRVBucket {
     getRevision(hyper, req) {
         const rp = req.params;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -99,9 +107,9 @@ class KRVBucket {
             }
         };
         if (rp.revision) {
-            storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
+            storeReq.body.attributes.rev = mwUtil.parseRevision(rp.revision, 'key_rev_value_old');
             if (rp.tid) {
-                storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_rev_value');
+                storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_rev_value_old');
             }
         }
         return hyper.get(storeReq).then(returnRevision(req));
@@ -110,7 +118,7 @@ class KRVBucket {
     listRevisions(hyper, req) {
         const rp = req.params;
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: req.params.bucket,
                 attributes: {
@@ -140,12 +148,12 @@ class KRVBucket {
 
     putRevision(hyper, req) {
         const rp = req.params;
-        const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
+        const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value_old');
 
-        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value')
+        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value_old')
             || uuid.now().toString();
         return hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -153,7 +161,8 @@ class KRVBucket {
                     rev,
                     tid,
                     value: req.body,
-                    headers: req.headers
+                    'content-type': req.headers['content-type']
+                    // TODO: include other data!
                 }
             }
         })

@@ -62,6 +62,9 @@ paths:
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
+            /key_rev_value_old:
+              x-modules:
+                - path: sys/key_rev_value_old.js
             /key_rev_latest_value:
               x-modules:
                 - path: sys/key_rev_latest_value.js
