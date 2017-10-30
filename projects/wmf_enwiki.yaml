@@ -145,9 +145,6 @@ paths:
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
-            /key_rev_latest_value:
-              x-modules:
-                - path: sys/key_rev_latest_value.js
             /page_revisions:
               x-modules:
                 - path: sys/page_revisions.js

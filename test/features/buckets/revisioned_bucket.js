@@ -238,6 +238,4 @@ describe('Revisioned buckets', function() {
     }
 
     describe('key_rev_value', function() { runTests('key_rev_value') });
-    describe('key_rev_large_value', function() { runTests('key_rev_large_value'); });
-    describe('key_rev_latest_value', function() { runTests('key_rev_latest_value'); });
 });
