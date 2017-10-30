@@ -214,7 +214,7 @@ class ParsoidService {
     }
 
     getBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.${format}-2`, rp.title];
+        const path = [rp.domain, 'sys', 'key_rev_value_old', `parsoid.${format}-2`, rp.title];
         if (rp.revision) {
             path.push(rp.revision);
             if (tid) {
@@ -225,7 +225,7 @@ class ParsoidService {
     }
 
     getStashBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}`, rp.title];
+        const path = [rp.domain, 'sys', 'key_rev_value_old', `parsoid.stash.${format}`, rp.title];
         if (rp.revision) {
             path.push(rp.revision);
             if (tid) {
@@ -527,7 +527,7 @@ class ParsoidService {
     listRevisions(format, hyper, req) {
         const rp = req.params;
         const revReq = {
-            uri: new URI([rp.domain, 'sys', 'key_rev_value',
+            uri: new URI([rp.domain, 'sys', 'key_rev_value_old',
                 `parsoid.${format}-2`, rp.title, '']),
             body: {
                 limit: hyper.config.default_page_size
@@ -863,7 +863,7 @@ module.exports = (options) => {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.html-2`,
+                uri: `/{domain}/sys/key_rev_value_old/parsoid.html-2`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -875,13 +875,13 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.wikitext`,
+                uri: `/{domain}/sys/key_rev_value_old/parsoid.wikitext`,
                 body: {
                     valueType: 'blob'
                 }
             },
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.data-parsoid-2`,
+                uri: `/{domain}/sys/key_rev_value_old/parsoid.data-parsoid-2`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -893,7 +893,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: `/{domain}/sys/key_rev_value/parsoid.section.offsets-2`,
+                uri: `/{domain}/sys/key_rev_value_old/parsoid.section.offsets-2`,
                 body: {
                     revisionRetentionPolicy: {
                         type: 'latest',
@@ -906,7 +906,7 @@ module.exports = (options) => {
             },
             /* This keyspace is not used yet - no need to create it
              {
-             uri: `/{domain}/sys/key_rev_value/parsoid.data-mw`,
+             uri: `/{domain}/sys/key_rev_value_old/parsoid.data-mw`,
              body: {
              valueType: 'json'
              }
@@ -914,7 +914,7 @@ module.exports = (options) => {
              */
             // stashing resources for HTML, wikitext and data-parsoid
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html',
+                uri: '/{domain}/sys/key_rev_value_old/parsoid.stash.html',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
@@ -925,7 +925,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext',
+                uri: '/{domain}/sys/key_rev_value_old/parsoid.stash.wikitext',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',
@@ -936,7 +936,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid',
+                uri: '/{domain}/sys/key_rev_value_old/parsoid.stash.data-parsoid',
                 body: {
                     revisionRetentionPolicy: {
                         type: 'ttl',

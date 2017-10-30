@@ -193,17 +193,6 @@ class ParsoidService {
         };
     }
 
-    getBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.${format}-2`, rp.title];
-        if (rp.revision) {
-            path.push(rp.revision);
-            if (tid) {
-                path.push(tid);
-            }
-        }
-        return new URI(path);
-    }
-
     getStashBucketURI(rp, format, tid) {
         const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}`, rp.title];
         if (rp.revision) {
@@ -227,15 +216,7 @@ class ParsoidService {
     }
 
     getFallbackBucketURI(rp, format, tid) {
-        // TODO: We're adding the -ng only to avoid table name clashing in dev cluster. Remove!
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}-ng`, rp.title];
-        if (rp.revision) {
-            path.push(rp.revision);
-            if (tid) {
-                path.push(tid);
-            }
-        }
-        return new URI(path);
+        return this.getStashBucketURI(rp, format, tid);
     }
 
     _getContentWithFallback(hyper, rp, format, tid) {
