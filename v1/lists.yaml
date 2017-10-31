@@ -492,12 +492,17 @@ paths:
         '200':
           description: An array of list IDs.
           schema:
-            type: array
-            title: list_ids
-            example: [3, 4, 2, 1, 6, 5]
-            uniqueItems: true
-            items:
-              type: integer
+            type: object
+            title: listOrder
+            properties:
+              order:
+                type: array
+                title: list_ids
+                example: [3, 4, 2, 1, 6, 5]
+                uniqueItems: true
+                required: true
+                items:
+                  type: integer
         default:
           description: Error
           schema:
@@ -518,8 +523,7 @@ paths:
                 content-type: application/json; charset=utf-8
                 cache-control: "max-age=0, s-maxage=0"
               body:
-                # TODO verify this is the right array item
-                list_ids: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
+                order: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
     put:
       tags:
         - Reading lists
@@ -590,11 +594,16 @@ paths:
         '200':
           description: An array of list entry IDs.
           schema:
-            type: array
-            example: [5, 2, 3, 1, 4]
-            uniqueItems: true
-            items:
-              type: integer
+            type: object
+            title: entryOrder
+            properties:
+              order:
+                type: array
+                example: [5, 2, 3, 1, 4]
+                uniqueItems: true
+                required: true
+                items:
+                  type: integer
         default:
           description: Error
           schema:
@@ -615,8 +624,7 @@ paths:
                 content-type: application/json; charset=utf-8
                 cache-control: "max-age=0, s-maxage=0"
               body:
-                # TODO verify this is the right array item
-                lists: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
+                order: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
     put:
       tags:
         - Reading lists
