@@ -19,7 +19,7 @@ function returnRevision(req) {
             const row = dbResult.body.items[0];
             const headers = {
                 etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row.headers['content-type']
+                'content-type': row.headers['content-type'] || 'application/octet-stream'
             };
             return {
                 status: 200,
