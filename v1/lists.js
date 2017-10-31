@@ -2,6 +2,7 @@
 
 const P = require('bluebird');
 const mwUtil = require('../lib/mwUtil');
+const Title = require('mediawiki-title').Title;
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/lists.yaml`);
@@ -115,9 +116,12 @@ class ReadingLists {
     hydrateSummaries(res, hyper, req) {
         return P.map(res.body.entries, (entry) => {
             return mwUtil.getSiteInfo(hyper, req, entry.project).then((siteinfo) => {
-                entry.$merge = [
-                    `${siteinfo.baseUri}/page/summary/${encodeURIComponent(entry.title)}`,
-                ];
+                const title = Title.newFromText(entry.title, siteinfo).getPrefixedDBKey();
+                entry.summary = {
+                    $merge: [
+                        `${siteinfo.baseUri}/page/summary/${encodeURIComponent(title)}`,
+                    ],
+                };
             }).catch(() => {});
         })
         .then(() => mwUtil.hydrateResponse(res, uri => mwUtil.fetchSummary(hyper, uri)));
