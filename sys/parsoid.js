@@ -194,7 +194,7 @@ class ParsoidService {
     }
 
     getStashBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}`, rp.title];
+        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}-ng`, rp.title];
         if (rp.revision) {
             path.push(rp.revision);
             if (tid) {
