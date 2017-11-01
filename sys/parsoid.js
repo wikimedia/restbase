@@ -662,6 +662,15 @@ class ParsoidService {
                     }
                 });
             }
+
+            hyper.log('error/temp_logging_parsoid', {
+                message: 'Transforming revision',
+                page_title: rp.title,
+                page_revision: rp.revision,
+                page_tid: tid,
+                data_parsoid_etag: original.headers.etag
+            });
+
             const body2 = {
                 original
             };

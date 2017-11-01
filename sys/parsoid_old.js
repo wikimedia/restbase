@@ -249,14 +249,35 @@ class ParsoidService {
 
     getStoredPageBundle(hyper, req) {
         const rp = req.params;
+        hyper.log('error/temp_logging_parsoid', {
+            message: 'Received request for stored content, old storage',
+            page_title: rp.title,
+            page_revision: rp.revision
+        });
         return P.props({
             html: hyper.get(this.getBucketURI(rp, 'html')),
             'data-parsoid': hyper.get(this.getBucketURI(rp, 'data-parsoid'))
         })
-        .then(results => ({
-            status: 200,
-            body: results
-        }));
+        .then((results) => {
+            hyper.log('error/temp_logging_parsoid', {
+                message: 'Got response from stored content, old storage',
+                page_title: rp.title,
+                page_revision: rp.revision,
+                page_etag: results.html.headers.etag
+            });
+            return {
+                status: 200,
+                body: results
+            };
+        })
+        .catch((e) => {
+            hyper.log('error/temp_logging_parsoid', {
+                message: 'Got 404 from stored content, old storage',
+                page_title: rp.title,
+                page_revision: rp.revision,
+            });
+            throw e;
+        });
     }
 
     saveParsoidResult(hyper, req, format, tid, parsoidResp) {
