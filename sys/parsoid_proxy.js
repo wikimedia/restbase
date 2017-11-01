@@ -3,9 +3,9 @@
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
+const HTTPError = HyperSwitch.HTTPError;
 
 const mwUtil = require('../lib/mwUtil');
-
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 
 class ParsoidProxy {
@@ -22,6 +22,14 @@ class ParsoidProxy {
         // Set up operations
         this.operations = {
             getPageBundle: this.pagebundle.bind(this),
+            getStoredPageBundle: (hyper, req) => {
+                throw new HTTPError({
+                    status: 500,
+                    body: {
+                        message: 'getStoredPageBundle must not be called on new parsoid proxy'
+                    }
+                });
+            },
             // Revision retrieval per format
             getWikitext: this.getFormat.bind(this, 'wikitext'),
             getHtml: this.getFormat.bind(this, 'html'),
