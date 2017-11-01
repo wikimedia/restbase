@@ -85,7 +85,6 @@ describe('router - security', function() {
             }
         })
         .get('/fr.wikipedia.org/v3/page/pagebundle/' + title + '/' + revision)
-        .twice()
         .reply(200, function() {
             return {
                 'html': {
