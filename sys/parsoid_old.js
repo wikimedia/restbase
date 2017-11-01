@@ -196,6 +196,7 @@ class ParsoidService {
         // Set up operations
         this.operations = {
             getPageBundle: this.pagebundle.bind(this),
+            getStoredPageBundle: this.getStoredPageBundle.bind(this),
             // Revision retrieval per format
             getWikitext: this.getFormat.bind(this, 'wikitext'),
             getHtml: this.getFormat.bind(this, 'html'),
@@ -244,6 +245,18 @@ class ParsoidService {
         newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/`
             + `${encodeURIComponent(rp.title)}/${rp.revision}`;
         return hyper.request(newReq);
+    }
+
+    getStoredPageBundle(hyper, req) {
+        const rp = req.params;
+        return P.props({
+            html: hyper.get(this.getBucketURI(rp, 'html')),
+            'data-parsoid': hyper.get(this.getBucketURI(rp, 'data-parsoid'))
+        })
+        .then(results => ({
+            status: 200,
+            body: results
+        }));
     }
 
     saveParsoidResult(hyper, req, format, tid, parsoidResp) {
