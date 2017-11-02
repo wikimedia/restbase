@@ -674,7 +674,7 @@ class ParsoidService {
                 page_revision: rp.revision,
                 page_tid: tid,
                 data_parsoid_etag: original['data-parsoid'].headers
-                        && original['data-parsoid'].headers.etag
+                    && original['data-parsoid'].headers.etag
             });
 
             const body2 = {
