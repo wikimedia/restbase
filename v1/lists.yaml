@@ -85,8 +85,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/teardown:
     post:
@@ -122,8 +120,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/:
     get:
@@ -206,17 +202,12 @@ paths:
           description: The ID of the new list.
           schema:
             type: object
-            title: response
             properties:
-              create:
-                type: object
-                title: result
-                properties:
-                  id:
-                    type: integer
-                    description: List ID
-                    example: 7
-                    required: true
+              id:
+                type: integer
+                description: List ID
+                example: 7
+                required: true
         default:
           description: Error
           schema:
@@ -291,8 +282,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
     delete:
       tags:
@@ -332,8 +321,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/{id}/entries/:
     get:
@@ -411,17 +398,12 @@ paths:
           description: The id of the new list entry.
           schema:
             type: object
-            title: response
             properties:
-              createentry:
-                type: object
-                title: result
-                properties:
-                  id:
-                    type: integer
-                    description: List entry ID
-                    example: 13
-                    required: true
+              id:
+                type: integer
+                description: List entry ID
+                example: 13
+                required: true
         default:
           description: Error
           schema:
@@ -492,8 +474,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/order:
     get:
@@ -512,12 +492,17 @@ paths:
         '200':
           description: An array of list IDs.
           schema:
-            type: array
-            title: list_ids
-            example: [3, 4, 2, 1, 6, 5]
-            uniqueItems: true
-            items:
-              type: integer
+            type: object
+            title: listOrder
+            properties:
+              order:
+                type: array
+                title: list_ids
+                example: [3, 4, 2, 1, 6, 5]
+                uniqueItems: true
+                required: true
+                items:
+                  type: integer
         default:
           description: Error
           schema:
@@ -538,8 +523,7 @@ paths:
                 content-type: application/json; charset=utf-8
                 cache-control: "max-age=0, s-maxage=0"
               body:
-                # TODO verify this is the right array item
-                list_ids: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
+                order: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
     put:
       tags:
         - Reading lists
@@ -585,8 +569,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/{id}/order:
     get:
@@ -612,11 +594,16 @@ paths:
         '200':
           description: An array of list entry IDs.
           schema:
-            type: array
-            example: [5, 2, 3, 1, 4]
-            uniqueItems: true
-            items:
-              type: integer
+            type: object
+            title: entryOrder
+            properties:
+              order:
+                type: array
+                example: [5, 2, 3, 1, 4]
+                uniqueItems: true
+                required: true
+                items:
+                  type: integer
         default:
           description: Error
           schema:
@@ -637,8 +624,7 @@ paths:
                 content-type: application/json; charset=utf-8
                 cache-control: "max-age=0, s-maxage=0"
               body:
-                # TODO verify this is the right array item
-                lists: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
+                order: '{{forward_to_mw.body.query.readinglistorder[0].order}}'
     put:
       tags:
         - Reading lists
@@ -689,8 +675,6 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
-              headers:
-                content-type: application/json; charset=utf-8
       x-monitor: false
   /lists/pages/{project}/{title}:
     get:

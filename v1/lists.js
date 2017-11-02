@@ -2,11 +2,19 @@
 
 const P = require('bluebird');
 const mwUtil = require('../lib/mwUtil');
+const Title = require('mediawiki-title').Title;
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/lists.yaml`);
 
 class ReadingLists {
+    /**
+     * @param {!Object} options RESTBase options object.
+     */
+    constructor(options) {
+        this.options = options;
+    }
+
     /**
      * Transform the continuation data into a string so it is easier for clients to deal with.
      * @param {!Object|undefined} continuation Continuation object returned by the MediaWiki API.
@@ -26,20 +34,27 @@ class ReadingLists {
         if (typeof continuation === 'string') {
             try {
                 continuation = JSON.parse(continuation);
+                // Make sure nothing malicious can be done by splicing the continuation data
+                // into the API parameters.
+                const allowedKeys = ['continue', 'rlcontinue', 'rlecontinue'];
+                for (const key of allowedKeys) {
+                    if (typeof continuation[key] !== 'object') {
+                        sanitizedContinuation[key] = continuation[key];
+                    }
+                }
             } catch (e) {
                 this.options.log('error/unflatten', {
                     msg: e.message,
                     json: continuation,
                 });
-                throw e;
-            }
-            // Make sure nothing malicious can be done by splicing the continuation data
-            // into the API parameters.
-            const allowedKeys = ['continue', 'rlcontinue', 'rlecontinue'];
-            for (const key of allowedKeys) {
-                if (typeof continuation[key] !== 'object') {
-                    sanitizedContinuation[key] = continuation[key];
-                }
+                throw new HyperSwitch.HTTPError({
+                    status: 400,
+                    body: {
+                        type: 'server_error#invalid_paging_parameter',
+                        title: 'Invalid paging parameter',
+                        parameter: continuation,
+                    },
+                });
             }
         }
         return sanitizedContinuation;
@@ -81,7 +96,7 @@ class ReadingLists {
                 headers: {
                     'content-type': 'application/json; charset=utf-8;'
                         + 'profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"',
-                    'cache-control': 'no-cache',
+                    'cache-control': 'max-age=0, s-maxage=0',
                 },
                 body: {
                     entries,
@@ -101,9 +116,12 @@ class ReadingLists {
     hydrateSummaries(res, hyper, req) {
         return P.map(res.body.entries, (entry) => {
             return mwUtil.getSiteInfo(hyper, req, entry.project).then((siteinfo) => {
-                entry.$merge = [
-                    `${siteinfo.baseUri}/page/summary/${encodeURIComponent(entry.title)}`,
-                ];
+                const title = Title.newFromText(entry.title, siteinfo).getPrefixedDBKey();
+                entry.summary = {
+                    $merge: [
+                        `${siteinfo.baseUri}/page/summary/${encodeURIComponent(title)}`,
+                    ],
+                };
             }).catch(() => {});
         })
         .then(() => mwUtil.hydrateResponse(res, uri => mwUtil.fetchSummary(hyper, uri)));
