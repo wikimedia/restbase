@@ -376,8 +376,13 @@ class ParsoidService {
 
             return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
             .spread((res, currentContentRes) => {
-                const tid = uuid.now().toString();
-                res.body.html.body = insertTidMeta(res.body.html.body, tid);
+                // If the content is coming from old storage - tid will already be there
+                // so reuse it.
+                let tid = extractTidMeta(res.body.html.body);
+                if (!tid) {
+                    tid = uuid.now().toString();
+                    res.body.html.body = insertTidMeta(res.body.html.body, tid);
+                }
 
                 if (format === 'html'
                         && currentContentRes
@@ -669,7 +674,7 @@ class ParsoidService {
                 page_revision: rp.revision,
                 page_tid: tid,
                 data_parsoid_etag: original['data-parsoid'].headers
-                    && original['data-parsoid'].headers.etag
+                        && original['data-parsoid'].headers.etag
             });
 
             const body2 = {
