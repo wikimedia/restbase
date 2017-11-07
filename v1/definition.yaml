@@ -85,7 +85,7 @@ paths:
         # Set up a simple key-value bucket.
         - init:
             method: 'put'
-            uri: /{domain}/sys/key_value/term.definition
+            uri: /{domain}/sys/key_value/term.definition-ng
             body:
               valueType: 'json'
 
@@ -95,7 +95,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/term.definition/{request.params.term}
+              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
             catch:
               status: 404
             return_if:
@@ -122,7 +122,7 @@ paths:
         - store:
             request:
               method: put
-              uri: /{domain}/sys/key_value/term.definition/{request.params.term}
+              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
               headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
