@@ -145,7 +145,7 @@ module.exports = (options) => {
     options.content_type = 'application/json; charset=utf-8; ' +
         'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"';
     options.spec = spec;
-    options.storeHistory = true;
+    options.storeHistory = false;
 
     return new Feed(options).getModuleDeclaration();
 };
