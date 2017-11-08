@@ -116,8 +116,7 @@ paths:
 
   /html/{title}:
     x-route-filters:
-      - path: ./lib/access_check_filter.js
-      #- path: ./lib/access_check_filter.js
+      - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
@@ -388,8 +387,7 @@ paths:
 
   /html/{title}/{revision}{/tid}:
     x-route-filters:
-      - path: ./lib/access_check_filter.js
-      #- path: ./lib/access_check_filter.js
+      - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
@@ -513,8 +511,7 @@ paths:
 
   /data-parsoid/{title}/{revision}/{tid}:
     x-route-filters:
-      - path: ./lib/access_check_filter.js
-      #- path: ./lib/access_check_filter.js
+      - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.purged_cache_control}}'
           attach_body_to_redirect: true
