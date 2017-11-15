@@ -773,19 +773,8 @@ definitions:
         format: int32
       tid:
         type: string
-      latest_rev:
-        type: integer
-        format: int32
-      latest_tid:
-        type: string
-      nextrev_tid:
-        type: string
       comment:
         type: string
-      renames:
-        type: array
-        items:
-          type: string
       restrictions:
         type: array
         items:

@@ -20,7 +20,7 @@ const P = require('bluebird');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/page_revisions.yaml`);
 
-const tableName = 'title_revisions';
+const tableName = 'title_revisions-ng';
 
 /**
  * The name of the suppression table
@@ -36,36 +36,27 @@ class PRS {
     }
 
     tableURI(domain) {
-        return new URI([domain, 'sys', 'table', tableName, '']);
+        return new URI([domain, 'sys', 'table3', tableName, '']);
     }
 
     // Get the schema for the revision table
     getTableSchema() {
         return {
             table: tableName,
-            version: 5,
+            version: 1,
             attributes: {
-                // Listing: /titles.rev/Barack_Obama/master/
-                // @specific time: /titles.rev/Barack_Obama?ts=20140312T20:22:33.3Z
                 title: 'string',
                 page_id: 'int',
-                rev: 'int',             // MediaWiki oldid
-                latest_rev: 'int',      // Latest MediaWiki revision
+                rev: 'int',
                 tid: 'timeuuid',
-                namespace: 'int',       // The namespace ID of the page
+                namespace: 'int',
                 // revision deletion or suppression, can be:
                 // - sha1hidden, commenthidden, texthidden
                 restrictions: 'set<string>',
                 // Revision tags. Examples:
                 // - minor revision
                 tags: 'set<string>',
-                // Page renames. null, to:destination or from:source
-                // Followed for linear history, possibly useful for branches / drafts
-                renames: 'set<string>',
-                nextrev_tid: 'timeuuid',// Tid of next revision, or null
-                latest_tid: 'timeuuid', // Static, CAS synchronization point
-                // Revision metadata in individual attributes for ease of indexing
-                user_id: 'int',         // Stable for contributions etc
+                user_id: 'int',
                 user_text: 'string',
                 timestamp: 'timestamp',
                 comment: 'string',
@@ -75,8 +66,6 @@ class PRS {
             index: [
                 { attribute: 'title', type: 'hash' },
                 { attribute: 'rev', type: 'range', order: 'desc' },
-                { attribute: 'latest_rev', type: 'static' },
-                { attribute: 'tid', type: 'range', order: 'desc' },
                 { attribute: 'page_deleted', type: 'static' }
             ]
         };
@@ -619,7 +608,7 @@ module.exports = (options) => {
         resources: [
             {
                 // Revision table
-                uri: `/{domain}/sys/table/${tableName}`,
+                uri: `/{domain}/sys/table3/${tableName}`,
                 body: prs.getTableSchema()
             },
             {
