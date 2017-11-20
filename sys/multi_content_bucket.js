@@ -228,8 +228,8 @@ class MultiContentBucket {
             options: {
                 compression: opts.compression || [
                     {
-                        algorithm: 'deflate',
-                        block_size: 256
+                        algorithm: 'lz4',
+                        block_size: 64
                     }
                 ],
                 updates: opts.updates || {
