@@ -66,8 +66,8 @@ class KVBucket {
             options: {
                 compression: opts.compression || [
                     {
-                        algorithm: 'lz4',
-                        block_size: 64
+                        algorithm: 'deflate',
+                        block_size: 256
                     }
                 ],
                 updates: opts.updates || {
