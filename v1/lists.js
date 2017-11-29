@@ -70,18 +70,34 @@ class ReadingLists {
     }
 
     /**
+     * Get the sort parameters for the action API.
+     * @param {!String} sort Sort mode ('name' or 'updated').
+     * @return {!Object} { sort: <rlsort/rlesort parameter>, dir: <rldir/rledir parameter> }
+     */
+    getSortParameters(sort) {
+        sort = sort || 'updated';
+        return {
+            sort,
+            dir: (sort === 'updated') ? 'descending' : 'ascending',
+        };
+    }
+
+    /**
      * Handle the /list/{id}/entries endpoint (get entries of a list).
      * @param {!HyperSwitch} hyper
      * @param {!Object} req The request object as provided by HyperSwitch.
      * @return {!Promise<Object>} A response promise.
      */
     getListEntries(hyper, req) {
+        const sortParameters = this.getSortParameters(req.query.sort);
         return hyper.post({
             uri: new URI([req.params.domain, 'sys', 'action', 'rawquery']),
             body: {
                 action: 'query',
                 list: 'readinglistentries',
                 rlelists: req.params.id,
+                rlesort: sortParameters.sort,
+                rledir: sortParameters.dir,
                 rlelimit: 'max',
                 continue: this.unflattenContinuation(req.query.next).continue,
                 rlecontinue: this.unflattenContinuation(req.query.next).rlecontinue,
@@ -138,6 +154,7 @@ module.exports = (options) => {
             flattenContinuation: rl.flattenContinuation.bind(rl),
             unflattenContinuation: rl.unflattenContinuation.bind(rl),
             flattenMultivalue: rl.flattenMultivalue.bind(rl),
+            getSortParameters: rl.getSortParameters.bind(rl),
         },
         operations: {
             getListEntries: rl.getListEntries.bind(rl),
