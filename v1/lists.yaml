@@ -139,6 +139,16 @@ paths:
           description: Continuation parameter from previous request
           type: string
           required: false
+        - name: sort
+          in: query
+          description: |
+            Sort order
+            - `name`: by name, ascending;
+            - `updated`: by last modification date, descending.
+          type: string
+          default: updated
+          enum: [ name, updated ]
+          required: false
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
       responses:
@@ -167,6 +177,8 @@ paths:
               body:
                 action: query
                 meta: readinglists
+                rlsort: '{{getSortParameters(request.query.sort).sort}}'
+                rldir: '{{getSortParameters(request.query.sort).dir}}'
                 rllimit: max
                 continue: '{{unflattenContinuation(request.query.next).continue}}'
                 rlcontinue: '{{unflattenContinuation(request.query.next).rlcontinue}}'
@@ -345,6 +357,16 @@ paths:
           in: query
           description: Continuation parameter from previous request
           type: string
+          required: false
+        - name: sort
+          in: query
+          description: |
+            Sort order
+            - `name`: by page title, ascending;
+            - `updated`: by last modification date, descending.
+          type: string
+          default: updated
+          enum: [ name, updated ]
           required: false
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
@@ -529,7 +551,6 @@ paths:
                 rllimit: max
                 rlproject: '{{request.params.project}}'
                 rltitle: '{{request.params.title}}'
-                # FIXME there should be a nicer way to do this
                 continue: '{{unflattenContinuation(request.query.next).continue}}'
                 rlcontinue: '{{unflattenContinuation(request.query.next).rlcontinue}}'
             return:
@@ -593,11 +614,14 @@ paths:
                 action: query
                 meta: readinglists
                 list: readinglistentries
-                rllimit: max
-                rlelimit: max
                 rlchangedsince: '{{request.params.date}}'
                 rlechangedsince: '{{request.params.date}}'
-                # FIXME there should be a nicer way to do this
+                rlsort: updated
+                rlesort: updated
+                rldir: ascending
+                rledir: ascending
+                rllimit: max
+                rlelimit: max
                 continue: '{{unflattenContinuation(request.query.next).continue}}'
                 rlcontinue: '{{unflattenContinuation(request.query.next).rlcontinue}}'
                 rlecontinue: '{{unflattenContinuation(request.query.next).rlecontinue}}'
