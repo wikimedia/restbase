@@ -55,6 +55,7 @@ default_project: &default_project
           cache_control: s-maxage=600, max-age=600
           uri: https://pdfrender-beta.wmflabs.org
           secret: secret
+          scheme: https
         transform:
           cx_host: https://cxserver-beta.wmflabs.org
         skip_updates: false
