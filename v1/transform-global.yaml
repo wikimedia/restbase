@@ -59,7 +59,10 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
+              method: post
               uri: '{{options.cx_host}}/v1/mt/{from_lang}/{to_lang}/{provider}'
+              body:
+                html: '{{html}}'
   /word/from/{from_lang}/to/{to_lang}/{word}{/provider}:
     get:
       tags: ['Transform']
