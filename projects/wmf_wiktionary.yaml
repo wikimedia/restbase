@@ -135,9 +135,6 @@ paths:
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
-            /key_rev_value_old:
-              x-modules:
-                - path: sys/key_rev_value_old.js
             /page_revisions:
               x-modules:
                 - path: sys/page_revisions.js
@@ -153,20 +150,11 @@ paths:
                 - path: sys/page_save.js
             /parsoid:
               x-modules:
-                - path: sys/parsoid_proxy.js
-                  options:
-                    backends: '{{options.parsoid.backends}}'
-            /parsoid_new:
-              x-modules:
                 - path: sys/parsoid.js
                   options: &parsoid_options
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
-            /parsoid_old:
-              x-modules:
-                - path: sys/parsoid_old.js
-                  options: *parsoid_options
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js
