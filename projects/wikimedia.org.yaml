@@ -97,9 +97,6 @@ paths:
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
-            /key_rev_value_old:
-              x-modules:
-                - path: sys/key_rev_value_old.js
             /post_data: &sys_post_data
               x-modules:
                 - path: sys/post_data.js
