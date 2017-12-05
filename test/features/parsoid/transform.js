@@ -111,7 +111,7 @@ parallel('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            var pattern = /^<h2.*> Heading <\/h2>$/;
+            var pattern = /^<section data-mw-section-id="[^"]+" id="[^"]+"><h2 id="Heading"> Heading <\/h2><\/section>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + res.body);
@@ -203,8 +203,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    First_Section: [{ html: "<h2>First Section replaced</h2>" }],
-                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
+                    mwAw: [{ html: "<h2>First Section replaced</h2>" }],
+                    mwBA: [{ html: "<h2>Second Section replaced</h2>" }]
                 }
             }
         })
@@ -227,8 +227,8 @@ parallel('transform api', function() {
             body: {
                 changes: JSON.stringify({
                     mwAQ: [],
-                    First_Section: [{ html: "<h2>First Section replaced</h2>" }],
-                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
+                    mwAw: [{ html: "<h2>First Section replaced</h2>" }],
+                    mwBA: [{ html: "<h2>Second Section replaced</h2>" }]
                 }),
                 scrub_wikitext: 'true'
             }
@@ -255,8 +255,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    First_Section: [{ html: "<h2></h2>" }],
-                    Second_Section: [{ html: "<h2>Second Section replaced</h2>" }]
+                    mwAw: [{ html: "<h2></h2>" }],
+                    mwBA: [{ html: "<h2>Second Section replaced</h2>" }]
                 },
                 scrub_wikitext: true
             }
@@ -282,8 +282,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    First_Section: [{ id: 'First_Section' }, { html: '<h2>Appended Section</h2>' }],
-                    Second_Section: [{ html: '<h2>Prepended section</h2>' }, { id: 'Second_Section'}]
+                    mwAw: [{ id: 'mwAw' }, { html: '<h2>Appended Section</h2>' }],
+                    mwBA: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwBA'}]
                 }
             }
         })
@@ -309,8 +309,8 @@ parallel('transform api', function() {
             body: {
                 changes: {
                     mwAQ: [],
-                    First_Section: [{ id: 'Second_Section' }, { id: 'First_Section' }],
-                    Second_Section: []
+                    mwAw: [{ id: 'mwBA' }, { id: 'mwAw' }],
+                    mwBA: []
                 }
             },
             headers: {
@@ -361,7 +361,7 @@ parallel('transform api', function() {
             + '/' + pageWithSectionsRev,
             body: {
                 changes: {
-                    First_Section:[ { id: 'mwAASDC'}, { id: 'First_Section'} ]
+                    mwAw:[ { id: 'mwAASDC'}, { id: 'mwAw'} ]
                 }
             },
             headers: {

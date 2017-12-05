@@ -111,7 +111,7 @@ describe('item requests', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Main_Page/262492',
             query: {
-                sections: 'mp-sister,mp-lang'
+                sections: 'mwAQ,mwCw'
             },
             headers: {
                 'cache-control': 'no-cache'
@@ -122,14 +122,14 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
-            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
-                    || !body['mp-lang']) {
+            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string'
+                    || !body['mwCw']) {
                 throw new Error('Missing section content!');
             }
             return preq.get({
                 uri: server.config.labsBucketURL + '/html/Main_Page',
                 query: {
-                    sections: 'mp-sister'
+                    sections: 'mwAQ'
                 },
             });
         })
@@ -138,7 +138,7 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
-            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string') {
+            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string') {
                 throw new Error('Missing section content!');
             }
         });
@@ -148,7 +148,7 @@ describe('item requests', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Main_Page',
             query: {
-                sections: 'mp-sister,mp-lang'
+                sections: 'mwAQ,mwCw'
             },
             headers: {
                 'cache-control': 'no-cache'
@@ -159,8 +159,7 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
-            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
-            || !body['mp-lang']) {
+            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string' || !body['mwCw']) {
                 throw new Error('Missing section content!');
             }
         });
