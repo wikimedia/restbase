@@ -546,8 +546,7 @@ class ParsoidService {
                     };
                 }
                 return generateContent(res);
-            },
-                generateContent);
+            }, generateContent);
         } else {
             // Only (possibly) generate content if there was an error
             contentReq = contentReq.catch(generateContent);

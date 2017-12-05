@@ -2,6 +2,7 @@
 
 const HyperSwitch = require('hyperswitch');
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/summary.yaml`);
+const newSpec = HyperSwitch.utils.loadSpec(`${__dirname}/summary_new.yaml`);
 const entities = require('entities');
 
 /**
@@ -17,7 +18,7 @@ const entities = require('entities');
 const TAGS_MATCH = /<\/?[a-zA-Z][\w-]*(?:\s+[a-zA-Z_\-:]+(?:=\\?(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g;
 
 module.exports = options => ({
-    spec,
+    spec: options.implementation === 'mcs' ? newSpec : spec,
     globals: {
         options,
         // Add a utility function to the global scope, so that it can be
