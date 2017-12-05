@@ -111,7 +111,7 @@ parallel('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            var pattern = /^<section data-mw-section-id="[^"]+" id="[^"]+"><h2 id="Heading"> Heading <\/h2><\/section>$/;
+            var pattern = /^<h2.*> Heading <\/h2>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + res.body);
@@ -151,6 +151,7 @@ parallel('transform api', function() {
             body: {
                 html: '<body>The modified HTML</body>'
             }
+
         })
         .then(function (res) {
             assert.deepEqual(res.status, 200);
