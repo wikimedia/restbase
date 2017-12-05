@@ -8,7 +8,8 @@ paths:
       description: |
         Provides a list of articles that are trending right now (receiving the most edits)
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated)
+        **This end point is deprecated and will be retired on 2017-12-14**
       parameters:
         - name: period
           description: |
