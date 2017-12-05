@@ -142,9 +142,9 @@ class PageSave {
     }
 
     _checkParams(params) {
-        if (!(params && params.csrf_token &&
-                ((params.wikitext && params.wikitext.trim()) || (params.html && params.html.trim()))
-            )) {
+        if (!(params && params.csrf_token
+                && ((params.wikitext && params.wikitext.trim())
+                || (params.html && params.html.trim())))) {
             throw new HTTPError({
                 status: 400,
                 body: {

@@ -352,7 +352,7 @@ class PRS {
                         // TODO: Object.assign here is to avoid a bug in sqlite
                         // backend that modifies original attribute.
                         this.storePageDeletion(hyper, req, Object.assign({}, result))
-                ).throw(e);
+                    ).throw(e);
                 }));
         } else {
             revisionRequest = titleRevisionRequest()

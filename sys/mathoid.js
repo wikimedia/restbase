@@ -44,53 +44,53 @@ class MathoidService {
                 }));
         }).catch({ status: 404 }, () => // if we are here, it means this is a new input formula
         // so call mathoid
-        hyper.post({
-            uri: `${this.options.host}/texvcinfo`,
-            headers: { 'content-type': 'application/json' },
-            body: {
-                q: req.body.q,
-                type: rp.type
-            }
-        }).then((res) => {
-            checkRes = res;
-            // store the normalised version
-            return hyper.put({
-                uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', '']),
+            hyper.post({
+                uri: `${this.options.host}/texvcinfo`,
                 headers: { 'content-type': 'application/json' },
                 body: {
-                    q: res.body.checked,
+                    q: req.body.q,
                     type: rp.type
                 }
-            });
-        }).then((res) => {
-            let indirectionP = P.resolve();
-            hash = res.body;
-            // add the indirection to the hash table if the hashes don't match
-            if (hash !== origHash) {
-                indirectionP = hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.hash_table',
-                        origHash]),
-                    headers: { 'content-type': 'text/plain' },
-                    body: hash
+            }).then((res) => {
+                checkRes = res;
+                // store the normalised version
+                return hyper.put({
+                    uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', '']),
+                    headers: { 'content-type': 'application/json' },
+                    body: {
+                        q: res.body.checked,
+                        type: rp.type
+                    }
                 });
-            }
-            // store the result
-            checkRes.headers = {
-                'content-type': 'application/json',
-                'cache-control': 'no-cache',
-                'x-resource-location': hash
-            };
-            return P.join(
-                hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.check', hash]),
-                    headers: checkRes.headers,
-                    body: checkRes.body
-                }),
-                indirectionP,
-                this._invalidateCache.bind(this, hyper, hash),
-                () => checkRes
-            );
-        }));
+            }).then((res) => {
+                let indirectionP = P.resolve();
+                hash = res.body;
+                // add the indirection to the hash table if the hashes don't match
+                if (hash !== origHash) {
+                    indirectionP = hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.hash_table',
+                            origHash]),
+                        headers: { 'content-type': 'text/plain' },
+                        body: hash
+                    });
+                }
+                // store the result
+                checkRes.headers = {
+                    'content-type': 'application/json',
+                    'cache-control': 'no-cache',
+                    'x-resource-location': hash
+                };
+                return P.join(
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value_old', 'mathoid.check', hash]),
+                        headers: checkRes.headers,
+                        body: checkRes.body
+                    }),
+                    indirectionP,
+                    this._invalidateCache.bind(this, hyper, hash),
+                    () => checkRes
+                );
+            }));
 
     }
 
@@ -148,7 +148,7 @@ class MathoidService {
             headers: { 'content-type': 'application/json' },
             body: req.body
         }).then(res => // now store all of the renders
-        this._storeRenders(hyper, rp.domain, hash, res.body)).then((res) => {
+            this._storeRenders(hyper, rp.domain, hash, res.body)).then((res) => {
             // and return a proper response
             const ret = res[rp.format];
             ret.status = 200;
