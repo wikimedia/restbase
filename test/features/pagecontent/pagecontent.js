@@ -16,18 +16,33 @@ describe('item requests', function() {
 
     var contentTypes = server.config.conf.test.content_types;
 
-    it('should respond to OPTIONS request with CORS headers', function() {
-        return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['access-control-allow-origin'], '*');
-            assert.deepEqual(res.headers['access-control-allow-methods'], 'GET,HEAD');
-            assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type, content-length, cache-control, ' +
-                'accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding');
-            assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
-            assert.deepEqual(res.headers['referrer-policy'], 'origin-when-cross-origin');
+    const assertCORS = (res) => {
+        assert.deepEqual(res.headers['access-control-allow-origin'], '*');
+        assert.deepEqual(res.headers['access-control-allow-methods'], 'GET,HEAD');
+        assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type, content-length, cache-control, ' +
+            'accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding');
+        assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
+        assert.deepEqual(res.headers['referrer-policy'], 'origin-when-cross-origin');
+    };
+    const createTest = (method) => {
+        it(`should respond to ${method} request with CORS headers`, function() {
+            return preq[method]({ uri: server.config.bucketURL + '/html/Foobar/624484477' })
+            .then(function(res) {
+                assert.deepEqual(res.status, 200);
+                assertCORS(res);
+            });
+        });
+    };
+    createTest('options');
+    createTest('get');
+    it(`should respond to GET request with CORS headers, 404`, function() {
+        return preq.get({ uri: server.config.bucketURL + '/html/This_page_is_likely_does_not_exist' })
+        .catch(function(res) {
+            assert.deepEqual(res.status, 404);
+            assertCORS(res);
         });
     });
+
     it('should transparently create a new HTML revision for Main_Page', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Main_Page',
