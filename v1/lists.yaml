@@ -29,18 +29,6 @@ x-yaml-anchors:
     description:
       type: string
       example: "Planets of the Solar System"
-    color:
-      type: string
-      description: "A CSS3 color name"
-      example: "blue"
-    image:
-      type: string
-      description: "A Wikimedia Commons image name"
-      example: "Solar_system.jpg"
-    icon:
-      type: string
-      description: "(semantics TBD)"
-      example: "planet"
   list_entry_common: &list_entry_common
     project: &list_entry_common_project
       type: string
@@ -235,9 +223,6 @@ paths:
                 command: create
                 name: '{{request.body.name}}'
                 description: '{{request.body.description}}'
-                color: '{{request.body.color}}'
-                image: '{{request.body.image}}'
-                icon: '{{request.body.icon}}'
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
@@ -288,9 +273,6 @@ paths:
                 list: '{{request.params.id}}'
                 name: '{{request.body.name}}'
                 description: '{{request.body.description}}'
-                color: '{{request.body.color}}'
-                image: '{{request.body.image}}'
-                icon: '{{request.body.icon}}'
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
