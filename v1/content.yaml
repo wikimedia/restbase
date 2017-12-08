@@ -151,7 +151,7 @@ paths:
           type: boolean
           required: false
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
       responses:
         '200':
           description: |
@@ -404,7 +404,7 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       operationId: getFormatRevision
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
       parameters:
         - name: title
           in: path
@@ -532,7 +532,7 @@ paths:
 
         Stability: [Stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.5.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.6.0"
       parameters:
         - name: title
           in: path
