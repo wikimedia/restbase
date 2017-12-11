@@ -178,6 +178,7 @@ paths:
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+      x-monitor: false
     post:
       tags:
         - Reading lists
@@ -372,6 +373,7 @@ paths:
       operationId: getListEntries
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
+      x-monitor: false
     post:
       tags:
         - Reading lists
@@ -543,6 +545,7 @@ paths:
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+      x-monitor: false
   /lists/changes/since/{date}:
     get:
       tags:
@@ -616,6 +619,7 @@ paths:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 entries: '{{forward_to_mw.body.query.readinglistentries}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+      x-monitor: false
 tags:
   - name: Reading lists
     description: Private lists of selected pages
