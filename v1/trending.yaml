@@ -1,3 +1,4 @@
+# TODO: not used any more due to T180384, remove in the near future
 # Trending-edits endpoints powered by the the trending service
 paths:
   /trending/edits{/period}:

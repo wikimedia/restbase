@@ -1,3 +1,5 @@
+// TODO: not used any more due to T180384, remove in the near future
+
 'use strict';
 
 

@@ -64,11 +64,7 @@ default_project: &default_project
 en.wikipedia.org: &en.wikipedia.org
   x-modules:
     - path: projects/wmf_enwiki.yaml
-      options:
-        <<: *default_options
-        trending:
-          host: https://trending-beta.wmflabs.org
-          cache_control: s-maxage=1800, max-age=1800
+      options: *default_options
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org

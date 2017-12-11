@@ -86,8 +86,6 @@ paths:
                   options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60"}, options.mobileapps)}}'
                 - path: v1/announcements.yaml
                   options: '{{merge({"announcement_cache_control": "s-maxage=86400, max-age=86400"}, options.mobileapps)}}'
-                - path: v1/trending.js
-                  options: '{{options.trending}}'
                 - path: v1/onthisday.js
                   options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60"}, options.mobileapps)}}'
             /transform:
