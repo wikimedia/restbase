@@ -111,7 +111,7 @@ describe('item requests', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Main_Page/262492',
             query: {
-                sections: 'mwAQ,mwCw'
+                sections: 'mwAQ,mwDA'
             },
             headers: {
                 'cache-control': 'no-cache'
@@ -123,7 +123,7 @@ describe('item requests', function() {
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
             if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string'
-                    || !body['mwCw']) {
+                    || !body['mwDA']) {
                 throw new Error('Missing section content!');
             }
             return preq.get({
@@ -148,7 +148,7 @@ describe('item requests', function() {
         return preq.get({
             uri: server.config.labsBucketURL + '/html/Main_Page',
             query: {
-                sections: 'mwAQ,mwCw'
+                sections: 'mwAQ,mwDA'
             },
             headers: {
                 'cache-control': 'no-cache'
@@ -159,7 +159,7 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
             var body = res.body;
-            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string' || !body['mwCw']) {
+            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string' || !body['mwDA']) {
                 throw new Error('Missing section content!');
             }
         });
