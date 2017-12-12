@@ -176,7 +176,6 @@ class ParsoidService {
         // Set up operations
         this.operations = {
             getPageBundle: this.pagebundle.bind(this),
-            getStoredPageBundle: this.getStoredPageBundle.bind(this),
             // Revision retrieval per format
             getWikitext: this.getFormat.bind(this, 'wikitext'),
             getHtml: this.getFormat.bind(this, 'html'),
@@ -244,30 +243,12 @@ class ParsoidService {
     pagebundle(hyper, req) {
         const rp = req.params;
         const domain = rp.domain;
-        const storedContentUri = [domain, 'sys', 'parsoid_old', 'stored_pagebundle', rp.title];
-        if (rp.revision) {
-            storedContentUri.push(rp.revision);
-        }
-        return hyper.get(new URI(storedContentUri))
-        .catch({ status: 404 }, (e) => {
-            // Don't have it in old storage. Generate.
-            const newReq = Object.assign({}, req);
-            if (!newReq.method) { newReq.method = 'get'; }
-            const path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
-            newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/`
-                + `${encodeURIComponent(rp.title)}/${rp.revision}`;
-            return hyper.request(newReq);
-        });
-
-    }
-
-    getStoredPageBundle(hyper, req) {
-        throw new HTTPError({
-            status: 500,
-            body: {
-                message: 'getStoredPageBundle must not be called on new parsoid module'
-            }
-        });
+        const newReq = Object.assign({}, req);
+        if (!newReq.method) { newReq.method = 'get'; }
+        const path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
+        newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/`
+            + `${encodeURIComponent(rp.title)}/${rp.revision}`;
+        return hyper.request(newReq);
     }
 
     saveParsoidResultToLatest(hyper, req, tid, parsoidResp) {
