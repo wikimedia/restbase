@@ -32,6 +32,8 @@ default_project: &default_project
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
           host: https://appservice.wmflabs.org
+        summary:
+          host: https://appservice.wmflabs.org
         citoid:
           host: https://citoid-beta.wmflabs.org
         recommendation:

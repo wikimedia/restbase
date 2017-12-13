@@ -113,6 +113,10 @@ paths:
             request:
               method: get
               uri: '{{options.host}}/{domain}/v1/page/summary/{title}'
+            return:
+              status: '{{extract.status}}'
+              headers: '{{extract.headers}}'
+              body: '{{httpsSourceAll(extract.body)}}'
         - store_and_return:
             request:
               method: put
