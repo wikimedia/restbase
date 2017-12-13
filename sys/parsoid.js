@@ -176,6 +176,7 @@ class ParsoidService {
         // Set up operations
         this.operations = {
             getPageBundle: this.pagebundle.bind(this),
+            getStoredPageBundle: this.getStoredPageBundle.bind(this),
             // Revision retrieval per format
             getWikitext: this.getFormat.bind(this, 'wikitext'),
             getHtml: this.getFormat.bind(this, 'html'),
@@ -249,6 +250,15 @@ class ParsoidService {
         newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/`
             + `${encodeURIComponent(rp.title)}/${rp.revision}`;
         return hyper.request(newReq);
+    }
+
+    getStoredPageBundle(hyper, req) {
+        throw new HTTPError({
+            status: 500,
+            body: {
+                message: 'getStoredPageBundle must not be called on new parsoid module'
+            }
+        });
     }
 
     saveParsoidResultToLatest(hyper, req, tid, parsoidResp) {
@@ -872,8 +882,25 @@ class ParsoidService {
             'data-parsoid': get('data-parsoid')
         })
         .then((res) => {
-            res.revid = revision;
-            return res;
+            const parsedTid = mwUtil.parseETag(res.html.headers.etag).tid;
+            if (parsedTid !== tid) {
+                const storedContentUri = [rp.domain, 'sys',
+                    'parsoid_old', 'stored_pagebundle', rp.title];
+                if (rp.revision) {
+                    storedContentUri.push(rp.revision);
+                    if (tid) {
+                        storedContentUri.push(tid);
+                    }
+                }
+                return hyper.get({ uri: new URI(storedContentUri) })
+                .then((res) => {
+                    res.revid = revision;
+                    return res;
+                });
+            } else {
+                res.revid = revision;
+                return res;
+            }
         });
     }
 }
