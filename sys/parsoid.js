@@ -883,7 +883,7 @@ class ParsoidService {
         })
         .then((res) => {
             const parsedTid = mwUtil.parseETag(res.html.headers.etag).tid;
-            if (parsedTid !== tid) {
+            if (tid && parsedTid !== tid) {
                 const storedContentUri = [rp.domain, 'sys',
                     'parsoid_old', 'stored_pagebundle', rp.title];
                 if (rp.revision) {
