@@ -223,8 +223,14 @@ class ParsoidService {
         return hyper.get({
             uri: this.getNGBucketURI(rp, format, tid)
         })
-        .catch({ status: 404 }, () => hyper.get({
-            uri: this.getFallbackBucketURI(rp, format, tid)
+        .catch({ status: 404 }, (e) => {
+            if (rp.revision) {
+                return hyper.get({
+                    uri: this.getFallbackBucketURI(rp, format, tid)
+                });
+            } else {
+                throw e;
+            }
         })
         .then((res) => {
             // Now check the result ETag and see if the content is close to expiration
