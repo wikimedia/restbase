@@ -243,7 +243,7 @@ class ParsoidService {
                 });
             }
             return res;
-        }));
+        });
     }
 
     pagebundle(hyper, req) {
