@@ -15,7 +15,7 @@ describe('router - misc', function() {
 
     it('should deny access to /{domain}/sys', function() {
         return preq.get({
-            uri: server.config.hostPort + '/en.wikipedia.org/sys/table'
+            uri: server.config.hostPort + '/en.wikipedia.org/sys/table3'
         }).catch(function(err) {
             assert.deepEqual(err.status, 403);
         });

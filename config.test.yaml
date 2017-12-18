@@ -7,17 +7,6 @@ default_project: &default_project
     - path: test/test_module.yaml
     - path: projects/wmf_default.yaml
       options: &default_options
-        table:
-          backend: cassandra
-          hosts: [localhost]
-          keyspace: system
-          username: cassandra
-          password: cassandra
-          defaultConsistency: one # or 'localQuorum' for production
-          storage_groups:
-            - name: test.group.local
-              domains: /./
-          dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         table_ng:
           backend: cassandra-ng
           hosts: [localhost]
@@ -32,9 +21,6 @@ default_project: &default_project
         parsoid:
           host: https://parsoid-beta.wmflabs.org
           grace_ttl: 2
-          backends:
-            both:
-              - '/.*/'
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"

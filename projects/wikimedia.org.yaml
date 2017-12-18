@@ -83,11 +83,6 @@ paths:
               x-modules:
                 - path: sys/mathoid.js
                   options: '{{options.mathoid}}'
-            /table:
-              x-modules:
-                - path: sys/table.js
-                  options:
-                    conf: '{{options.table}}'
             /table3: &sys_table_ng
               x-modules:
                 - path: sys/table.js
@@ -96,9 +91,6 @@ paths:
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
-            /key_value_old: &sys_key_value_old
-              x-modules:
-                - path: sys/key_value_old.js
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
