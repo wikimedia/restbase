@@ -135,7 +135,7 @@ class KVBucket {
 
     putRevision(hyper, req) {
         const rp = req.params;
-        let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value_old');
+        let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value');
 
         if (!tid) {
             tid = (mwUtil.parseETag(req.headers && req.headers.etag) || {}).tid;

@@ -8,7 +8,7 @@ runTest ( ) {
     if [ "$1" = "sqlite" ]; then
         echo "Running with SQLite backend"
         export RB_TEST_BACKEND=sqlite
-        rm -f test.db.sqlite3
+        rm -f test-ng.db.sqlite3
     else
         echo "Running with Cassandra backend"
         if [ `nc -z localhost 9042 < /dev/null; echo $?` != 0 ]; then
