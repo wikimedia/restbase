@@ -154,17 +154,17 @@ paths:
       x-monitor: false
       x-setup-handler:
         - init_svg:
-            uri: /wikimedia.org/sys/key_value_old/mathoid.svg
+            uri: /wikimedia.org/sys/key_value/mathoid.svg
             body:
               keyType: string
               valueType: string
         - init_mml:
-            uri: /wikimedia.org/sys/key_value_old/mathoid.mml
+            uri: /wikimedia.org/sys/key_value/mathoid.mml
             body:
               keyType: string
               valueType: string
         - init_png:
-            uri: /wikimedia.org/sys/key_value_old/mathoid.png
+            uri: /wikimedia.org/sys/key_value/mathoid.png
             body:
               keyType: string
               valueType: blob
@@ -172,7 +172,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /wikimedia.org/sys/key_value_old/mathoid.{$.request.params.format}/{$.request.params.hash}
+              uri: /wikimedia.org/sys/key_value/mathoid.{$.request.params.format}/{$.request.params.hash}
               headers:
                 cache-control: '{{ cache-control }}'
             catch:
