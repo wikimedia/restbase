@@ -116,7 +116,7 @@ paths:
             return:
               status: '{{extract.status}}'
               headers: '{{extract.headers}}'
-              body: '{{httpsSourceAll(extract.body)}}'
+              body: '{{changeProtocol(extract.body)}}'
         - store_and_return:
             request:
               method: put
