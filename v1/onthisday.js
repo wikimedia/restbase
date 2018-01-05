@@ -47,7 +47,7 @@ class Feed extends BaseFeed {
                 });
             });
             return response;
-        }
+        };
         return super._hydrateResponse(hyper, req, res)
         .then(removeDuplicateTitlesFromHydratedResponsePages);
     }
