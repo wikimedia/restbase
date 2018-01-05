@@ -17,25 +17,25 @@ const entities = require('entities');
  */
 const TAGS_MATCH = /<\/?[a-zA-Z][\w-]*(?:\s+[a-zA-Z_\-:]+(?:=\\?(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g;
 
+let protocol = '//';
+
 const functions = {
     // Add a utility function to the global scope, so that it can be
     // called in the response template.
-    httpsSource(thumb) {
-        if (!thumb) {
-            return thumb;
+    changeProtocol(source) {
+        if (!source) {
+            return source;
         }
-        if (thumb.source) {
-            thumb.source = thumb.source.replace(/^http:/, 'https:');
+        if (source.constructor === String) {
+            source = source.replace(/^(?:https?:)?\/\//, protocol);
+        } else if (Array.isArray(source)) {
+            source = source.map(elem => functions.changeProtocol(elem));
+        } else if (source.constructor === Object) {
+            Object.keys(source).filter(key => !/title/.test(key)).forEach((key) => {
+                source[key] = functions.changeProtocol(source[key]);
+            });
         }
-        if (thumb.original) {
-            thumb.original = thumb.original.replace(/^http:/, 'https:');
-        }
-        return thumb;
-    },
-    httpsSourceAll(summary) {
-        summary.thumbnail = functions.httpsSource(summary.thumbnail);
-        summary.originalimage = functions.httpsSource(summary.originalimage);
-        return summary;
+        return source;
     },
     getRevision(revItems) {
         if (Array.isArray(revItems) && revItems.length) {
@@ -71,7 +71,14 @@ const functions = {
     }
 };
 
-module.exports = options => ({
-    spec: options.implementation === 'mcs' ? newSpec : spec,
-    globals: Object.assign({ options }, functions)
-});
+module.exports = (options) => {
+    if (options.protocol === 'http') {
+        protocol = 'http://';
+    } else if (options.protocol === 'https') {
+        protocol = 'https://';
+    }
+    return {
+        spec: options.implementation === 'mcs' ? newSpec : spec,
+        globals: Object.assign({ options }, functions)
+    };
+};
