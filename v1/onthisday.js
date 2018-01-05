@@ -26,18 +26,18 @@ class Feed extends BaseFeed {
                 [req.params.type]: res.body[req.params.type]
             };
         }
-        let hydratedResponse = super._hydrateResponse(hyper, req, res);
+        const hydratedResponse = super._hydrateResponse(hyper, req, res);
 
         // Hydration resolves re-directs so we need to de-dupe titles here *after* hydration.
         const removeDuplicateTitlesFromHydratedResponsePages = (response) => {
-          Object.keys(response.body).forEach(key => {
-            response.body[key].forEach(event => {
-              event.pages = event.pages.filter(
-                (item1, index, self) =>
-                  self.findIndex(item2 => item2.title === item1.title) === index
-              )
+            Object.keys(response.body).forEach((key) => {
+                response.body[key].forEach((event) => {
+                    event.pages = event.pages.filter(
+                        (item1, index, self) =>
+                            self.findIndex(item2 => item2.title === item1.title) === index
+                    );
+                });
             });
-          });
         };
 
         return hydratedResponse
