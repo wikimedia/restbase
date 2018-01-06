@@ -7,7 +7,7 @@ info:
     name: Apache license, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /recommendation/translation/{from_lang}{/seed_article}:
+  /recommendation/article/creation/translation/{from_lang}{/seed_article}:
     get:
       tags:
         - Recommendation
