@@ -1790,8 +1790,17 @@ definitions:
             month:
               type: string
             countries:
-              # format for this is a json array: [{rank: 1, country: <<name>>, views: 123}, ...]
-              type: string
+              type: array
+              items:
+                properties:
+                  rank:
+                    type: integer
+                    format: int32
+                  country:
+                    type: string
+                  views:
+                    type: integer
+                    format: int64
 
   unique-devices:
     properties:
