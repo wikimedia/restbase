@@ -36,7 +36,7 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "cassandra-uuid": "^0.0.2",
-    "restbase-mod-table-cassandra-ng": "git+https://github.com/wikimedia/restbase-mod-table-cassandra#redesign",
+    "restbase-mod-table-cassandra": "^1.0.0",
     "service-runner": "^2.3.0",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
@@ -65,7 +65,7 @@
     "mocha.parallel": "^0.15.2",
     "nock": "^9.0.13",
     "preq": "^0.5.2",
-    "restbase-mod-table-sqlite-ng": "^0.1.20",
+    "restbase-mod-table-sqlite": "^1.0.0",
     "swagger-test": "0.5.1"
   },
   "engines": {

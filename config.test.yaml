@@ -8,7 +8,7 @@ default_project: &default_project
     - path: projects/wmf_default.yaml
       options: &default_options
         table_ng:
-          backend: cassandra-ng
+          backend: cassandra
           hosts: [localhost]
           keyspace: system
           username: cassandra
@@ -17,7 +17,7 @@ default_project: &default_project
           storage_groups:
             - name: test.group.local
               domains: /./
-          dbname: test-ng.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+          dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
         parsoid:
           host: https://parsoid-beta.wmflabs.org
           grace_ttl: 2
