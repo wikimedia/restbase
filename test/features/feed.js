@@ -7,7 +7,7 @@ const nock   = require('nock');
 
 function assertStorageRequest(requests, method, bucket, expected) {
     const storageRequests = requests.filter((log) =>
-        log.req && log.req.uri === `/en.wikipedia.org/sys/table3/${bucket}/`
+        log.req && log.req.uri === `/en.wikipedia.org/sys/table/${bucket}/`
             && log.req.method === method);
     if (expected) {
         assert.deepEqual(storageRequests.length > 0, true, `Should have made ${method} request to ${bucket}`);

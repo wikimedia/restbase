@@ -78,7 +78,7 @@ class MultiContentBucket {
         const prefix = this.options.table_name_prefix;
         return P.join(this.options.dependent_content_types
         .map(cTypeSpec => hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${cTypeSpec.name}`, '']),
+            uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${cTypeSpec.name}`, '']),
             body: {
                 table: `${prefix}.${cTypeSpec.name}`,
                 attributes: {
@@ -92,7 +92,7 @@ class MultiContentBucket {
         })))
         // Save main content last, so that any error in metadata storage suppresses main content.
         .then(() => hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${mainCTypeName}`, '']),
+            uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${mainCTypeName}`, '']),
             body: {
                 table: `${prefix}.${mainCTypeName}`,
                 attributes: {
@@ -111,7 +111,7 @@ class MultiContentBucket {
         const prefix = this.options.table_name_prefix;
         function deleteRender(contentType) {
             return hyper.delete({
-                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${contentType}`, '']),
+                uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${contentType}`, '']),
                 body: {
                     table: `${prefix}.${contentType}`,
                     attributes: {
@@ -135,7 +135,7 @@ class MultiContentBucket {
         const prefix = this.options.table_name_prefix;
         function deleteRevision(contentType) {
             return hyper.delete({
-                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${contentType}`, '']),
+                uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${contentType}`, '']),
                 body: {
                     table: `${prefix}.${contentType}`,
                     attributes: {
@@ -161,7 +161,7 @@ class MultiContentBucket {
         const createRequests = this.options.dependent_content_types
         .concat([this.options.main_content_type])
         .map(cTypeSpec => ({
-            uri: new URI([rp.domain, 'sys', 'table3', `${prefix}.${cTypeSpec.name}`]),
+            uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${cTypeSpec.name}`]),
             body: this.makeSchema({
                 valueType: cTypeSpec.value_type,
                 table: `${prefix}.${cTypeSpec.name}`
@@ -169,7 +169,7 @@ class MultiContentBucket {
         }))
         .concat([
             {
-                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-revision-timeline`]),
+                uri: new URI([rp.domain, 'sys', 'table', `${prefix}-revision-timeline`]),
                 body: {
                     table: `${prefix}-revision-timeline`,
                     version: 2,
@@ -188,7 +188,7 @@ class MultiContentBucket {
                 }
             },
             {
-                uri: new URI([rp.domain, 'sys', 'table3', `${prefix}-render-timeline`]),
+                uri: new URI([rp.domain, 'sys', 'table', `${prefix}-render-timeline`]),
                 body: {
                     table: `${prefix}-render-timeline`,
                     version: 2,
@@ -258,7 +258,7 @@ class MultiContentBucket {
         const rp = req.params;
         const tablePrefix = this.options.table_name_prefix;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table3', `${tablePrefix}.${rp.content}`, '']),
+            uri: new URI([rp.domain, 'sys', 'table', `${tablePrefix}.${rp.content}`, '']),
             body: {
                 table: `${tablePrefix}.${rp.content}`,
                 attributes: {
@@ -280,7 +280,7 @@ class MultiContentBucket {
                 && this.options.renew_expiring) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'table3', `${tablePrefix}-revision-timeline`, '']),
+                uri: new URI([rp.domain, 'sys', 'table', `${tablePrefix}-revision-timeline`, '']),
                 body: {
                     table: `${tablePrefix}-revision-timeline`,
                     attributes: {
@@ -320,7 +320,7 @@ class MultiContentBucket {
         const mainContentTable = `${tablePrefix}.${this.options.main_content_type.name}`;
         // First, find out what was the previous revision stored to know what we are replacing
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table3', mainContentTable, '']),
+            uri: new URI([rp.domain, 'sys', 'table', mainContentTable, '']),
             body: {
                 table: mainContentTable,
                 attributes: {
@@ -341,7 +341,7 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3',
+                        uri: new URI([rp.domain, 'sys', 'table',
                             `${tablePrefix}-revision-timeline`, '']),
                         body: {
                             table: `${tablePrefix}-revision-timeline`,
@@ -357,7 +357,7 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3',
+                            uri: new URI([rp.domain, 'sys', 'table',
                                 `${tablePrefix}-revision-timeline`, '']),
                             body: {
                                 table: `${tablePrefix}-revision-timeline`,
@@ -387,7 +387,7 @@ class MultiContentBucket {
                 .tap(() => {
                     // This can be done asyncronously!
                     hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'table3',
+                        uri: new URI([rp.domain, 'sys', 'table',
                             `${tablePrefix}-render-timeline`, '']),
                         body: {
                             table: `${tablePrefix}-render-timeline`,
@@ -404,7 +404,7 @@ class MultiContentBucket {
                             return;
                         }
                         return hyper.get({
-                            uri: new URI([rp.domain, 'sys', 'table3',
+                            uri: new URI([rp.domain, 'sys', 'table',
                                 `${tablePrefix}-render-timeline`, '']),
                             body: {
                                 table: `${tablePrefix}-render-timeline`,
@@ -438,7 +438,7 @@ class MultiContentBucket {
         const rp = req.params;
         const tableName = `${this.options.table_name_prefix}.${rp.content}`;
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table3', tableName, '']),
+            uri: new URI([rp.domain, 'sys', 'table', tableName, '']),
             body: {
                 table: tableName,
                 attributes: {

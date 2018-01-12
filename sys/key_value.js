@@ -49,7 +49,7 @@ class KVBucket {
         schema.table = req.params.bucket;
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket]),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
             body: schema
         };
         return hyper.put(storeRequest);
@@ -94,7 +94,7 @@ class KVBucket {
 
         const rp = req.params;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -110,7 +110,7 @@ class KVBucket {
     listRevisions(hyper, req) {
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: req.params.bucket,
                 attributes: {
@@ -143,7 +143,7 @@ class KVBucket {
         }
 
         const doPut = () => hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
