@@ -111,11 +111,11 @@ paths:
     x-modules:
       - spec:
           paths:
-            /table: &sys_table_ng
+            /table: &sys_table
               x-modules:
                 - path: sys/table.js
                   options:
-                    conf: '{{options.table_ng}}'
+                    conf: '{{options.table}}'
             /parsoid_bucket:
               x-modules:
                 - path: sys/multi_content_bucket.js
