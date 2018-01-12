@@ -7,7 +7,7 @@ default_project: &default_project
     - path: test/test_module.yaml
     - path: projects/wmf_default.yaml
       options: &default_options
-        table_ng:
+        table:
           backend: cassandra
           hosts: [localhost]
           keyspace: system
