@@ -45,7 +45,7 @@ class KRVBucket {
         schema.table = req.params.bucket;
         const rp = req.params;
         const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket]),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
             body: schema
         };
         return hyper.put(storeRequest);
@@ -89,7 +89,7 @@ class KRVBucket {
     getRevision(hyper, req) {
         const rp = req.params;
         const storeReq = {
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {
@@ -110,7 +110,7 @@ class KRVBucket {
     listRevisions(hyper, req) {
         const rp = req.params;
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: req.params.bucket,
                 attributes: {
@@ -145,7 +145,7 @@ class KRVBucket {
         const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value')
             || uuid.now().toString();
         return hyper.put({
-            uri: new URI([rp.domain, 'sys', 'table3', rp.bucket, '']),
+            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
                 table: rp.bucket,
                 attributes: {

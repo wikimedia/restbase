@@ -53,7 +53,7 @@ services:
                   parsoid:
                     # XXX Check Parsoid URL!
                     host: http://localhost:8142
-                  table3:
+                  table:
                     backend: sqlite
                     dbname: db.sqlite3
                     pool_idle_timeout: 20000

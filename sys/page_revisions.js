@@ -36,7 +36,7 @@ class PRS {
     }
 
     tableURI(domain) {
-        return new URI([domain, 'sys', 'table3', tableName, '']);
+        return new URI([domain, 'sys', 'table', tableName, '']);
     }
 
     // Get the schema for the revision table
@@ -101,7 +101,7 @@ class PRS {
      * @return {URI} suppression table URI
      */
     restrictionsTableURI(domain) {
-        return new URI([domain, 'sys', 'table3', restrictionsTableName, '']);
+        return new URI([domain, 'sys', 'table', restrictionsTableName, '']);
     }
 
     getRestrictions(hyper, req) {
@@ -608,11 +608,11 @@ module.exports = (options) => {
         resources: [
             {
                 // Revision table
-                uri: `/{domain}/sys/table3/${tableName}`,
+                uri: `/{domain}/sys/table/${tableName}`,
                 body: prs.getTableSchema()
             },
             {
-                uri: `/{domain}/sys/table3/${restrictionsTableName}`,
+                uri: `/{domain}/sys/table/${restrictionsTableName}`,
                 body: prs.restrictionsTableSchema()
             }
         ]

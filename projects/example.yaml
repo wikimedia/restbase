@@ -26,7 +26,7 @@ paths:
     x-modules:
       - spec:
           paths:
-            /table3: &sys_table_ng
+            /table: &sys_table_ng
               x-modules:
                 - path: sys/table.js
                   options:

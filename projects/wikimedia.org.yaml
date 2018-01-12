@@ -83,7 +83,7 @@ paths:
               x-modules:
                 - path: sys/mathoid.js
                   options: '{{options.mathoid}}'
-            /table3: &sys_table_ng
+            /table: &sys_table_ng
               x-modules:
                 - path: sys/table.js
                   options:
