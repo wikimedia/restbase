@@ -1772,8 +1772,18 @@ definitions:
             day:
               type: string
             articles:
-              # format for this is a json array: [{rank: 1, article: <<title>>, views: 123}, ...]
-              type: string
+              type: array
+              items:
+                properties:
+                  rank:
+                    type: integer
+                    format: int32
+                  article:
+                    type: string
+                  views:
+                    type: integer
+                    format: int64
+
 
   by-country:
     properties:
