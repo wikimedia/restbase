@@ -70,6 +70,25 @@ class ReadingLists {
     }
 
     /**
+     * Takes an array of integers and formats them as an array of {<keyword>: <id>} objects.
+    * @param {!Array} ids
+     * @param {!String} keyword
+     * @return {!Array}
+    */
+    idsToObjects(ids, keyword) {
+        return ids.map((id) => {
+            // If the MW API has been updated to send objects, handle that gracefully.
+            if (typeof id === 'object') {
+                return id;
+            }
+
+            const o = {};
+            o[keyword] = id;
+            return o;
+        });
+    }
+
+    /**
      * Get the sort parameters for the action API.
      * @param {!String} sort Sort mode ('name' or 'updated').
      * @return {!Object} { sort: <rlsort/rlesort parameter>, dir: <rldir/rledir parameter> }
@@ -154,6 +173,8 @@ module.exports = (options) => {
             flattenContinuation: rl.flattenContinuation.bind(rl),
             unflattenContinuation: rl.unflattenContinuation.bind(rl),
             flattenMultivalue: rl.flattenMultivalue.bind(rl),
+            idsToObjects: rl.idsToObjects.bind(rl),
+            stringify: JSON.stringify.bind(JSON),
             getSortParameters: rl.getSortParameters.bind(rl),
         },
         operations: {
