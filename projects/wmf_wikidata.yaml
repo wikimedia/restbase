@@ -59,10 +59,11 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
-                  options: '{{options}}'
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
                 - path: v1/content_segments.yaml
                   options:
-                    purged_cache_control: '{{options.purged_cache_control}}'
+                    response_cache_control: '{{options.purged_cache_control}}'
                     cx_host: '{{options.transform.cx_host}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'

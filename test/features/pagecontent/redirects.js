@@ -7,7 +7,6 @@ var mwUtil = require('../../../lib/mwUtil');
 var assert = require('../../utils/assert.js');
 var preq   = require('preq');
 var server = require('../../utils/server.js');
-var nock = require('nock');
 
 describe('Redirects', function() {
     before(function() { return server.start(); });
@@ -21,6 +20,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 301);
             assert.deepEqual(res.headers['location'], 'Main_Page?test=mwAQ');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
     });
 
@@ -32,6 +32,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 301);
             assert.deepEqual(res.headers['location'], '../Main_Page/1234?test=mwAQ');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
     });
 
@@ -43,6 +44,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 301);
             assert.deepEqual(res.headers['location'], '../Main_Page/');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
     });
 
@@ -58,6 +60,7 @@ describe('Redirects', function() {
             assert.deepEqual(res.status, 200);
         });
     });
+
     it('should redirect to commons for missing file pages', function() {
         return preq.get({
             uri: server.config.bucketURL + '/html/File:ThinkingMan_Rodin.jpg',
@@ -67,6 +70,7 @@ describe('Redirects', function() {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers['location'],
                 'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
     });
 
@@ -79,6 +83,7 @@ describe('Redirects', function() {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers['location'],
                 'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AName.jpg');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
     });
 
@@ -286,6 +291,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body.length, 0);
         });
     });
@@ -298,6 +304,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body.length, 0);
         });
     });
@@ -310,6 +317,7 @@ describe('Redirects', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 302);
             assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.body.length, 0);
         });
     });
