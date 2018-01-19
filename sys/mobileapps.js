@@ -87,7 +87,8 @@ class MobileApps {
                 purgeEvents = purgeEvents.concat(postfixes.map(postfix => ({
                     meta: {
                         uri: `${prefix}${postfix}/${title}`
-                    }
+                    },
+                    tags: [ `mobile-sections${postfix}` ]
                 })));
             }
 
