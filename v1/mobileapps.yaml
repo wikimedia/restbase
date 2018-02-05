@@ -181,6 +181,8 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
+              headers:
+                cache-control: '{{cache-control}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -267,6 +269,8 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
+              headers:
+                cache-control: '{{cache-control}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
