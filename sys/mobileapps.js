@@ -50,7 +50,7 @@ class MobileApps {
         .then((res) => {
             return {
                 status: 200,
-                headers: req.headers,
+                headers: res.headers,
                 body: res.body[part]
             };
         });
