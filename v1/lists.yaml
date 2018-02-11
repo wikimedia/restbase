@@ -12,7 +12,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
   x-configuration:
     maxListsPerUser: &maxListsPerUser 100
-    maxEntriesPerList: &maxEntriesPerList 1000
+    maxEntriesPerList: &maxEntriesPerList 5000
     deletedRetentionDays: &deletedRetentionDays 30
 x-yaml-anchors:
   csrf_token: &csrf_token
@@ -192,6 +192,7 @@ paths:
 
         This endpoint is deprecated and might be removed without warning. Use the batch version
         instead.
+      x-maxsize: *maxEntriesPerList
       produces:
         - application/json; charset=utf-8
       parameters:
@@ -329,6 +330,7 @@ paths:
         See `POST /lists/`.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      x-maxsize: *maxEntriesPerList
       produces:
         - application/json; charset=utf-8
       parameters:
@@ -458,6 +460,7 @@ paths:
 
         This endpoint is deprecated and might be removed without warning. Use the batch version
         instead.
+      x-maxsize: *maxListsPerUser
       produces:
         - application/json; charset=utf-8
       parameters:
@@ -563,6 +566,7 @@ paths:
         See `POST /lists/{id}/entries/`.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      x-maxsize: *maxListsPerUser
       produces:
         - application/json; charset=utf-8
       parameters:
