@@ -102,6 +102,35 @@ class ReadingLists {
     }
 
     /**
+     * Get a timestamp that's safe to use in GET /lists/changes/since/{timestamp} assuming
+     * the client's state is based on the current response. This deals with things database rows
+     * items being committed in a different order than their 'created' fields would suggest.
+     * See T182706 for details.
+     *
+     * Normally the timstamp is just copied from the MediaWiki response, but for a transition
+     * period we are going to generate it.
+     * @param {!Object} responseBody The response object body.
+     * @param {String} next The continuation parameter submitted by the client.
+     * @return {!String} An ISO 8601 timestamp.
+     */
+    getContinueFrom(responseBody, next) {
+        const timestamp = responseBody.query['readinglists-synctimestamp'];
+        // Honor timestamps sent by the MW API.
+        if (timestamp) {
+            return timestamp;
+        }
+        // On continuation, it is expected to not have a timestamp - the client already received
+        // it in an earlier request.
+        if (next) {
+            return undefined;
+        }
+
+        // Backdate by $wgMaxUserDBWriteDuration + 1 seconds.
+        const lastSafeTime = new Date(Date.now() - 4000);
+        return lastSafeTime.toISOString();
+    }
+
+    /**
      * Handle the /list/{id}/entries endpoint (get entries of a list).
      * @param {!HyperSwitch} hyper
      * @param {!Object} req The request object as provided by HyperSwitch.
@@ -176,6 +205,7 @@ module.exports = (options) => {
             idsToObjects: rl.idsToObjects.bind(rl),
             stringify: JSON.stringify.bind(JSON),
             getSortParameters: rl.getSortParameters.bind(rl),
+            getContinueFrom: rl.getContinueFrom.bind(rl),
         },
         operations: {
             getListEntries: rl.getListEntries.bind(rl),
