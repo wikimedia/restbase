@@ -152,6 +152,12 @@ paths:
               next:
                 type: string
                 description: Continuation token.
+              continue-from:
+                type: string
+                format: date-time
+                description: |
+                  Timestamp to sync from, to be used with the `GET /lists/changes/since/{date}`
+                  endpoint.
         default:
           description: Error
           schema:
@@ -178,6 +184,7 @@ paths:
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+                continue-from: '{{getContinueFrom(forward_to_mw.body, request.query.next)}}'
       x-monitor: false
     post:
       tags:
@@ -702,11 +709,18 @@ paths:
 
         Request must be authenticated with a MediaWiki session cookie.
 
+        For safe synchronization, the date parameter should be taken from the `continue-from`
+        field of a previous `GET /lists/` or `GET /lists/changes/since/{date}` request. This will
+        ensure that no changes are skipped, at the cost of sometimes receiving the same change
+        multitple times. Clients should handle changes in an idempotent way.
+
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: date
           in: path
-          description: Cutoff date (in ISO 8601)
+          description: |
+            Cutoff date (in ISO 8601). To ensure reliable synchronization, the API
+            might return changes which are slightly older than the cutoff date.
           type: string
           format: date-time
           required: true
@@ -730,6 +744,12 @@ paths:
               next:
                 type: string
                 description: Continuation token.
+              continue-from:
+                type: string
+                format: date-time
+                description: |
+                  Timestamp to sync from, to be used with the `GET /lists/changes/since/{date}`
+                  endpoint.
         default:
           description: Error
           schema:
@@ -764,6 +784,7 @@ paths:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 entries: '{{forward_to_mw.body.query.readinglistentries}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
+                continue-from: '{{getContinueFrom(forward_to_mw.body, request.query.next)}}'
       x-monitor: false
 tags:
   - name: Reading lists
