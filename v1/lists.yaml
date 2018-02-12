@@ -33,7 +33,7 @@ x-yaml-anchors:
     project: &list_entry_common_project
       type: string
       description: 'Domain of the wiki containing the page.'
-      example: 'en.wikipedia.org'
+      example: 'https://en.wikipedia.org'
     title: &list_entry_common_title
       type: string
       description: 'Title of the page containing the page, in database format.'
@@ -189,6 +189,9 @@ paths:
         Request must be authenticated with a MediaWiki session cookie.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+
+        This endpoint is deprecated and might be removed without warning. Use the batch version
+        instead.
       produces:
         - application/json; charset=utf-8
       parameters:
@@ -317,6 +320,73 @@ paths:
             return:
               status: 200
       x-monitor: false
+  /lists/batch:
+    post:
+      tags:
+        - Reading lists
+      summary: Create multiple new lists for the current user.
+      description: |
+        See `POST /lists/`.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: batch
+          in: body
+          required: true
+          schema:
+            title: batch
+            type: object
+            required: ['batch']
+            properties:
+              batch:
+                type: array
+                items:
+                  title: list
+                  $ref: '#/definitions/list_write'
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: The IDs of the new lists (in the same order as the inputs).
+          schema:
+            title: list_create_batch
+            type: object
+            required: ['batch']
+            properties:
+              batch:
+                type: array
+                items:
+                  title: list_id
+                  type: object
+                  required: ['id']
+                  properties:
+                    id:
+                      type: integer
+                      description: List ID
+                      example: 7
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: create
+                batch: '{{stringify(request.body.batch)}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+              body:
+                batch: '{{idsToObjects(forward_to_mw.body.create.ids, "id")}}'
+      x-monitor: false
   /lists/{id}/entries/:
     get:
       tags:
@@ -385,6 +455,9 @@ paths:
         authenticated with a MediaWiki session cookie.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+
+        This endpoint is deprecated and might be removed without warning. Use the batch version
+        instead.
       produces:
         - application/json; charset=utf-8
       parameters:
@@ -480,6 +553,74 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
+      x-monitor: false
+  /lists/{id}/entries/batch:
+    post:
+      tags:
+        - Reading lists
+      summary: Create multiple new list entries.
+      description: |
+        See `POST /lists/{id}/entries/`.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          example: 42
+          required: true
+        - name: batch
+          in: body
+          required: true
+          schema:
+            type: object
+            required: ['batch']
+            properties:
+              batch:
+                title: list_entries
+                type: array
+                items:
+                  $ref: '#/definitions/list_entry_write'
+        - <<: *csrf_token
+      responses:
+        '200':
+          description: The id of the new list entry.
+          schema:
+            type: object
+            properties:
+              batch:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: List entry ID
+                      example: 13
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - path: ./lib/mediawiki_auth_filter.js
+      x-request-handler:
+        - forward_to_mw:
+            request:
+              uri: /{domain}/sys/action/rawquery
+              body:
+                action: readinglists
+                command: createentry
+                list: '{{request.params.id}}'
+                batch: '{{stringify(request.body.batch)}}'
+                token: '{{request.query.csrf_token}}'
+            return:
+              status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+              body:
+                batch: '{{idsToObjects(forward_to_mw.body.createentry.ids, "id")}}'
       x-monitor: false
   /lists/pages/{project}/{title}:
     get:
@@ -649,6 +790,7 @@ definitions:
       - created
       - updated
   list_write:
+    title: list
     type: object
     properties:
       <<: *list_common
