@@ -14,6 +14,7 @@ info:
     maxListsPerUser: &maxListsPerUser 100
     maxEntriesPerList: &maxEntriesPerList 5000
     deletedRetentionDays: &deletedRetentionDays 30
+    maxItemsPerBatch: &maxItemsPerBatch 500
 x-yaml-anchors:
   csrf_token: &csrf_token
     name: csrf_token
@@ -351,6 +352,7 @@ paths:
             properties:
               batch:
                 type: array
+                maxItems: *maxItemsPerBatch
                 items:
                   title: list
                   $ref: '#/definitions/list_write'
@@ -592,6 +594,7 @@ paths:
               batch:
                 title: list_entries
                 type: array
+                maxItems: *maxItemsPerBatch
                 items:
                   $ref: '#/definitions/list_entry_write'
         - <<: *csrf_token
