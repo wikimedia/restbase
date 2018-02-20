@@ -112,7 +112,7 @@ paths:
             request:
               method: get
               uri: '{{options.host}}/{domain}/v1/page/summary/{title}'
-            return:
+            response:
               status: '{{extract.status}}'
               headers: '{{extract.headers}}'
               body: '{{changeProtocol(extract.body)}}'
