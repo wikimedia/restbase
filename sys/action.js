@@ -62,10 +62,10 @@ const errCodes = {
     'readinglists-project-title-param': errDefs['400'],
     'readinglists-too-old': errDefs['400'],
     'readinglists-invalidsort-notbyname': errDefs['400'],
-    'apierror-readinglists-batch-invalid-json': errDefs['400'],
-    'apierror-readinglists-batch-invalid-structure': errDefs['400'],
-    'apierror-readinglists-batch-toomanyvalues': errDefs['400'],
-    'apierror-readinglists-batch-missingparam-at-least-one-of': errDefs['400'],
+    'readinglists-batch-invalid-json': errDefs['400'],
+    'readinglists-batch-invalid-structure': errDefs['400'],
+    'readinglists-batch-toomanyvalues': errDefs['400'],
+    'readinglists-batch-missingparam-at-least-one-of': errDefs['400'],
     revwrongpage: errDefs['400'],
 
     /* 401 - unauthorised */
