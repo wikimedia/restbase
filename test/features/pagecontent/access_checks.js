@@ -197,6 +197,49 @@ describe('Access checks', () => {
                 assert.deepEqual(res.status, 200);
             });
         });
+
+        it('should understand the page was deleted again', () => {
+            const api = nock(server.config.apiURL)
+            // Other requests return nothing as if the page is deleted.
+            .post('').reply(200, emptyResponse);
+            // Fetch the page
+            return preq.get({
+                uri: `${server.config.bucketURL}/title/${encodeURIComponent(deletedPageTitle)}`,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .then(() => {
+                throw new Error('404 should have been returned for a deleted page');
+            }, (e) => {
+                assert.deepEqual(e.status, 404);
+                assert.contentType(e, 'application/problem+json');
+            })
+            .then(() => {
+                api.done();
+            })
+            .finally(() => {
+                nock.cleanAll();
+            });
+        });
+
+        it('Should understand that the page was undeleted base on html request', () => {
+            return preq.get({
+                uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}`,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                return preq.get({
+                    uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
+                });
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+            });
+        });
     });
 
     describe('Restricting', () => {
