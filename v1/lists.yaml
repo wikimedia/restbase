@@ -192,7 +192,8 @@ paths:
         - Reading lists
       summary: Create a new list for the current user.
       description: |
-        Creates a new empty list.
+        Creates a new empty list. On name conflict, does nothing and returns the data of an
+        existing list.
 
         Request must be authenticated with a MediaWiki session cookie.
 
@@ -212,14 +213,20 @@ paths:
         - <<: *csrf_token
       responses:
         '200':
-          description: The ID of the new list.
+          description: The data for the new list.
           schema:
             type: object
             properties:
               id:
                 type: integer
-                description: List ID
+                description: |
+                  List ID.
+
+                  Deprecated, will be removed. Use the full list object.
                 example: 7
+                required: true
+              list:
+                $ref: '#/definitions/list_read'
                 required: true
         default:
           description: Error
@@ -243,6 +250,7 @@ paths:
                 content-type: application/json; charset=utf-8
               body:
                 id: '{{forward_to_mw.body.create.id}}'
+                list: '{{forward_to_mw.body.create.list}}'
       x-monitor: false
   /lists/{id}:
     put:
@@ -251,7 +259,7 @@ paths:
       summary: Update a list.
       description: |
         List must belong to current user and request must be authenticated with
-        a MediaWiki session cookie.
+        a MediaWiki session cookie. If the name is changed, the new name must not be in use.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
@@ -269,7 +277,21 @@ paths:
         - application/json; charset=utf-8
       responses:
         '200':
-          description: Success.
+          description: The updated data for the list.
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: |
+                  List ID.
+
+                  Deprecated, will be removed. Use the full list object.
+                example: 7
+                required: true
+              list:
+                $ref: '#/definitions/list_read'
+                required: true
         default:
           description: Error
           schema:
@@ -289,6 +311,11 @@ paths:
                 token: '{{request.query.csrf_token}}'
             return:
               status: 200
+              headers:
+                content-type: application/json; charset=utf-8
+              body:
+                id: '{{forward_to_mw.body.update.id}}'
+                list: '{{forward_to_mw.body.update.list}}'
       x-monitor: false
     delete:
       tags:
@@ -359,14 +386,15 @@ paths:
         - <<: *csrf_token
       responses:
         '200':
-          description: The IDs of the new lists (in the same order as the inputs).
+          description: The data for the new lists (in the same order as the inputs).
           schema:
             title: list_create_batch
             type: object
-            required: ['batch']
             properties:
               batch:
                 type: array
+                required: true
+                description: Deprecated, will be removed. Use the full list objects instead.
                 items:
                   title: list_id
                   type: object
@@ -376,6 +404,11 @@ paths:
                       type: integer
                       description: List ID
                       example: 7
+              lists:
+                type: array
+                required: true
+                items:
+                  $ref: '#/definitions/list_read'
         default:
           description: Error
           schema:
@@ -397,6 +430,7 @@ paths:
                 content-type: application/json; charset=utf-8
               body:
                 batch: '{{idsToObjects(forward_to_mw.body.create.ids, "id")}}'
+                lists: '{{forward_to_mw.body.create.lists}}'
       x-monitor: false
   /lists/{id}/entries/:
     get:
@@ -460,7 +494,8 @@ paths:
         - Reading lists
       summary: Create a new list entry.
       description: |
-        Creates a new list entry in the given list.
+        Creates a new list entry in the given list. On conflict, does nothing and returns the
+        data of an existing list.
 
         The list must belong to the current user and the request must be
         authenticated with a MediaWiki session cookie.
@@ -486,14 +521,20 @@ paths:
         - <<: *csrf_token
       responses:
         '200':
-          description: The id of the new list entry.
+          description: The data for the new list entry.
           schema:
             type: object
             properties:
               id:
                 type: integer
-                description: List entry ID
+                description: |
+                  List entry ID
+
+                  Deprecated, will be removed. Use the full entry object instead.
                 example: 13
+                required: true
+              entry:
+                $ref: '#/definitions/list_entry_read'
                 required: true
         default:
           description: Error
@@ -518,6 +559,7 @@ paths:
                 content-type: application/json; charset=utf-8
               body:
                 id: '{{forward_to_mw.body.createentry.id}}'
+                entry: '{{forward_to_mw.body.createentry.entry}}'
       x-monitor: false
   /lists/{id}/entries/{entry_id}:
     delete:
@@ -600,12 +642,13 @@ paths:
         - <<: *csrf_token
       responses:
         '200':
-          description: The id of the new list entry.
+          description: The data for the new list entries (in the same order as the inputs).
           schema:
             type: object
             properties:
               batch:
                 type: array
+                required: true
                 items:
                   type: object
                   properties:
@@ -613,6 +656,11 @@ paths:
                       type: integer
                       description: List entry ID
                       example: 13
+              entries:
+                type: array
+                required: true
+                items:
+                  $ref: '#/definitions/list_entry_read'
         default:
           description: Error
           schema:
@@ -635,6 +683,7 @@ paths:
                 content-type: application/json; charset=utf-8
               body:
                 batch: '{{idsToObjects(forward_to_mw.body.createentry.ids, "id")}}'
+                entries: '{{forward_to_mw.body.createentry.entries}}'
       x-monitor: false
   /lists/pages/{project}/{title}:
     get:
