@@ -34,7 +34,6 @@ default_project: &default_project
           host: https://appservice.wmflabs.org
         summary:
           protocol: https
-          implementation: mcs
           host: https://appservice.wmflabs.org
         citoid:
           host: https://citoid-beta.wmflabs.org
