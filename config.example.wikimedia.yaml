@@ -32,7 +32,6 @@ default_project: &default_project
           host: http://appservice.wmflabs.org
         summary:
           protocol: https
-          implementation: mcs
           host: https://appservice.wmflabs.org
         related:
           cache_control: s-maxage=86400, max-age=86400

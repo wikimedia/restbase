@@ -28,7 +28,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.3.0"
       parameters:
         - name: title
           in: path
@@ -110,37 +110,12 @@ paths:
         # Storage miss. Call the Action API to get the textextract.
         - extract:
             request:
-              method: post
-              uri: /{domain}/sys/action/query
-              body:
-                prop: 'info|extracts|pageimages|revisions|pageterms|coordinates'
-                exsentences: 5
-                exintro: true
-                piprop: 'thumbnail|original'
-                inprop: 'displaytitle'
-                pithumbsize: 320
-                pilicense: 'any'
-                rvprop: 'timestamp|ids'
-                titles: '{{request.params.title}}'
-                wbptterms: 'description'
+              method: get
+              uri: '{{options.host}}/{domain}/v1/page/summary/{title}'
             response:
-              # Define the response to save & return.
-              headers:
-                content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
-                etag: "\"{{getRevision(extract.body.items[0].revisions).revid}}/{{timeuuid()}}\""
-              body:
-                title: '{{extract.body.items[0].title}}'
-                displaytitle: '{{extract.body.items[0].displaytitle}}'
-                pageid: '{{extract.body.items[0].pageid}}'
-                extract: '{{stripTags(extract.body.items[0].extract)}}'
-                extract_html: '{{extract.body.items[0].extract}}'
-                thumbnail: '{{changeProtocol(extract.body.items[0].thumbnail)}}'
-                originalimage: '{{changeProtocol(extract.body.items[0].original)}}'
-                lang: '{{extract.body.items[0].pagelanguagehtmlcode}}'
-                dir: '{{extract.body.items[0].pagelanguagedir}}'
-                timestamp: '{{getRevision(extract.body.items[0].revisions).timestamp}}'
-                description: '{{extractDescription(extract.body.items[0].terms)}}'
-                coordinates: '{{processCoords(extract.body.items[0].coordinates)}}'
+              status: '{{extract.status}}'
+              headers: '{{extract.headers}}'
+              body: '{{changeProtocol(extract.body)}}'
         - store_and_return:
             request:
               method: put
