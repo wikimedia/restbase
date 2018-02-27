@@ -1,15 +1,19 @@
 'use strict';
 
-var assert = require('assert');
-
+const assert = require('assert');
+const mwUtil = require('../../lib/mwUtil');
 
 /**
  * Asserts whether content type was as expected
  */
 function contentType(res, expected) {
-    var actual = res.headers['content-type'];
-    deepEqual(actual, expected,
-        'Expected content-type to be ' + expected + ', but was ' + actual);
+    const actual = res.headers['content-type'];
+    if (/^\/.+\/$/.test(expected)) {
+        const expectedRegex = mwUtil.constructRegex([ expected ]);
+        assert.ok(expectedRegex.test(actual), `Expected content type should match ${expected}`);
+    } else {
+        deepEqual(actual, expected, `Expected content-type to be ${expected} , but was ${actual}`);
+    }
 }
 
 /**

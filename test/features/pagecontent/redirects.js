@@ -181,7 +181,7 @@ describe('Redirects', function() {
                 assert.deepEqual(res.status, 302);
                 assert.deepEqual(res.headers.location, '../../User%3APchelolo%2FRedirect_Target_%25');
                 assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-                assert.deepEqual(res.headers['content-type'], server.config.conf.test.content_types['data-parsoid']);
+                assert.contentType(res, server.config.conf.test.content_types['data-parsoid']);
                 assert.deepEqual(Object.keys(res.body).length > 0, true);
             });
         });
