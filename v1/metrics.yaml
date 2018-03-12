@@ -1430,7 +1430,7 @@ paths:
           options:
             limits:
               internal: 25
-              external: 100
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
