@@ -524,7 +524,7 @@ paths:
         for the chosen filters.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -593,8 +593,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -616,7 +616,7 @@ paths:
         granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -693,8 +693,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -715,7 +715,7 @@ paths:
         between daily and monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -782,8 +782,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -804,7 +804,7 @@ paths:
         choose between daily and monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -871,8 +871,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -893,7 +893,7 @@ paths:
         choose between daily and monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -960,8 +960,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -987,7 +987,7 @@ paths:
         granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1064,8 +1064,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1087,7 +1087,7 @@ paths:
         mediawiki user_id if user is registered, or his/her IP if the user is anonymous.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1154,8 +1154,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1177,7 +1177,7 @@ paths:
         user_id if user is registered, or his/her IP if the user is anonymous.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1244,8 +1244,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1267,7 +1267,7 @@ paths:
         mediawiki user_id if user is registered, or his/her IP if the user is anonymous.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1334,8 +1334,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1360,7 +1360,7 @@ paths:
         monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1429,8 +1429,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1454,7 +1454,7 @@ paths:
         users value is computed with self-created users only, not auto-login created ones.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1503,8 +1503,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1529,7 +1529,7 @@ paths:
         daily and monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1597,8 +1597,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
@@ -1621,7 +1621,7 @@ paths:
         between daily and monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 100 req/s
+        - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
@@ -1689,8 +1689,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 100
-              external: 100
+              internal: 25
+              external: 25
       x-request-handler:
         - get_from_backend:
             request:
