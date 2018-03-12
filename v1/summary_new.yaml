@@ -17,6 +17,7 @@ paths:
       - path: ./lib/revision_table_access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
+      - path: ./lib/ensure_content_type.js
     get:
       tags:
         - Page content
@@ -28,7 +29,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.3.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.3.2"
       parameters:
         - name: title
           in: path
