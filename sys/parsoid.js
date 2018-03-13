@@ -775,7 +775,8 @@ class ParsoidService {
 
     getLintErrors(hyper, req) {
         const rp = req.params;
-        let path = `${this.parsoidHost}/${rp.domain}/v3/transform/wikitext/to/lint/${rp.title}`;
+        let path = `${this.parsoidHost}/${rp.domain}/v3/transform/`
+            + `wikitext/to/lint/${encodeURIComponent(rp.title)}`;
         if (rp.revision) {
             path += `/${rp.revision}`
         }

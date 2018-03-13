@@ -68,6 +68,26 @@ describe('item requests', function() {
         });
     });
 
+    it('should request page lints. no revision', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL}/lint/User%3APchelolo%2FLintTest`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.length > 0, true);
+        })
+    });
+
+    it('should request page lints. with revision', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL}/lint/User%3APchelolo%2FLintTest/830278619`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.length > 0, true);
+        })
+    });
+
     var rev2Etag;
     it('should transparently create data-parsoid with id 241155, rev 2', function() {
         return preq.get({
