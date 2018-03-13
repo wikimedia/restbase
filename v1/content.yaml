@@ -612,6 +612,80 @@ paths:
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
       x-monitor: false
 
+  /lint/{title}{/revision}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
+    get:
+      tags:
+        - Page content
+      summary: Get the linter errors for a specific title/revision.
+      description: |
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      operationId: getFormatRevision
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: integer
+          required: false
+      responses:
+        '200':
+          description: |
+            The lint errors for the given page and optionally revision.
+
+            See [the Linter extension docs](https://www.mediawiki.org/wiki/Extension:Linter) for more
+            details.
+          schema:
+            - type: object
+          headers:
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page revision contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '400':
+          description: Invalid revision or tid
+          schema:
+            $ref: '#/definitions/problem'
+        '403':
+          description: Access to the specific revision is restricted
+          schema:
+            $ref: '#/definitions/problem'
+        '404':
+          description: Unknown page, revision or tid
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/lint/{title}{/revision}
+      x-monitor: false
+
   /wikitext/{title}:
     post:
       tags:
