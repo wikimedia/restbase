@@ -180,6 +180,7 @@ class ParsoidService {
             getWikitext: this.getFormat.bind(this, 'wikitext'),
             getHtml: this.getFormat.bind(this, 'html'),
             getDataParsoid: this.getFormat.bind(this, 'data-parsoid'),
+            getLintErrors: this.getLintErrors.bind(this),
             // Listings
             listWikitextRevisions: this.listRevisions.bind(this, 'wikitext'),
             listHtmlRevisions: this.listRevisions.bind(this, 'html'),
@@ -770,6 +771,15 @@ class ParsoidService {
         }
         return transformPromise;
 
+    }
+
+    getLintErrors(hyper, req) {
+        const rp = req.params;
+        let path = `${this.parsoidHost}/${rp.domain}/v3/transform/wikitext/to/lint/${rp.title}`;
+        if (rp.revision) {
+            path += `/${rp.revision}`
+        }
+        return hyper.post({ uri: path });
     }
 
     makeTransform(from, to) {
