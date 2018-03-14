@@ -5,11 +5,7 @@ mocha="$mod_dir"/mocha/bin/mocha
 istanbul="$mod_dir"/istanbul/lib/cli.js
 
 runTest ( ) {
-    if [ "$1" = "sqlite" ]; then
-        echo "Running with SQLite backend"
-        export RB_TEST_BACKEND=sqlite
-        rm -f test.db.sqlite3
-    else
+    if [ "$1" = "cassandra" ]; then
         echo "Running with Cassandra backend"
         if [ `nc -z localhost 9042 < /dev/null; echo $?` != 0 ]; then
           echo "Waiting for Cassandra to start..."
@@ -20,6 +16,10 @@ runTest ( ) {
         fi
         export RB_TEST_BACKEND=cassandra
         sh ./test/utils/cleandb.sh local_group_test
+    else
+        echo "Running with SQLite backend"
+        export RB_TEST_BACKEND=sqlite
+        rm -f test.db.sqlite3
     fi
 
     if [ "$2" = "test" ]; then

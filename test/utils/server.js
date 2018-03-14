@@ -26,8 +26,8 @@ function loadConfig(path) {
         if (backendImpl !== 'cassandra' && backendImpl !== 'sqlite') {
             throw new Error('Invalid RB_TEST_BACKEND env variable value. Allowed values: "cassandra", "sqlite"');
         }
-        if (backendImpl === 'sqlite') {
-            confString = confString.replace(/backend: cassandra/, "backend: sqlite");
+        if (backendImpl === 'cassandra') {
+            confString = confString.replace(/backend: sqlite/, "backend: cassandra");
         }
     }
     return yaml.safeLoad(confString);
