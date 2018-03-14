@@ -624,7 +624,6 @@ paths:
       summary: Get the linter errors for a specific title/revision.
       description: |
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      operationId: getFormatRevision
       produces:
         - application/json
       parameters:
