@@ -778,7 +778,7 @@ class ParsoidService {
         let path = `${this.parsoidHost}/${rp.domain}/v3/transform/`
             + `wikitext/to/lint/${encodeURIComponent(rp.title)}`;
         if (rp.revision) {
-            path += `/${rp.revision}`
+            path += `/${rp.revision}`;
         }
         return hyper.post({ uri: path });
     }
