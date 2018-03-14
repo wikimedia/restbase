@@ -90,7 +90,7 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: true
       x-amples:
-        - title: Get MobileApps Foobar page
+        - title: Get mobile-sections for a test page on enwiki
           request:
             params:
               domain: en.wikipedia.org
