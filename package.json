@@ -65,8 +65,7 @@
     "mocha.parallel": "^0.15.2",
     "nock": "^9.0.13",
     "preq": "^0.5.2",
-    "restbase-mod-table-sqlite": "^1.0.0",
-    "swagger-test": "0.5.1"
+    "restbase-mod-table-sqlite": "^1.0.0"
   },
   "engines": {
     "node": ">=4"
