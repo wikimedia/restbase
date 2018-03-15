@@ -17,8 +17,6 @@ paths:
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/security_response_header_filter.js
-        options:
-          allowInlineStyles: true
     get:
       tags:
         - Page content
