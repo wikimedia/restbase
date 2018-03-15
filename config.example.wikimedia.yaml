@@ -41,7 +41,7 @@ default_project: &default_project
         recommendation:
           host: https://recommendation-api-beta.wmflabs.org
         # 10 days Varnish caching, one day client-side
-        purged_cache_control: s-maxage=864000, max-age=86400
+        purged_cache_control: s-maxage=1209600, max-age=0, must-revalidate
         # Cache control for purged endpoints allowing short-term client caching
         purged_cache_control_client_cache: s-maxage=1209600, max-age=300
         pdf:
