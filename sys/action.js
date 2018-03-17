@@ -73,6 +73,7 @@ const errCodes = {
     confirmemail: errDefs['401'],
     'noedit-anon': errDefs['401'],
     'noimageredirect-anon': errDefs['401'],
+    notloggedin: errDefs['401'],
     protectedpage: errDefs['401'],
     readapidenied: errDefs['401'],
     /* 403 - access denied */
