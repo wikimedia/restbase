@@ -19,7 +19,7 @@ var secureBucketURL = secureURL + '/page';
 var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
 var labsBucketURL = labsURL + '/page';
 
-function loadConfig(path) {
+function loadConfig(path, forceSqlite) {
     var confString = fs.readFileSync(path).toString();
     var backendImpl = process.env.RB_TEST_BACKEND;
     if (backendImpl) {
@@ -29,6 +29,9 @@ function loadConfig(path) {
         if (backendImpl === 'cassandra') {
             confString = confString.replace(/backend: sqlite/, "backend: cassandra");
         }
+    }
+    if (forceSqlite) {
+        confString = confString.replace(/backend: cassandra/, "backend: sqlite");
     }
     return yaml.safeLoad(confString);
 }
