@@ -435,7 +435,7 @@ class ParsoidService {
 
         return this.getFormat('html', hyper, req)
         .then((htmlRes) => {
-            const etagInfo = htmlRes.headers.etag;
+            const etagInfo = mwUtil.parseETag(htmlRes.headers.etag);
             const sectionsRP = Object.assign({}, rp, {
                 revision: etagInfo.rev,
                 tid: etagInfo.tid

@@ -3,11 +3,12 @@
 // mocha defines to avoid JSHint breakage
 /* global describe, it, before, beforeEach, after, afterEach */
 
-var assert = require('../../utils/assert.js');
-var preq   = require('preq');
-var server = require('../../utils/server.js');
-var P      = require('bluebird');
-var pagingToken = '';
+const assert = require('../../utils/assert.js');
+const preq = require('preq');
+const server = require('../../utils/server.js');
+const P = require('bluebird');
+const mwUtils = require('../../../lib/mwUtil');
+let pagingToken = '';
 
 describe('item requests', function() {
     this.timeout(20000);
@@ -127,61 +128,104 @@ describe('item requests', function() {
         });
     });
 
-    it('should return sections of Main_Page', function() {
+    it('should return sections of Main_Page, with revision', function () {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Main_Page/262492',
-            query: {
-                sections: 'mwAQ,mwDA'
-            },
-            headers: {
-                'cache-control': 'no-cache'
-            }
+            uri: `${server.config.labsBucketURL}/html/Main_Page/262492`
         })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            var body = res.body;
-            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string'
-                    || !body['mwDA']) {
-                throw new Error('Missing section content!');
-            }
+        .then(res => {
+            const tid = mwUtils.parseETag(res.headers.etag).tid;
+            return preq.get({
+                uri: `${server.config.labsBucketURL}/data-parsoid/Main_Page/262492/${tid}`
+            });
+        })
+        .then(res => {
+            const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/Main_Page/262492',
+                query: {
+                    sections: ids.join(',')
+                }
+            })
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.deepEqual(res.headers['cache-control'], 'no-cache');
+                const body = res.body;
+                ids.forEach(id => {
+                    if (!body[id] || typeof body[id] !== 'string') {
+                        throw new Error(`Missing section content for id ${id}!`);
+                    }
+                });
+            });
+        });
+    });
+
+   it('should return sections of Main_Page, no revision', function () {
+        return preq.get({
+            uri: `${server.config.labsBucketURL}/html/Main_Page`
+        })
+        .then(res => {
+            const tid = mwUtils.parseETag(res.headers.etag).tid;
+            const rev = mwUtils.parseETag(res.headers.etag).rev;
+            return preq.get({
+                uri: `${server.config.labsBucketURL}/data-parsoid/Main_Page/${rev}/${tid}`
+            });
+        })
+        .then(res => {
+            const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
             return preq.get({
                 uri: server.config.labsBucketURL + '/html/Main_Page',
                 query: {
-                    sections: 'mwAQ'
-                },
+                    sections: ids.join(',')
+                }
+            })
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.deepEqual(res.headers['cache-control'], 'no-cache');
+                const body = res.body;
+                ids.forEach(id => {
+                    if (!body[id] || typeof body[id] !== 'string') {
+                        throw new Error(`Missing section content for id ${id}!`);
+                    }
+                });
             });
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            var body = res.body;
-            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string') {
-                throw new Error('Missing section content!');
-            }
         });
     });
 
     it('should get sections of Main_Page with no-cache and unchanged render', function() {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Main_Page',
-            query: {
-                sections: 'mwAQ,mwDA'
-            },
-            headers: {
-                'cache-control': 'no-cache'
-            }
+            uri: `${server.config.labsBucketURL}/html/Main_Page`
         })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            var body = res.body;
-            if (!body['mwAQ'] || typeof body['mwAQ'] !== 'string' || !body['mwDA']) {
-                throw new Error('Missing section content!');
-            }
+        .then(res => {
+            const tid = mwUtils.parseETag(res.headers.etag).tid;
+            const rev = mwUtils.parseETag(res.headers.etag).rev;
+            return preq.get({
+                uri: `${server.config.labsBucketURL}/data-parsoid/Main_Page/${rev}/${tid}`
+            });
+        })
+        .then(res => {
+            const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
+            return preq.get({
+                uri: server.config.labsBucketURL + '/html/Main_Page',
+                query: {
+                    sections: ids.join(',')
+                },
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.deepEqual(res.headers['cache-control'], 'no-cache');
+                const body = res.body;
+                ids.forEach(id => {
+                    if (!body[id] || typeof body[id] !== 'string') {
+                        throw new Error(`Missing section content for id ${id}!`);
+                    }
+                });
+            });
         });
     });
 
