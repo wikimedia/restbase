@@ -1,0 +1,224 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki page metadata API
+  description: API for retrieving additional metadata of a given page
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /metadata/{title}{/revision}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
+    get:
+      tags:
+        - Page content
+      summary: Get additional metadata of a page.
+      description: |
+        Gets metadata of a page that's not already covered by the summary endpoint.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Metadata/1.0.0"
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: JSON containing metadata of metadata items appearing on the given page.
+          schema:
+            $ref: '#/definitions/metadata'
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/metadata/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Get extended metadata of a test page
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Video
+              revision: 830543386
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              revision: /.+/
+              tid: /.+/
+              hatnotes:
+                - section: /.+/
+                  html: /.+/
+              issues:
+                - section: /.+/
+                  html: /.+/
+              toc:
+                title: /.+/
+                entries:
+                  - level: /.+/
+                    section: /.+/
+                    number: /.+/
+                    anchor: /.+/
+                    html: /.+/
+              language_links:
+                - lang: /.+/
+                  titles:
+                    canonical: /.+/
+                    normalized: /.+/
+                  summary_url: /.+/
+              categories:
+                - titles:
+                    canonical: /.+/
+                    normalized: /.+/
+                    display: /.+/
+                  hidden: /.+/
+                  ns: /.+/
+                  summary_url: /.+/
+              protection:
+                edit: [ /.+/ ]
+                move: [ /.+/ ]
+
+# copied from MCS spec.yaml
+definitions:
+
+  hatnote_or_page_issue:
+    type: object
+    properties:
+      section:
+        type: integer
+        description: section ID containing the hatnote or page issue
+      html:
+        type: string
+        description: the hatnote or page issue HTML
+    required: [ section, html ]
+    additionalProperties: false
+
+  toc_entry:
+    type: object
+    properties:
+      level:
+        type: integer
+        description: the depth of the heading in the TOC hierarchy
+      section:
+        type: integer
+        description: the position of the section in the order of appearance of all sections on the page
+      number:
+        type: string
+        description: a numeric representation of the section's position in the page hierarhcy (e.g., '1', '1.3', '1.3.2')
+      anchor:
+        type: string
+        description: the heading text to be used in constracting a page anchor for linking
+      html:
+        type: string
+        description: the heading display text (may contain HTML markup)
+    required: [ level, section, number, anchor, html ]
+    additionalProperties: false
+
+  category:
+    type: object
+    properties:
+      titles:
+        type: object
+        description: titles dictionary
+        properties:
+          canonical:
+            type: string
+            description: canonical title
+          normalized:
+            type: string
+            description: normalized title
+          display:
+            type: string
+            description: display title (omitting the "Category:" namespace prefix)
+        required:
+          - canonical
+          - normalized
+          - display
+      summary_url:
+        type: string
+        description: link to REST API summary
+      hidden:
+        type: boolean
+        description: whether the category is hidden or not
+      ns:
+        type: integer
+        description: the numeric namespace id for the category page
+    required: [ titles, hidden, summary_url, ns ]
+    additionalProperties: false
+
+  protection:
+    type: object
+    properties:
+      edit:
+        type: array
+        description: list of groups with the 'edit' permission
+        items:
+          type: string
+      move:
+        type: array
+        description: list of groups with the 'move' permission
+        items:
+          type: string

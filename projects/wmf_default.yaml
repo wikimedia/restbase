@@ -77,6 +77,10 @@ paths:
                   options:
                     response_cache_control: '{{options.purged_cache_control}}'
                     host: '{{options.mobileapps.host}}'
+                - path: v1/metadata.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
