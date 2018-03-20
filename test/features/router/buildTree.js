@@ -21,8 +21,8 @@ var rootSpec = {
     }
 };
 
-var fullSpec = server.loadConfig('config.example.wikimedia.yaml');
-
+const fullSpec = server.loadConfig('config.example.wikimedia.yaml')
+    .replace(/backend: cassandra/, "backend: sqlite");
 var fakeHyperSwitch = { config: {} };
 
 parallel('tree building', function() {

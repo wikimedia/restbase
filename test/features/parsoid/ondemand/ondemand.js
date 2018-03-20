@@ -9,6 +9,7 @@
 var assert = require('../../../utils/assert.js');
 var server = require('../../../utils/server.js');
 var preq   = require('preq');
+const mwUtil = require('../../../../lib/mwUtil');
 
 var revA = '275843';
 var revB = '275844';
@@ -252,8 +253,8 @@ describe('on-demand generation of html and data-parsoid', function() {
     });
 
     it('should honor no-cache on /html/{title} endpoint with sections', function() {
-        var testPage = "User:Pchelolo%2fRev_Section_Test";
-        var firstRev = 275848;
+        const testPage = "User:Pchelolo%2fRev_Section_Test";
+        const firstRev = 275848;
         // 1. Pull in a non-final revision of a title
         return preq.get({
             uri: pageUrl + '/html/' + testPage + '/' + firstRev
@@ -262,7 +263,13 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(/First Revision/.test(res.body), true);
             return preq.get({
-                uri: pageUrl + '/html/' + testPage + '?sections=mwAQ',
+                uri: `${pageUrl}/data-parsoid/${testPage}/${firstRev}/${mwUtil.parseETag(res.headers.etag).tid}`
+            });
+        })
+        .then(res => {
+            const sections = Object.keys(res.body.sectionOffsets).join(',');
+            return preq.get({
+                uri: `${pageUrl}/html/${testPage}?sections=${sections}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -272,6 +279,6 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['cache-control'], 'no-cache');
             assert.deepEqual(/Second Revision/.test(res.body.mwAQ), true);
-        })
+        });
     });
 });
