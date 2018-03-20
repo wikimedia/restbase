@@ -110,7 +110,7 @@ class ReadingLists {
      * Normally the timstamp is just copied from the MediaWiki response, but for a transition
      * period we are going to generate it.
      * @param {!Object} responseBody The response object body.
-     * @param {String} next The continuation parameter submitted by the client.
+     * @param {!String} next The continuation parameter submitted by the client.
      * @return {!String} An ISO 8601 timestamp.
      */
     getContinueFrom(responseBody, next) {
