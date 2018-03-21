@@ -1,0 +1,226 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki page references API
+  description: API for retrieving references of a given page
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /references/{title}{/revision}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
+    get:
+      tags:
+        - Page content
+      summary: Get references of a page.
+      description: |
+        Gets references of a page in a way that makes it easy to look up the details of a reference by id
+        and allow some reference lists to be rebuild.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/References/1.0.0"
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: JSON containing a structure of references on the given page.
+          schema:
+            $ref: '#/definitions/references_response'
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/references/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Get references of a test page
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Video
+              revision: 830543386
+          response:
+            status: 200
+            headers:
+              content-type: /application\/json/
+            body:
+              revision: /.+/
+              tid: /.+/
+              reference_lists:
+                - id: /.*/
+                  section_heading:
+                    id: /.+/
+                    html: /.+/
+                  order: [ /.*/ ]
+              references_by_id: /.+/
+
+# copied from MCS spec.yaml
+definitions:
+
+  references_response:
+    type: object
+    description: Reference lists and references
+    properties:
+      revision:
+        type: string
+        description: revision ID for the page
+      tid:
+        type: string
+        description: time UUID for the page/revision
+      reference_lists:
+        $ref: '#/definitions/reference_lists'
+      references_by_id:
+        $ref: '#/definitions/references_by_id'
+    additionalProperties: false
+    required:
+      - revision
+      - tid
+      - reference_lists
+      - references_by_id
+
+  reference_lists:
+    type: array
+    description: A list of reference lists
+    properties:
+      id:
+        type: string
+        description: Identifier for the whole reference list. May be null.
+      section_heading:
+        type: object
+        description: |
+          Object containing information about the section heading this reference list
+          is shown in.
+        properties:
+          id:
+            type: string
+            description: Identifier for the section, which can be used to link to it
+          html:
+            type: string
+            description: HTML content of section heading
+      order:
+        type: array
+        description: |
+          List of identifiers for individual references, which can be used to lookup
+          the reference details in references_by_id.
+        items:
+          type: string
+    additionalProperties: false
+    required:
+      - id
+      - section_heading
+      - order
+
+  references_by_id:
+    type: object
+    description: A map of reference ids to reference details
+    properties:
+      default:
+        $ref: '#/definitions/reference_detail_item'
+
+  reference_detail_item:
+    type: object
+    description: Information about one reference
+    properties:
+      back_links:
+        type: array
+        description: A list of back links, can be empty in rare cases
+        items:
+          $ref: '#/definitions/reference_detail_item_back_link'
+      content:
+        type: object
+        properties:
+          html:
+            type: string
+            description: HTML representation of the reference content
+          type:
+            type: string
+            enum:
+              - generic
+              - book
+              - journal
+              - news
+              - web
+            description: Known citation type if there is exactly one cite tag, else 'generic'
+    additionalProperties: false
+
+  reference_detail_item_back_link:
+    type: object
+    description: Information about one link back to where on the page a given reference was used
+    properties:
+      href:
+        type: string
+        description: Relative URL pointing to anchor on same page
+      text:
+        type: string
+        description: |
+          Either an arrow for a single back link or another (usually single) chararacter
+          to distinguish multiple back links.
+    additionalProperties: false
+    required:
+      - href
+      - text
+
