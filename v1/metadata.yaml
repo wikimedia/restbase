@@ -50,7 +50,7 @@ paths:
           required: false
       responses:
         '200':
-          description: JSON containing metadata of metadata items appearing on the given page.
+          description: JSON containing additional metadata of the given page.
           schema:
             $ref: '#/definitions/metadata'
           headers:
