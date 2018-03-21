@@ -179,6 +179,7 @@ describe('Access checks', () => {
         testAccess('summary', 'deleted', deletedPageTitle);
         testAccess('media', 'deleted', deletedPageTitle);
         testAccess('metadata', 'deleted', deletedPageTitle);
+        testAccess('references', 'deleted', deletedPageTitle);
     });
 
     describe('Undeleting', () => {
