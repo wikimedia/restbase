@@ -43,49 +43,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
       operationId: aggregatedFeed
-      x-monitor: true
-      x-amples:
-        - title: Retrieve aggregated feed content for April 29, 2016
-          request:
-            params:
-              domain: en.wikipedia.org
-              yyyy: '2016'
-              mm: '04'
-              dd: '29'
-          response:
-            status: 200
-            headers:
-              content-type: /application\/json/
-            body:
-              tfa:
-                title: /.+/
-                description: /.+/
-                extract: /.+/
-                thumbnail:
-                  source: /.+/
-                  width: /.+/
-                  height: /.+/
-              mostread:
-                date: /.+/
-                articles:
-                  - views: /.+/
-                    rank: /.+/
-                    title: /.+/
-                    pageid: /.+/
-                    normalizedtitle: /.+/
-              image:
-                title: /.+/
-                description:
-                  text: /.+/
-                  lang: /.+/
-                image:
-                  source: /.+/
-                  width: /.+/
-                  height: /.+/
-                thumbnail:
-                  source: /.+/
-                  width: /.+/
-                  height: /.+/
+      x-monitor: false
 
 definitions:
   mostread_article:
