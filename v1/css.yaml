@@ -12,12 +12,14 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /css/mobile/base:
+    x-route-filters:
+      - path: lib/security_response_header_filter.js
     get:
       tags:
         - Mobile
       summary: Get base CSS for mobile apps.
       description: |
-        Gets common CSS for mobile apps need to properly display pages using Page Content Service.
+        Gets common CSS mobile apps need to properly display pages using Page Content Service.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
@@ -36,8 +38,6 @@ paths:
         - get_from_pcs:
             request:
               method: get
-              headers:
-                cache-control: '{{cache-control}}'
               uri: '{{options.host}}/{domain}/v1/data/css/mobile/base'
             return:
               status: 200
@@ -54,6 +54,8 @@ paths:
             body: /.+/
 
   /css/mobile/site:
+    x-route-filters:
+      - path: lib/security_response_header_filter.js
     get:
       tags:
         - Mobile
@@ -78,8 +80,6 @@ paths:
         - get_from_pcs:
             request:
               method: get
-              headers:
-                cache-control: '{{cache-control}}'
               uri: '{{options.host}}/{domain}/v1/data/css/mobile/site'
             return:
               status: 200

@@ -17,18 +17,14 @@ describe('Page Content Service: /data/css/mobile', () => {
         return preq.get({
             uri: `${server.config.baseURL}/data/css/mobile/base`
         })
-        .then((res) => {
-            commonChecks(res);
-        });
+        .then(res => commonChecks(res));
     });
 
     it('Should get site CSS successfully', () => {
         return preq.get({
             uri: `${server.config.baseURL}/data/css/mobile/site`
         })
-        .then((res) => {
-            commonChecks(res);
-        });
+        .then(res => commonChecks(res));
     });
 });
 
