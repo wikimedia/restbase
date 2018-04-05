@@ -118,6 +118,10 @@ paths:
                   options: '{{options.lists}}'
                 - path: v1/recommend.yaml
                   options: '{{options.recommendation}}'
+                - path: v1/css.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
         options: '{{options}}'
 
   /{api:sys}:

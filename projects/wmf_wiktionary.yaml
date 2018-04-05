@@ -107,6 +107,10 @@ paths:
                   options: '{{options.citoid}}'
                 - path: v1/lists.js
                   options: '{{options.lists}}'
+                - path: v1/css.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
         options: '{{options}}'
 
   /{api:sys}:

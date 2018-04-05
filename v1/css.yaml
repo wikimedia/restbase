@@ -1,0 +1,96 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: CSS for mobile apps
+  description: API for retrieving CSS for mobile apps
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /css/mobile/base:
+    get:
+      tags:
+        - Mobile
+      summary: Get base CSS for mobile apps.
+      description: |
+        Gets common CSS for mobile apps need to properly display pages using Page Content Service.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
+      responses:
+        '200':
+          description: Success
+          headers:
+            ETag:
+              description: Different values indicate that the content has changed
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/data/css/mobile/base'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Get base CSS
+          response:
+            status: 200
+            headers:
+              content-type: /^text\/css; charset=utf-8/
+            body: /.+/
+
+  /css/mobile/site:
+    get:
+      tags:
+        - Mobile
+      summary: Get site-specific CSS for mobile apps.
+      description: |
+        Gets wiki specific CSS mobile apps need to properly display pages using Page Content Service.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
+      responses:
+        '200':
+          description: Success
+          headers:
+            ETag:
+              description: Different values indicate that the content has changed
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/data/css/mobile/site'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Get site-specific CSS
+          response:
+            status: 200
+            headers:
+              content-type: /^text\/css; charset=utf-8/
+            body: /.+/
