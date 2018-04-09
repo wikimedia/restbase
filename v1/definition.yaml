@@ -117,7 +117,7 @@ paths:
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json
+                content-type: '{{extract.headers.content-type}}'
               body: '{{extract.body}}'
         - store:
             request:
@@ -146,7 +146,7 @@ paths:
               body:
                 - meta:
                     uri: //{request.params.domain}/api/rest_v1/page/definition/{request.params.title}
-          response:
+            response:
             return:
               status: 200
               headers:
