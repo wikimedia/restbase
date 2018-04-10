@@ -208,7 +208,7 @@ describe('Redirects', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 302);
-            assert.deepEqual(res.headers.location, 'Main_Page');
+            assert.deepEqual(res.headers.location, 'Main_Page#Test%23123');
             assert.deepEqual(res.body.length > 0, true);
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         });
