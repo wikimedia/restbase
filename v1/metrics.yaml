@@ -103,6 +103,8 @@ paths:
               uri: '{{options.host}}/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}:
@@ -186,6 +188,8 @@ paths:
               uri: '{{options.host}}/pageviews/aggregate/{project}/{access}/{agent}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: true
       x-amples:
         - title: Get aggregate page views
@@ -281,6 +285,8 @@ paths:
               uri: '{{options.host}}/pageviews/top/{project}/{access}/{year}/{month}/{day}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /pageviews/top-by-country/{project}/{access}/{year}/{month}:
@@ -347,6 +353,8 @@ paths:
               uri: '{{options.host}}/pageviews/top-by-country/{project}/{access}/{year}/{month}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   ########################################
@@ -424,6 +432,8 @@ paths:
               uri: '{{options.host}}/unique-devices/{project}/{access-site}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   ########################################
@@ -504,6 +514,8 @@ paths:
               uri: '{{options.host}}/legacy/pagecounts/aggregate/{project}/{access-site}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   ########################################
@@ -601,6 +613,8 @@ paths:
               uri: '{{options.host}}/edited-pages/new/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /edited-pages/aggregate/{project}/{editor-type}/{page-type}/{activity-level}/{granularity}/{start}/{end}:
@@ -701,6 +715,8 @@ paths:
               uri: '{{options.host}}/edited-pages/aggregate/{project}/{editor-type}/{page-type}/{activity-level}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /edited-pages/top-by-edits/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -790,6 +806,8 @@ paths:
               uri: '{{options.host}}/edited-pages/top-by-edits/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /edited-pages/top-by-net-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -879,6 +897,8 @@ paths:
               uri: '{{options.host}}/edited-pages/top-by-net-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /edited-pages/top-by-absolute-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -968,6 +988,8 @@ paths:
               uri: '{{options.host}}/edited-pages/top-by-absolute-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
 
@@ -1072,6 +1094,8 @@ paths:
               uri: '{{options.host}}/editors/aggregate/{project}/{editor-type}/{page-type}/{activity-level}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /editors/top-by-edits/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -1162,6 +1186,8 @@ paths:
               uri: '{{options.host}}/editors/top-by-edits/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /editors/top-by-net-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -1252,6 +1278,8 @@ paths:
               uri: '{{options.host}}/editors/top-by-net-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /editors/top-by-absolute-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -1342,6 +1370,8 @@ paths:
               uri: '{{options.host}}/editors/top-by-absolute-bytes-difference/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
 
@@ -1437,6 +1467,8 @@ paths:
               uri: '{{options.host}}/edits/aggregate/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
 
@@ -1511,6 +1543,8 @@ paths:
               uri: '{{options.host}}/registered-users/new/{project}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
 
@@ -1605,6 +1639,8 @@ paths:
               uri: '{{options.host}}/bytes-difference/net/aggregate/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
   /bytes-difference/absolute/aggregate/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}:
@@ -1697,6 +1733,8 @@ paths:
               uri: '{{options.host}}/bytes-difference/absolute/aggregate/{project}/{editor-type}/{page-type}/{granularity}/{start}/{end}'
               headers:
                 x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
       x-monitor: false
 
 
