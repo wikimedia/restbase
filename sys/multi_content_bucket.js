@@ -333,7 +333,7 @@ class MultiContentBucket {
         }).catchReturn({ status: 404 }, undefined)
         .then((res) => {
             if (!res || !res.body.items.length) {
-                // Noting was ever there - put the first render and no need to update the index
+                // Nothing was ever there - put the first render and no need to update the index
                 return this._createContentStoreRequests(hyper, req,rev, tid);
             } else if (res && res.body.items.length && res.body.items[0].rev < rev) {
                 // New revision is being written - update revision index and do the revision deletes
@@ -378,7 +378,11 @@ class MultiContentBucket {
                         });
                     })
                     .catch({ status: 404 }, () => {
-                        // Ignore the 404 if we don't have the timeline.
+                        // Log the 404 if we don't have the timeline.
+                        hyper.log('error/noindex', {
+                            msg: 'Empty revision timeline',
+                            page_title: rp.key
+                        });
                     });
                 });
             } else if (res && res.body.items.length && res.body.items[0].rev === rev) {
@@ -426,7 +430,12 @@ class MultiContentBucket {
                         });
                     })
                     .catch({ status: 404 }, () => {
-                        // Ignore the 404 if we don't have the timeline.
+                        // Log the 404 if we don't have the timeline.
+                        hyper.log('error/noindex', {
+                            msg: 'Empty render timeline',
+                            page_title: rp.key,
+                            page_revision: rev
+                        });
                     });
                 });
             } else if (res && res.body.items.length && res.body.items[0].rev > rev) {
