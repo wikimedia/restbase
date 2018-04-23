@@ -69,6 +69,7 @@ class MultiContentBucket {
         });
 
         this.options.grace_ttl = this.options.grace_ttl || 86400;
+        this.options.index_ttl = this.options.index_ttl || this.options.grace_ttl * 10;
         this.options.delete_probability = this.options.delete_probability || 1;
     }
 
@@ -183,7 +184,7 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.grace_ttl * 10
+                        default_time_to_live: this.options.index_ttl
                     }
                 }
             },
@@ -204,7 +205,7 @@ class MultiContentBucket {
                         { attribute: 'ts', type: 'range', order: 'desc' },
                     ],
                     options: {
-                        default_time_to_live: this.options.grace_ttl * 10
+                        default_time_to_live: this.options.index_ttl
                     }
                 }
             }
