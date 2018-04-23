@@ -93,7 +93,7 @@ paths:
               x-modules:
                 - path: sys/multi_content_bucket.js
                   options:
-                    grace_ttl: '{{default(options.parsoid.grace_ttl, 84600)}}'
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     renew_expiring: true
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: parsoid_ng
@@ -114,7 +114,7 @@ paths:
               x-modules:
                 - path: sys/multi_content_bucket.js
                   options:
-                    grace_ttl: '{{default(options.parsoid.grace_ttl, 84600)}}'
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
                     table_name_prefix: mobile
                     main_content_type:
