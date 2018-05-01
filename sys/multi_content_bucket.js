@@ -379,7 +379,7 @@ class MultiContentBucket {
                     })
                     .catch({ status: 404 }, () => {
                         // Log the 404 if we don't have the timeline.
-                        hyper.log('error/noindex', {
+                        hyper.log('debug/noindex', {
                             msg: 'Empty revision timeline',
                             page_title: rp.key
                         });
@@ -431,7 +431,7 @@ class MultiContentBucket {
                     })
                     .catch({ status: 404 }, () => {
                         // Log the 404 if we don't have the timeline.
-                        hyper.log('error/noindex', {
+                        hyper.log('debug/noindex', {
                             msg: 'Empty render timeline',
                             page_title: rp.key,
                             page_revision: rev
