@@ -112,7 +112,7 @@ const errCodes = {
 function apiError(apiErr) {
     apiErr = apiErr || {};
     const  ret = {
-        message: `MW API call error ${apiErr.code}`,
+        msg: `MW API call error ${apiErr.code}`,
         status: errDefs['500'].status,
         body: {
             type: errDefs['500'].type,
@@ -196,6 +196,12 @@ function findSharedRepoDomain(siteInfoRes) {
     }
 }
 
+function logError(hyper, err) {
+    if (400 <= err.status && err.status !== 404 && err.status < 500) {
+        hyper.log('fatal/api_error', err);
+    }
+}
+
 /**
  * Action module code
  */
@@ -237,7 +243,8 @@ class ActionService {
         if (!{}.hasOwnProperty.call(apiRequest.body, 'continue') && apiRequest.action === 'query') {
             apiRequest.body.continue = '';
         }
-        return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
+        return hyper.request(apiRequest)
+        .then(cont.bind(null, apiRequest));
     }
 
     _getBaseUri(req) {
@@ -248,14 +255,16 @@ class ActionService {
         return this._doRequest(hyper, req, {
             action: 'query',
             format: 'json'
-        }, buildQueryResponse);
+        }, buildQueryResponse)
+        .tapCatch(logError.bind(null, hyper));
     }
 
     rawQuery(hyper, req) {
         return this._doRequest(hyper, req, {
             format: 'json',
             formatversion: 2
-        }, checkQueryResponse);
+        }, checkQueryResponse)
+        .tapCatch(logError.bind(null, hyper));
     }
 
     edit(hyper, req) {
@@ -263,7 +272,8 @@ class ActionService {
             action: 'edit',
             format: 'json',
             formatversion: 2
-        }, buildEditResponse);
+        }, buildEditResponse)
+        .tapCatch(logError.bind(null, hyper));
     }
 
     /**
