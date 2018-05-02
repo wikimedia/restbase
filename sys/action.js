@@ -198,7 +198,7 @@ function findSharedRepoDomain(siteInfoRes) {
 
 function logError(hyper, err) {
     if (400 <= err.status && err.status !== 404 && err.status < 500) {
-        hyper.log('fatal/api_error', err);
+        hyper.log('debug/api_error', err);
     }
 }
 
