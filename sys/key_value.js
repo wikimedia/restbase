@@ -171,7 +171,7 @@ class KVBucket {
             }
         })
         .catch((error) => {
-            hyper.log('error/kv/putRevision', error);
+            hyper.logger.log('error/kv/putRevision', error);
             return { status: 400 };
         });
 

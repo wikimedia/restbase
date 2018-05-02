@@ -43,7 +43,7 @@ class ReadingLists {
                     }
                 }
             } catch (e) {
-                this.options.log('error/unflatten', {
+                this.options.logger.log('error/unflatten', {
                     msg: e.message,
                     json: continuation,
                 });

@@ -38,7 +38,7 @@ class EventService {
 
             let events = req.body.map((event) => {
                 if (!event.meta || !event.meta.uri || !/^\/\//.test(event.meta.uri)) {
-                    hyper.log('error/events/emit', {
+                    hyper.logger.log('error/events/emit', {
                         message: 'Invalid event URI',
                         event
                     });
@@ -64,7 +64,7 @@ class EventService {
                 events = events.filter((event) => {
                     const eventId = `${event.meta.topic}:${event.meta.uri.replace(/^https?:/, '')}`;
                     if (triggeredBy.indexOf(eventId) !== -1) {
-                        hyper.log('error/events/rerender_loop', {
+                        hyper.logger.log('error/events/rerender_loop', {
                             message: 'Rerender loop detected',
                             event
                         });
@@ -88,7 +88,7 @@ class EventService {
             }
         })
         .catch((e) => {
-            hyper.log('error/events/emit', e);
+            hyper.logger.log('error/events/emit', e);
         }).thenReturn({ status: 200 });
     }
 }

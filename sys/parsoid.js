@@ -152,7 +152,7 @@ function _dependenciesUpdate(hyper, req) {
                 { meta: { uri: `${publicURI}/${rp.revision}` } }
             ]
         }).catch((e) => {
-            hyper.log('warn/bg-updates', e);
+            hyper.logger.log('warn/bg-updates', e);
         });
     });
 }
@@ -381,7 +381,7 @@ class ParsoidService {
                                 }
                             })
                             .catch((e) => {
-                                hyper.log('error/parsoid/redirect/update', e);
+                                hyper.logger.log('error/parsoid/redirect/update', e);
                                 throw e;
                             });
                         }
@@ -521,7 +521,7 @@ class ParsoidService {
                 res.headers['cache-control'] = this.options.response_cache_control;
             }
             if (/^null$/.test(res.headers.etag)) {
-                hyper.log('error/parsoid/response_etag_missing', {
+                hyper.logger.log('error/parsoid/response_etag_missing', {
                     msg: 'Detected a null etag in the response!'
                 });
             }
@@ -587,12 +587,12 @@ class ParsoidService {
                 // Fall back to an inline meta tag in the HTML
                 const htmlTid = extractTidMeta(req.body.html);
                 if (tid && htmlTid && htmlTid !== tid) {
-                    hyper.log('error/parsoid/etag_mismatch', {
+                    hyper.logger.log('error/parsoid/etag_mismatch', {
                         msg: 'Client-supplied etag did not match mw:TimeUuid!'
                     });
                 } else if (!tid) {
                     tid = htmlTid;
-                    hyper.log('warn/parsoid/etag', {
+                    hyper.logger.log('warn/parsoid/etag', {
                         msg: 'Client did not supply etag, fallback to mw:TimeUuid meta element'
                     });
                 }

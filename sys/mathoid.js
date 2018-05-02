@@ -175,7 +175,7 @@ class MathoidService {
                 meta: { uri: route }
             }))
         }).catch((e) => {
-            hyper.log('warn/bg-updates', e);
+            hyper.logger.log('warn/bg-updates', e);
         });
 
     }
