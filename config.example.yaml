@@ -34,12 +34,12 @@ services:
           - type: default
             name: http
             options:
-            allow:
-              - pattern: http://localhost/w/api.php
-                forward_headers: true
-              - pattern: http://localhost:8142
-                forward_headers: true
-              - pattern: /^https?:\/\//
+              allow:
+                - pattern: http://localhost/w/api.php
+                  forward_headers: true
+                - pattern: http://localhost:8142
+                  forward_headers: true
+                - pattern: /^https?:\/\//
         paths:
           /{domain:localhost}:
             x-modules:
