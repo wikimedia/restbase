@@ -147,6 +147,49 @@ paths:
         - get_from_cx:
             request:
               uri: '{{options.cx_host}}/v1/list/pair/{from}/{to}'
+  /list/{tool}/{from}/{to}:
+    get:
+      tags: ['Transform']
+      summary: Lists all language pairs that tool supports
+      description: |
+        Fetches the list of all of the language pairs for given tool
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json
+      parameters:
+        - name: tool
+          in: path
+          description: The tool name
+          type: string
+          required: true
+          enum:
+            - mt
+            - dictionary
+        - name: from
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: to
+          in: path
+          description: The target language code
+          type: string
+          required: true
+      responses:
+        '200':
+          description: the list of language pairs available for a given tool
+          schema:
+            $ref: '#/definitions/cx_list_pairs_for_tool'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+      x-request-handler:
+        - get_from_cx:
+            request:
+              uri: '{{options.cx_host}}/v1/list/{tool}/{from}/{to}'
   /list/tool/{tool}/:
     get:
       tags: ['Transform']
