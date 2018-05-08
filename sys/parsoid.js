@@ -232,18 +232,6 @@ class ParsoidService {
             } else {
                 throw e;
             }
-        })
-        .then((res) => {
-            // Now check the result ETag and see if the content is close to expiration
-            const contentTid = uuid.fromString(mwUtil.parseETag(res.headers.etag).tid);
-            const expirationTime =  new Date(Date.now() + this.options.grace_ttl * 1000 / 2);
-            if (format === 'html' && contentTid.getDate() > expirationTime) {
-                // Content is half-expired. Regenerate.
-                throw new HTTPError({
-                    status: 404
-                });
-            }
-            return res;
         });
     }
 
