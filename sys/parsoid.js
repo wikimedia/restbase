@@ -301,7 +301,6 @@ class ParsoidService {
     generateAndSave(hyper, req, format, currentContentRes) {
         // Try to generate HTML on the fly by calling Parsoid
         const rp = req.params;
-        const reqRevision = rp.revision;
         // Helper for retrieving original content from storage & posting it to
         // the Parsoid pagebundle end point
         /* const getOrigAndPostToParsoid = (pageBundleUri, revision, contentName, updateMode) => {
@@ -324,20 +323,7 @@ class ParsoidService {
 
         return this.getRevisionInfo(hyper, req)
         .then((revInfo) => {
-            rp.revision = `${revInfo.rev}`;
-            if (reqRevision !== rp.revision) {
-                // Try to fetch the HTML corresponding to the requested revision,
-                // so that the change detection makes sense.
-                return this._getContentWithFallback(hyper, rp, format)
-                .then(
-                    (contentRes) => {
-                        currentContentRes = contentRes;
-                    },
-                    (contentRes) => {
-                        currentContentRes = contentRes;
-                    }
-                );
-            }
+            rp.revision = revInfo.rev;
         })
         .then(() => {
             const pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
