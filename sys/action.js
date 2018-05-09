@@ -198,7 +198,7 @@ function findSharedRepoDomain(siteInfoRes) {
 
 function logError(hyper, err) {
     if (err.status >= 400 && err.status !== 404 && err.status < 500) {
-        hyper.log('debug/api_error', err);
+        hyper.logger.log('debug/api_error', err);
     }
 }
 
@@ -317,7 +317,7 @@ class ActionService {
                 };
             })
             .catch((e) => {
-                hyper.log('error/site_info', e);
+                hyper.logger.log('error/site_info', e);
                 delete this._siteInfoCache[rp.domain];
                 // The project domain is always expected to exist, so consider
                 // any error an internal error.

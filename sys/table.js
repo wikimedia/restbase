@@ -7,6 +7,7 @@
 
 module.exports = (options) => {
     options.conf.backend = options.conf.backend || 'cassandra';
+    options.log = options.logger.log.bind(options.logger);
 
     if (options.conf.backend !== 'cassandra'
             && options.conf.backend !== 'sqlite') {

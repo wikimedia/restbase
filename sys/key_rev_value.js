@@ -173,7 +173,7 @@ class KRVBucket {
                 throw res;
             }
         }, (error) => {
-            hyper.log('error/krv/putRevision', error);
+            hyper.logger.log('error/krv/putRevision', error);
             return { status: 400 };
         });
     }
