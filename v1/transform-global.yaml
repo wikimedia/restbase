@@ -147,7 +147,7 @@ paths:
         - get_from_cx:
             request:
               uri: '{{options.cx_host}}/v1/list/pair/{from}/{to}'
-  /list/tool/{tool}/{/from}/{/to}:
+  /list/tool/{tool}{/from}{/to}:
     get:
       tags: ['Transform']
       summary: Lists the tools and language pairs available for the given tool category
@@ -189,7 +189,7 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
-              uri: '{{options.cx_host}}/v1/list/{tool}/{/from}/{/to}'
+              uri: '{{options.cx_host}}/v1/list/{tool}{/from}{/to}'
   /list/languagepairs/:
     get:
       tags: ['Transform']
