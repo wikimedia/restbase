@@ -40,7 +40,7 @@
     "service-runner": "^2.6.1",
     "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
-    "hyperswitch": "^0.10.0",
+    "hyperswitch": "^0.10.1",
     "jsonwebtoken": "^8.1.0",
     "mediawiki-title": "^0.6.5",
     "entities": "^1.1.1"
