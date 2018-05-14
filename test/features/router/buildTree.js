@@ -43,7 +43,8 @@ parallel('tree building', function() {
 
     it('should build the example config spec tree', function() {
         var router = new Router({
-            appBasePath: __dirname + '/../../..'
+            appBasePath: __dirname + '/../../..',
+            logger: { log: () => {} }
         });
         var resourceRequests = [];
         return router.loadSpec(fullSpec.spec_root, {
