@@ -73,6 +73,10 @@ paths:
               x-modules:
                 - path: v1/transform-global.yaml
                   options: '{{options.transform}}'
+            /feed:
+              x-modules:
+                - path: v1/availability.yaml
+                  options: '{{options.mobileapps}}'
         options: '{{options}}'
 
   /{api:sys}:
