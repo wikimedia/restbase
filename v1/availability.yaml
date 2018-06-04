@@ -1,0 +1,109 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki featured feed content availability API
+  description: API for determining availbility of various featured feed content items by wiki language
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /availability:
+    get:
+      tags:
+        - Feed content availability
+      summary: Gets availability of featured feed content for the apps by wiki.
+      description: |
+        Gets availability of featured feed content for the apps by wiki.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.0"
+      responses:
+        '200':
+          description: JSON containing lists of wiki language codes for which feed content is available.
+          schema:
+            $ref: '#/definitions/availability'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_feed_content_availability:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/feed/availability'
+              gzip: false
+            response:
+              status: '{{get_feed_content_availability.status}}'
+              headers: '{{get_feed_content_availability.headers}}'
+              body: '{{get_feed_content_availability.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Retrieve feed content availability
+          request:
+            params:
+              domain: wikimedia.org
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              todays_featured_article: [ /.+/ ]
+              most_read: [ '*' ]
+              picture_of_the_day: [ '*' ]
+              in_the_news: [ /.+/ ]
+              on_this_day: [ /.+/ ]
+
+# copied from MCS spec.yaml
+definitions:
+  availability:
+    type: object
+    properties:
+      todays_featured_article:
+        type: array
+        description: language codes for wikis with this feature enabled, or [ '*' ] for universally enabled
+        items:
+          type: string
+      most_read:
+        type: array
+        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        items:
+          type: string
+      picture_of_the_day:
+        type: array
+        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        items:
+          type: string
+      in_the_news:
+        type: array
+        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        items:
+          type: string
+      on_this_day:
+        type: array
+        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        items:
+          type: string
+    required: [ todays_featured_article, most_read, picture_of_the_day, in_the_news, on_this_day ]
+    additionalProperties: false
+
+  problem:
+    required:
+      - type
+    properties:
+      status:
+        type: integer
+      type:
+        type: string
+      title:
+        type: string
+      detail:
+        type: string
+      method:
+        type: string
+      uri:
+        type: string
