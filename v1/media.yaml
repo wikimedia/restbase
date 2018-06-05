@@ -254,11 +254,9 @@ definitions:
         type: string
         description: description of the image from Wikimedia Commons
     required:
-      - titles
-      - file_page
+      - section_id
       - type
-      - thumbnail
-      - license
+      - original
 
   titles_set:
     type: object
