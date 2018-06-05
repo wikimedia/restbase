@@ -15,16 +15,16 @@ paths:
     get:
       tags:
         - Feed content availability
-      summary: Gets availability of featured feed content for the apps by wiki.
+      summary: Gets availability of featured feed content for the apps by wiki domain.
       description: |
-        Gets availability of featured feed content for the apps by wiki.
+        Gets availability of featured feed content for the apps by wiki domain.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.0"
       responses:
         '200':
-          description: JSON containing lists of wiki language codes for which feed content is available.
+          description: JSON containing lists of wiki domains for which feed content is available.
           schema:
             $ref: '#/definitions/availability'
         default:
@@ -65,27 +65,27 @@ definitions:
     properties:
       todays_featured_article:
         type: array
-        description: language codes for wikis with this feature enabled, or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled, or [ '*' ] for universally enabled
         items:
           type: string
       most_read:
         type: array
-        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
         items:
           type: string
       picture_of_the_day:
         type: array
-        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
         items:
           type: string
       in_the_news:
         type: array
-        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
         items:
           type: string
       on_this_day:
         type: array
-        description: language codes for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
         items:
           type: string
     required: [ todays_featured_article, most_read, picture_of_the_day, in_the_news, on_this_day ]
