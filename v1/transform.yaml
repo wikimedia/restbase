@@ -208,7 +208,7 @@ paths:
             status: 200
             headers:
               content-type: /^text\/html.+/
-            body: /^<h2.*> Heading <\/h2>$/
+            body: /^<h2.*>Heading<\/h2>$/
 
   /wikitext/to/lint{/title}{/revision}:
     post:

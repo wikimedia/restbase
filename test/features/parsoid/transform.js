@@ -91,7 +91,7 @@ parallel('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            var pattern = /<h2.*> Heading <\/h2>/;
+            var pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + res.body);
@@ -111,7 +111,7 @@ parallel('transform api', function() {
         .then(function (res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            var pattern = /^<h2.*> Heading <\/h2>$/;
+            var pattern = /^<h2.*>Heading<\/h2>$/;
             if (!pattern.test(res.body)) {
                 throw new Error('Expected pattern in response: ' + pattern
                         + '\nSaw: ' + res.body);
@@ -438,7 +438,7 @@ parallel('transform api', function() {
                     'if-match': etag
                 },
                 body: {
-                    html: res.body.replace(' ABCDEF ', ' FECDBA ')
+                    html: res.body.replace('>ABCDEF<', '>FECDBA<')
                 }
             });
         })
