@@ -111,17 +111,8 @@ paths:
               revision: /.+/
               tid: /.+/
               items:
-                - titles:
-                    canonical: /.+/
-                    normalized: /.+/
-                    display: /.+/
-                  thumbnail:
-                    source: /.+/
-                    width: /.+/
-                    height: /.+/
-                    mime: /.+/
-                  license:
-                    type: /.+/
+                - section_id: /.+/
+                  type: /.+/
 
 # copied from MCS spec.yaml
 definitions:
