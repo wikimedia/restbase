@@ -111,17 +111,8 @@ paths:
               revision: /.+/
               tid: /.+/
               items:
-                - titles:
-                    canonical: /.+/
-                    normalized: /.+/
-                    display: /.+/
-                  thumbnail:
-                    source: /.+/
-                    width: /.+/
-                    height: /.+/
-                    mime: /.+/
-                  license:
-                    type: /.+/
+                - section_id: /.+/
+                  type: /.+/
 
 # copied from MCS spec.yaml
 definitions:
@@ -254,11 +245,9 @@ definitions:
         type: string
         description: description of the image from Wikimedia Commons
     required:
-      - titles
-      - file_page
+      - section_id
       - type
-      - thumbnail
-      - license
+      - original
 
   titles_set:
     type: object
