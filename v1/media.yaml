@@ -247,7 +247,6 @@ definitions:
     required:
       - section_id
       - type
-      - original
 
   titles_set:
     type: object
