@@ -62,13 +62,13 @@ paths:
       operationId: aggregatedFeed
       x-monitor: true
       x-amples:
-        - title: Retrieve selected the events for Jan 01
+        - title: Retrieve all events for Jan 15
           request:
             params:
               domain: en.wikipedia.org
-              type: 'selected'
+              type: 'all'
               mm: '01'
-              dd: '01'
+              dd: '15'
           response:
             status: 200
             headers:
@@ -76,9 +76,29 @@ paths:
             body:
               selected:
                 - text: /.+/
+                  year: /.+/
                   pages:
                     - title: /.+/
                       extract: /.+/
+              events:
+                - text: /.+/
+                  year: /.+/
+                  pages:
+                    - title: /.+/
+              births:
+                - text: /.+/
+                  year: /.+/
+                  pages:
+                    - title: /.+/
+              deaths:
+                - text: /.+/
+                  year: /.+/
+                  pages:
+                    - title: /.+/
+              holidays:
+                - text: /.+/
+                  pages:
+                    - title: /.+/
 
 definitions:
   onthisday:
