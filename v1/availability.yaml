@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: '1.0.0-beta'
+  version: '1.0.1-beta'
   title: MediaWiki featured feed content availability API
   description: API for determining availbility of various featured feed content items by wiki language
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
@@ -21,7 +21,7 @@ paths:
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.1"
       responses:
         '200':
           description: JSON containing lists of wiki domains for which feed content is available.
@@ -64,27 +64,27 @@ definitions:
     properties:
       todays_featured_article:
         type: array
-        description: domains for wikis with this feature enabled, or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
         items:
           type: string
       most_read:
         type: array
-        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
         items:
           type: string
       picture_of_the_day:
         type: array
-        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
         items:
           type: string
       in_the_news:
         type: array
-        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
         items:
           type: string
       on_this_day:
         type: array
-        description: domains for wikis with this feature enabled or [ '*' ] for universally enabled
+        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
         items:
           type: string
     required: [ todays_featured_article, most_read, picture_of_the_day, in_the_news, on_this_day ]
