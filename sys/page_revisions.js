@@ -43,7 +43,7 @@ class PRS {
     getTableSchema() {
         return {
             table: tableName,
-            version: 1,
+            version: 2,
             attributes: {
                 title: 'string',
                 page_id: 'int',
@@ -61,7 +61,8 @@ class PRS {
                 timestamp: 'timestamp',
                 comment: 'string',
                 redirect: 'boolean',
-                page_deleted: 'int'
+                page_deleted: 'int',
+                page_language: 'string'
             },
             index: [
                 { attribute: 'title', type: 'hash' },
@@ -360,6 +361,23 @@ class PRS {
         }
         return revisionRequest
         .then((res) => {
+            // TODO: temprorary code to ensure all revision responces
+            // have the pagelanguage property set.
+            if (res.body.items.length && !res.body.items[0].page_language) {
+                if (mwUtil.isNoCacheRequest(req)) {
+                    hyper.logger.log('error/pagelanguage', {
+                        msg: 'Failed to fetch pagelanguage',
+                        page_title: rp.title,
+                        page_revision: rp.revision
+                    });
+                } else {
+                    req.headers = req.headers || {};
+                    req.headers['cache-control'] = 'no-cache';
+                    return this.getTitleRevision(hyper, req);
+                }
+            }
+            // End of temporary code
+
             // Check if the revision has any restrictions
             this._checkRevReturn(res.body.items.length && res.body.items[0]);
 
@@ -584,6 +602,7 @@ class PRS {
                     comment: restrictions.indexOf('commenthidden') < 0 ? apiRev.comment : null,
                     tags: apiRev.tags,
                     restrictions,
+                    page_language: dataResp.pagelanguage,
                     // Get the redirect property, it's inclusion means true
                     // FIXME: Figure out redirect strategy: https://phabricator.wikimedia.org/T87393
                     redirect: dataResp.redirect !== undefined
