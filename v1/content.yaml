@@ -113,6 +113,7 @@ paths:
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
+                  page_language: 'en'
 
   /html/{title}:
     x-route-filters:
@@ -868,6 +869,8 @@ definitions:
         format: date-time
       redirect:
         type: boolean
+      page_language:
+        type: string
 
   revisionIdentifier:
     description: Unique revision identifier
