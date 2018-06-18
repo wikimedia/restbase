@@ -127,6 +127,7 @@ paths:
     get:
       x-route-filters:
         - path: lib/ensure_content_type.js
+        - path: ./lib/language_variants_filter.js
       tags:
         - Page content
       summary: Get latest HTML for a title.
@@ -399,6 +400,7 @@ paths:
     get:
       x-route-filters:
         - path: lib/ensure_content_type.js
+        - path: ./lib/language_variants_filter.js
       tags:
         - Page content
       summary: Get HTML for a specific title/revision & optionally timeuuid.

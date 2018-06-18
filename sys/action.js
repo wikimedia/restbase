@@ -292,12 +292,30 @@ class ActionService {
                 body: {
                     action: 'query',
                     meta: 'siteinfo|filerepoinfo',
-                    siprop: 'general|namespaces|namespacealiases|specialpagealiases',
+                    siprop: 'general' +
+                        '|namespaces' +
+                        '|namespacealiases' +
+                        '|specialpagealiases' +
+                        '|languagevariants',
                     format: 'json'
                 }
             }, {}, (apiReq, res) => {
                 if (!res || !res.body || !res.body.query || !res.body.query.general) {
                     throw new Error(`SiteInfo is unavailable for ${rp.domain}`);
+                }
+                // Transform from original response format to
+                // {
+                //   'lang' => ['variant1', 'variant2' ... ]
+                // }
+                // for ease of use.
+                const origVariants = res.body.query.languagevariants;
+                const variants = {};
+                if (origVariants) {
+                    Object.keys(origVariants).forEach((lang) => {
+                        variants[lang] = Object.keys(origVariants[lang])
+                        // Filter out non-specific variants like `en`, `zh` etc.
+                        .filter(variant => /-/.test(variant));
+                    });
                 }
                 return {
                     status: 200,
@@ -311,6 +329,7 @@ class ActionService {
                         namespaces: res.body.query.namespaces,
                         namespacealiases: res.body.query.namespacealiases,
                         specialpagealiases: res.body.query.specialpagealiases,
+                        languagevariants: variants,
                         sharedRepoRootURI: findSharedRepoDomain(res),
                         baseUri: this._getBaseUri(req)
                     }
