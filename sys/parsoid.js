@@ -713,7 +713,7 @@ class ParsoidService {
             parsoidTo = 'pagebundle';
         }
         let parsoidFrom = from;
-        if (from === 'html' && req.body.original && req.body.original['data-parsoid']) {
+        if (from === 'html' && req.body.original) {
             parsoidFrom = 'pagebundle';
         }
         const parsoidExtras = [];
@@ -735,6 +735,7 @@ class ParsoidService {
             headers: {
                 'content-type': 'application/json',
                 'user-agent': req['user-agent'],
+                'content-language': req.headers['content-language']
             },
             body: req.body
         };
@@ -761,7 +762,10 @@ class ParsoidService {
         return (hyper, req) => {
             const rp = req.params;
             if ((!req.body && req.body !== '')
-                    || (!req.body[from] && req.body[from] !== '')) {
+                    // The html/to/html endpoint is a bit different so the `html`
+                    // might not be provided.
+                    || (!(from === 'html' && to === 'html')
+                        && !req.body[from] && req.body[from] !== '')) {
                 throw new HTTPError({
                     status: 400,
                     body: {
