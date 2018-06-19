@@ -18,6 +18,8 @@ var secureURL = hostPort + '/fr.wikipedia.org/v1';
 var secureBucketURL = secureURL + '/page';
 var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
 var labsBucketURL = labsURL + '/page';
+const variantsWikiURL = hostPort + '/sr.wikipedia.beta.wmflabs.org/v1';
+const variantsWikiBucketURL = variantsWikiURL + '/page';
 
 function loadConfig(path, forceSqlite) {
     var confString = fs.readFileSync(path).toString();
@@ -50,6 +52,7 @@ var config = {
     secureApiURL: 'https://fr.wikipedia.org/w/api.php',
     labsURL: labsURL,
     labsBucketURL: labsBucketURL,
+    variantsWikiBucketURL: variantsWikiBucketURL,
     labsApiURL: 'https://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
     conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : __dirname + '/../../config.test.yaml')
