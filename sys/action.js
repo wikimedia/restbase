@@ -312,7 +312,8 @@ class ActionService {
                 const variants = {};
                 if (origVariants) {
                     Object.keys(origVariants).forEach((lang) => {
-                        variants[lang] = Object.keys(origVariants[lang])
+                        variants[lang.toLowerCase()] =
+                            Object.keys(origVariants[lang].toLowerCase())
                         // Filter out non-specific variants like `en`, `zh` etc.
                         .filter(variant => /-/.test(variant));
                     });
