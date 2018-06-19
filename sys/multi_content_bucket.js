@@ -217,7 +217,7 @@ class MultiContentBucket {
         .thenReturn({ status: 201 });
     }
 
-        makeSchema(opts) {
+    makeSchema(opts) {
         const schemaVersionMajor = 3;
 
         return {
