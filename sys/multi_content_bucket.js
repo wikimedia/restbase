@@ -20,7 +20,8 @@ function returnRevision(req) {
             const row = dbResult.body.items[0];
             const headers = {
                 etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row['content-type']
+                'content-type': row['content-type'],
+                vary: row.vary
             };
             return {
                 status: 200,
@@ -87,6 +88,7 @@ class MultiContentBucket {
                     rev,
                     tid,
                     'content-type': req.body[cTypeSpec.name].headers['content-type'],
+                    vary: req.body[cTypeSpec.name].headers.vary,
                     value: req.body[cTypeSpec.name].body
                 }
             }
@@ -101,6 +103,7 @@ class MultiContentBucket {
                     rev,
                     tid,
                     'content-type': req.body[mainCTypeName].headers['content-type'],
+                    vary: req.body[mainCTypeName].headers.vary,
                     value: req.body[mainCTypeName].body
                 }
             }
@@ -218,7 +221,7 @@ class MultiContentBucket {
     }
 
     makeSchema(opts) {
-        const schemaVersionMajor = 3;
+        const schemaVersionMajor = 4;
 
         return {
             table: opts.table,
@@ -245,6 +248,7 @@ class MultiContentBucket {
                 // Redirect
                 'content-location': 'string',
                 'content-type': 'string',
+                vary: 'string',
                 tags: 'set<string>'
             },
             index: [
