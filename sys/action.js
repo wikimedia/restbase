@@ -313,9 +313,10 @@ class ActionService {
                 if (origVariants) {
                     Object.keys(origVariants).forEach((lang) => {
                         variants[lang.toLowerCase()] =
-                            Object.keys(origVariants[lang].toLowerCase())
+                            Object.keys(origVariants[lang])
                         // Filter out non-specific variants like `en`, `zh` etc.
-                        .filter(variant => /-/.test(variant));
+                        .filter(variant => /-/.test(variant))
+                        .map(variant => variant.toLowerCase());
                     });
                 }
                 return {
