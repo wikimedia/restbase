@@ -18,11 +18,10 @@ function returnRevision(req) {
     return (dbResult) => {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
-            const headers = {
+            const headers = Object.assign(row.headers || {}, {
                 etag: mwUtil.makeETag(row.rev, row.tid),
                 'content-type': row['content-type'],
-                vary: row.vary
-            };
+            });
             return {
                 status: 200,
                 headers,
@@ -88,7 +87,7 @@ class MultiContentBucket {
                     rev,
                     tid,
                     'content-type': req.body[cTypeSpec.name].headers['content-type'],
-                    vary: req.body[cTypeSpec.name].headers.vary,
+                    headers: req.body[cTypeSpec.name].headers,
                     value: req.body[cTypeSpec.name].body
                 }
             }
@@ -103,7 +102,7 @@ class MultiContentBucket {
                     rev,
                     tid,
                     'content-type': req.body[mainCTypeName].headers['content-type'],
-                    vary: req.body[mainCTypeName].headers.vary,
+                    headers: req.body[mainCTypeName].headers,
                     value: req.body[mainCTypeName].body
                 }
             }
@@ -248,7 +247,7 @@ class MultiContentBucket {
                 // Redirect
                 'content-location': 'string',
                 'content-type': 'string',
-                vary: 'string',
+                headers: 'json',
                 tags: 'set<string>'
             },
             index: [
