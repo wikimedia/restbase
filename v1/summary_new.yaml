@@ -18,6 +18,7 @@ paths:
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: ./lib/ensure_content_type.js
+      - path: ./lib/language_variants_filter.js
     get:
       tags:
         - Page content
@@ -112,6 +113,8 @@ paths:
         - extract:
             request:
               method: get
+              headers:
+                accept-language: '{{accept-language}}'
               uri: '{{options.host}}/{domain}/v1/page/summary/{title}'
             response:
               status: '{{extract.status}}'
@@ -121,15 +124,16 @@ paths:
             request:
               method: put
               uri: /{domain}/sys/key_value/page_summary/{request.params.title}
-              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
+              headers: '{{merge({"if-none-hash-match": "*", "cache-control": request.headers.cache-control}, extract.headers)}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
             # if the content is not changed. In that case, return from the
             # handler completely, and avoid issuing purges.
+            # Also don't emit an event if nothing new was actually stored (code 202)
             catch:
-              status: 412
+              status: [ 202, 412 ]
             return_if:
-              status: 412
+              status: [ 202, 412 ]
             return:
               status: 200
               headers:

@@ -142,6 +142,15 @@ class KVBucket {
             tid = tid || uuid.now().toString();
         }
 
+        if (mwUtil.isNoStoreRequest(req)) {
+            return {
+                status: 202,
+                headers: {
+                    etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
+                }
+            };
+        }
+
         const doPut = () => hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
