@@ -119,4 +119,82 @@ describe('Language variants', function() {
             assert.deepEqual(/2\. Ovo je testna stranica/.test(res.body), true);
         });
     });
+
+    it('should request summary with no variant and store it', () => {
+        let storedEtag;
+        return preq.get({
+            uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`
+        })
+        .then((res) => {
+            storedEtag = res.headers.etag;
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
+            // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual('1. Ово је тестна страница', res.body.extract);
+            // Not try fetching again with a default variant and see if etag matches
+            return preq.get({
+                uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+                headers: {
+                    'accept-language': 'sr'
+                }
+            });
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.deepEqual(res.headers.etag, storedEtag);
+            assert.deepEqual('1. Ово је тестна страница', res.body.extract);
+            // Now try the impossible variant and see that stored one is served again.
+            return preq.get({
+                uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+                headers: {
+                    'accept-language': 'sr-this-is-no-a-variant'
+                }
+            });
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.deepEqual(res.headers.etag, storedEtag);
+            assert.deepEqual('1. Ово је тестна страница', res.body.extract);
+        });
+    });
+
+    it('should request summary with latin variant and not store it', () => {
+        return preq.get({
+            uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+            headers: {
+                'accept-language': 'sr-el'
+            }
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            // TODO: Pass in MCS assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
+            // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr-el');
+            assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual('1. Ovo je testna stranica', res.body.extract);
+            // Try again without variant to see that stored didn't change
+            return preq.get({
+                uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+                headers: {
+                    'accept-language': 'sr'
+                }
+            });
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual('1. Ово је тестна страница', res.body.extract);
+        });
+    });
 });
