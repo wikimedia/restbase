@@ -9,6 +9,7 @@ paths:
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js
+      - path: lib/language_variants_filter.js
     get:
       tags:
         - Mobile
@@ -83,6 +84,7 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}{/revision}
               headers:
                 cache-control: '{{cache-control}}'
+                accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -183,6 +185,7 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
               headers:
                 cache-control: '{{cache-control}}'
+                accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -271,6 +274,7 @@ paths:
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
               headers:
                 cache-control: '{{cache-control}}'
+                accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},

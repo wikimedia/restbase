@@ -197,4 +197,87 @@ describe('Language variants', function() {
             assert.deepEqual('1. Ово је тестна страница', res.body.extract);
         });
     });
+
+    it('should request mobile-sections with no variant and store it', () => {
+        let storedEtag;
+        return preq.get({
+            uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`
+        })
+        .then((res) => {
+            storedEtag = res.headers.etag;
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
+            assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
+            // Not try fetching again with a default variant and see if etag matches
+            return preq.get({
+                uri: `${server.config.variantsWikiBucketURL}/mobile-sections-lead/${variantsPageTitle}/10`,
+                headers: {
+                    'accept-language': 'sr'
+                }
+            });
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.deepEqual(res.headers.etag, storedEtag);
+            assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
+            assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
+            // Now try the impossible variant and see that stored one is served again.
+            return preq.get({
+                uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+                headers: {
+                    'accept-language': 'sr-this-is-no-a-variant'
+                }
+            });
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.deepEqual(res.headers.etag, storedEtag);
+            assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
+            assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
+        });
+    });
+
+    it('should request mobile-sections with latin variant and not store it', () => {
+        return preq.get({
+            uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+            headers: {
+                'accept-language': 'sr-el'
+            }
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            // TODO: Pass in MCS assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr-el');
+            assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual(/1\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
+            assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
+            // Try again without variant to see that stored didn't change
+            return preq.get({
+                uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+                headers: {
+                    'accept-language': 'sr'
+                }
+            });
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
+            assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
+        });
+    });
 });
