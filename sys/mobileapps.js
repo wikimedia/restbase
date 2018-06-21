@@ -110,9 +110,15 @@ class MobileApps {
         }
 
         return hyper.get({
-            uri: new URI(serviceURI)
+            uri: new URI(serviceURI),
+            headers: {
+                'accept-language': req.headers['accept-language']
+            }
         })
         .then((res) => {
+            if (mwUtils.isNoStoreRequest(req)) {
+                return res;
+            }
             return hyper.put({
                 uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
                     res.body.lead.revision]),
