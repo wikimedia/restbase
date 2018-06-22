@@ -199,12 +199,10 @@ describe('Language variants', function() {
     });
 
     it('should request mobile-sections with no variant and store it', () => {
-        let storedEtag;
         return preq.get({
             uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`
         })
         .then((res) => {
-            storedEtag = res.headers.etag;
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
@@ -225,7 +223,6 @@ describe('Language variants', function() {
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
-            // TODO: Wrong tid returned first time assert.deepEqual(res.headers.etag, storedEtag);
             assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
             assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
             // Now try the impossible variant and see that stored one is served again.
@@ -241,7 +238,6 @@ describe('Language variants', function() {
             assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
-            assert.deepEqual(res.headers.etag, storedEtag);
             assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
             assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
         });

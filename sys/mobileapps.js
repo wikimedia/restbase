@@ -121,7 +121,8 @@ class MobileApps {
             }
             return hyper.put({
                 uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
-                    res.body.lead.revision]),
+                    res.body.lead.revision,
+                    mwUtils.parseETag(res.headers.etag).tid]),
                 body: {
                     lead: {
                         headers: res.headers,
