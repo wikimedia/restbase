@@ -50,6 +50,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            assert.varyNotContains(res, 'accept');
             return preq.get({
                 uri: server.config.labsBucketURL + '/html/Main_Page/'
             });
@@ -66,6 +67,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            assert.varyNotContains(res, 'accept');
         });
     });
 
@@ -96,6 +98,7 @@ describe('item requests', function() {
         })
         .then(function(res) {
             assert.deepEqual(res.status, 200);
+            assert.varyNotContains(res, 'accept');
             rev2Etag = res.headers.etag.replace(/^"(.*)"$/, '$1');
         });
     });
@@ -107,6 +110,7 @@ describe('item requests', function() {
         .then(function(res) {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
+            assert.varyNotContains(res, 'accept');
             return preq.get({
                 uri: server.config.labsBucketURL + '/data-parsoid/Foobar/'
                     + res.headers.etag.replace(/^"(.*)"$/, '$1')

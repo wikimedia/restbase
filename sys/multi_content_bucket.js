@@ -18,9 +18,9 @@ function returnRevision(req) {
     return (dbResult) => {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
-            const headers = Object.assign(row.headers || {}, {
+            const headers = Object.assign({}, row.headers || {}, {
                 etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row['content-type'],
+                'content-type': row['content-type']
             });
             return {
                 status: 200,
