@@ -166,6 +166,16 @@ function compileReRenderBlacklist(blacklist) {
     return result;
 }
 
+function stripAcceptFromVary(res) {
+    if (res.headers.vary) {
+        res.headers.vary = res.headers.vary.split(',')
+        .map(header => header.trim())
+        .filter(header => !/^accept$/i.test(header))
+        .join(',');
+    }
+    return res;
+}
+
 class ParsoidService {
     constructor(options) {
         this.options = options = options || {};
@@ -356,6 +366,7 @@ class ParsoidService {
                     hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
                     return currentContentRes;
                 } else if (res.status === 200) {
+                    stripAcceptFromVary(res.body.html);
                     const resp = {
                         status: res.status,
                         headers: res.body[format].headers,
@@ -516,10 +527,13 @@ class ParsoidService {
         return contentReq
         .then((res) => {
             mwUtil.normalizeContentType(res);
+            res.headers = res.headers || {};
             if (this.options.response_cache_control) {
-                if (!res.headers) { res.headers = {}; }
                 res.headers['cache-control'] = this.options.response_cache_control;
             }
+            // Strip Accept from Vary headers since RESTBase doesn't do content-type
+            // transformations
+            res = stripAcceptFromVary(res);
             if (/^null$/.test(res.headers.etag)) {
                 hyper.logger.log('error/parsoid/response_etag_missing', {
                     msg: 'Detected a null etag in the response!'

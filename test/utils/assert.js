@@ -160,6 +160,26 @@ function checkString(result, expected, message) {
     }
 }
 
+function varyNotContains(res, header) {
+    if (!res.headers) {
+        throw new assert.AssertionError({
+            message: `Empty headers verifying vary doesn't contain ${header}`
+        });
+    }
+    if (!res.headers.vary) {
+        throw new assert.AssertionError({
+            message: `Empty Vary header verifying vary doesn't contain ${header}`
+        });
+    }
+    const varyAsList = res.headers.vary.split(',')
+    .map(header => header.trim().toLowerCase());
+    if (varyAsList.indexOf(header.toLowerCase()) !== -1) {
+        throw new assert.AssertionError({
+            message: `Vary header contains ${header} while it must not`
+        });
+    }
+}
+
 module.exports.ok             = assert.ok;
 module.exports.AssertionError = assert.AssertionError;
 module.exports.fails          = fails;
@@ -172,3 +192,4 @@ module.exports.localRequests  = localRequests;
 module.exports.remoteRequests = remoteRequests;
 module.exports.findParsoidRequest = findParsoidRequest;
 module.exports.checkString    = checkString;
+module.exports.varyNotContains = varyNotContains;
