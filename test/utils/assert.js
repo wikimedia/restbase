@@ -167,15 +167,33 @@ function varyNotContains(res, header) {
         });
     }
     if (!res.headers.vary) {
+        return;
+    }
+    const varyAsList = res.headers.vary.split(',')
+    .map(header => header.trim().toLowerCase());
+    if (varyAsList.includes(header.toLowerCase())) {
         throw new assert.AssertionError({
-            message: `Empty Vary header verifying vary doesn't contain ${header}`
+            message: `Vary header contains ${header} while it must not`
+        });
+    }
+}
+
+function varyContains(res, header) {
+    if (!res.headers) {
+        throw new assert.AssertionError({
+            message: `Empty headers verifying vary contains ${header}`
+        });
+    }
+    if (!res.headers.vary) {
+        throw new assert.AssertionError({
+            message: `Empty vary header verifying vary contains ${header}`
         });
     }
     const varyAsList = res.headers.vary.split(',')
     .map(header => header.trim().toLowerCase());
-    if (varyAsList.indexOf(header.toLowerCase()) !== -1) {
+    if (!varyAsList.includes(header.toLowerCase())) {
         throw new assert.AssertionError({
-            message: `Vary header contains ${header} while it must not`
+            message: `Vary header does not contain ${header}`
         });
     }
 }
@@ -193,3 +211,4 @@ module.exports.remoteRequests = remoteRequests;
 module.exports.findParsoidRequest = findParsoidRequest;
 module.exports.checkString    = checkString;
 module.exports.varyNotContains = varyNotContains;
+module.exports.varyContains = varyContains;
