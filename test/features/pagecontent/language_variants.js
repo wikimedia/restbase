@@ -128,7 +128,8 @@ describe('Language variants', function() {
         .then((res) => {
             storedEtag = res.headers.etag;
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyNotContains(res, 'accept');
+            assert.varyContains(res, 'accept-language');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -143,7 +144,8 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyContains(res, 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
@@ -158,7 +160,8 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyContains(res, 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
@@ -176,6 +179,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             // TODO: Pass in MCS assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr-el');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -191,6 +195,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -204,7 +209,8 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyContains(res, 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
@@ -221,6 +227,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
@@ -235,7 +242,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyContains(res, 'accept-language');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
@@ -253,6 +260,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             // TODO: Pass in MCS assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS assert.deepEqual(res.headers['content-language'], 'sr-el');
             assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
@@ -269,6 +277,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers.vary.toLowerCase(), 'accept-language');
+            assert.varyNotContains(res, 'accept');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             // TODO: Pass in MCS, store in RB assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
