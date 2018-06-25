@@ -167,7 +167,7 @@ function compileReRenderBlacklist(blacklist) {
 }
 
 function stripAcceptFromVary(res) {
-    if (res.headers.vary) {
+    if (res && res.headers && res.headers.vary) {
         res.headers.vary = res.headers.vary.split(',')
         .map(header => header.trim())
         .filter(header => !/^accept$/i.test(header))
