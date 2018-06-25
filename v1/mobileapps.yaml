@@ -41,6 +41,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for latin trascription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: JSON containing HTML sections and metadata for the given page title.
@@ -141,6 +148,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for latin trascription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: The HTML for the given page title.
@@ -229,6 +243,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for latin trascription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: JSON wrapping HTML sections for the given page title.

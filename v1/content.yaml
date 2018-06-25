@@ -152,6 +152,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for latin trascription of the Serbian language.
+          required: false
+          type: string
       produces:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
         - application/json
@@ -438,6 +445,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for latin trascription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: |
