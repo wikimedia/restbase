@@ -107,6 +107,8 @@ paths:
                 content-type: '{{storage.headers.content-type}}'
                 etag: '{{storage.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
+                content-language: '{{storage.headers.content-language}}'
+                vary: '{{storage.headers.vary}}'
               body: '{{storage.body}}'
 
         # Storage miss. Call the Action API to get the textextract.
@@ -140,6 +142,8 @@ paths:
                 content-type: '{{extract.headers.content-type}}'
                 etag: '{{store_and_return.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
+                content-language: '{{extract.headers.content-language}}'
+                vary: '{{extract.headers.vary}}'
               body: '{{extract.body}}'
         - emit_change_event:
             request:
@@ -154,6 +158,8 @@ paths:
                 content-type: '{{extract.headers.content-type}}'
                 etag: '{{store_and_return.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
+                content-language: '{{extract.headers.content-language}}'
+                vary: '{{extract.headers.vary}}'
               body: '{{extract.body}}'
 
       x-monitor: true
