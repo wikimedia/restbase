@@ -170,7 +170,7 @@ function stripAcceptFromVary(res) {
     if (res && res.headers && res.headers.vary) {
         res.headers.vary = res.headers.vary.split(',')
         .map(header => header.trim())
-        .filter(header => !/^accept$/i.test(header))
+        .filter(header => header && !/^accept$/i.test(header))
         .join(',');
     }
     if (!res.headers.vary) {
