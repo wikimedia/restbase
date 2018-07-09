@@ -166,8 +166,13 @@ function varyNotContains(res, header) {
             message: `Empty headers verifying vary doesn't contain ${header}`
         });
     }
-    if (!res.headers.vary) {
+    if (!Object.prototype.hasOwnProperty.call(res.headers, 'vary')) {
         return;
+    }
+    if (res.headers.vary === '') {
+        throw new assert.AssertionError({
+            message: `Vary header should not be an empty string ('')`
+        });
     }
     const varyAsList = res.headers.vary.split(',')
     .map(header => header.trim().toLowerCase());

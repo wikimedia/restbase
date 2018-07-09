@@ -173,6 +173,9 @@ function stripAcceptFromVary(res) {
         .filter(header => !/^accept$/i.test(header))
         .join(',');
     }
+    if (!res.headers.vary) {
+        delete res.headers.vary;
+    }
     return res;
 }
 
