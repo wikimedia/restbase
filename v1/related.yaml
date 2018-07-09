@@ -54,36 +54,4 @@ definitions:
       pages:
         type: array
         items:
-          type: object
-          properties:
-            pageid:
-              type: integer
-              description: Page ID
-            ns:
-              type: integer
-              description: The page namespace number
-            index:
-              type: integer
-              description: Relevance index of this result
-            title:
-              type: string
-              description: Article title in a form of DB key
-            normalizedtitle:
-              type: string
-              description: Article title as it should be presented to the user
-            thumbnail:
-              description: Lead image for the article
-              $ref: '#/definitions/thumbnail'
-            originalimage:
-              description: The original of the lead image for the article
-              $ref: '#/definitions/originalimage'
-            description:
-              type: string
-              description: Wikidata description of the article
-            extract:
-              type: string
-              description: First several sentences of an article in plain text
-          required:
-            - title
-            - normalizedtitle
-        required: ['title', 'ns']
+          $ref: '#/definitions/summary'
