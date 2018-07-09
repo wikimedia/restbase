@@ -49,7 +49,7 @@ paths:
           in: header
           description: >
             The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for latin trascription of the Serbian language.
+            Example: `sr-el` for Latin trasscription of the Serbian language.
           required: false
           type: string
       responses:
