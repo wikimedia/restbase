@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "REST storage and service dispatcher",
   "main": "index.js",
   "scripts": {
@@ -37,11 +37,11 @@
     "bluebird": "^3.5.1",
     "cassandra-uuid": "^0.0.2",
     "restbase-mod-table-cassandra": "^1.1.0",
-    "service-runner": "^2.6.1",
-    "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master",
+    "service-runner": "^2.6.3",
+    "json-stable-stringify": "^1.0.1",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
-    "hyperswitch": "^0.10.1",
-    "jsonwebtoken": "^8.1.0",
+    "hyperswitch": "^0.10.2",
+    "jsonwebtoken": "^8.3.0",
     "mediawiki-title": "^0.6.5",
     "entities": "^1.1.1"
   },
@@ -68,7 +68,7 @@
     "restbase-mod-table-sqlite": "^1.0.0"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "deploy": {
     "node": "6.11.1",
