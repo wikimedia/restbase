@@ -57,6 +57,15 @@ class Feed extends BaseFeed {
     // TODO: this is temporary code to increase the size of the TFA thumbnail
     _hydrateResponse(hyper, req, res) {
         const rp = req.params;
+        const updateForDupes = (orig, dupe) => {
+            orig.views += dupe.views;
+            orig.view_history.forEach((toViewsForDate) => {
+                toViewsForDate.views += dupe.view_history.filter((fromViewsForDate) => {
+                    return toViewsForDate.date === fromViewsForDate.date;
+                })[0].views;
+            });
+            return orig;
+        };
         if (res.body.tfa && res.body.tfa.$merge && res.body.tfa.$merge.length) {
             const summaryURI = res.body.tfa.$merge[0];
             const title = decodeURIComponent(
@@ -89,7 +98,8 @@ class Feed extends BaseFeed {
                 }
                 if (result[0].body.mostread && result[0].body.mostread.articles) {
                     result[0].body.mostread.articles =
-                        mwUtil.removeDuplicateTitles(result[0].body.mostread.articles);
+                        mwUtil.removeDuplicateTitles(result[0].body.mostread.articles,
+                            updateForDupes);
                 }
                 return result[0];
             });
@@ -98,7 +108,8 @@ class Feed extends BaseFeed {
             .then((response) => {
                 if (response.body.mostread && response.body.mostread.articles) {
                     response.body.mostread.articles =
-                        mwUtil.removeDuplicateTitles(response.body.mostread.articles);
+                        mwUtil.removeDuplicateTitles(response.body.mostread.articles,
+                            updateForDupes);
                 }
                 return response;
             });
