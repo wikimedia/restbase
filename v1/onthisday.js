@@ -3,6 +3,7 @@
 const HyperSwitch = require('hyperswitch');
 const Template = HyperSwitch.Template;
 const BaseFeed = require('../lib/base_feed');
+const mwUtil = require('../lib/mwUtil');
 
 const REQUEST_TEMPLATE = new Template({
     uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/all/{{mm}}/{{dd}}'
@@ -26,8 +27,8 @@ class Feed extends BaseFeed {
                 [req.params.type]: res.body[req.params.type]
             };
         }
-        // Hydration resolves re-directs so we need to de-dupe titles here *after* hydration.
-        const removeDuplicateTitlesFromHydratedResponsePages = (response) => {
+        return super._hydrateResponse(hyper, req, res)
+        .then((response) => {
             Object.keys(response.body).forEach((key) => {
                 if (!Array.isArray(response.body[key])) {
                     return;
@@ -36,20 +37,11 @@ class Feed extends BaseFeed {
                     if (!elem || !Array.isArray(elem.pages)) {
                         return;
                     }
-                    const titles = {};
-                    elem.pages = elem.pages.filter((item) => {
-                        if (titles[item.title]) {
-                            return false;
-                        }
-                        titles[item.title] = true;
-                        return true;
-                    });
+                    elem.pages = mwUtil.removeDuplicateTitles(elem.pages);
                 });
             });
             return response;
-        };
-        return super._hydrateResponse(hyper, req, res)
-        .then(removeDuplicateTitlesFromHydratedResponsePages);
+        });
     }
 
     _makeFeedRequests(hyper, req) {
