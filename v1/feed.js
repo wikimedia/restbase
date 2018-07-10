@@ -87,10 +87,21 @@ class Feed extends BaseFeed {
                         result[0].body.tfa.originalimage = newOriginal;
                     }
                 }
+                if (result[0].body.mostread && result[0].body.mostread.articles) {
+                    result[0].body.mostread.articles =
+                        mwUtil.removeDuplicateTitles(result[0].body.mostread.articles);
+                }
                 return result[0];
             });
         } else {
-            return super._hydrateResponse(hyper, req, res);
+            return super._hydrateResponse(hyper, req, res)
+            .then((response) => {
+                if (response.body.mostread && response.body.mostread.articles) {
+                    response.body.mostread.articles =
+                        mwUtil.removeDuplicateTitles(response.body.mostread.articles);
+                }
+                return response;
+            });
         }
     }
 
