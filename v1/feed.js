@@ -57,7 +57,6 @@ class Feed extends BaseFeed {
     // TODO: this is temporary code to increase the size of the TFA thumbnail
     _hydrateResponse(hyper, req, res) {
         const rp = req.params;
-        const fetchSummary = uri => mwUtil.fetchSummary(hyper, uri);
         if (res.body.tfa && res.body.tfa.$merge && res.body.tfa.$merge.length) {
             const summaryURI = res.body.tfa.$merge[0];
             const title = decodeURIComponent(
@@ -74,7 +73,7 @@ class Feed extends BaseFeed {
                 }
             });
             return P.join(
-                mwUtil.hydrateResponse(res, fetchSummary),
+                super._hydrateResponse(hyper, req, res),
                 highQualityThumbRequest
             ).then((result) => {
                 const thumbRes = result[1].body;
@@ -91,7 +90,7 @@ class Feed extends BaseFeed {
                 return result[0];
             });
         } else {
-            return mwUtil.hydrateResponse(res, fetchSummary);
+            return super._hydrateResponse(hyper, req, res);
         }
     }
 
