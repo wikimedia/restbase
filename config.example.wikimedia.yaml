@@ -23,7 +23,7 @@ default_project: &default_project
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
         graphoid:
-          host: https://graphoid.wikimedia.org
+          host: https://graphoid-beta.wmflabs.org
         mathoid:
           host: https://mathoid-tester.wmflabs.org
           # 10 days Varnish caching, one day client-side
