@@ -90,11 +90,11 @@ spec_root: &spec_root
       name: http
       options:
         allow:
-          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+          - pattern: /^https:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
             forward_headers: true
-          - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
+          - pattern: /^https:\/\/parsoid-beta.wmflabs.org.+/
             forward_headers: true
-          - pattern: /^https?:\/\//
+          - pattern: /^https:\/\//
   paths:
     /{domain:en.wikipedia.org}: *en.wikipedia.org
     /{domain:fr.wikipedia.org}: *default_project
