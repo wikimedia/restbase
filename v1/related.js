@@ -24,7 +24,7 @@ class Related {
                 gsrwhat: 'text',
                 gsrinfo: '',
                 gsrprop: 'redirecttitle',
-                gsrlimit: 5
+                gsrlimit: 20
             }
         })
         .then((res) => {

@@ -18,7 +18,7 @@ paths:
         - Page content
       summary: Get pages related to the given title
       description: |
-        Returns summaries for 5 pages related to the given page. Summaries include
+        Returns summaries for 20 pages related to the given page. Summaries include
         page title, namespace and id along with short text description of the page
         and a thumbnail.
 
