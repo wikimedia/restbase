@@ -11,7 +11,7 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /media/{title}{/revision}:
+  /media/{title}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -34,12 +34,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          required: false
         - name: redirect
           in: query
           description: >
@@ -89,7 +83,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media/{title}/{revision}'
+              uri: '{{options.host}}/{domain}/v1/page/media/{title}'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -102,7 +96,6 @@ paths:
             params:
               domain: en.wikipedia.org
               title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
-              revision: 803891963
           response:
             status: 200
             headers:
