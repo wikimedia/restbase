@@ -110,6 +110,9 @@ paths:
                 - path: v1/css.yaml
                   options:
                     host: '{{options.mobileapps.host}}'
+                - path: v1/javascript.yaml
+                  options:
+                    host: '{{options.mobileapps.host}}'
         options: '{{options}}'
 
   /{api:sys}:
