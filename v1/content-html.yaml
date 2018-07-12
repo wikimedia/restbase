@@ -1,0 +1,134 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki page content-html API
+  description: API for retrieving page content for reading purposes
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /content-html/{title}{/revision}:
+    x-route-filters:
+      - path: ./lib/revision_table_access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
+    get:
+      tags:
+        - Page content
+      summary: Get page content HTML for reading purposes.
+      description: |
+        Gets the content HTML for the given page. This content is derived from Parsoid HTML (see
+        `/page/html/{title}` endpoint).
+        The difference to Parsoid HTML is roughly:
+        * Some elements and attributes not needed for the reading case are removed.
+        * LeadIntroductionTransform: The introductory paragraph is moved before an infobox.
+        * RedLinks: Red links are flattened (=turned into span elements).
+        * WidenImage: images that should be displayed in gallery are widened.
+        * Section headings are slightly changed by wrapping the headings inside a div and adding
+          a span element inside the new div for the edit buttons.
+        * Additional classes are added to img elements to fix issues with non-white backgrounds.
+          See Theme support below for instructions on how to enable that.
+        * Pagelib CSS files needed to display the content are referenced.
+        * LazyLoadTransform: server-side portion/prep for lazy loading of images.
+        * CollapseTable: server-side portion/prep for collapsing tables.
+
+        What's not included? What parts of the PageLibrary does a client still have to do?
+        * Theme support: Themes can be turned on by adding a theme class to the root <html> tag.
+          Possible class names are:
+          * `pagelib_theme_default`
+          * `pagelib_theme_dark`
+          * `pagelib_theme_black`
+          * `pagelib_theme_sepia`
+
+          The pagelib JS has functionality to do that: ThemeTransform.setTheme(document, theme).
+        * Dim images: DimImagesTransform.dim(window, enable)
+        * PlatformTransform.classify(window) to trigger Android and iOS app specific CSS rules
+        * LazyLoadTransformer: client side companion of LazyLoadTransform (note the extra *er*
+        here)
+        * FooterTransformer: seems to be more UI than content, requires I18N, too
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Content-HTML/1.0.0"
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          required: false
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: JSON containing a structure of content-html on the given page.
+          headers:
+            ETag:
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/content-html/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Get content-html of a test page
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Video
+              revision: 830543386
+          response:
+            status: 200
+            headers:
+              content-type: /text\/html/
