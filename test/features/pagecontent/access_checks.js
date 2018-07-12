@@ -180,6 +180,7 @@ describe('Access checks', () => {
         testAccess('media', 'deleted', deletedPageTitle);
         testAccess('metadata', 'deleted', deletedPageTitle);
         testAccess('references', 'deleted', deletedPageTitle);
+        testAccess('content-html', 'deleted', deletedPageTitle);
     });
 
     describe('Undeleting', () => {
