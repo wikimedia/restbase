@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: '1.0.0-beta'
-  title: MediaWiki page content-html API
+  title: MediaWiki page mobile-html API
   description: API for retrieving page content for reading purposes
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
   contact:
@@ -11,7 +11,7 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /content-html/{title}{/revision}:
+  /mobile-html/{title}{/revision}:
     x-route-filters:
       - path: ./lib/revision_table_access_check_filter.js
         options:
@@ -20,10 +20,10 @@ paths:
     get:
       tags:
         - Page content
-      summary: Get page content HTML for reading purposes.
+      summary: Get page content HTML optimized for mobile consumption.
       description: |
-        Gets the content HTML for the given page. This content is derived from Parsoid HTML (see
-        `/page/html/{title}` endpoint).
+        Gets the content HTML optimized for mobile consumption for the given page. This content
+        is derived from Parsoid HTML (see `/page/html/{title}` endpoint).
         The difference to Parsoid HTML is roughly:
         * Some elements and attributes not needed for the reading case are removed.
         * LeadIntroductionTransform: The introductory paragraph is moved before an infobox.
@@ -54,7 +54,7 @@ paths:
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Content-HTML/1.0.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML/1.0.0"
       parameters:
         - name: title
           in: path
@@ -78,7 +78,7 @@ paths:
           required: false
       responses:
         '200':
-          description: JSON containing a structure of content-html on the given page.
+          description: mobile-optimized HTML of the given page.
           headers:
             ETag:
               description: >
@@ -114,7 +114,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/content-html/{title}/{revision}'
+              uri: '{{options.host}}/{domain}/v1/page/mobile-html/{title}/{revision}'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -122,7 +122,7 @@ paths:
               body: '{{get_from_pcs.body}}'
       x-monitor: true
       x-amples:
-        - title: Get content-html of a test page
+        - title: Get mobile-html of a test page
           request:
             params:
               domain: en.wikipedia.org
