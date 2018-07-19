@@ -60,9 +60,12 @@ class Feed extends BaseFeed {
         const updateForDupes = (orig, dupe) => {
             orig.views += dupe.views;
             orig.view_history.forEach((toViewsForDate) => {
-                toViewsForDate.views += dupe.view_history.filter((fromViewsForDate) => {
+                const filteredViews = dupe.view_history.filter((fromViewsForDate) => {
                     return toViewsForDate.date === fromViewsForDate.date;
-                })[0].views;
+                });
+                if (filteredViews.length) {
+                    toViewsForDate.views += filteredViews[0].views;
+                }
             });
             return orig;
         };
