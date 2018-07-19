@@ -4,7 +4,7 @@ const assert = require('../utils/assert.js');
 const server = require('../utils/server.js');
 const preq   = require('preq');
 
-describe('Page Content Service: /page/content-html', () => {
+describe('Page Content Service: /page/mobile-html', () => {
     before(() => server.start());
 
     const pageTitle = 'Foobar';
@@ -16,9 +16,9 @@ describe('Page Content Service: /page/content-html', () => {
         assert.ok(res.body.length > 0);
     };
 
-    it('Should fetch latest content-html', () => {
+    it('Should fetch latest mobile-html', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/content-html/${pageTitle}`
+            uri: `${server.config.bucketURL}/mobile-html/${pageTitle}`
         })
         .then((res) => {
             commonChecks(res);
@@ -26,9 +26,9 @@ describe('Page Content Service: /page/content-html', () => {
         });
     });
 
-    it('Should fetch older content-html', () => {
+    it('Should fetch older mobile-html', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/content-html/${pageTitle}/${pageRev}`
+            uri: `${server.config.bucketURL}/mobile-html/${pageTitle}/${pageRev}`
         })
         .then((res) => {
             commonChecks(res);
