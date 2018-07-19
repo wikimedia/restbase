@@ -152,9 +152,9 @@ paths:
             # handler completely, and avoid issuing purges.
             # Also if we didn't really store anything, return as well.
             catch:
-              status: [ 412, 202 ]
+              status: [ 202, 412 ]
             return_if:
-              status: [ 412, 202 ]
+              status: [ 202, 412 ]
             return:
               status: 200
               headers:
