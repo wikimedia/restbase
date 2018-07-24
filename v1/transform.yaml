@@ -31,7 +31,7 @@ paths:
         readable.
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
-        - Rate limit: 5 req/s
+        - Rate limit: 25 req/s
       consumes:
         - multipart/form-data
       produces:
@@ -97,7 +97,7 @@ paths:
           options:
             limits:
               internal: 10
-              external: 5
+              external: 25
 
       x-request-handler:
         - get_from_backend:
@@ -120,7 +120,7 @@ paths:
         also need to supply the title.
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
-        - Rate limit: 5 req/s
+        - Rate limit: 25 req/s
       consumes:
         - multipart/form-data
       produces:
@@ -184,7 +184,7 @@ paths:
           options:
             limits:
               internal: 10
-              external: 5
+              external: 25
 
       x-request-handler:
         - get_from_backend:
@@ -219,7 +219,7 @@ paths:
         Parse the supplied wikitext and check it for lint errors.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 5 req/s
+        - Rate limit: 25 req/s
       consumes:
         - multipart/form-data
         - application/json
@@ -270,7 +270,7 @@ paths:
           options:
             limits:
               internal: 10
-              external: 5
+              external: 25
 
       x-request-handler:
         - get_from_backend:
@@ -362,7 +362,7 @@ paths:
         full Wikitext of the page.
 
         - Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-        - Rate limit: 5 req/s
+        - Rate limit: 25 req/s
       consumes:
         - application/json
       produces:
@@ -450,7 +450,7 @@ paths:
           options:
             limits:
               internal: 10
-              external: 5
+              external: 25
 
       x-request-handler:
         - get_from_backend:
