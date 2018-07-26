@@ -132,6 +132,6 @@ paths:
             status: 200
             headers:
               content-type: /^text\/html/
-              etag: /^"830543386\/[0-9a-f-]+"$/
+              etag: /830543386\/[0-9a-f-]+/
             body: /^<!DOCTYPE html><html/
 
