@@ -23,7 +23,7 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - applicaiton/json
+        - application/json
       parameters:
         - name: from_lang
           in: path
