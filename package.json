@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "description": "REST storage and service dispatcher",
   "main": "index.js",
   "scripts": {
