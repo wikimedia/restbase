@@ -243,10 +243,19 @@ definitions:
         type: string
         description: URL for the pertinent license
       description:
-        type: string
+        type: object
         description: description of the image from Wikimedia Commons
+        properties:
+          html:
+            type: string
+            description: html image description
+          text:
+            type: string
+            description: plain text image description
+        required: [ html, text ]
     required:
-      - section_id
+      - titles
+      - file_page
       - type
 
   titles_set:
