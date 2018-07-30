@@ -39,6 +39,7 @@ paths:
           description: >
             Optional page revision. Note that older revisions are not stored, so
             request latency with the revision would be higher.
+          type: integer
           required: false
         - name: redirect
           in: query

@@ -41,6 +41,7 @@ paths:
         - name: format
           in: path
           description: "The format to use for the resulting citation data"
+          type: string
           enum:
             - mediawiki
             - mediawiki-basefields

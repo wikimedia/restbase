@@ -3,7 +3,7 @@ info:
   version: '1.0.0-beta'
   title: MediaWiki Related Pages API
   description: Related pages API
-  termsofservice: https://github.com/wikimedia/restbase#restbase
+  termsOfService: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Services
     email: services@lists.wikimedia.org

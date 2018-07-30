@@ -39,6 +39,7 @@ paths:
           description: >
             Optional page revision. Note that older revisions are not stored, so
             request latency with the revision would be higher.
+          type: integer
           required: false
         - name: redirect
           in: query
@@ -145,6 +146,12 @@ definitions:
   reference_lists:
     type: array
     description: A list of reference lists
+    items:
+      $ref: '#/definitions/reference_list'
+
+  reference_list:
+    type: object
+    description: A single reference list
     properties:
       id:
         type: string

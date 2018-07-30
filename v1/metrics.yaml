@@ -2,7 +2,7 @@ info:
   version: '1.0.0-beta'
   title: Analytics Metrics API
   description: Analytics Metrics API
-  termsofservice: https://github.com/wikimedia/restbase#restbase
+  termsOfService: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Analytics
     email: analytics@lists.wikimedia.org
