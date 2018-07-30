@@ -31,7 +31,8 @@ paths:
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/definition/0.8.0"
+        - application/problem+json
       parameters:
         - name: term
           in: path

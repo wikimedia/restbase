@@ -25,6 +25,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path

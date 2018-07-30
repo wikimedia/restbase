@@ -22,6 +22,7 @@ paths:
           maximum: 24
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: JSON containing all of the featured content
