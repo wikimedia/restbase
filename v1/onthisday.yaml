@@ -18,7 +18,8 @@ paths:
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/onthisday/0.3.3"
+        - application/problem+json
       parameters:
         - name: type
           in: path

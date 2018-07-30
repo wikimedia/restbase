@@ -22,6 +22,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.1"
+        - application/problem+json
       responses:
         '200':
           description: JSON containing lists of wiki domains for which feed content is available.

@@ -2,7 +2,7 @@ info:
   version: '1.0.0'
   title: Recommendation API
   description: Recommendation API
-  termsofservice: https://github.com/wikimedia/restbase
+  termsOfService: https://github.com/wikimedia/restbase
   license:
     name: Apache license, v2
     url: https://www.apache.org/licenses/LICENSE-2.0

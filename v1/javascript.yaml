@@ -29,6 +29,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/JavaScript/1.0.0"
+        - application/problem+json
       responses:
         '200':
           description: Success

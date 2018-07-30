@@ -26,7 +26,8 @@ paths:
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Metadata/1.0.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Metadata/1.2.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -38,6 +39,7 @@ paths:
           description: >
             Optional page revision. Note that older revisions are not stored, so
             request latency with the revision would be higher.
+          type: integer
           required: false
         - name: redirect
           in: query
@@ -143,6 +145,90 @@ paths:
 
 # copied from MCS spec.yaml
 definitions:
+
+  metadata:
+    type: object
+    properties:
+      revision:
+        type: string
+        description: revision ID for the page
+      tid:
+        type: string
+        description: time UUID for the page/revision
+      hatnotes:
+        type: array
+        description: the hatnotes on the page, with html and plaintext representations provided for each
+        items:
+          $ref: '#/definitions/hatnote_or_page_issue'
+      issues:
+        type: array
+        description: the page issues on the page, with html and plaintext representations provided for each
+        items:
+          $ref: '#/definitions/hatnote_or_page_issue'
+      toc:
+        type: object
+        description: a table of contents for the page, in structured form
+        properties:
+          title:
+            type: string
+            description: the TOC title string for the wiki as reported by siteinfo
+          entries:
+            type: array
+            description: section info for the TOC in structured form
+            items:
+              $ref: '#/definitions/toc_entry'
+        required: [ title, entries ]
+        additionalProperties: false
+      language_links:
+        type: array
+        description: list of titles and language codes for the article topic on other language Wikipedias
+        items:
+          type: object
+          description: titles and language codes for the article topic on another language Wikipedia
+          properties:
+            lang:
+              type: string
+              description: language code
+            titles:
+              type: object
+              description: titles dictionary
+              properties:
+                canonical:
+                  type: string
+                  description: canonical title
+                normalized:
+                  type: string
+                  description: normalized title
+              required:
+                - canonical
+                - normalized
+            summary_url:
+              type: string
+              description: link to REST API summary
+          required:
+            - lang
+            - titles
+            - summary_url
+      categories:
+        type: array
+        description: categories the page belongs to
+        items:
+          $ref: '#/definitions/category'
+      protection:
+        type: object
+        description: info on page edit and move rights
+        items:
+          $ref: '#/definitions/protection'
+      description_source:
+        type: string
+        enum:
+          - central
+          - local
+        description: Whether the description is defined locally or comes from Wikidata.  May be 'central' or 'local'.
+      variants:
+        type: object
+    required: [ revision, tid, protection ]
+    additionalProperties: false
 
   hatnote_or_page_issue:
     type: object

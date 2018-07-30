@@ -53,6 +53,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - <<: *csrf_token
       responses:
@@ -88,6 +89,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - <<: *csrf_token
       responses:
@@ -140,6 +142,7 @@ paths:
           required: false
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+        - application/problem+json
       responses:
         '200':
           description: An array of list metadata.
@@ -204,6 +207,7 @@ paths:
       x-maxsize: *maxEntriesPerList
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - name: list
           in: body
@@ -275,6 +279,7 @@ paths:
         - <<: *csrf_token
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       responses:
         '200':
           description: The updated data for the list.
@@ -328,6 +333,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - name: id
           in: path
@@ -368,6 +374,7 @@ paths:
       x-maxsize: *maxEntriesPerList
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - name: batch
           in: body
@@ -468,6 +475,7 @@ paths:
           required: false
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+        - application/problem+json
       responses:
         '200':
           description: An array of list entries.
@@ -507,6 +515,7 @@ paths:
       x-maxsize: *maxListsPerUser
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - name: id
           in: path
@@ -587,6 +596,7 @@ paths:
         - <<: *csrf_token
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       responses:
         '200':
           description: Success.
@@ -620,6 +630,7 @@ paths:
       x-maxsize: *maxListsPerUser
       produces:
         - application/json; charset=utf-8
+        - application/problem+json
       parameters:
         - name: id
           in: path
@@ -710,6 +721,7 @@ paths:
           required: false
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+        - application/problem+json
       responses:
         '200':
           description: An array of list metadata.
@@ -783,6 +795,7 @@ paths:
           required: false
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
+        - application/problem+json
       responses:
         '200':
           description: An array of list and entry metadata.

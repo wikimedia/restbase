@@ -3,7 +3,7 @@ info:
   version: '1.0.0-beta'
   title: MediaWiki Summary API
   description: Page content summary API
-  termsofservice: https://github.com/wikimedia/restbase#restbase
+  termsOfService: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Services
     email: services@lists.wikimedia.org
@@ -29,6 +29,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.2.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path
