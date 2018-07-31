@@ -156,7 +156,6 @@ definitions:
     properties:
       id:
         type: ['string', 'null']
-        nullable: true
         description: Identifier for the whole reference list. May be null.
       section_heading:
         type: object
