@@ -36,7 +36,7 @@ issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-P
 
 ## Installation
 
-Make sure that you have node 4+:
+Make sure that you have node 6+:
 ```sh
 sudo apt-get install nodejs nodejs-legacy nodejs-dev npm
 ```
