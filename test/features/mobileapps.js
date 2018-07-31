@@ -1,9 +1,10 @@
-"use strict";
+'use strict';
+
+/* global describe, it, before */
 
 const assert = require('../utils/assert.js');
 const server = require('../utils/server.js');
 const preq   = require('preq');
-const nock   = require('nock');
 
 describe('Mobile Content Service', () => {
     before(() => server.start());

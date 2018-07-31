@@ -1,18 +1,21 @@
-"use strict";
+'use strict';
+
+/* global describe, it, before */
 
 const assert = require('../utils/assert.js');
 const server = require('../utils/server.js');
 const preq   = require('preq');
-const nock   = require('nock');
 
 function assertStorageRequest(requests, method, bucket, expected) {
-    const storageRequests = requests.filter((log) =>
+    const storageRequests = requests.filter(log =>
         log.req && log.req.uri === `/en.wikipedia.org/sys/table/${bucket}/`
             && log.req.method === method);
     if (expected) {
-        assert.deepEqual(storageRequests.length > 0, true, `Should have made ${method} request to ${bucket}`);
+        assert.deepEqual(storageRequests.length > 0, true,
+            `Should have made ${method} request to ${bucket}`);
     } else {
-        assert.deepEqual(storageRequests.length === 0, true, `Should NOT have made ${method} request to ${bucket}`)
+        assert.deepEqual(storageRequests.length === 0, true,
+            `Should NOT have made ${method} request to ${bucket}`);
     }
 }
 
@@ -21,15 +24,16 @@ function assertMCSRequest(requests, content, date, expected) {
     if (date) {
         serviceURI += `/${date}`;
     }
-    const serviceRequests = requests.filter((log) =>
+    const serviceRequests = requests.filter(log =>
         log.req && log.req.uri === serviceURI);
     if (expected) {
-        assert.deepEqual(serviceRequests.length > 0, true, `Should have made request to service for ${content}`);
+        assert.deepEqual(serviceRequests.length > 0, true,
+            `Should have made request to service for ${content}`);
     } else {
-        assert.deepEqual(serviceRequests.length === 0, true, `Should NOT have made request to service for ${content}`);
+        assert.deepEqual(serviceRequests.length === 0, true,
+            `Should NOT have made request to service for ${content}`);
     }
 }
-
 
 
 describe('Featured feed', () => {
@@ -163,7 +167,7 @@ describe('Featured feed', () => {
             }
         })
         .then(() => {
-            throw new Error('Must have failed')
+            throw new Error('Must have failed');
         }, (e) => {
             assert.deepEqual(e.status, 400);
         });
@@ -177,7 +181,7 @@ describe('Featured feed', () => {
             }
         })
         .then(() => {
-            throw new Error('Must have failed')
+            throw new Error('Must have failed');
         }, (e) => {
             assert.deepEqual(e.status, 400);
         });
@@ -191,7 +195,7 @@ describe('Featured feed', () => {
             }
         })
         .then(() => {
-            throw new Error('Must have failed')
+            throw new Error('Must have failed');
         }, (e) => {
             assert.deepEqual(e.status, 400);
         });

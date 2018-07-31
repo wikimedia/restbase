@@ -1,4 +1,6 @@
-"use strict";
+'use strict';
+
+/* global describe, it, before */
 
 const preq   = require('preq');
 const assert = require('../../utils/assert.js');
@@ -7,9 +9,9 @@ const uuid = require('cassandra-uuid').TimeUuid;
 const P = require('bluebird');
 const parallel = require('mocha.parallel');
 
-describe('Key value buckets', function() {
+describe('Key value buckets', () => {
 
-    before(function() {
+    before(() => {
         return server.start();
     });
 
@@ -22,58 +24,56 @@ describe('Key value buckets', function() {
     }
 
     function runTests(bucketName) {
-        const bucketBaseURI = server.config.baseURL + '/buckets/' + bucketName
-        + '/' + bucketName + 'TestingBucket';
+        const bucketBaseURI = `${server.config.baseURL}/buckets/${bucketName}/${bucketName}TestingBucket`;
 
-        before(function() {
+        before(() => {
             return preq.put({ uri: bucketBaseURI });
         });
 
-        it('stores a content in a bucket and gets it back', function() {
+        it('stores a content in a bucket and gets it back', () => {
             const testData = randomString(60000);
             return preq.put({
-                uri: bucketBaseURI + '/Test1',
+                uri: `${bucketBaseURI}/Test1`,
                 body: new Buffer(testData)
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 201);
                 return preq.get({
-                    uri: bucketBaseURI + '/Test1'
+                    uri: `${bucketBaseURI}/Test1`
                 });
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, new Buffer(testData));
             });
         });
 
-        it('assigns etag to a value', function() {
+        it('assigns etag to a value', () => {
             const testData = randomString(100);
             return preq.put({
-                uri: bucketBaseURI + '/Test3',
+                uri: `${bucketBaseURI}/Test3`,
                 body: new Buffer(testData)
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 201);
                 return preq.get({
-                    uri: bucketBaseURI + '/Test3'
+                    uri: `${bucketBaseURI}/Test3`
                 });
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.ok(res.headers.etag);
                 assert.ok(new RegExp('^"0\/').test(res.headers.etag), true);
             });
         });
 
-        it('throws 404 error if key not found', function() {
-            const testData = randomString(100);
+        it('throws 404 error if key not found', () => {
             return preq.get({
-                uri: bucketBaseURI + '/some_not_existing_key'
+                uri: `${bucketBaseURI}/some_not_existing_key`
             })
-            .then(function() {
+            .then(() => {
                 throw new Error('Error should be thrown');
-            }, function(e) {
+            }, (e) => {
                 assert.deepEqual(e.status, 404);
             });
         });
@@ -83,10 +83,9 @@ describe('Key value buckets', function() {
             const tids = [ uuid.now().toString(),
                 uuid.now().toString(),
                 uuid.now().toString() ];
-            let i = 0;
-            return P.each(tids, function(tid) {
+            return P.each(tids, (tid) => {
                 return preq.put({
-                    uri: bucketBaseURI + '/List_Test_1',
+                    uri: `${bucketBaseURI}/List_Test_1`,
                     body: new Buffer(testData),
                     headers: {
                         'if-none-hash-match': '*'
@@ -94,20 +93,20 @@ describe('Key value buckets', function() {
                 })
                 .catch(() => {});
             })
-            .then(function() {
+            .then(() => {
                 return preq.get({
-                    uri: bucketBaseURI + '/List_Test_1/',
+                    uri: `${bucketBaseURI}/List_Test_1/`,
                     query: {
                         limit: 10
                     }
                 });
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body.items.length, 1);
             });
         });
     }
 
-    parallel('key_value', function() { runTests('key_value') });
+    parallel('key_value', () => { runTests('key_value'); });
 });

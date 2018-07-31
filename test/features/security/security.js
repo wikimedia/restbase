@@ -1,33 +1,33 @@
 'use strict';
 
 // mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
+/* global describe, it, before */
 
-var assert = require('../../utils/assert.js');
-var preq   = require('preq');
-var server = require('../../utils/server.js');
-var nock   = require('nock');
-var P      = require('bluebird');
+const assert = require('../../utils/assert.js');
+const preq   = require('preq');
+const server = require('../../utils/server.js');
+const nock   = require('nock');
+const P      = require('bluebird');
 
 describe('router - security', function() {
     this.timeout(20000);
 
-    before(function () {
+    before(() => {
         return server.start()
-        .then(function() {
+        .then(() => {
             // Do preparation requests to force siteInfo fetch so that we don't need to mock it
             return P.join(
                 preq.get({
-                    uri: server.config.baseURL + '/page/title/Main_Page'
+                    uri: `${server.config.baseURL}/page/title/Main_Page`
                 }),
                 preq.get({
-                    uri: server.config.secureURL + '/page/title/Wikipédia:Accueil_principal'
+                    uri: `${server.config.secureURL}/page/title/Wikipédia:Accueil_principal`
                 })
-            )
+            );
         });
     });
 
-    var sampleRightsResponse = {
+    const sampleRightsResponse = {
         batchcomplete: '',
         query: {
             userinfo: {
@@ -38,7 +38,7 @@ describe('router - security', function() {
         }
     };
 
-    var sampleApiResponse = {
+    const sampleApiResponse = {
         query: {
             pages: {
                 '1': {
@@ -51,41 +51,41 @@ describe('router - security', function() {
         }
     };
 
-    it('should forward cookies on request to api', function() {
+    it('should forward cookies on request to api', () => {
         nock.enableNetConnect();
-        var apiURI = server.config.secureApiURL;
-        var api = nock(apiURI, {
+        const apiURI = server.config.secureApiURL;
+        const api = nock(apiURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
             }
         })
-        .post('', function(body) { return body && body.generator === 'allpages'; })
+        .post('', (body) => { return body && body.generator === 'allpages'; })
         .reply(200, sampleApiResponse)
-        .post('', function(body) { return body && body.meta === 'userinfo'; })
+        .post('', (body) => { return body && body.meta === 'userinfo'; })
         .reply(200, sampleRightsResponse);
 
         return preq.get({
-            uri: server.config.secureBucketURL + '/title/',
+            uri: `${server.config.secureBucketURL}/title/`,
             headers: {
                 'Cookie': 'test=test_cookie'
             }
         })
-        .then(function() { api.done(); })
-        .finally(function() { nock.cleanAll(); });
+        .then(() => { api.done(); })
+        .finally(() => { nock.cleanAll(); });
     });
 
-    it('should forward cookies on request to parsoid', function() {
+    it('should forward cookies on request to parsoid', () => {
         nock.enableNetConnect();
-        var parsoidURI = 'https://parsoid-beta.wmflabs.org';
-        var title = 'Test';
-        var revision = 117795883;
-        var api = nock(parsoidURI, {
+        const parsoidURI = 'https://parsoid-beta.wmflabs.org';
+        const title = 'Test';
+        const revision = 117795883;
+        const api = nock(parsoidURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
             }
         })
-        .get('/fr.wikipedia.org/v3/page/pagebundle/' + title + '/' + revision)
-        .reply(200, function() {
+        .get(`/fr.wikipedia.org/v3/page/pagebundle/${title}/${revision}`)
+        .reply(200, () => {
             return {
                 'html': {
                     'headers': {
@@ -100,10 +100,10 @@ describe('router - security', function() {
                     'body': {
                         'counter': 1,
                         'ids': {
-                            'mwAA': {'dsr': [0, 1, 0, 0]}
+                            'mwAA': { 'dsr': [0, 1, 0, 0] }
                         },
                         'sectionOffsets': {
-                            'mwAQ': {'html': [0, 1], 'wt': [2, 3]}
+                            'mwAQ': { 'html': [0, 1], 'wt': [2, 3] }
                         }
                     }
                 }
@@ -111,61 +111,60 @@ describe('router - security', function() {
         });
 
         return preq.get({
-            uri: server.config.secureBucketURL + '/html/' + title + '/' + revision,
+            uri: `${server.config.secureBucketURL}/html/${title}/${revision}`,
             headers: {
                 'Cookie': 'test=test_cookie',
                 'Cache-control': 'no-cache'
             }
         })
-        .then(function() { api.done(); })
-        .finally(function() { nock.cleanAll(); });
+        .then(() => { api.done(); })
+        .finally(() => { nock.cleanAll(); });
     });
 
-    it('should not forward cookies to external domains', function() {
-        var externalURI = 'https://www.mediawiki.org';
+    it('should not forward cookies to external domains', () => {
+        const externalURI = 'https://www.mediawiki.org';
         nock.enableNetConnect();
-        var api = nock(externalURI, {
+        const api = nock(externalURI, {
             badheaders: ['cookie'],
         })
         .get('/')
         .reply(200);
 
         return preq.get({
-            uri: server.config.secureURL + '/http/' + encodeURIComponent(externalURI),
+            uri: `${server.config.secureURL}/http/${encodeURIComponent(externalURI)}`,
             headers: {
                 'cookie': 'test=test_cookie'
             }
         })
-        .then(function() { api.done(); })
-        .finally(function() { nock.cleanAll(); });
+        .then(() => { api.done(); })
+        .finally(() => { nock.cleanAll(); });
     });
 
 
-    it ('should not send cookies to non-restricted domains', function() {
-        var apiURI = server.config.apiURL;
-        var api = nock(apiURI, {
+    it('should not send cookies to non-restricted domains', () => {
+        const apiURI = server.config.apiURL;
+        const api = nock(apiURI, {
             badheaders: ['cookie']
         })
-        .post('', function(body) { return body && body.generator === 'allpages'; })
+        .post('', (body) => { return body && body.generator === 'allpages'; })
         .reply(200, sampleApiResponse);
 
         return preq.get({
-            uri: server.config.bucketURL + '/title/',
+            uri: `${server.config.bucketURL}/title/`,
             headers: {
                 'Cookie': 'test=test_cookie'
             }
         })
-        .then(function() { api.done(); })
-        .finally(function() { nock.cleanAll(); });
+        .then(() => { api.done(); })
+        .finally(() => { nock.cleanAll(); });
     });
 
-    it('should deny access to resources stored in restbase', function() {
+    it('should deny access to resources stored in restbase', () => {
         nock.enableNetConnect();
-        var apiURI = server.config.secureApiURL;
-        var title = 'TestingTitle';
-        var revision = 12345;
+        const apiURI = server.config.secureApiURL;
+        const title = 'TestingTitle';
 
-        var api = nock(apiURI)
+        const api = nock(apiURI)
         .post('')
         .reply(200, {
             'query': {
@@ -177,20 +176,20 @@ describe('router - security', function() {
             }
         });
         return preq.get({
-            uri: server.config.secureBucketURL + '/title/' + title,
+            uri: `${server.config.secureBucketURL}/title/${title}`,
             headers: {
                 'cache-control': 'no-cache'
             }
         })
-        .then(function() {
-            throw new Error('Access denied should be posted')
+        .then(() => {
+            throw new Error('Access denied should be posted');
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 401);
             assert.contentType(e, 'application/problem+json');
             assert.deepEqual(e.body.detail.indexOf('read') >= 0, true);
         })
-        .then(function() {api.done(); })
-        .finally(function() { nock.cleanAll();  });
+        .then(() => { api.done(); })
+        .finally(() => { nock.cleanAll();  });
     });
 });

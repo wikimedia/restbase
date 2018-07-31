@@ -1,7 +1,7 @@
 'use strict';
 
 // mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
+/* global describe, it, before */
 
 const assert = require('../../utils/assert.js');
 const preq = require('preq');

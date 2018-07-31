@@ -1,31 +1,30 @@
 'use strict';
 
+/* global describe, it, before */
 
-var assert = require('../utils/assert.js');
-var server = require('../utils/server.js');
-var preq   = require('preq');
-var P = require('bluebird');
-
+const assert = require('../utils/assert.js');
+const server = require('../utils/server.js');
+const preq   = require('preq');
 
 describe('Mathoid', function() {
 
-    var f = 'c^2 = a^2 + b^2';
-    var nf = 'c^{2}=a^{2}+b^{2}';
-    var uri = server.config.hostPort + '/wikimedia.org/v1/media/math';
-    var formats = ['mml', 'svg', 'png'];
-    var hash;
+    const f = 'c^2 = a^2 + b^2';
+    const nf = 'c^{2}=a^{2}+b^{2}';
+    const uri = `${server.config.hostPort}/wikimedia.org/v1/media/math`;
+    const formats = ['mml', 'svg', 'png'];
+    let hash;
 
     this.timeout(20000);
 
-    before(function () { return server.start(); });
+    before(() => { return server.start(); });
 
-    it('checks the formula with Mathoid', function() {
-        var slice = server.config.logStream.slice();
+    it('checks the formula with Mathoid', () => {
+        const slice = server.config.logStream.slice();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${uri}/check/tex`,
             headers: { 'content-type': 'application/json' },
             body: { q: f }
-        }).then(function(res) {
+        }).then((res) => {
             slice.halt();
             hash = res.headers['x-resource-location'];
             assert.localRequests(slice, false);
@@ -34,13 +33,13 @@ describe('Mathoid', function() {
         });
     });
 
-    it('retrieves the check output from storage', function() {
-        var slice = server.config.logStream.slice();
+    it('retrieves the check output from storage', () => {
+        const slice = server.config.logStream.slice();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${uri}/check/tex`,
             headers: { 'content-type': 'application/json' },
             body: { q: f }
-        }).then(function(res) {
+        }).then((res) => {
             slice.halt();
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
@@ -48,13 +47,13 @@ describe('Mathoid', function() {
         });
     });
 
-    it('retrieves the check output of the normalised version', function() {
-        var slice = server.config.logStream.slice();
+    it('retrieves the check output of the normalised version', () => {
+        const slice = server.config.logStream.slice();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${uri}/check/tex`,
             headers: { 'content-type': 'application/json' },
             body: { q: nf }
-        }).then(function(res) {
+        }).then((res) => {
             slice.halt();
             assert.localRequests(slice, true);
             assert.remoteRequests(slice, false);
@@ -62,16 +61,16 @@ describe('Mathoid', function() {
         });
     });
 
-    it('ignores stored version for no-cache', function() {
-        var slice = server.config.logStream.slice();
+    it('ignores stored version for no-cache', () => {
+        const slice = server.config.logStream.slice();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${uri}/check/tex`,
             headers: {
                 'content-type': 'application/json',
                 'cache-control': 'no-cache'
             },
             body: { q: f }
-        }).then(function(res) {
+        }).then((res) => {
             slice.halt();
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
@@ -79,22 +78,22 @@ describe('Mathoid', function() {
         });
     });
 
-    it('gets the formula from storage', function() {
+    it('gets the formula from storage', () => {
         return preq.get({
-            uri: uri + '/formula/' + hash
-        }).then(function(res) {
+            uri: `${uri}/formula/${hash}`
+        }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.checkString(res.headers['x-resource-location'], hash);
             assert.ok(res.body);
         });
     });
 
-    for (var i = 0; i < formats.length; i++) {
+    for (let i = 0; i < formats.length; i++) {
         var format = formats[i];
-        it('gets the render in ' + format, function() {
+        it(`gets the render in ${format}`, () => { // eslint-disable-line no-loop-func
             return preq.get({
-                uri: uri + '/render/' + format + '/' + hash
-            }).then(function(res) {
+                uri: `${uri}/render/${format}/${hash}`
+            }).then((res) => {
                 assert.checkString(res.headers['content-type'], new RegExp(format));
                 assert.ok(res.body);
             });

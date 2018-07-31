@@ -1,14 +1,14 @@
 'use strict';
 
 // mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
+/* global it, before */
 
-var assert = require('../../utils/assert.js');
-var server = require('../../utils/server.js');
-var preq   = require('preq');
+const assert = require('../../utils/assert.js');
+const server = require('../../utils/server.js');
+const preq   = require('preq');
 const parallel = require('mocha.parallel');
 
-var testPage = {
+const testPage = {
     title: 'User:Pchelolo%2fRestbase_Test',
     revision: '275854',
     wikitext: '<div id=bar>Selser test'
@@ -18,21 +18,21 @@ var testPage = {
 parallel('transform api', function() {
     this.timeout(20000);
 
-    before(function () {
+    before(() => {
         return server.start()
-        .then(function() {
+        .then(() => {
             return preq.get({
-                uri: server.config.labsBucketURL
-                    + '/html/' + testPage.title
-                    + '/' + testPage.revision
+                uri: `${server.config.labsBucketURL
+                }/html/${testPage.title
+                }/${testPage.revision}`
             });
         })
-        .then(function (res) {
+        .then((res) => {
             testPage.html = res.body;
         });
     });
 
-    var contentTypes = server.config.conf.test.content_types;
+    const contentTypes = server.config.conf.test.content_types;
 
     /**
      * I don't think these have ever really worked.
@@ -80,124 +80,124 @@ parallel('transform api', function() {
     });
     */
 
-    it('wt2html', function () {
+    it('wt2html', () => {
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
+            uri: `${server.config.labsURL
+            }/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
             body: {
                 wikitext: '== Heading =='
             }
         })
-        .then(function (res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            var pattern = /<h2.*>Heading<\/h2>/;
+            const pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.body)) {
-                throw new Error('Expected pattern in response: ' + pattern
-                        + '\nSaw: ' + res.body);
+                throw new Error(`Expected pattern in response: ${pattern
+                }\nSaw: ${res.body}`);
             }
         });
     });
 
-    it('wt2html with body_only', function () {
+    it('wt2html with body_only', () => {
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/wikitext/to/html/User:GWicke%2F_restbase_test',
+            uri: `${server.config.labsURL
+            }/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
             body: {
                 wikitext: '== Heading ==',
                 body_only: true
             }
         })
-        .then(function (res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            var pattern = /^<h2.*>Heading<\/h2>$/;
+            const pattern = /^<h2.*>Heading<\/h2>$/;
             if (!pattern.test(res.body)) {
-                throw new Error('Expected pattern in response: ' + pattern
-                        + '\nSaw: ' + res.body);
+                throw new Error(`Expected pattern in response: ${pattern
+                }\nSaw: ${res.body}`);
             }
         });
     });
 
 
-    it('wt2lint', function () {
+    it('wt2lint', () => {
         return preq.post({
-            uri: server.config.labsURL + '/transform/wikitext/to/lint',
+            uri: `${server.config.labsURL}/transform/wikitext/to/lint`,
             body: {
                 wikitext: '== Heading =='
             }
-        }).then(function (res) {
+        }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, []);
         });
     });
 
-    it('wt2lint with errors', function () {
+    it('wt2lint with errors', () => {
         return preq.post({
-            uri: server.config.labsURL + '/transform/wikitext/to/lint',
+            uri: `${server.config.labsURL}/transform/wikitext/to/lint`,
             body: {
                 wikitext: '<div>No div ending'
             }
-        }).then(function (res) {
+        }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.length, 1);
         });
     });
 
-    it('html2wt, no-selser', function () {
+    it('html2wt, no-selser', () => {
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/html/to/wikitext/User:GWicke%2F_restbase_test',
+            uri: `${server.config.labsURL
+            }/transform/html/to/wikitext/User:GWicke%2F_restbase_test`,
             body: {
                 html: '<body>The modified HTML</body>'
             }
 
         })
-        .then(function (res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, 'The modified HTML');
             assert.contentType(res, contentTypes.wikitext);
         });
     });
 
-    it('html2wt, selser', function () {
+    it('html2wt, selser', () => {
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/html/to/wikitext/' + testPage.title
-                + '/' + testPage.revision,
+            uri: `${server.config.labsURL
+            }/transform/html/to/wikitext/${testPage.title
+            }/${testPage.revision}`,
             body: {
                 html: testPage.html
             }
         })
-        .then(function (res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, testPage.wikitext);
             assert.contentType(res, contentTypes.wikitext);
         });
     });
 
-    it('html2wt with scrub_wikitext', function() {
+    it('html2wt with scrub_wikitext', () => {
         return preq.post({
-            uri: server.config.labsURL + '/transform/html/to/wikitext',
+            uri: `${server.config.labsURL}/transform/html/to/wikitext`,
             body: {
                 html: '<h2></h2>',
                 scrub_wikitext: 1
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, '');
         });
     });
 
-    it('sections2wt, replace', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, replace', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/section-changes/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             headers: {
                 'content-type': 'application/json'
             },
@@ -209,7 +209,7 @@ parallel('transform api', function() {
                 }
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(res.body, '== First Section replaced ==\n\n' +
@@ -217,14 +217,14 @@ parallel('transform api', function() {
         });
     });
 
-    it('sections2wt, replace, form-data', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, replace, form-data', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/section-changes/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             body: {
                 changes: JSON.stringify({
                     mwAQ: [],
@@ -234,7 +234,7 @@ parallel('transform api', function() {
                 scrub_wikitext: 'true'
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(res.body, '== First Section replaced ==\n\n' +
@@ -242,14 +242,14 @@ parallel('transform api', function() {
         });
     });
 
-    it('sections2wt, replace, scrub_wikitext', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, replace, scrub_wikitext', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/section-changes/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             headers: {
                 'content-type': 'application/json'
             },
@@ -262,21 +262,21 @@ parallel('transform api', function() {
                 scrub_wikitext: true
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(res.body, '== Second Section replaced ==\n');
         });
     });
 
-    it('sections2wt, append', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, append', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/section-changes/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             headers: {
                 'content-type': 'application/json'
             },
@@ -284,11 +284,11 @@ parallel('transform api', function() {
                 changes: {
                     mwAQ: [],
                     mwAw: [{ id: 'mwAw' }, { html: '<h2>Appended Section</h2>' }],
-                    mwBA: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwBA'}]
+                    mwBA: [{ html: '<h2>Prepended section</h2>' }, { id: 'mwBA' }]
                 }
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(res.body,
@@ -299,14 +299,14 @@ parallel('transform api', function() {
         });
     });
 
-    it('sections2wt, move', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, move', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-                + '/transform/section-changes/to/wikitext/'
-                + pageWithSectionsTitle
-                + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             body: {
                 changes: {
                     mwAQ: [],
@@ -318,7 +318,7 @@ parallel('transform api', function() {
                 'content-type': 'application/json'
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.wikitext);
             assert.deepEqual(res.body,
@@ -327,14 +327,14 @@ parallel('transform api', function() {
         });
     });
 
-    it('sections2wt, throws on invalid id', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, throws on invalid id', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-            + '/transform/section-changes/to/wikitext/'
-            + pageWithSectionsTitle
-            + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             body: {
                 changes: {
                     mwAASDC: []
@@ -344,96 +344,96 @@ parallel('transform api', function() {
                 'content-type': 'application/json'
             }
         })
-        .then(function() {
-            throw new Error('Error must be thrown')
+        .then(() => {
+            throw new Error('Error must be thrown');
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 400);
         });
     });
 
-    it('sections2wt, throws on invalid replacement id', function() {
-        var pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
-        var pageWithSectionsRev = 275834;
+    it('sections2wt, throws on invalid replacement id', () => {
+        const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
+        const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: server.config.labsURL
-            + '/transform/section-changes/to/wikitext/'
-            + pageWithSectionsTitle
-            + '/' + pageWithSectionsRev,
+            uri: `${server.config.labsURL
+            }/transform/section-changes/to/wikitext/${
+                pageWithSectionsTitle
+            }/${pageWithSectionsRev}`,
             body: {
                 changes: {
-                    mwAw:[ { id: 'mwAASDC'}, { id: 'mwAw'} ]
+                    mwAw:[ { id: 'mwAASDC' }, { id: 'mwAw' } ]
                 }
             },
             headers: {
                 'content-type': 'application/json'
             }
         })
-        .then(function() {
-            throw new Error('Error must be thrown')
+        .then(() => {
+            throw new Error('Error must be thrown');
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 400);
         });
     });
 
-    it('supports reversed order of properties in TimeUuid meta', function() {
-        var newHtml = testPage.html.replace(/<meta property="mw:TimeUuid" content="([^"]+)"\/?>/,
-                '<meta content="cc8ba6b3-636c-11e5-b601-24b4f65ab671" property="mw:TimeUuid" />');
+    it('supports reversed order of properties in TimeUuid meta', () => {
+        const newHtml = testPage.html.replace(/<meta property="mw:TimeUuid" content="([^"]+)"\/?>/,
+            '<meta content="cc8ba6b3-636c-11e5-b601-24b4f65ab671" property="mw:TimeUuid" />');
         return preq.post({
-            uri: server.config.labsURL
-                    + '/transform/html/to/wikitext/' + testPage.title
-                    + '/' + testPage.revision,
+            uri: `${server.config.labsURL
+            }/transform/html/to/wikitext/${testPage.title
+            }/${testPage.revision}`,
             body: {
                 html: newHtml
             }
         })
-        .then(function (res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
-            var pattern = /Selser test/;
+            const pattern = /Selser test/;
             if (!pattern.test(res.body)) {
-                throw new Error('Expected pattern in response: ' + pattern
-                + '\nSaw: ' + JSON.stringify(res, null, 2));
+                throw new Error(`Expected pattern in response: ${pattern
+                }\nSaw: ${JSON.stringify(res, null, 2)}`);
             }
             assert.contentType(res, contentTypes.wikitext);
         });
     });
 
-    it('returns 409 if revision was restricted while edit happened', function() {
-        var badPageName = 'User_talk:DivineAlpha%2fQ1_2015_discussions';
-        var badRevNumber = 645504917;
+    it('returns 409 if revision was restricted while edit happened', () => {
+        const badPageName = 'User_talk:DivineAlpha%2fQ1_2015_discussions';
+        const badRevNumber = 645504917;
         return preq.post({
-            uri: server.config.baseURL
-                + '/transform/html/to/wikitext/' + badPageName + '/' + badRevNumber,
+            uri: `${server.config.baseURL
+            }/transform/html/to/wikitext/${badPageName}/${badRevNumber}`,
             body: {
                 html: '<html><head>' +
                     '<meta property="mw:TimeUuid" content="71966eaf-62cd-11e5-8a88-952fdaad0387"/>' +
                     '</head><body></body></html>'
             }
         })
-        .then(function() {
+        .then(() => {
             throw new Error('Error should be thrown');
-        }, function(e) {
+        }, (e) => {
             assert.deepEqual(e.status, 409);
-        })
+        });
     });
 
-    it('supports stashing content', function() {
+    it('supports stashing content', () => {
         return preq.post({
-            uri: server.config.labsURL
-            + '/transform/wikitext/to/html/' + testPage.title + '/' + testPage.revision,
+            uri: `${server.config.labsURL
+            }/transform/wikitext/to/html/${testPage.title}/${testPage.revision}`,
             body: {
                 wikitext: '== ABCDEF ==',
                 stash: true
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
-            var etag = res.headers.etag;
+            const etag = res.headers.etag;
             assert.deepEqual(/\/stash"$/.test(etag), true);
             return preq.post({
-                uri: server.config.labsURL
-                    + '/transform/html/to/wikitext/' + testPage.title + '/' + testPage.revision,
+                uri: `${server.config.labsURL
+                }/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
                 headers: {
                     'if-match': etag
                 },
@@ -442,55 +442,55 @@ parallel('transform api', function() {
                 }
             });
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, '== FECDBA ==');
         });
     });
 
-    it('substitutes 0 as revision if not provided for stashing', function() {
+    it('substitutes 0 as revision if not provided for stashing', () => {
         return preq.post({
-            uri: server.config.labsURL
-            + '/transform/wikitext/to/html/' + testPage.title,
+            uri: `${server.config.labsURL
+            }/transform/wikitext/to/html/${testPage.title}`,
             body: {
                 wikitext: '== ABCDEF ==',
                 stash: true
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
-            var etag = res.headers.etag;
+            const etag = res.headers.etag;
             assert.deepEqual(/^"0\/[^\/]+\/stash"$/.test(etag), true);
         });
     });
 
-    it('does not allow stashing without title', function() {
+    it('does not allow stashing without title', () => {
         return preq.post({
-            uri: server.config.labsURL
-            + '/transform/wikitext/to/html',
+            uri: `${server.config.labsURL
+            }/transform/wikitext/to/html`,
             body: {
                 wikitext: '== ABCDEF ==',
                 stash: true
             }
         })
-        .then(function() {
+        .then(() => {
             throw new Error('Error should be thrown');
-        }, function(e) {
+        }, (e) => {
             assert.deepEqual(e.status, 400);
         });
     });
 
-    it('does not allow to transform html with no tid', function() {
+    it('does not allow to transform html with no tid', () => {
         return preq.post({
-            uri: server.config.labsURL + '/transform/html/to/wikitext/'
-                    + testPage.title + '/' + testPage.revision,
+            uri: `${server.config.labsURL}/transform/html/to/wikitext/${
+                testPage.title}/${testPage.revision}`,
             body: {
                 html: '<h1>A</h1>'
             }
         })
-        .then(function() {
+        .then(() => {
             throw new Error('Error should be thrown');
-        }, function(e) {
+        }, (e) => {
             assert.deepEqual(e.status, 400);
         });
     });
@@ -498,12 +498,12 @@ parallel('transform api', function() {
 
 
 /* TODO: actually implement wikitext fetching
-describe('storage-backed transform api', function() {
+describe('storage-backed transform api', () => {
     this.timeout(20000);
 
-    before(function () { return server.start(); });
+    before(() => { return server.start(); });
 
-    it('should load a specific title/revision from storage to send as the "original"', function () {
+    it('should load a specific title/revision from storage to send as the "original"', () => {
         return preq.post({
             uri: server.config.baseURL + '/transform/html/to/wikitext/Main_Page/1',
             headers: { 'content-type': 'application/json' },
@@ -514,7 +514,7 @@ describe('storage-backed transform api', function() {
                 body: '<html>The modified HTML</html>'
             }
         })
-        .then(function (res) {
+        .then(res => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, {
                 wikitext: {

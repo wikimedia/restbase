@@ -1,21 +1,22 @@
-"use strict";
+'use strict';
 
-var assert = require('../utils/assert.js');
-var server = require('../utils/server.js');
-var preq   = require('preq');
+/* global it, before */
+
+const assert = require('../utils/assert.js');
+const server = require('../utils/server.js');
+const preq   = require('preq');
 const parallel = require('mocha.parallel');
 
 parallel('Metrics', function() {
     this.timeout(20000);
 
-    before(function () { return server.start(); });
+    before(() => { return server.start(); });
 
-    it('Should get page views per page', function() {
+    it('Should get page views per page', () => {
         return preq.get({
-            uri: server.config.globalURL
-                + '/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Main_Page/daily/2016010100/2016010100'
+            uri: `${server.config.globalURL}/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Main_Page/daily/2016010100/2016010100`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
             assert.deepEqual(res.body, {
@@ -34,12 +35,11 @@ parallel('Metrics', function() {
         });
     });
 
-    it('Should get top articles', function() {
+    it('Should get top articles', () => {
         return preq.get({
-            uri: server.config.globalURL
-                + '/metrics/pageviews/top/en.wikipedia/all-access/2016/01/01'
+            uri: `${server.config.globalURL}/metrics/pageviews/top/en.wikipedia/all-access/2016/01/01`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
             // The response body is too big to compare, so just check the response status.

@@ -1,4 +1,6 @@
-"use strict";
+'use strict';
+
+/* global describe, it, before */
 
 const assert = require('../utils/assert.js');
 const server = require('../utils/server.js');
