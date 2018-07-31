@@ -428,7 +428,10 @@ class MultiContentBucket {
                         })
                         .then((res) => {
                             if (res.body.items.length) {
-                                return this._deleteRenders(hyper, req, rev, res.body.items[0].tid);
+                                return P.all(
+                                    this._deleteRenders(hyper, req, rev, res.body.items[0].tid),
+                                    this._deleteRevisions(hyper, req, rev - 1)
+                                );
                             }
                         });
                     })
