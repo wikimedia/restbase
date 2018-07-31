@@ -1,26 +1,25 @@
 'use strict';
 
-var ServiceRunner = require('service-runner');
-var dir       = require('./dir');
-var logStream = require('./logStream');
-var fs        = require('fs');
-var assert    = require('./assert');
-var yaml      = require('js-yaml');
+const ServiceRunner = require('service-runner');
+const logStream = require('./logStream');
+const fs        = require('fs');
+const assert    = require('./assert');
+const yaml      = require('js-yaml');
 
-var hostPort  = 'http://localhost:7231';
-var baseURL   = hostPort + '/en.wikipedia.org/v1';
-var globalURL = hostPort + '/wikimedia.org/v1';
-var bucketURL = baseURL + '/page';
-var secureURL = hostPort + '/fr.wikipedia.org/v1';
-var secureBucketURL = secureURL + '/page';
-var labsURL   = hostPort + '/en.wikipedia.beta.wmflabs.org/v1';
-var labsBucketURL = labsURL + '/page';
-const variantsWikiURL = hostPort + '/sr.wikipedia.beta.wmflabs.org/v1';
-const variantsWikiBucketURL = variantsWikiURL + '/page';
+const hostPort  = 'http://localhost:7231';
+const baseURL   = `${hostPort}/en.wikipedia.org/v1`;
+const globalURL = `${hostPort}/wikimedia.org/v1`;
+const bucketURL = `${baseURL}/page`;
+const secureURL = `${hostPort}/fr.wikipedia.org/v1`;
+const secureBucketURL = `${secureURL}/page`;
+const labsURL   = `${hostPort}/en.wikipedia.beta.wmflabs.org/v1`;
+const labsBucketURL = `${labsURL}/page`;
+const variantsWikiURL = `${hostPort}/sr.wikipedia.beta.wmflabs.org/v1`;
+const variantsWikiBucketURL = `${variantsWikiURL}/page`;
 
 function loadConfig(path, forceSqlite) {
-    var confString = fs.readFileSync(path).toString();
-    var backendImpl = process.env.RB_TEST_BACKEND;
+    let confString = fs.readFileSync(path).toString();
+    const backendImpl = process.env.RB_TEST_BACKEND;
     if (backendImpl) {
         if (backendImpl !== 'cassandra' && backendImpl !== 'sqlite') {
             throw new Error('Invalid RB_TEST_BACKEND env variable value. Allowed values: "cassandra", "sqlite"');
@@ -35,24 +34,24 @@ function loadConfig(path, forceSqlite) {
     return yaml.safeLoad(confString);
 }
 
-var config = {
-    hostPort: hostPort,
-    baseURL: baseURL,
-    globalURL: globalURL,
-    bucketURL: bucketURL,
+const config = {
+    hostPort,
+    baseURL,
+    globalURL,
+    bucketURL,
     apiURL: 'https://en.wikipedia.org/w/api.php',
-    makeBucketURL: function(domain) {
-        return hostPort + '/' + domain + '/v1/page';
+    makeBucketURL(domain) {
+        return `${hostPort}/${domain}/v1/page`;
     },
-    secureURL: secureURL,
-    secureBucketURL: secureBucketURL,
+    secureURL,
+    secureBucketURL,
     secureApiURL: 'https://fr.wikipedia.org/w/api.php',
-    labsURL: labsURL,
-    labsBucketURL: labsBucketURL,
-    variantsWikiBucketURL: variantsWikiBucketURL,
+    labsURL,
+    labsBucketURL,
+    variantsWikiBucketURL,
     labsApiURL: 'https://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
-    conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : __dirname + '/../../config.test.yaml')
+    conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : `${__dirname}/../../config.test.yaml`)
 };
 
 config.conf.num_workers = 0;
@@ -62,10 +61,10 @@ config.conf.logging = {
     stream: config.logStream
 };
 
-var stop    = function () {};
-var isRunning;
-var options = null;
-var runner = new ServiceRunner();
+let stop    = function() {};
+let isRunning;
+let options = null;
+const runner = new ServiceRunner();
 
 function start(_options) {
     _options = _options || {};
@@ -74,20 +73,20 @@ function start(_options) {
         console.log('server options changed; restarting');
         stop();
         options = _options;
-        console.log('starting restbase in '
-                + (options.offline ? 'OFFLINE' : 'ONLINE') + ' mode');
+        console.log(`starting restbase in ${
+            options.offline ? 'OFFLINE' : 'ONLINE'} mode`);
         config.conf.offline = options.offline || false;
 
         return runner.run(config.conf)
-        .then(function(servers){
-            var server = servers[0];
+        .then((servers) => {
+            const server = servers[0];
             isRunning = true;
             stop =
-                function () {
+                function() {
                     console.log('stopping restbase');
                     isRunning = false;
                     server.close();
-                    stop = function () {};
+                    stop = function() {};
                 };
             return true;
         });
@@ -98,5 +97,5 @@ function start(_options) {
 
 module.exports.config = config;
 module.exports.start  = start;
-module.exports.stop   = function() { stop() };
+module.exports.stop   = function() { stop(); };
 module.exports.loadConfig = loadConfig;
