@@ -1,7 +1,5 @@
 'use strict';
 
-/* global describe, it */
-
 /**
  * Unit tests for util methods
  */

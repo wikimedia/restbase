@@ -1,13 +1,9 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before */
-
 const assert = require('../../utils/assert.js');
 const preq = require('preq');
 const server = require('../../utils/server.js');
 const variantsPageTitle = 'RESTBase_Testing_Page';
-
 
 describe('Language variants', function() {
 

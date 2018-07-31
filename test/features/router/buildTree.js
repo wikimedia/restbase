@@ -1,8 +1,5 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global it, before */
-
 const assert = require('assert');
 const preq   = require('preq');
 const Router = require('hyperswitch/lib/router');

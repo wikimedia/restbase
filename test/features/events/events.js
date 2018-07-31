@@ -1,7 +1,5 @@
 'use strict';
 
-/* global describe, it, before */
-
 const preq   = require('preq');
 const http   = require('http');
 const uuid   = require('cassandra-uuid').TimeUuid;

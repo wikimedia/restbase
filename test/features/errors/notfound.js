@@ -1,8 +1,5 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global it, before */
-
 const parallel = require('mocha.parallel');
 const assert   = require('../../utils/assert.js');
 const preq     = require('preq');

@@ -1,8 +1,5 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before */
-
 // These tests are derived from https://phabricator.wikimedia.org/T75955,
 // section 'On-demand generation of HTML and data-parsoid'
 

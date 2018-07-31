@@ -1,8 +1,5 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before */
-
 const mwUtil = require('../../../lib/mwUtil');
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');

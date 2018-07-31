@@ -1,8 +1,5 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
-
 var ServiceRunner = require('service-runner');
 var dir       = require('./dir');
 var logStream = require('./logStream');
