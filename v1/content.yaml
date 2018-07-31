@@ -163,6 +163,7 @@ paths:
           type: string
       produces:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
+        - application/json
         - application/problem+json
       responses:
         '200':
@@ -420,6 +421,7 @@ paths:
       operationId: getFormatRevision
       produces:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
+        - application/json
         - application/problem+json
       parameters:
         - name: title
