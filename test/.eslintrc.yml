@@ -1,0 +1,7 @@
+extends: '../.eslintrc.yml'
+globals:
+  describe: false
+  it: false
+  before: false
+rules:
+  no-invalid-this: 0

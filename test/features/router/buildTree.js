@@ -1,15 +1,12 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
-
-var assert = require('assert');
-var preq   = require('preq');
-var Router = require('hyperswitch/lib/router');
-var server = require('../../utils/server');
+const assert = require('assert');
+const preq   = require('preq');
+const Router = require('hyperswitch/lib/router');
+const server = require('../../utils/server');
 const parallel = require('mocha.parallel');
 
-var rootSpec = {
+const rootSpec = {
     paths: {
         '/{domain:en.wikipedia.org}/{api:v1}/page': {
             'x-modules': [
@@ -22,39 +19,39 @@ var rootSpec = {
 };
 
 const fullSpec = server.loadConfig('config.example.wikimedia.yaml', true);
-var fakeHyperSwitch = { config: {} };
+const fakeHyperSwitch = { config: {} };
 
-parallel('tree building', function() {
+parallel('tree building', () => {
 
-    before(function() { server.start(); });
+    before(() => { server.start(); });
 
-    it('should build a simple spec tree', function() {
-        var router = new Router({
-            appBasePath: __dirname + '/../../..'
+    it('should build a simple spec tree', () => {
+        const router = new Router({
+            appBasePath: `${__dirname}/../../..`
         });
         return router.loadSpec(rootSpec, fakeHyperSwitch)
-        .then(function() {
-            var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
+        .then(() => {
+            const handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.org');
             assert.equal(handler.params.title, 'Foo');
         });
     });
 
-    it('should build the example config spec tree', function() {
-        var router = new Router({
-            appBasePath: __dirname + '/../../..',
+    it('should build the example config spec tree', () => {
+        const router = new Router({
+            appBasePath: `${__dirname}/../../..`,
             logger: { log: () => {} }
         });
-        var resourceRequests = [];
+        const resourceRequests = [];
         return router.loadSpec(fullSpec.spec_root, {
-            request: function(req) {
+            request(req) {
                 resourceRequests.push(req);
             },
             config: {},
         })
-        .then(function() {
-            var handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
+        .then(() => {
+            const handler = router.route('/en.wikipedia.org/v1/page/html/Foo');
             assert.equal(resourceRequests.length > 0, true);
             assert.equal(!!handler.value.methods.get, true);
             assert.equal(handler.params.domain, 'en.wikipedia.org');
@@ -62,12 +59,12 @@ parallel('tree building', function() {
         });
     });
 
-    it('should not load root-spec params', function() {
+    it('should not load root-spec params', () => {
         return preq.get({
-            uri: server.config.baseURL + '/?spec'
+            uri: `${server.config.baseURL}/?spec`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.equal(res.body.paths[''], undefined);
-        })
+        });
     });
 });

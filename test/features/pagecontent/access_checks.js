@@ -1,9 +1,6 @@
-/* eslint-disable max-len */
-
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before */
+/* eslint-disable max-len */
 
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');

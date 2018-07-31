@@ -1,76 +1,72 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
+const assert = require('../utils/assert.js');
+const server = require('../utils/server.js');
+const preq   = require('preq');
 
-var assert = require('../utils/assert.js');
-var server = require('../utils/server.js');
-var preq   = require('preq');
-var P = require('bluebird');
-
-describe('post_data', function () {
+describe('post_data', function() {
     this.timeout(20000);
 
-    before(function () { return server.start(); });
+    before(() => { return server.start(); });
 
-    var hash = '';
+    let hash = '';
 
-    it('should store post request by hash', function() {
+    it('should store post request by hash', () => {
         return preq.post({
-            uri: server.config.baseURL + '/post_data/',
+            uri: `${server.config.baseURL}/post_data/`,
             body: {
                 key: 'value'
             }
         })
-        .then(function(res) {
+        .then((res) => {
             hash = res.body;
             assert.deepEqual(res.status, 201);
             assert.deepEqual(hash, '228458095a9502070fc113d99504226a6ff90a9a');
             return preq.get({
-                uri: server.config.baseURL + '/post_data/' + res.body
+                uri: `${server.config.baseURL}/post_data/${res.body}`
             });
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, { key: 'value' });
         });
     });
 
-    it('should not explode on empty body', function() {
+    it('should not explode on empty body', () => {
         return preq.post({
-            uri: server.config.baseURL + '/post_data/'
+            uri: `${server.config.baseURL}/post_data/`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 201);
         });
     });
 
-    it('should not store identical request', function() {
+    it('should not store identical request', () => {
         return preq.post({
-            uri: server.config.baseURL + '/post_data/',
+            uri: `${server.config.baseURL}/post_data/`,
             body: {
                 key: 'value'
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, hash);
         });
     });
 
-    it('should allow read on remote request', function() {
+    it('should allow read on remote request', () => {
         return preq.get({
-            uri: server.config.baseURL + '/post_data/' + hash
+            uri: `${server.config.baseURL}/post_data/${hash}`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body, { key: 'value' });
-        })
+        });
     });
 
-    it('should deny write on remote requests', function() {
+    it('should deny write on remote requests', () => {
         return preq.post({
-            uri: server.config.baseURL + '/post_data/',
+            uri: `${server.config.baseURL}/post_data/`,
             headers: {
                 'x-client-ip': '123.123.123.123'
             },
@@ -78,9 +74,9 @@ describe('post_data', function () {
                 key: 'value2'
             }
         })
-        .then(function() {
+        .then(() => {
             throw new Error('Error should be thrown');
-        }, function(e) {
+        }, (e) => {
             assert.deepEqual(e.status, 403);
         });
     });

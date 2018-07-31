@@ -1,6 +1,5 @@
 'use strict';
 
-
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
 const server = require('../../utils/server.js');
@@ -90,7 +89,7 @@ describe('page save api', function() {
     });
 
     it('fail for bad token', () => {
-        function test() {
+        const test = () => {
             return preq.post({
                 uri: wikitextUri,
                 body: {
@@ -103,7 +102,7 @@ describe('page save api', function() {
                 assert.deepEqual(err.status, 400);
                 assert.deepEqual(err.body.title, 'badtoken');
             });
-        }
+        };
 
         if (NOCK_TESTS) {
             const api = nock(labsApiURL)
@@ -228,7 +227,7 @@ describe('page save api', function() {
     });
 
     it('save page', () => {
-        function test() {
+        const test = () => {
             return preq.post({
                 uri: wikitextUri,
                 body: {
@@ -301,7 +300,7 @@ describe('page save api', function() {
     });
 
     it('no change', () => {
-        function test() {
+        const test = () => {
             return preq.post({
                 uri: wikitextUri,
                 body: {
@@ -316,11 +315,11 @@ describe('page save api', function() {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body.nochange, true);
             });
-        }
+        };
 
         if (NOCK_TESTS) {
             const api = nock(labsApiURL)
-                // Mock MW API nochange response
+            // Mock MW API nochange response
             .post('')
             .reply(200, {
                 edit: {
@@ -341,7 +340,7 @@ describe('page save api', function() {
     });
 
     it('detect conflict', () => {
-        function test() {
+        const test = () => {
             return preq.post({
                 uri: wikitextUri,
                 body: {
@@ -358,7 +357,7 @@ describe('page save api', function() {
                 assert.deepEqual(err.status, 409);
                 assert.deepEqual(err.body.title, 'editconflict');
             });
-        }
+        };
 
         if (NOCK_TESTS) {
             const api = nock(labsApiURL)
@@ -381,7 +380,7 @@ describe('page save api', function() {
     });
 
     it('save HTML', () => {
-        function test() {
+        const test = () => {
             return preq.get({
                 uri: `${htmlUri}/${lastRev}`
             }).then((res) => {
@@ -402,7 +401,7 @@ describe('page save api', function() {
                 assert.deepEqual(res.status, 201);
                 lastETag = res.headers.etag;
             });
-        }
+        };
 
         if (NOCK_TESTS) {
             const api = nock(labsApiURL, {
@@ -442,13 +441,12 @@ describe('page save api', function() {
      // system, this test should be uncommented back.
      //
      // TODO: uncomment when explicit `summary` invalidation from parsoid is replaced by change propagation
-
-    it('detect conflict on save HTML', function() {
-        function test() {
+    it('detect conflict on save HTML', () => {
+        const test = () => {
             return preq.get({
                 uri: htmlUri + '/' + lastRev
             })
-            .then(function(res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
                 return preq.post({
                     uri: htmlUri,
@@ -461,16 +459,16 @@ describe('page save api', function() {
                         base_etag: oldETag
                     }
                 });
-            }).then(function(res) {
+            }).then((res) => {
                 throw new Error('Expected an error, but got status: ' + res.status);
-            }, function(err) {
+            }, (err) => {
                 assert.deepEqual(err.status, 409);
                 assert.deepEqual(err.body.title, 'editconflict');
             });
         }
 
         if (NOCK_TESTS) {
-            var api = nock(labsApiURL)
+            const api = nock(labsApiURL)
             .post('')
             .reply(200, {
                 "servedby": "nock",
@@ -480,8 +478,8 @@ describe('page save api', function() {
                 }
             });
             return test()
-            .then(function() { api.done(); })
-            .finally(function() { nock.cleanAll(); });
+            .then(() => { api.done(); })
+            .finally(() => { nock.cleanAll(); });
         } else {
             return test();
         }
