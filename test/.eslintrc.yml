@@ -1,7 +1,5 @@
 extends: '../.eslintrc.yml'
-globals:
-  describe: false
-  it: false
-  before: false
+env:
+  mocha: true
 rules:
   no-invalid-this: 0
