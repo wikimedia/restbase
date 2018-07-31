@@ -87,7 +87,7 @@ describe('Mathoid', function() {
     });
 
     for (let i = 0; i < formats.length; i++) {
-        var format = formats[i];
+        const format = formats[i];
         it(`gets the render in ${format}`, () => { // eslint-disable-line no-loop-func
             return preq.get({
                 uri: `${uri}/render/${format}/${hash}`
