@@ -155,7 +155,8 @@ definitions:
     description: A single reference list
     properties:
       id:
-        type: string
+        type: ['string', 'null']
+        nullable: true
         description: Identifier for the whole reference list. May be null.
       section_heading:
         type: object
@@ -179,7 +180,6 @@ definitions:
     additionalProperties: false
     required:
       - id
-      - section_heading
       - order
 
   references_by_id:
