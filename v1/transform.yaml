@@ -36,6 +36,7 @@ paths:
         - multipart/form-data
       produces:
         - text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -125,6 +126,7 @@ paths:
         - multipart/form-data
       produces:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -225,6 +227,7 @@ paths:
         - application/json
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -294,6 +297,7 @@ paths:
 #        - multipart/form-data
 #      produces:
 #        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
+#        - application/problem+json
 #      parameters:
 #        - name: title
 #          in: path
@@ -367,6 +371,7 @@ paths:
         - application/json
       produces:
         - text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path

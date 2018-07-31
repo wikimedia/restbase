@@ -24,6 +24,7 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: A list of page-related API end points.
@@ -47,6 +48,7 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -162,6 +164,7 @@ paths:
       produces:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: |
@@ -313,6 +316,7 @@ paths:
         - multipart/form-data
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: The content was not changed, and no new version was created.
@@ -362,6 +366,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -417,6 +422,7 @@ paths:
       produces:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -552,6 +558,7 @@ paths:
         Stability: [Stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.6.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -643,6 +650,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -759,6 +767,7 @@ paths:
         - multipart/form-data
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: The existing revision of the page matches the sent text
