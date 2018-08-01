@@ -10,6 +10,7 @@ describe('Mathoid', function() {
     const nf = 'c^{2}=a^{2}+b^{2}';
     const uri = `${server.config.hostPort}/wikimedia.org/v1/media/math`;
     const formats = ['mml', 'svg', 'png'];
+    const formats_regex = [/mathml/, /svg/, /png/];
     let hash;
 
     this.timeout(20000);
@@ -87,12 +88,13 @@ describe('Mathoid', function() {
     });
 
     for (let i = 0; i < formats.length; i++) {
-        var format = formats[i];
+        const format = formats[i];
+        const regex = formats_regex[i];
         it(`gets the render in ${format}`, () => { // eslint-disable-line no-loop-func
             return preq.get({
                 uri: `${uri}/render/${format}/${hash}`
             }).then((res) => {
-                assert.checkString(res.headers['content-type'], new RegExp(format));
+                assert.checkString(res.headers['content-type'], regex);
                 assert.ok(res.body);
             });
         });
