@@ -153,7 +153,7 @@ paths:
             request:
               method: put
               uri: /{domain}/sys/key_value/page_summary/{request.params.title}
-              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers, "cache-control": request.headers.cache-control)}}'
+              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers, {"cache-control": request.headers.cache-control})}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
             # if the content is not changed. In that case, return from the
