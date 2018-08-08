@@ -86,6 +86,12 @@ wiktionary_project: &wiktionary_project
     - path: projects/wmf_wiktionary.yaml
       options: *default_options
 
+wikipedia_project: &wikipedia_project
+  x-modules:
+  - path: test/test_module.yaml
+  - path: projects/wmf_wikipedia.yaml
+    options: *default_options
+
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   content_types:
@@ -118,23 +124,23 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
-    /{domain:test.wikipedia.org}: *default_project
+    /{domain:test.wikipedia.org}: *wikipedia_project
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
     /{domain:en.wikipedia.org}: *en.wikipedia.org
-    /{domain:ru.wikipedia.org}: *default_project
-    /{domain:de.wikipedia.org}: *default_project
-    /{domain:test2.wikipedia.org}: *default_project
+    /{domain:ru.wikipedia.org}: *wikipedia_project
+    /{domain:de.wikipedia.org}: *wikipedia_project
+    /{domain:test2.wikipedia.org}: *wikipedia_project
     /{domain:commons.wikimedia.org}: *default_project
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *labs_project
     # Serbian wiki in beta for language variants tests
-    /{domain:sr.wikipedia.beta.wmflabs.org}: *default_project
+    /{domain:sr.wikipedia.beta.wmflabs.org}: *labs_project
 
     # For security testing we rely on mocks, so it's OK to use French wiki.
     /{domain:fr.wikipedia.org}:
-      <<: *default_project
+      <<: *wikipedia_project
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
           options:
