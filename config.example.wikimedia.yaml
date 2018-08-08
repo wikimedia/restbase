@@ -79,6 +79,11 @@ wiktionary_project: &wiktionary_project
     - path: projects/wmf_wiktionary.yaml
       options: *default_options
 
+wikipedia_project: &wikipedia_project
+  x-modules:
+    - path: projects/wmf_wikipedia.yaml
+      options: *default_options
+
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.
 spec_root: &spec_root
@@ -98,12 +103,12 @@ spec_root: &spec_root
           - pattern: /^https:\/\//
   paths:
     /{domain:en.wikipedia.org}: *en.wikipedia.org
-    /{domain:fr.wikipedia.org}: *default_project
-    /{domain:de.wikipedia.org}: *default_project
-    /{domain:es.wikipedia.org}: *default_project
-    /{domain:it.wikipedia.org}: *default_project
-    /{domain:da.wikipedia.org}: *default_project
-    /{domain:sv.wikipedia.org}: *default_project
+    /{domain:fr.wikipedia.org}: *wikipedia_project
+    /{domain:de.wikipedia.org}: *wikipedia_project
+    /{domain:es.wikipedia.org}: *wikipedia_project
+    /{domain:it.wikipedia.org}: *wikipedia_project
+    /{domain:da.wikipedia.org}: *wikipedia_project
+    /{domain:sv.wikipedia.org}: *wikipedia_project
 
     # Example for wiktionary
     /{domain:en.wiktionary.org}: *wiktionary_project
@@ -113,6 +118,9 @@ spec_root: &spec_root
 
     # special case for wikidata
     /{domain:www.wikidata.org}: *wikidata.org
+
+    # example for non-wikipedia
+    /{domain:ru.wikivoyage.org}: *default_project
 
     # A robots.txt to make sure that the content isn't indexed.
     /robots.txt:
