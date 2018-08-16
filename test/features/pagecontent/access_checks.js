@@ -25,7 +25,6 @@ describe('Access checks', () => {
                         'pageid': 49453581,
                         'ns': 0,
                         title,
-                        'contentmodel': 'wikitext',
                         'pagelanguage': 'en',
                         'touched': '2015-05-22T08:49:39Z',
                         'lastrevid': revision,
@@ -37,7 +36,6 @@ describe('Access checks', () => {
                             'timestamp': '2015-03-25T20:29:50Z',
                             'size': 2941,
                             'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
-                            'contentmodel': 'wikitext',
                             'comment': 'Test',
                             'tags': []
                         }]
@@ -253,14 +251,12 @@ describe('Access checks', () => {
                 "userid": 6591,
                 "timestamp": "2015-02-03T21:15:55Z",
                 "size": 7700,
-                "contentmodel": "wikitext",
                 "tags": []
             };
             const normalResponse = {
                 "pageid": 152993,
                 "ns": 3,
                 "title": pageTitle,
-                "contentmodel": "wikitext",
                 "pagelanguage": "en",
                 "pagelanguagehtmlcode": "en",
                 "pagelanguagedir": "ltr",

@@ -542,7 +542,7 @@ class PRS {
                 action: 'query',
                 prop: 'info|revisions',
                 continue: '',
-                rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags'
+                rvprop: 'ids|timestamp|user|userid|size|sha1|comment|tags'
             }
         };
         if (/^[0-9]+$/.test(rp.revision)) {

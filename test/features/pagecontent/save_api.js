@@ -256,7 +256,6 @@ describe('page save api', function() {
                     result: "Success",
                     pageid: 127114,
                     title: "Save test",
-                    contentmodel: "wikitext",
                     oldrevid: 275830,
                     newrevid: 275831,
                     newtimestamp: now
@@ -271,7 +270,6 @@ describe('page save api', function() {
                             'pageid': 127114,
                             'ns': 0,
                             'title': 'Save test',
-                            'contentmodel': 'wikitext',
                             'pagelanguage': 'en',
                             'touched': now,
                             'lastrevid': 275831,
@@ -283,7 +281,6 @@ describe('page save api', function() {
                                 'timestamp': now,
                                 'size': 2941,
                                 'sha1': 'c47571122e00f28402d2a1b75cff77a22e7bfecd',
-                                'contentmodel': 'wikitext',
                                 'comment': 'Test',
                                 'tags': []
                             }]
@@ -326,7 +323,6 @@ describe('page save api', function() {
                     result: "Success",
                     pageid: 127114,
                     title: "Save test",
-                    contentmodel: "wikitext",
                     nochange: true
                 }
             });
@@ -419,7 +415,6 @@ describe('page save api', function() {
                     result: "Success",
                     pageid: 46950417,
                     title: "Save_Test",
-                    contentmodel: "wikitext",
                     oldrevid: 680525605,
                     newrevid: 680525800,
                     newtimestamp: new Date().toISOString()
