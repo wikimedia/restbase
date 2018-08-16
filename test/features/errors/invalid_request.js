@@ -35,7 +35,7 @@ parallel('400 handling', function() {
                     action: 'query',
                     prop: 'info|revisions',
                     continue: '',
-                    rvprop: 'ids|timestamp|user|userid|size|sha1|contentmodel|comment|tags',
+                    rvprop: 'ids|timestamp|user|userid|size|sha1|comment|tags',
                     format: 'json',
                     formatversion: 2,
                     titles: 'Main_Page'
