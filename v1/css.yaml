@@ -11,7 +11,7 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /css/mobile/{file}:
+  /css/mobile/{type}:
     x-route-filters:
       - path: lib/security_response_header_filter.js
     get:
@@ -20,7 +20,7 @@ paths:
       summary: Get CSS for mobile apps.
       description: |
         Gets common CSS mobile apps need to properly display pages using Page Content Service.
-        In most cases all of the following files are needed (preferably in this order):
+        In most cases all of the types are needed (preferably in this order):
         * base (Common mobile CSS from ResourceLoader)
         * pagelib (CSS from wikimedia-page-library)
         * site (Site-specific, mobile CSS from ResourceLoader, as defined in MediaWiki\:Mobile.css)
@@ -33,9 +33,9 @@ paths:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
         - application/problem+json
       parameters:
-        - name: file
+        - name: type
           in: path
-          description: The desired CSS file
+          description: The desired CSS bundle
           type: string
           enum:
             - base
@@ -56,7 +56,7 @@ paths:
         - get_from_pcs:
             request:
               method: get
-              uri: '{{options.host}}/{domain}/v1/data/css/mobile/{file}'
+              uri: '{{options.host}}/{domain}/v1/data/css/mobile/{type}'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -67,7 +67,7 @@ paths:
         - title: Get base CSS
           request:
             params:
-              file: base
+              type: base
           response:
             status: 200
             headers:
@@ -76,7 +76,7 @@ paths:
         - title: Get pagelib CSS
           request:
             params:
-              file: pagelib
+              type: pagelib
           response:
             status: 200
             headers:
@@ -85,7 +85,7 @@ paths:
         - title: Get site CSS
           request:
             params:
-              file: site
+              type: site
           response:
             status: 200
             headers:
