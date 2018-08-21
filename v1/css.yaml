@@ -11,20 +11,37 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /css/mobile/base:
+  /css/mobile/{file}:
     x-route-filters:
       - path: lib/security_response_header_filter.js
     get:
       tags:
         - Mobile
-      summary: Get base CSS for mobile apps.
+      summary: Get CSS for mobile apps.
       description: |
         Gets common CSS mobile apps need to properly display pages using Page Content Service.
+        In most cases all of the following files are needed (preferably in this order):
+        * base (Common mobile CSS from ResourceLoader)
+        * pagelib (CSS from wikimedia-page-library)
+        * site (Site-specific, mobile CSS from ResourceLoader, as defined in MediaWiki\:Mobile.css)
+
+        The first two are the same regardless of what domain is used.
+        For these we suggest meta.wikimedia.org.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
         - application/problem+json
+      parameters:
+        - name: file
+          in: path
+          description: The desired CSS file
+          type: string
+          enum:
+            - base
+            - pagelib
+            - site
+          required: true
       responses:
         '200':
           description: Success
@@ -39,7 +56,7 @@ paths:
         - get_from_pcs:
             request:
               method: get
-              uri: '{{options.host}}/{domain}/v1/data/css/mobile/base'
+              uri: '{{options.host}}/{domain}/v1/data/css/mobile/{file}'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -48,92 +65,27 @@ paths:
       x-monitor: true
       x-amples:
         - title: Get base CSS
+          request:
+            params:
+              file: base
           response:
             status: 200
             headers:
               content-type: /^text\/css; charset=utf-8/
             body: /.+/
-
-  /css/mobile/pagelib:
-    x-route-filters:
-      - path: lib/security_response_header_filter.js
-    get:
-      tags:
-        - Mobile
-      summary: Get styles from the wikimedia-page-library.
-      description: |
-        Gets common CSS mobile apps need to properly display pages using Page Content Service.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
-        - application/problem+json
-      responses:
-        '200':
-          description: Success
-          headers:
-            ETag:
-              description: Different values indicate that the content has changed
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              uri: '{{options.host}}/{domain}/v1/data/css/mobile/pagelib'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-                                 get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
         - title: Get pagelib CSS
+          request:
+            params:
+              file: pagelib
           response:
             status: 200
             headers:
               content-type: /^text\/css; charset=utf-8/
             body: /.+/
-
-  /css/mobile/site:
-    x-route-filters:
-      - path: lib/security_response_header_filter.js
-    get:
-      tags:
-        - Mobile
-      summary: Get site-specific CSS for mobile apps.
-      description: |
-        Gets wiki specific CSS mobile apps need to properly display pages using Page Content Service.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
-        - application/problem+json
-      responses:
-        '200':
-          description: Success
-          headers:
-            ETag:
-              description: Different values indicate that the content has changed
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              uri: '{{options.host}}/{domain}/v1/data/css/mobile/site'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-                                 get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get site-specific CSS
+        - title: Get site CSS
+          request:
+            params:
+              file: site
           response:
             status: 200
             headers:
