@@ -84,6 +84,11 @@ wikipedia_project: &wikipedia_project
     - path: projects/wmf_wikipedia.yaml
       options: *default_options
 
+wikivoyage_project: &wikivoyage_project
+  x-modules:
+  - path: projects/wmf_wikivoyage.yaml
+    options: *default_options
+
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.
 spec_root: &spec_root
@@ -120,7 +125,7 @@ spec_root: &spec_root
     /{domain:www.wikidata.org}: *wikidata.org
 
     # example for non-wikipedia
-    /{domain:ru.wikivoyage.org}: *default_project
+    /{domain:en.wikivoyage.beta.wmflabs.org}: *wikivoyage_project
 
     # A robots.txt to make sure that the content isn't indexed.
     /robots.txt:
@@ -143,7 +148,7 @@ info:
 services:
   - name: restbase
     module: hyperswitch
-    conf: 
+    conf:
       port: 7231
       spec: *spec_root
       salt: secret
