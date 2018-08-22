@@ -66,8 +66,11 @@ paths:
                     response_cache_control: '{{options.purged_cache_control}}'
                     cx_host: '{{options.transform.cx_host}}'
                 - path: v1/mobileapps.yaml
-                  options: '{{merge({"response_cache_control": options.purged_cache_control,
-                                     "cache-control": "no-store"}, options.mobileapps)}}'
+                  # NOTE: We're setting the `no-store` cache-control header so that we don't
+                  # store MCS results - we don't have pre-generation  for wikivoyage.
+                  options: '{{merge({"response_cache_control": options.purged_cache_control},
+                                    options.mobileapps,
+                                    {"cache-control": "no-store"})}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
                 - path: v1/summary.js
