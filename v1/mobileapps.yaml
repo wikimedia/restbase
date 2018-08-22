@@ -92,7 +92,7 @@ paths:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}{/revision}
               headers:
-                cache-control: '{{cache-control}}'
+                cache-control: '{{default(options.cache-control, cache-control)}}'
                 accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
@@ -202,7 +202,7 @@ paths:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
               headers:
-                cache-control: '{{cache-control}}'
+                cache-control: '{{default(options.cache-control, cache-control)}}'
                 accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
@@ -300,7 +300,7 @@ paths:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
               headers:
-                cache-control: '{{cache-control}}'
+                cache-control: '{{default(options.cache-control, cache-control)}}'
                 accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
