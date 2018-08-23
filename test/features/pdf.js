@@ -8,7 +8,8 @@ describe('PDF Service', () => {
 
     before(() => server.start());
 
-    it('Should get PDF for a page', () => {
+    // TODO: PDF tests a very unreliable, so skip them until T181084 is resolved
+    it.skip('Should get PDF for a page', () => {
         return preq.get({
             uri: `${server.config.hostPort}/ru.wikipedia.org/v1/page/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80`
         })
@@ -23,7 +24,8 @@ describe('PDF Service', () => {
         });
     });
 
-    it('Should get PDF for a page containing a quote in its title', () => {
+    // TODO: PDF tests a very unreliable, so skip them until T181084 is resolved
+    it.skip('Should get PDF for a page containing a quote in its title', () => {
         return preq.get({
             uri: `${server.config.hostPort}/en.wikipedia.org/v1/page/pdf/"...And_Ladies_of_the_Club"`
         })
