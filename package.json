@@ -43,7 +43,8 @@
     "hyperswitch": "^0.10.2",
     "jsonwebtoken": "^8.3.0",
     "mediawiki-title": "^0.6.5",
-    "entities": "^1.1.1"
+    "entities": "^1.1.1",
+    "semver": "latest"
   },
   "devDependencies": {
     "ajv": "^5.1.5",
