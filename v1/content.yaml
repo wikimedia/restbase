@@ -126,6 +126,7 @@ paths:
       - path: lib/security_response_header_filter.js
         options:
           allowInlineStyles: true
+      - path: lib/content_negotiation_filter.js
     get:
       x-route-filters:
         - path: lib/ensure_content_type.js
@@ -409,6 +410,7 @@ paths:
       - path: lib/security_response_header_filter.js
         options:
           allowInlineStyles: true
+      - path: lib/content_negotiation_filter.js
     get:
       x-route-filters:
         - path: lib/ensure_content_type.js
