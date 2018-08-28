@@ -506,7 +506,7 @@ describe('storage-backed transform api', () => {
             headers: { 'content-type': 'application/json' },
             body: {
                 headers: {
-                  'content-type': 'text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"'
+                  'content-type': 'text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"'
                 },
                 body: '<html>The modified HTML</html>'
             }
