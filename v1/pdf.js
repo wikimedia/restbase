@@ -25,11 +25,20 @@ module.exports = options => ({
             return hyper.get(new URI([rp.domain, 'sys', 'page_revisions', 'page', rp.title]))
             .then((latestRevision) => {
                 if (options.new_uri) {
-                    hyper.get(new URI(
+                    const newResult = hyper.get(new URI(
                         `${options.new_uri}/${rp.domain}/v1/`
                         + `pdf/${encodeURIComponent(rp.title)}/a4/desktop`
                     ))
-                    .catch(e => hyper.logger.log('error/proton', e));
+                    .catch(e => {
+                        hyper.logger.log('error/proton', e);
+                        if (req.query.new_pdf) {
+                            throw e;
+                        }
+                    });
+                    if (req.query.new_pdf) {
+                        console.log(newResult);
+                        return newResult;
+                    }
                 }
                 return hyper.get({
                     uri: new URI(`${options.uri}/pdf`),
