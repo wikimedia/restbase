@@ -64,6 +64,10 @@ describe('reading lists', function() {
         }));
     });
 
+    after(function() {
+        nock.emitter.removeAllListeners('no match');
+    });
+
     afterEach(function() {
         nock.cleanAll();
     });
