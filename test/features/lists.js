@@ -49,6 +49,12 @@ describe('reading lists', function() {
 
     this.timeout(20000);
 
+    function unmockedListener(req) {
+        if (!req.href.startsWith(`${config.baseURL}/data/lists/`)) {
+            throw Error(`Unmocked request to ${req.href}`);
+        }
+    }
+
     before(function() {
         //nock.recorder.rec();
         return server.start()
@@ -57,15 +63,11 @@ describe('reading lists', function() {
             uri: `${config.baseURL}/page/html/Main_Page`,
         }))
         // After this, there should be no unmocked requests other than those to /lists
-        .then(() => nock.emitter.on('no match', req => {
-            if (!req.href.startsWith(`${config.baseURL}/data/lists/`)) {
-                throw Error(`Unmocked request to ${req.href}`);
-            }
-        }));
+        .then(() => nock.emitter.on('no match', unmockedListener));
     });
 
     after(function() {
-        nock.emitter.removeAllListeners('no match');
+        nock.emitter.removeListener('no match', unmockedListener);
     });
 
     afterEach(function() {
