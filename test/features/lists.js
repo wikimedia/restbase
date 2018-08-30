@@ -11,10 +11,11 @@ describe('reading lists', function() {
     const csrfToken = '<mock>';
     const sessionCookies = '<mock>';
     const config = {
-        domain: 'dev.wiki.local.wmftest.net',
-        baseURL: 'http://localhost:7231/dev.wiki.local.wmftest.net/v1',
-        apiDomain: 'http://localhost:10123',
-        apiPath: '/w/api.php',
+        // domain: 'dev.wiki.local.wmftest.net',
+        // baseURL: 'http://localhost:7231/dev.wiki.local.wmftest.net/v1',
+        baseURL: server.config.baseURL,
+        apiDomain: server.config.apiURL.replace(/^(.*)(\/w\/.+)$/, "$1"),
+        apiPath: server.config.apiURL.replace(/^(.*)(\/w\/.+)$/, "$2"),
     };
 
     function getApi() {
@@ -182,6 +183,8 @@ describe('reading lists', function() {
                     action: 'query',
                     meta: 'readinglists',
                     rllimit: 'max',
+                    rlsort: 'updated',
+                    rldir: 'descending',
                     format: 'json',
                     formatversion: '2',
                 }))
@@ -199,9 +202,12 @@ describe('reading lists', function() {
             })
             .finally(() => scope.done())
             .then(function (res) {
+                // override continue-from timestamp
+                res.body['continue-from'] = '<mock>'
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: [ listEntry ],
+                    'continue-from': '<mock>',
                 });
             });
         });
@@ -212,6 +218,8 @@ describe('reading lists', function() {
                     action: 'query',
                     meta: 'readinglists',
                     rllimit: 'max',
+                    rlsort: 'updated',
+                    rldir: 'descending',
                     format: 'json',
                     formatversion: '2',
                 }))
@@ -233,10 +241,13 @@ describe('reading lists', function() {
             })
             .finally(() => scope.done())
             .then(function (res) {
+                // override continue-from timestamp
+                res.body['continue-from'] = '<mock>'
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: [ listEntry ],
                     next: '{"rlcontinue":1,"continue":"-||"}',
+                    'continue-from': '<mock>',
                 });
             });
         });
@@ -246,6 +257,8 @@ describe('reading lists', function() {
                 .post(config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
+                    rlsort: 'updated',
+                    rldir: 'descending',
                     rllimit: 'max',
                     rlcontinue: 1,
                     continue: '-||',
@@ -269,9 +282,12 @@ describe('reading lists', function() {
             })
             .finally(() => scope.done())
             .then(function (res) {
+                // override continue-from timestamp
+                res.body['continue-from'] = '<mock>'
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: [ listEntry ],
+                    'continue-from': '<mock>',
                 });
             });
         });
@@ -308,9 +324,6 @@ describe('reading lists', function() {
                     command: 'create',
                     name: 'Test list',
                     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                    color: 'red',
-                    image: 'Foo.png',
-                    icon: 'foo',
                     token: csrfToken,
                     format: 'json',
                     formatversion: '2',
@@ -355,14 +368,20 @@ describe('reading lists', function() {
                     list: 2,
                     name: 'Test list!',
                     description: 'Lorem ipsum dolor sit amet, integre fabellas partiendo has ei.',
-                    color: 'blue',
-                    image: 'Bar.png',
-                    icon: 'bar',
                     token: csrfToken,
                     format: 'json',
                     formatversion: '2',
                 }))
-                .reply(200, {});
+                .reply(200, {
+                    update:{
+                        id: 1,
+                        list: {
+                            id: 2,
+                            name: 'Test list!',
+                            description: 'Lorem ipsum dolor sit amet, integre fabellas partiendo has ei.',
+                        }
+                    }
+                });
 
             return preq.put({
                 uri: `${config.baseURL}/data/lists/2`,
@@ -413,6 +432,95 @@ describe('reading lists', function() {
             .finally(() => scope.done())
             .then(function (res) {
                 assert.deepEqual(res.status, 200);
+            });
+        });
+    });
+
+    describe('POST /lists/batch', function() {
+        it('forward call', function() {
+            const batchLists = [
+                    {
+                        name: 'Test batch list item 1',
+                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit unus.'
+                    },
+                    {
+                        name: 'Test batch list item 2',
+                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit duo.'
+                    },
+                ]
+            const scope = getApi()
+                .post(config.apiPath, nockDiff({
+                    action: 'readinglists',
+                    command: 'create',
+                    batch: JSON.stringify(batchLists),
+                    token: csrfToken,
+                    format: 'json',
+                    formatversion: '2',
+                }))
+                .reply(200, {
+                    create: {
+                        ids: [7,8],
+                        lists: [
+                            {
+                                id: 1,
+                                name: 'Test batch list item 1',
+                                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit unus.',
+                                created: '2018-08-30T13:44:04.242Z',
+                                updated: '2018-08-30T13:44:04.242Z',
+                            },
+                            {
+                                id: 2,
+                                name: 'Test batch list item 2',
+                                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit duo.',
+                                created: '2018-08-30T13:44:04.242Z',
+                                updated: '2018-08-30T13:44:04.242Z',
+                            },
+                        ],
+                    },
+                });
+
+            return preq.post({
+                uri: `${config.baseURL}/data/lists/batch`,
+                query: {
+                    csrf_token: csrfToken,
+                },
+                body: {
+                    batch: batchLists,
+                },
+                headers: {
+                    'Cookie': sessionCookies,
+                    'content-type': 'application/json',
+                },
+            })
+            .finally(() => scope.done())
+            .then(function (res) {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body, {
+                    batch: [
+                        {
+                            'id': 7
+                        },
+                        {
+                            'id': 8
+                        }
+                    ],
+                    lists: [
+                        {
+                            id: 1,
+                            name: 'Test batch list item 1',
+                            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit unus.',
+                            created: '2018-08-30T13:44:04.242Z',
+                            updated: '2018-08-30T13:44:04.242Z'
+                        },
+                        {
+                            id: 2,
+                            name: 'Test batch list item 2',
+                            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit duo.',
+                            created: '2018-08-30T13:44:04.242Z',
+                            updated: '2018-08-30T13:44:04.242Z'
+                        },
+                    ],
+                });
             });
         });
     });
@@ -513,6 +621,8 @@ describe('reading lists', function() {
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 4,
+                    rlesort: 'updated',
+                    rledir: 'descending',
                     rlelimit: 'max',
                     format: 'json',
                     formatversion: '2',
@@ -552,6 +662,8 @@ describe('reading lists', function() {
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 4,
+                    rlesort: 'updated',
+                    rledir: 'descending',
                     rlelimit: 'max',
                     format: 'json',
                     formatversion: '2',
@@ -594,6 +706,8 @@ describe('reading lists', function() {
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 4,
+                    rlesort: 'updated',
+                    rledir: 'descending',
                     rlelimit: 'max',
                     rlecontinue: 1,
                     continue: '-||',
@@ -647,6 +761,8 @@ describe('reading lists', function() {
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 1,
+                    rlesort: 'updated',
+                    rledir: 'descending',
                     rlelimit: 'max',
                     format: 'json',
                     formatversion: '2',
@@ -743,60 +859,58 @@ describe('reading lists', function() {
         });
     });
 
-    describe('GET /lists/order', function() {
+    describe('POST /lists/{id}/entries/batch', function() {
         it('forward call', function() {
+            const batchEntries = [
+                    {
+                        project: 'en.wikipedia.org',
+                        title: 'Foobar',
+                    },
+                    {
+                        project: 'en.wikipedia.org',
+                        title: 'Dog',
+                    },
+                ]
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
-                    action: 'query',
-                    meta: 'readinglistorder',
-                    rlolistorder: 1,
+                    action: 'readinglists',
+                    command: 'createentry',
+                    list: '3',
+                    batch: JSON.stringify(batchEntries),
+                    token: csrfToken,
                     format: 'json',
                     formatversion: '2',
                 }))
                 .reply(200, {
-                    query: {
-                        readinglistorder: [
+                    createentry: {
+                        ids: [2,3],
+                        entries: [
                             {
-                                type: 'lists',
-                                order: [ 1, 2, 3 ],
+                                id: 2,
+                                project: 'en.wikipedia.org',
+                                title: 'Foobar',
+                                created: '2018-08-30T13:44:04.276Z',
+                                updated: '2018-08-30T13:44:04.276Z'
+                            },
+                            {
+                                id: 3,
+                                project: 'en.wikipedia.org',
+                                title: 'Dog',
+                                created: '2018-08-30T13:44:04.276Z',
+                                updated: '2018-08-30T13:44:04.276Z'
                             },
                         ],
                     },
                 });
 
-            return preq.get({
-                uri: `${config.baseURL}/data/lists/order`,
-                headers: {
-                    'Cookie': sessionCookies,
-                },
-            })
-            .finally(() => scope.done())
-            .then(function (res) {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body, { order: [ 1, 2, 3 ] });
-            });
-        });
-    });
-
-    describe('PUT /lists/order', function() {
-        it('forward call', function() {
-            const scope = getApi()
-                .post(config.apiPath, nockDiff({
-                    action: 'readinglists',
-                    command: 'order',
-                    order: '1|2|3',
-                    token: csrfToken,
-                    format: 'json',
-                    formatversion: '2',
-                }))
-                .reply(200, {});
-
-            return preq.put({
-                uri: `${config.baseURL}/data/lists/order`,
+            return preq.post({
+                uri: `${config.baseURL}/data/lists/3/entries/batch`,
                 query: {
                     csrf_token: csrfToken,
                 },
-                body: [ 1, 2, 3 ],
+                body: {
+                    batch: batchEntries,
+                },
                 headers: {
                     'Cookie': sessionCookies,
                     'content-type': 'application/json',
@@ -805,74 +919,32 @@ describe('reading lists', function() {
             .finally(() => scope.done())
             .then(function (res) {
                 assert.deepEqual(res.status, 200);
-            });
-        });
-    });
-
-    describe('GET /lists/{id}/order', function() {
-        it('forward call', function() {
-            const scope = getApi()
-                .post(config.apiPath, nockDiff({
-                    action: 'query',
-                    meta: 'readinglistorder',
-                    rlolists: 1,
-                    format: 'json',
-                    formatversion: '2',
-                }))
-                .reply(200, {
-                    query: {
-                        readinglistorder: [
+                assert.deepEqual(res.body, {
+                        batch: [
                             {
-                                type: 'entries',
-                                list: 1,
-                                order: [ 1, 2, 3 ],
+                                id: 2,
+                            },
+                            {
+                                id: 3
                             },
                         ],
-                    },
-                });
-
-            return preq.get({
-                uri: `${config.baseURL}/data/lists/1/order`,
-                headers: {
-                    'Cookie': sessionCookies,
-                },
-            })
-                .finally(() => scope.done())
-                .then(function (res) {
-                    assert.deepEqual(res.status, 200);
-                    assert.deepEqual(res.body, { order: [ 1, 2, 3 ] });
-                });
-        });
-    });
-
-    describe('PUT /lists/{id}/order', function() {
-        it('forward call', function() {
-            const scope = getApi()
-                .post(config.apiPath, nockDiff({
-                    action: 'readinglists',
-                    command: 'orderentry',
-                    list: 1,
-                    order: '1|2|3',
-                    token: csrfToken,
-                    format: 'json',
-                    formatversion: '2',
-                }))
-                .reply(200, {});
-
-            return preq.put({
-                uri: `${config.baseURL}/data/lists/1/order`,
-                query: {
-                    csrf_token: csrfToken,
-                },
-                body: [ 1, 2, 3 ],
-                headers: {
-                    'Cookie': sessionCookies,
-                    'content-type': 'application/json',
-                },
-            })
-            .finally(() => scope.done())
-            .then(function (res) {
-                assert.deepEqual(res.status, 200);
+                        entries: [
+                            {
+                                id: 2,
+                                project: 'en.wikipedia.org',
+                                title: 'Foobar',
+                                created: '2018-08-30T13:44:04.276Z',
+                                updated: '2018-08-30T13:44:04.276Z'
+                            },
+                            {
+                                id: 3,
+                                project: 'en.wikipedia.org',
+                                title: 'Dog',
+                                created: '2018-08-30T13:44:04.276Z',
+                                updated: '2018-08-30T13:44:04.276Z'
+                            },
+                        ],
+                    });
             });
         });
     });
@@ -1067,6 +1139,10 @@ describe('reading lists', function() {
                     list: 'readinglistentries',
                     rlchangedsince: '2017-10-15T00:00:00Z',
                     rlechangedsince: '2017-10-15T00:00:00Z',
+                    rlsort: 'updated',
+                    rlesort: 'updated',
+                    rldir: 'ascending',
+                    rledir: 'ascending',
                     rllimit: 'max',
                     rlelimit: 'max',
                     format: 'json',
@@ -1087,10 +1163,12 @@ describe('reading lists', function() {
             })
             .finally(() => scope.done())
             .then(function (res) {
+                res.body['continue-from'] = '<mock>'
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: lists,
                     entries: entries,
+                    'continue-from': '<mock>',
                 });
             });
         });
@@ -1103,6 +1181,10 @@ describe('reading lists', function() {
                     list: 'readinglistentries',
                     rlchangedsince: '2017-10-15T00:00:00Z',
                     rlechangedsince: '2017-10-15T00:00:00Z',
+                    rlsort: 'updated',
+                    rlesort: 'updated',
+                    rldir: 'ascending',
+                    rledir: 'ascending',
                     rllimit: 'max',
                     rlelimit: 'max',
                     format: 'json',
@@ -1128,11 +1210,13 @@ describe('reading lists', function() {
             })
             .finally(() => scope.done())
             .then(function (res) {
+                res.body['continue-from'] = '<mock>'
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: lists.slice(0, 1),
                     entries: entries.slice(0, 1),
                     next: '{"rlcontinue":1,"rlecontinue":1,"continue":"-||"}',
+                    'continue-from': '<mock>',
                 });
             });
         });
@@ -1145,6 +1229,10 @@ describe('reading lists', function() {
                     list: 'readinglistentries',
                     rlchangedsince: '2017-10-15T00:00:00Z',
                     rlechangedsince: '2017-10-15T00:00:00Z',
+                    rlsort: 'updated',
+                    rlesort: 'updated',
+                    rldir: 'ascending',
+                    rledir: 'ascending',
                     rllimit: 'max',
                     rlelimit: 'max',
                     rlcontinue: 1,
