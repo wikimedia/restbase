@@ -41,10 +41,11 @@ describe('reading lists', function() {
                 assert.deepEqual(actual, expected, 'nock failure');
                 return true;
             } catch (e) {
+                // eslint-disable-next-line no-console
                 console.log(e);
                 return false;
             }
-        }
+        };
     }
 
     this.timeout(20000);
@@ -55,8 +56,7 @@ describe('reading lists', function() {
         }
     }
 
-    before(function() {
-        //nock.recorder.rec();
+    before(() => {
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
         .then(() => preq.get({
@@ -66,16 +66,16 @@ describe('reading lists', function() {
         .then(() => nock.emitter.on('no match', unmockedListener));
     });
 
-    after(function() {
+    after(() => {
         nock.emitter.removeListener('no match', unmockedListener);
     });
 
-    afterEach(function() {
+    afterEach(() => {
         nock.cleanAll();
     });
 
-    describe('POST /lists/setup', function() {
-        it('forward call', function() {
+    describe('POST /lists/setup', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -96,12 +96,12 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(res => {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
             });
         });
 
-        it('error handling', function() {
+        it('error handling', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -116,7 +116,7 @@ describe('reading lists', function() {
                         info: 'Invalid CSRF token.',
                     },
                 }, {
-                   'MediaWiki-API-Error': 'badtoken',
+                    'MediaWiki-API-Error': 'badtoken',
                 });
 
             return preq.post({
@@ -132,7 +132,7 @@ describe('reading lists', function() {
             .tap(() => {
                 throw new Error('should not have succeeded');
             })
-            .catch({ name: 'HTTPError' }, res => {
+            .catch({ name: 'HTTPError' }, (res) => {
                 assert.deepEqual(res.status, 400);
                 assert.deepEqual(res.body.title, 'badtoken');
                 assert.deepEqual(res.body.detail, 'Invalid CSRF token.');
@@ -140,8 +140,8 @@ describe('reading lists', function() {
         });
     });
 
-    describe('POST /lists/teardown', function() {
-        it('forward call', function() {
+    describe('POST /lists/teardown', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -162,13 +162,13 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
             });
         });
     });
 
-    describe('GET /lists/', function() {
+    describe('GET /lists/', () => {
         const listEntry = {
             id: 1,
             name: 'default',
@@ -183,7 +183,7 @@ describe('reading lists', function() {
             listOrder: [ 1, 2 ],
         };
 
-        it('forward call', function() {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -207,9 +207,9 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 // override continue-from timestamp
-                res.body['continue-from'] = '<mock>'
+                res.body['continue-from'] = '<mock>';
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: [ listEntry ],
@@ -218,7 +218,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging', function() {
+        it('paging', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -246,9 +246,9 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 // override continue-from timestamp
-                res.body['continue-from'] = '<mock>'
+                res.body['continue-from'] = '<mock>';
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: [ listEntry ],
@@ -258,7 +258,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging 2', function() {
+        it('paging 2', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -287,9 +287,9 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 // override continue-from timestamp
-                res.body['continue-from'] = '<mock>'
+                res.body['continue-from'] = '<mock>';
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: [ listEntry ],
@@ -298,7 +298,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging error', function() {
+        it('paging error', () => {
             const scope = getApi();
 
             return preq.get({
@@ -314,7 +314,7 @@ describe('reading lists', function() {
             .tap(() => {
                 throw new Error('should not have succeeded');
             })
-            .catch({ name: 'HTTPError' }, res => {
+            .catch({ name: 'HTTPError' }, (res) => {
                 assert.deepEqual(res.status, 400);
                 assert.deepEqual(res.body.type,
                     'https://mediawiki.org/wiki/HyperSwitch/errors/server_error#invalid_paging_parameter');
@@ -322,8 +322,8 @@ describe('reading lists', function() {
         });
     });
 
-    describe('POST /lists/', function() {
-        it('forward call', function() {
+    describe('POST /lists/', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -358,22 +358,22 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body.id, 2);
             });
         });
     });
 
-    describe('PUT /lists/{id}', function() {
-        it('forward call', function() {
+    describe('PUT /lists/{id}', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'update',
                     list: 2,
                     name: 'Test list!',
-                    description: 'Lorem ipsum dolor sit amet, integre fabellas partiendo has ei.',
+                    description: 'Lorem ipsum dolor sit amet',
                     token: csrfToken,
                     format: 'json',
                     formatversion: '2',
@@ -384,7 +384,7 @@ describe('reading lists', function() {
                         list: {
                             id: 2,
                             name: 'Test list!',
-                            description: 'Lorem ipsum dolor sit amet, integre fabellas partiendo has ei.',
+                            description: 'Lorem ipsum dolor sit amet',
                         }
                     }
                 });
@@ -396,7 +396,7 @@ describe('reading lists', function() {
                 },
                 body: {
                     name: 'Test list!',
-                    description: 'Lorem ipsum dolor sit amet, integre fabellas partiendo has ei.',
+                    description: 'Lorem ipsum dolor sit amet',
                     color: 'blue',
                     image: 'Bar.png',
                     icon: 'bar',
@@ -407,14 +407,14 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
             });
         });
     });
 
-    describe('DELETE /lists/{id}', function() {
-        it('forward call', function() {
+    describe('DELETE /lists/{id}', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -436,24 +436,24 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
             });
         });
     });
 
-    describe('POST /lists/batch', function() {
-        it('forward call', function() {
+    describe('POST /lists/batch', () => {
+        it('forward call', () => {
             const batchLists = [
-                    {
-                        name: 'Test batch list item 1',
-                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit unus.'
-                    },
-                    {
-                        name: 'Test batch list item 2',
-                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit duo.'
-                    },
-                ]
+                {
+                    name: 'Test batch list item 1',
+                    description: 'Lorem ipsum dolor sit amet unus.'
+                },
+                {
+                    name: 'Test batch list item 2',
+                    description: 'Lorem ipsum dolor sit amet duo.'
+                },
+            ];
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -470,14 +470,14 @@ describe('reading lists', function() {
                             {
                                 id: 1,
                                 name: 'Test batch list item 1',
-                                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit unus.',
+                                description: 'Lorem ipsum dolor sit amet unus.',
                                 created: '2018-08-30T13:44:04.242Z',
                                 updated: '2018-08-30T13:44:04.242Z',
                             },
                             {
                                 id: 2,
                                 name: 'Test batch list item 2',
-                                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit duo.',
+                                description: 'Lorem ipsum dolor sit amet duo.',
                                 created: '2018-08-30T13:44:04.242Z',
                                 updated: '2018-08-30T13:44:04.242Z',
                             },
@@ -499,7 +499,7 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     batch: [
@@ -514,14 +514,14 @@ describe('reading lists', function() {
                         {
                             id: 1,
                             name: 'Test batch list item 1',
-                            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit unus.',
+                            description: 'Lorem ipsum dolor sit amet unus.',
                             created: '2018-08-30T13:44:04.242Z',
                             updated: '2018-08-30T13:44:04.242Z'
                         },
                         {
                             id: 2,
                             name: 'Test batch list item 2',
-                            description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit duo.',
+                            description: 'Lorem ipsum dolor sit amet duo.',
                             created: '2018-08-30T13:44:04.242Z',
                             updated: '2018-08-30T13:44:04.242Z'
                         },
@@ -531,7 +531,7 @@ describe('reading lists', function() {
         });
     });
 
-    describe('GET /lists/{id}/entries/', function() {
+    describe('GET /lists/{id}/entries/', () => {
         const entries =  [
             {
                 id: 10,
@@ -586,7 +586,7 @@ describe('reading lists', function() {
             .defaultReplyHeaders({
                 'Content-Type': 'application/json; charset=utf-8',
             })
-            .post(config.apiPath, query => {
+            .post(config.apiPath, (query) => {
                 const params = (typeof query === 'string') ? querystring.parse(query) : query;
                 return params.action === 'query' && params.meta === 'siteinfo|filerepoinfo'
                     && !params.list && !params.prop;
@@ -621,7 +621,7 @@ describe('reading lists', function() {
             });
         }
 
-        it('forward call', function() {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -654,7 +654,7 @@ describe('reading lists', function() {
                 scope.done();
                 scope2.done();
             })
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     entries: expectedEntries,
@@ -662,7 +662,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging', function() {
+        it('paging', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -697,7 +697,7 @@ describe('reading lists', function() {
                 scope.done();
                 scope2.done();
             })
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     entries: expectedEntries.slice(0, 1),
@@ -706,7 +706,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging2', function() {
+        it('paging2', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -742,7 +742,7 @@ describe('reading lists', function() {
                 scope.done();
                 scope2.done();
             })
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     entries: expectedEntries.slice(1),
@@ -750,7 +750,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('no cookie forwarding to unknown domains', function() {
+        it('no cookie forwarding to unknown domains', () => {
             const entries = [
                 {
                     id: 1,
@@ -788,14 +788,14 @@ describe('reading lists', function() {
             .finally(() => {
                 scope.done();
             })
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
             });
         });
     });
 
-    describe('POST /lists/{id}/entries/', function() {
-        it('forward call', function() {
+    describe('POST /lists/{id}/entries/', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -828,7 +828,7 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body.id, 1);
             });
@@ -836,8 +836,8 @@ describe('reading lists', function() {
 
     });
 
-    describe('DELETE /lists/{id}/entries/{entry_id}', function() {
-        it('forward call', function() {
+    describe('DELETE /lists/{id}/entries/{entry_id}', () => {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -859,24 +859,24 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
             });
         });
     });
 
-    describe('POST /lists/{id}/entries/batch', function() {
-        it('forward call', function() {
+    describe('POST /lists/{id}/entries/batch', () => {
+        it('forward call', () => {
             const batchEntries = [
-                    {
-                        project: 'en.wikipedia.org',
-                        title: 'Foobar',
-                    },
-                    {
-                        project: 'en.wikipedia.org',
-                        title: 'Dog',
-                    },
-                ]
+                {
+                    project: 'en.wikipedia.org',
+                    title: 'Foobar',
+                },
+                {
+                    project: 'en.wikipedia.org',
+                    title: 'Dog',
+                },
+            ];
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'readinglists',
@@ -923,39 +923,39 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
-                        batch: [
-                            {
-                                id: 2,
-                            },
-                            {
-                                id: 3
-                            },
-                        ],
-                        entries: [
-                            {
-                                id: 2,
-                                project: 'en.wikipedia.org',
-                                title: 'Foobar',
-                                created: '2018-08-30T13:44:04.276Z',
-                                updated: '2018-08-30T13:44:04.276Z'
-                            },
-                            {
-                                id: 3,
-                                project: 'en.wikipedia.org',
-                                title: 'Dog',
-                                created: '2018-08-30T13:44:04.276Z',
-                                updated: '2018-08-30T13:44:04.276Z'
-                            },
-                        ],
-                    });
+                    batch: [
+                        {
+                            id: 2,
+                        },
+                        {
+                            id: 3
+                        },
+                    ],
+                    entries: [
+                        {
+                            id: 2,
+                            project: 'en.wikipedia.org',
+                            title: 'Foobar',
+                            created: '2018-08-30T13:44:04.276Z',
+                            updated: '2018-08-30T13:44:04.276Z'
+                        },
+                        {
+                            id: 3,
+                            project: 'en.wikipedia.org',
+                            title: 'Dog',
+                            created: '2018-08-30T13:44:04.276Z',
+                            updated: '2018-08-30T13:44:04.276Z'
+                        },
+                    ],
+                });
             });
         });
     });
 
-    describe('GET /lists/pages/{project}/{title}', function() {
+    describe('GET /lists/pages/{project}/{title}', () => {
         const lists = [
             {
                 id: 1,
@@ -983,7 +983,7 @@ describe('reading lists', function() {
             },
         ];
 
-        it('forward call', function() {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -1007,15 +1007,15 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
-                    lists: lists,
+                    lists,
                 });
             });
         });
 
-        it('paging', function() {
+        it('paging', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -1043,7 +1043,7 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: lists.slice(0, 1),
@@ -1052,7 +1052,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging 2', function() {
+        it('paging 2', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -1081,7 +1081,7 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: lists.slice(1),
@@ -1090,7 +1090,7 @@ describe('reading lists', function() {
         });
     });
 
-    describe('GET /lists/changes/since/{date}', function() {
+    describe('GET /lists/changes/since/{date}', () => {
         const lists = [
             {
                 id: 1,
@@ -1137,7 +1137,7 @@ describe('reading lists', function() {
             },
         ];
 
-        it('forward call', function() {
+        it('forward call', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -1168,18 +1168,18 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
-                res.body['continue-from'] = '<mock>'
+            .then((res) => {
+                res.body['continue-from'] = '<mock>';
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
-                    lists: lists,
-                    entries: entries,
+                    lists,
+                    entries,
                     'continue-from': '<mock>',
                 });
             });
         });
 
-        it('paging', function() {
+        it('paging', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -1215,8 +1215,8 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
-                res.body['continue-from'] = '<mock>'
+            .then((res) => {
+                res.body['continue-from'] = '<mock>';
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: lists.slice(0, 1),
@@ -1227,7 +1227,7 @@ describe('reading lists', function() {
             });
         });
 
-        it('paging 2', function() {
+        it('paging 2', () => {
             const scope = getApi()
                 .post(config.apiPath, nockDiff({
                     action: 'query',
@@ -1264,7 +1264,7 @@ describe('reading lists', function() {
                 },
             })
             .finally(() => scope.done())
-            .then(function (res) {
+            .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, {
                     lists: lists.slice(1),
