@@ -1577,92 +1577,98 @@ paths:
                 keepAlive: true
       x-monitor: false
 
-  /edits/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}:
-    get:
-      tags:
-        - Edits data
-      summary: Get the edits counts for an editor in a project.
-      description: |
-        Given a Mediawiki project, a user-text and a date range, returns a timeseries of edits
-        counts. You can filter by page type (all-page-types, content or non-content). You can
-        choose between daily and monthly granularity as well.
-
-        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 25 req/s
-        - License: Data accessible via this endpoint is available under the
-          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
-      parameters:
-        - name: project
-          in: path
-          description: |
-            The name of any Wikimedia project formatted like {language code}.{project name},
-            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
-            off. For projects like commons without language codes, use commons.wikimedia. For
-            projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
-          type: string
-          required: true
-        - name: user-text
-          in: path
-          description: |
-            The user you want to get edits for. Can be either a registered user-name, or an
-            anonymous user IP.
-          type: string
-          required: true
-        - name: page-type
-          in: path
-          description: |
-            If you want to filter by page-type, use one of content (edits on pages in content
-            namespaces) or non-content (edits on pages in non-content namespaces). If you are
-            interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
-          required: true
-        - name: granularity
-          in: path
-          description: |
-            Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
-          required: true
-        - name: start
-          in: path
-          description: The date of the first day to include, in YYYYMMDD format
-          type: string
-          required: true
-        - name: end
-          in: path
-          description: The date of the last day to include, in YYYYMMDD format
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The list of values
-          schema:
-            $ref: '#/definitions/edits-per-editor'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-route-filters:
-        - type: default
-          name: ratelimit_route
-          options:
-            limits:
-              internal: 25
-              external: 25
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: '{{options.host}}/edits/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}'
-              headers:
-                x-client-ip: '{{x-client-ip}}'
-              agentOptions:
-                keepAlive: true
-      x-monitor: false
+####################################################
+# Commented because of https://meta.wikimedia.org/wiki/Requests_for_comment/X!%27s_Edit_Counter
+# This RfC results in per-editor monthly stats should be opt-in
+# https://phabricator.wikimedia.org/T203826
+####################################################
+#
+#  /edits/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}:
+#    get:
+#      tags:
+#        - Edits data
+#      summary: Get the edits counts for an editor in a project.
+#      description: |
+#        Given a Mediawiki project, a user-text and a date range, returns a timeseries of edits
+#        counts. You can filter by page type (all-page-types, content or non-content). You can
+#        choose between daily and monthly granularity as well.
+#
+#        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+#        - Rate limit: 25 req/s
+#        - License: Data accessible via this endpoint is available under the
+#          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+#      produces:
+#        - application/json
+#        - application/problem+json
+#      parameters:
+#        - name: project
+#          in: path
+#          description: |
+#            The name of any Wikimedia project formatted like {language code}.{project name},
+#            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
+#            off. For projects like commons without language codes, use commons.wikimedia. For
+#            projects like www.mediawiki.org, you can use that full string, or just use mediawiki
+#            or mediawiki.org.
+#          type: string
+#          required: true
+#        - name: user-text
+#          in: path
+#          description: |
+#            The user you want to get edits for. Can be either a registered user-name, or an
+#            anonymous user IP.
+#          type: string
+#          required: true
+#        - name: page-type
+#          in: path
+#          description: |
+#            If you want to filter by page-type, use one of content (edits on pages in content
+#            namespaces) or non-content (edits on pages in non-content namespaces). If you are
+#            interested in edits regardless of their page-type, use all-page-types.
+#          type: string
+#          enum: ['all-page-types', 'content', 'non-content']
+#          required: true
+#        - name: granularity
+#          in: path
+#          description: |
+#            Time unit for the response data. As of today, supported values are daily and monthly
+#          type: string
+#          enum: ['daily', 'monthly']
+#          required: true
+#        - name: start
+#          in: path
+#          description: The date of the first day to include, in YYYYMMDD format
+#          type: string
+#          required: true
+#        - name: end
+#          in: path
+#          description: The date of the last day to include, in YYYYMMDD format
+#          type: string
+#          required: true
+#      responses:
+#        '200':
+#          description: The list of values
+#          schema:
+#            $ref: '#/definitions/edits-per-editor'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-route-filters:
+#        - type: default
+#          name: ratelimit_route
+#          options:
+#            limits:
+#              internal: 25
+#              external: 25
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: '{{options.host}}/edits/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}'
+#              headers:
+#                x-client-ip: '{{x-client-ip}}'
+#              agentOptions:
+#                keepAlive: true
+#      x-monitor: false
 
 
   ########################################
@@ -1928,92 +1934,97 @@ paths:
                 keepAlive: true
       x-monitor: false
 
-  /bytes-difference/net/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}:
-    get:
-      tags:
-        - Bytes difference data
-      summary: Get the sum of net text bytes difference per editor.
-      description: |
-        Given a Mediawiki project, an user-text and a date range, returns a timeseries of bytes
-        difference net sums. You can filter by page-type (all-page-types, content, non-content).
-        You can choose between daily and monthly granularity as well.
-
-        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 25 req/s
-        - License: Data accessible via this endpoint is available under the
-          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
-      parameters:
-        - name: project
-          in: path
-          description: |
-            The name of any Wikimedia project formatted like {language code}.{project name},
-            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
-            off. For projects like commons without language codes, use commons.wikimedia. For
-            projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
-          type: string
-          required: true
-        - name: user-text
-          in: path
-          description: |
-            The user-text to request net bytes-difference for. Can be either a registered
-            user-name or an anonymous user IP.
-          type: string
-          required: true
-        - name: page-type
-          in: path
-          description: |
-            If you want to filter by page-type, use one of content (edits on pages in content
-            namespaces) or non-content (edits on pages in non-content namespaces). If you are
-            interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
-          required: true
-        - name: granularity
-          in: path
-          description: |
-            Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
-          required: true
-        - name: start
-          in: path
-          description: The date of the first day to include, in YYYYMMDD format
-          type: string
-          required: true
-        - name: end
-          in: path
-          description: The date of the last day to include, in YYYYMMDD format
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The list of values
-          schema:
-            $ref: '#/definitions/net-bytes-difference-per-editor'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-route-filters:
-        - type: default
-          name: ratelimit_route
-          options:
-            limits:
-              internal: 25
-              external: 25
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: '{{options.host}}/bytes-difference/net/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}'
-              headers:
-                x-client-ip: '{{x-client-ip}}'
-              agentOptions:
-                keepAlive: true
-      x-monitor: false
+####################################################
+# Commented because of https://meta.wikimedia.org/wiki/Requests_for_comment/X!%27s_Edit_Counter
+# This RfC results in per-editor monthly stats should be opt-in
+# https://phabricator.wikimedia.org/T203826
+####################################################
+#  /bytes-difference/net/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}:
+#    get:
+#      tags:
+#        - Bytes difference data
+#      summary: Get the sum of net text bytes difference per editor.
+#      description: |
+#        Given a Mediawiki project, an user-text and a date range, returns a timeseries of bytes
+#        difference net sums. You can filter by page-type (all-page-types, content, non-content).
+#        You can choose between daily and monthly granularity as well.
+#
+#        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+#        - Rate limit: 25 req/s
+#        - License: Data accessible via this endpoint is available under the
+#          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+#      produces:
+#        - application/json
+#        - application/problem+json
+#      parameters:
+#        - name: project
+#          in: path
+#          description: |
+#            The name of any Wikimedia project formatted like {language code}.{project name},
+#            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
+#            off. For projects like commons without language codes, use commons.wikimedia. For
+#            projects like www.mediawiki.org, you can use that full string, or just use mediawiki
+#            or mediawiki.org.
+#          type: string
+#          required: true
+#        - name: user-text
+#          in: path
+#          description: |
+#            The user-text to request net bytes-difference for. Can be either a registered
+#            user-name or an anonymous user IP.
+#          type: string
+#          required: true
+#        - name: page-type
+#          in: path
+#          description: |
+#            If you want to filter by page-type, use one of content (edits on pages in content
+#            namespaces) or non-content (edits on pages in non-content namespaces). If you are
+#            interested in edits regardless of their page-type, use all-page-types.
+#          type: string
+#          enum: ['all-page-types', 'content', 'non-content']
+#          required: true
+#        - name: granularity
+#          in: path
+#          description: |
+#            Time unit for the response data. As of today, supported values are daily and monthly
+#          type: string
+#          enum: ['daily', 'monthly']
+#          required: true
+#        - name: start
+#          in: path
+#          description: The date of the first day to include, in YYYYMMDD format
+#          type: string
+#          required: true
+#        - name: end
+#          in: path
+#          description: The date of the last day to include, in YYYYMMDD format
+#          type: string
+#          required: true
+#      responses:
+#        '200':
+#          description: The list of values
+#          schema:
+#            $ref: '#/definitions/net-bytes-difference-per-editor'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-route-filters:
+#        - type: default
+#          name: ratelimit_route
+#          options:
+#            limits:
+#              internal: 25
+#              external: 25
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: '{{options.host}}/bytes-difference/net/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}'
+#              headers:
+#                x-client-ip: '{{x-client-ip}}'
+#              agentOptions:
+#                keepAlive: true
+#      x-monitor: false
 
 
   ########################################
@@ -2204,92 +2215,97 @@ paths:
                 keepAlive: true
       x-monitor: false
 
-  /bytes-difference/absolute/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}:
-    get:
-      tags:
-        - Bytes difference data
-      summary: Get the sum of absolute text bytes difference per editor.
-      description: |
-        Given a Mediawiki project, an user_text and a date range, returns a timeseries of bytes
-        difference absolute sums. You can filter by page-type (all-page-types, content,
-        non-content). You can choose between daily and monthly granularity as well.
-
-        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 25 req/s
-        - License: Data accessible via this endpoint is available under the
-          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
-      parameters:
-        - name: project
-          in: path
-          description: |
-            The name of any Wikimedia project formatted like {language code}.{project name},
-            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
-            off. For projects like commons without language codes, use commons.wikimedia. For
-            projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
-          type: string
-          required: true
-        - name: user-text
-          in: path
-          description: |
-            The user-text to request absolute bytes-difference for. Can be either a registered
-            user-name or an anonymous user IP.
-          type: string
-          required: true
-        - name: page-type
-          in: path
-          description: |
-            If you want to filter by page-type, use one of content (edits on pages in content
-            namespaces) or non-content (edits on pages in non-content namespaces). If you are
-            interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
-          required: true
-        - name: granularity
-          in: path
-          description: |
-            Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
-          required: true
-        - name: start
-          in: path
-          description: The date of the first day to include, in YYYYMMDD format
-          type: string
-          required: true
-        - name: end
-          in: path
-          description: The date of the last day to include, in YYYYMMDD format
-          type: string
-          required: true
-      responses:
-        '200':
-          description: The list of values
-          schema:
-            $ref: '#/definitions/absolute-bytes-difference-per-editor'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-route-filters:
-        - type: default
-          name: ratelimit_route
-          options:
-            limits:
-              internal: 25
-              external: 25
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: '{{options.host}}/bytes-difference/absolute/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}'
-              headers:
-                x-client-ip: '{{x-client-ip}}'
-              agentOptions:
-                keepAlive: true
-      x-monitor: false
+####################################################
+# Commented because of https://meta.wikimedia.org/wiki/Requests_for_comment/X!%27s_Edit_Counter
+# This RfC results in per-editor monthly stats should be opt-in
+# https://phabricator.wikimedia.org/T203826
+####################################################
+#  /bytes-difference/absolute/#tor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}:
+#    get:
+#      tags:
+#        - Bytes difference data
+#      summary: Get the sum of absolute text bytes difference per editor.
+#      description: |
+#        Given a Mediawiki project, an user_text and a date range, returns a timeseries of bytes
+#        difference absolute sums. You can filter by page-type (all-page-types, content,
+#        non-content). You can choose between daily and monthly granularity as well.
+#
+#        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+#        - Rate limit: 25 req/s
+#        - License: Data accessible via this endpoint is available under the
+#          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+#      produces:
+#        - application/json
+#        - application/problem+json
+#      parameters:
+#        - name: project
+#          in: path
+#          description: |
+#            The name of any Wikimedia project formatted like {language code}.{project name},
+#            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
+#            off. For projects like commons without language codes, use commons.wikimedia. For
+#            projects like www.mediawiki.org, you can use that full string, or just use mediawiki
+#            or mediawiki.org.
+#          type: string
+#          required: true
+#        - name: user-text
+#          in: path
+#          description: |
+#            The user-text to request absolute bytes-difference for. Can be either a registered
+#            user-name or an anonymous user IP.
+#          type: string
+#          required: true
+#        - name: page-type
+#          in: path
+#          description: |
+#            If you want to filter by page-type, use one of content (edits on pages in content
+#            namespaces) or non-content (edits on pages in non-content namespaces). If you are
+#            interested in edits regardless of their page-type, use all-page-types.
+#          type: string
+#          enum: ['all-page-types', 'content', 'non-content']
+#          required: true
+#        - name: granularity
+#          in: path
+#          description: |
+#            Time unit for the response data. As of today, supported values are daily and monthly
+#          type: string
+#          enum: ['daily', 'monthly']
+#          required: true
+#        - name: start
+#          in: path
+#          description: The date of the first day to include, in YYYYMMDD format
+#          type: string
+#          required: true
+#        - name: end
+#          in: path
+#          description: The date of the last day to include, in YYYYMMDD format
+#          type: string
+#          required: true
+#      responses:
+#        '200':
+#          description: The list of values
+#          schema:
+#            $ref: '#/definitions/absolute-bytes-difference-per-editor'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/problem'
+#      x-route-filters:
+#        - type: default
+#          name: ratelimit_route
+#          options:
+#            limits:
+#              internal: 25
+#              external: 25
+#      x-request-handler:
+#        - get_from_backend:
+#            request:
+#              uri: '{{options.host}}/bytes-difference/absolute/per-editor/{project}/{user-text}/{page-type}/{granularity}/{start}/{end}'
+#              headers:
+#                x-client-ip: '{{x-client-ip}}'
+#              agentOptions:
+#                keepAlive: true
+#      x-monitor: false
 
 
 ########################################
