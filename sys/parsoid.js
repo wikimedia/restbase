@@ -138,19 +138,24 @@ function replaceSections(original, sectionsJson) {
     return `<body>${newBody}</body>`;
 }
 
-// HTML resource_change event emission
-function _dependenciesUpdate(hyper, req) {
+/** HTML resource_change event emission
+ * hyper {HyperSwitch} the hyperswitch router object
+ * req {Object} the request
+ * [oldContent] {boolean} whether this is an older revision
+ */
+function _dependenciesUpdate(hyper, req, newContent = true) {
     const rp = req.params;
     return mwUtil.getSiteInfo(hyper, req)
     .then((siteInfo) => {
         const baseUri = siteInfo.baseUri.replace(/^https?:/, '');
         const publicURI = `${baseUri}/page/html/${encodeURIComponent(rp.title)}`;
+        const body = [ { meta: { uri: `${publicURI}/${rp.revision}` } } ];
+        if (newContent) {
+            body.push({ meta: { uri: publicURI } });
+        }
         return hyper.post({
             uri: new URI([rp.domain, 'sys', 'events', '']),
-            body: [
-                { meta: { uri: publicURI } },
-                { meta: { uri: `${publicURI}/${rp.revision}` } }
-            ]
+            body
         }).catch((e) => {
             hyper.logger.log('warn/bg-updates', e);
         });
@@ -376,9 +381,12 @@ class ParsoidService {
                         body: res.body[format].body
                     };
                     resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
+                    let newContent = true;
                     return this.saveParsoidResultToLatest(hyper, req, tid, res)
-                    .catch({ status: 412 }, () =>
-                        this.saveParsoidResultToFallback(hyper, req, tid, res))
+                    .catch({ status: 412 }, () => {
+                        newContent = false;
+                        return this.saveParsoidResultToFallback(hyper, req, tid, res);
+                    })
                     .then(() => {
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
@@ -402,7 +410,7 @@ class ParsoidService {
                         }
                     })
                     .then(() => {
-                        const dependencyUpdate = _dependenciesUpdate(hyper, req);
+                        const dependencyUpdate = _dependenciesUpdate(hyper, req, newContent);
                         if (mwUtil.isNoCacheRequest(req)) {
                             // Finish background updates before returning
                             return dependencyUpdate.thenReturn(resp);
