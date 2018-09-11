@@ -141,7 +141,7 @@ function replaceSections(original, sectionsJson) {
 /** HTML resource_change event emission
  * hyper {HyperSwitch} the hyperswitch router object
  * req {Object} the request
- * [oldContent] {boolean} whether this is an older revision
+ * [newContent] {boolean} whether this is the newest revision
  */
 function _dependenciesUpdate(hyper, req, newContent = true) {
     const rp = req.params;
