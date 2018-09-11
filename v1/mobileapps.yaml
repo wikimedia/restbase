@@ -5,7 +5,7 @@ tags:
 paths:
   /mobile-sections/{title}{/revision}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js
@@ -116,7 +116,7 @@ paths:
 
   /mobile-sections-lead/{title}{/revision}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js
@@ -213,7 +213,7 @@ paths:
 
   /mobile-sections-remaining/{title}{/revision}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js

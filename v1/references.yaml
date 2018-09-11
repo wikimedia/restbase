@@ -13,7 +13,7 @@ info:
 paths:
   /references/{title}{/revision}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/security_response_header_filter.js
