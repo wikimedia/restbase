@@ -125,7 +125,7 @@ paths:
       consumes:
         - multipart/form-data
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"
         - application/problem+json
       parameters:
         - name: title
@@ -296,7 +296,7 @@ paths:
 #      consumes:
 #        - multipart/form-data
 #      produces:
-#        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.6.0"
+#        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"
 #        - application/problem+json
 #      parameters:
 #        - name: title
