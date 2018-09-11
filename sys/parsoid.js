@@ -388,17 +388,6 @@ class ParsoidService {
                             resp.status = 302;
                             resp.headers.location = encodeURIComponent(redirectTarget)
                                 .replace(/%23/, '#');
-                            return hyper.post({
-                                uri: new URI([rp.domain, 'sys', 'page_revisions',
-                                    'restrictions', rp.title, rp.revision]),
-                                body: {
-                                    redirect: redirectTarget,
-                                }
-                            })
-                            .catch((e) => {
-                                hyper.logger.log('error/parsoid/redirect/update', e);
-                                throw e;
-                            });
                         }
                     })
                     .then(() => {

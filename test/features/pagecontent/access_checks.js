@@ -58,12 +58,18 @@ describe('Access checks', () => {
             api = setUpNockResponse(api, deletedPageTitle, deletedPageOlderRevision);
             api = setUpNockResponse(api, deletedPageTitle, deletedPageRevision);
             return preq.get({
-                uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`
+                uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
-                    uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageRevision}`
+                    uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageRevision}`,
+                    headers: {
+                        'cache-control': 'no-cache'
+                    }
                 });
             })
             .then(res => assert.deepEqual(res.status, 200))

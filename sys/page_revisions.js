@@ -16,18 +16,10 @@ const URI = HyperSwitch.URI;
 const TimeUuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const stringify = require('json-stable-stringify');
-const P = require('bluebird');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/page_revisions.yaml`);
 
 const tableName = 'title_revisions-ng';
-
-/**
- * The name of the suppression table
- * @type {string}
- * @const
- */
-const restrictionsTableName = 'page_restrictions';
 
 // Title Revision Service
 class PRS {
@@ -72,234 +64,56 @@ class PRS {
         };
     }
 
-    /**
-     * Suppression table schema
-     * @type {Object}
-     * @const
-     */
-    restrictionsTableSchema() {
-        return {
-            table: restrictionsTableName,
-            version: 2,
-            attributes: {
-                title: 'string',
-                rev: 'int',
-                restrictions: 'set<string>',
-                redirect: 'string',
-                page_deleted: 'int'
-            },
-            index: [
-                { attribute: 'title', type: 'hash' },
-                { attribute: 'rev', type: 'range', order: 'desc' },
-                { attribute: 'page_deleted', type: 'static' }
-            ]
-        };
-    }
-
-    /**
-     * Returns the suppression table URI for a given domain
-     * @param {string} domain the domain
-     * @return {URI} suppression table URI
-     */
-    restrictionsTableURI(domain) {
-        return new URI([domain, 'sys', 'table', restrictionsTableName, '']);
-    }
-
-    getRestrictions(hyper, req) {
-        const rp = req.params;
-        const attributes = { title: rp.title };
-        if (rp.revision) {
-            attributes.rev = {
-                le: rp.revision
-            };
-        }
-        return hyper.get({
-            uri: this.restrictionsTableURI(rp.domain),
-            body: {
-                table: restrictionsTableName,
-                attributes,
-                limit: 1
-            }
-        })
-        .then((res) => {
-            // Remove possible revision restrictions as here we just need
-            // the page deletion info
-            const restrictions = res.body && res.body.items && res.body.items[0] || null;
-            if (restrictions) {
-                if (rp.revision && parseInt(restrictions.rev, 10) !== parseInt(rp.revision, 10)) {
-                    restrictions.restrictions = [];
-                    restrictions.redirect = undefined;
-                }
-                res.body = restrictions;
-            } else {
-                res.body = null;
-            }
-            return res;
-        });
-    }
-
-    /**
-     * Update restrictions for a title & revision. Used primarily by the parsoid
-     * module to update redirects on save.
-     */
-    postRestrictions(hyper, req) {
-        const rp = req.params;
-        // Validate the request body
-        const body = req.body;
-        if (!body || !(body.restrictions || body.redirect)) {
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request',
-                    description: 'Expected restrictions or redirect in the POST body.',
-                }
-            });
-        }
-        const revision = {
-            title: rp.title,
-            rev: rp.revision,
-        };
-        Object.assign(revision, body);
-        return this.storeRestrictions(hyper, req, revision);
-    }
-
-    storeRestrictions(hyper, req, revision) {
-        const rp = req.params;
-        // Do not even define attributes we don't want to overwrite.
-        const restrictionObject = {};
-        if (revision.restrictions && revision.restrictions.length) {
-            restrictionObject.restrictions = revision.restrictions;
-        }
-        // Only accept new-style redirect parameters that are strings, but ignore
-        // `true` flags as passed from MW API redirect responses (from
-        // storePageDeletion and fetchAndStoreMWRevision).
-        if (revision.redirect !== true && revision.redirect) {
-            restrictionObject.redirect = revision.redirect;
-        }
-        if (revision.page_deleted) {
-            restrictionObject.page_deleted = revision.page_deleted;
-        }
-        if (Object.keys(restrictionObject).length) {
-            // Have restrictions or a redirect. Update storage.
-            const attributes = {
-                title: revision.title,
-                rev: revision.rev
-            };
-            Object.assign(attributes, restrictionObject);
-            return hyper.put({
-                uri: this.restrictionsTableURI(rp.domain),
-                body: {
-                    table: restrictionsTableName,
-                    attributes
-                }
-            });
-        } else {
-            // New restrictions are not specified. To avoid filling the
-            // table with useless data first check whether there were
-            // some restrictions stored before and overwrite only if needed
-            return this.getRestrictions(hyper, {
-                params: {
-                    domain: rp.domain,
-                    title: revision.title,
-                    rev: revision.rev
-                }
-            })
-            .then((res) => {
-                const oldRestriction = res.body;
-                if (oldRestriction.restrictions && oldRestriction.restrictions.length
-                        || oldRestriction.page_deleted) {
-                    // There were restrictions before. Record absence of
-                    // restrictions.
-                    return hyper.put({
-                        uri: this.restrictionsTableURI(rp.domain),
-                        body: {
-                            table: restrictionsTableName,
-                            attributes: {
-                                title: revision.title,
-                                rev: revision.rev,
-                                restrictions: [],
-                                // TODO: Reset page_deleted to actual start
-                                // revision!
-                                page_deleted: null,
-                            }
-                        }
-                    });
-                }
-                return P.resolve({ status: 200 });
-            })
-            // No restrictions before & after. Nothing to do.
-            .catchReturn({ status: 404 }, { status: 200 });
-        }
-    }
-
-    storePageDeletion(hyper, req, revision) {
-        return this.storeRestrictions(hyper, req, {
-            title: req.params.title,
-            // We're storing page_deletions with magic 0 rev just to update the static column
-            // 0 is used to allow "LE" query always find at least something if no restrictions
-            // are present for a particular revision.
-            rev: 0,
-            page_deleted: revision.page_deleted
-        });
-    }
-
     fetchAndStoreMWRevision(hyper, req) {
         const rp = req.params;
         return this.fetchMWRevision(hyper, req)
-        .then(revision => // Check if the same revision is already in storage
-            P.join(
-                hyper.get({
-                    uri: this.tableURI(rp.domain),
-                    body: {
-                        table: tableName,
-                        attributes: {
-                            title: revision.title,
-                            rev: revision.rev
-                        }
-                    }
-                }),
-                // TODO: Before we fill in the restrictions table we need
-                // to store the restriction regardless of the revision change
-
-                this.storeRestrictions(hyper, req, revision)
-            )
-            .spread((res) => {
-                const sameRev = res && res.body.items
-                    && res.body.items.length > 0
-                    && this._checkSameRev(revision, res.body.items[0]);
-                if (!sameRev) {
-                    throw new HTTPError({ status: 404 });
+        // Check if the same revision is already in storage
+        .then(revision => hyper.get({
+            uri: this.tableURI(rp.domain),
+            body: {
+                table: tableName,
+                attributes: {
+                    title: revision.title,
+                    rev: revision.rev
                 }
-            })
-            .catch({ status: 404 }, () => {
-                if (!revision.page_deleted) {
-                    // Clear up page_deleted
-                    revision.page_deleted = null;
-                }
+            }
+        })
+        .then((res) => {
+            const sameRev = res && res.body.items
+                && res.body.items.length > 0
+                && this._checkSameRev(revision, res.body.items[0]);
+            if (!sameRev) {
+                throw new HTTPError({ status: 404 });
+            }
+        })
+        .catch({ status: 404 }, () => {
+            if (!revision.page_deleted) {
+                // Clear up page_deleted
+                revision.page_deleted = null;
+            }
 
-                return hyper.put({ // Save / update the revision entry
-                    uri: this.tableURI(rp.domain),
-                    body: {
-                        table: tableName,
-                        // TODO: Workaround for a bug in sqlite that stringifies the array
-                        // in place while saving.
-                        attributes: Object.assign({}, revision)
-                    }
-                });
-            })
-            .then(() => {
-                this._checkRevReturn(revision);
-                return {
-                    status: 200,
-                    headers: {
-                        etag: mwUtil.makeETag(revision.rev, revision.tid)
-                    },
-                    body: {
-                        items: [ revision ]
-                    }
-                };
-            })
-        );
+            return hyper.put({ // Save / update the revision entry
+                uri: this.tableURI(rp.domain),
+                body: {
+                    table: tableName,
+                    // TODO: Workaround for a bug in sqlite that stringifies the array
+                    // in place while saving.
+                    attributes: Object.assign({}, revision)
+                }
+            });
+        })
+        .then(() => {
+            this._checkRevReturn(revision);
+            return {
+                status: 200,
+                headers: {
+                    etag: mwUtil.makeETag(revision.rev, revision.tid)
+                },
+                body: {
+                    items: [revision]
+                }
+            };
+        }));
     }
 
     getTitleRevision(hyper, req) {
@@ -342,18 +156,15 @@ class PRS {
                     result = result.body.items[0];
                     result.tid = TimeUuid.now().toString();
                     result.page_deleted = result.rev;
-                    return P.join(
-                        hyper.put({
-                            uri: this.tableURI(rp.domain),
-                            body: {
-                                table: tableName,
-                                attributes: Object.assign({}, result)
-                            }
-                        }),
-                        // TODO: Object.assign here is to avoid a bug in sqlite
-                        // backend that modifies original attribute.
-                        this.storePageDeletion(hyper, req, Object.assign({}, result))
-                    ).throw(e);
+                    // TODO: Object.assign here is to avoid a bug in sqlite
+                    // backend that modifies original attribute.
+                    return hyper.put({
+                        uri: this.tableURI(rp.domain),
+                        body: {
+                            table: tableName,
+                            attributes: Object.assign({}, result)
+                        }
+                    }).throw(e);
                 }));
         } else {
             revisionRequest = titleRevisionRequest()
@@ -620,19 +431,13 @@ module.exports = (options) => {
         operations: {
             listTitles: prs.listTitles.bind(prs),
             listTitleRevisions: prs.listTitleRevisions.bind(prs),
-            getTitleRevision: prs.getTitleRevision.bind(prs),
-            getRestrictions: prs.getRestrictions.bind(prs),
-            postRestrictions: prs.postRestrictions.bind(prs),
+            getTitleRevision: prs.getTitleRevision.bind(prs)
         },
         resources: [
             {
                 // Revision table
                 uri: `/{domain}/sys/table/${tableName}`,
                 body: prs.getTableSchema()
-            },
-            {
-                uri: `/{domain}/sys/table/${restrictionsTableName}`,
-                body: prs.restrictionsTableSchema()
             }
         ]
     };
