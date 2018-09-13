@@ -160,7 +160,7 @@ info:
 services:
   - name: restbase
     module: hyperswitch
-    conf: 
+    conf:
       port: 7231
       spec: *spec_root
       salt: secret

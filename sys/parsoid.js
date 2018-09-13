@@ -171,19 +171,6 @@ function compileReRenderBlacklist(blacklist) {
     return result;
 }
 
-function stripAcceptFromVary(res) {
-    if (res && res.headers && res.headers.vary) {
-        res.headers.vary = res.headers.vary.split(',')
-        .map(header => header.trim())
-        .filter(header => header && !/^accept$/i.test(header))
-        .join(',');
-    }
-    if (!res.headers.vary) {
-        delete res.headers.vary;
-    }
-    return res;
-}
-
 class ParsoidService {
     constructor(options) {
         this.options = options = options || {};
@@ -374,7 +361,6 @@ class ParsoidService {
                     hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
                     return currentContentRes;
                 } else if (res.status === 200) {
-                    stripAcceptFromVary(res.body.html);
                     const resp = {
                         status: res.status,
                         headers: res.body[format].headers,
@@ -532,9 +518,6 @@ class ParsoidService {
             if (this.options.response_cache_control) {
                 res.headers['cache-control'] = this.options.response_cache_control;
             }
-            // Strip Accept from Vary headers since RESTBase doesn't do content-type
-            // transformations
-            res = stripAcceptFromVary(res);
             if (/^null$/.test(res.headers.etag)) {
                 hyper.logger.log('error/parsoid/response_etag_missing', {
                     msg: 'Detected a null etag in the response!'
@@ -726,6 +709,9 @@ class ParsoidService {
         if (to === 'html') {
             // Retrieve pagebundle whenever we want HTML
             parsoidTo = 'pagebundle';
+            req.headers.accept = req.headers.accept && req.headers.accept
+                .replace(/\/HTML\//i, '/pagebundle/')
+                .replace(/text\/html/, 'application/json');
         }
         let parsoidFrom = from;
         if (from === 'html' && req.body.original) {
@@ -750,7 +736,8 @@ class ParsoidService {
             headers: {
                 'content-type': 'application/json',
                 'user-agent': req['user-agent'],
-                'content-language': req.headers['content-language']
+                'content-language': req.headers['content-language'],
+                accept: req.headers.accept
             },
             body: req.body
         };
