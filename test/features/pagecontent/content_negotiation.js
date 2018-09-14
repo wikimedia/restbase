@@ -148,4 +148,25 @@ describe('Content negotiation', function() {
         })
         .then(assertCorrectResponse(supportedDowngradeContentType));
     });
+
+    it('should through 406 on non-satisfiable major version', () => {
+        const supportedMinorVersion = parseInt(/\d+\.(\d+)\.\d+$/.exec(PARSOID_SUPPORTED_DOWNGRADE)[1], 10);
+        const higherMinorDowngradeVersion = PARSOID_SUPPORTED_DOWNGRADE
+        .replace(/(\d+\.)\d+(.\d+$)/, `$1${supportedMinorVersion + 1}$2`);
+        const supportedDowngradeContentType = currentParsoidContentType
+        .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
+        const higherDowngradeContentType = currentParsoidContentType
+        .replace(/\d+\.\d+\.\d+"$/, `${higherMinorDowngradeVersion}"`);
+        return preq.get({
+            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            headers: {
+                accept: higherDowngradeContentType
+            }
+        })
+        .then(() => {
+            throw new Error('406 error should have been thrown');
+        }, (e) => {
+            assert.deepEqual(e.status, 406);
+        });
+    });
 });
