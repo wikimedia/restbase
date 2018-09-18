@@ -22,9 +22,10 @@ module.exports = options => ({
     operations: {
         generatePDF: (hyper, req) => {
             const rp = req.params;
+            const new_probability = options.new_probability || 0;
             return hyper.get(new URI([rp.domain, 'sys', 'page_revisions', 'page', rp.title]))
             .then((latestRevision) => {
-                if (options.new_uri) {
+                if (options.new_uri && (Math.random() < new_probability || req.query.new_pdf)) {
                     const newResult = hyper.get(new URI(
                         `${options.new_uri}/${rp.domain}/v1/`
                         + `pdf/${encodeURIComponent(rp.title)}/a4/desktop`
@@ -36,7 +37,6 @@ module.exports = options => ({
                         }
                     });
                     if (req.query.new_pdf) {
-                        console.log(newResult);
                         return newResult;
                     }
                 }
