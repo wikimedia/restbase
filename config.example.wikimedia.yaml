@@ -49,6 +49,7 @@ default_project: &default_project
           cache_control: s-maxage=600, max-age=600
           uri: https://pdfrender-beta.wmflabs.org
           new_uri: https://proton-beta.wmflabs.org
+          new_probability: 1
           secret: secret
           scheme: https
         transform:
