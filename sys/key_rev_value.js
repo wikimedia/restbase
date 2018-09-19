@@ -140,9 +140,11 @@ class KRVBucket {
     putRevision(hyper, req) {
         const rp = req.params;
         const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-
         const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value')
             || uuid.now().toString();
+        const headers = Object.assign({}, req.headers || {});
+        headers.etag = mwUtil.makeETag(rev, tid);
+        headers['content-type'] = headers['content-type'] || 'application/octet-stream';
         return hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
@@ -152,7 +154,7 @@ class KRVBucket {
                     rev,
                     tid,
                     value: req.body,
-                    headers: req.headers
+                    headers
                 }
             }
         })
@@ -160,12 +162,11 @@ class KRVBucket {
             if (res.status === 201) {
                 return {
                     status: 201,
-                    headers: {
-                        etag: mwUtil.makeETag(rp.revision, tid)
-                    },
+                    headers,
                     body: {
                         message: "Created.",
-                        tid: rp.revision
+                        rev,
+                        tid
                     }
                 };
             } else {
