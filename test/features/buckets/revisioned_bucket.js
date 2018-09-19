@@ -68,16 +68,38 @@ describe('Revisioned buckets', () => {
                 });
             });
 
-            it('assigns etag to a revision', () => {
+            it('stores the content and its headers in a bucket and gets it back', () => {
                 const testData = randomString(100);
                 return preq.put({
                     uri: `${bucketBaseURI}/Test3/10000`,
+                    headers: {a: 'a', b: 'b'},
                     body: new Buffer(testData)
                 })
                 .then((res) => {
                     assert.deepEqual(res.status, 201);
                     return preq.get({
                         uri: `${bucketBaseURI}/Test3/10000`
+                    });
+                })
+                .then((res) => {
+                    assert.deepEqual(res.status, 200);
+                    assert.deepEqual(res.body, new Buffer(testData));
+                    assert.deepEqual(!!res.headers, true);
+                    assert.deepEqual(res.headers.a, 'a');
+                    assert.deepEqual(res.headers.b, 'b');
+                });
+            });
+
+            it('assigns etag to a revision', () => {
+                const testData = randomString(100);
+                return preq.put({
+                    uri: `${bucketBaseURI}/Test4/10000`,
+                    body: new Buffer(testData)
+                })
+                .then((res) => {
+                    assert.deepEqual(res.status, 201);
+                    return preq.get({
+                        uri: `${bucketBaseURI}/Test4/10000`
                     });
                 })
                 .then((res) => {
@@ -91,13 +113,13 @@ describe('Revisioned buckets', () => {
                 const tid = uuid.now().toString();
                 const testData = randomString(100);
                 return preq.put({
-                    uri: `${bucketBaseURI}/Test3/10000/${tid}`,
+                    uri: `${bucketBaseURI}/Test4/10000/${tid}`,
                     body: new Buffer(testData)
                 })
                 .then((res) => {
                     assert.deepEqual(res.status, 201);
                     return preq.get({
-                        uri: `${bucketBaseURI}/Test3/10000/${tid}`
+                        uri: `${bucketBaseURI}/Test4/10000/${tid}`
                     });
                 })
                 .then((res) => {
@@ -111,13 +133,13 @@ describe('Revisioned buckets', () => {
                 const testData = randomString(100);
                 return P.each([1, 2, 3], (revNumber) => {
                     return preq.put({
-                        uri: `${bucketBaseURI}/Test4/${revNumber}`,
+                        uri: `${bucketBaseURI}/Test5/${revNumber}`,
                         body: new Buffer(testData)
                     });
                 })
                 .then(() => {
                     return preq.get({
-                        uri: `${bucketBaseURI}/Test4/`,
+                        uri: `${bucketBaseURI}/Test5/`,
                         query: {
                             limit: 10
                         }
@@ -133,7 +155,7 @@ describe('Revisioned buckets', () => {
             it('throws error on invalid revision', () => {
                 const testData = randomString(100);
                 return preq.put({
-                    uri: `${bucketBaseURI}/Test4/asdf`,
+                    uri: `${bucketBaseURI}/Test5/asdf`,
                     body: new Buffer(testData)
                 })
                 .then(() => {
@@ -146,7 +168,7 @@ describe('Revisioned buckets', () => {
             it('throws error on invalid tid parameter', () => {
                 const testData = randomString(100);
                 return preq.put({
-                    uri: `${bucketBaseURI}/Test4/1000/some_invalid_tid`,
+                    uri: `${bucketBaseURI}/Test5/1000/some_invalid_tid`,
                     body: new Buffer(testData)
                 })
                 .then(() => {
@@ -158,7 +180,7 @@ describe('Revisioned buckets', () => {
 
             it('throws 404 error if revision not found', () => {
                 return preq.get({
-                    uri: `${bucketBaseURI}/Test4/123456789`
+                    uri: `${bucketBaseURI}/Test5/123456789`
                 })
                 .then(() => {
                     throw new Error('Error should be thrown');
