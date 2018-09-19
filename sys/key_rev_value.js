@@ -17,10 +17,9 @@ function returnRevision(req) {
     return (dbResult) => {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
-            const headers = {
-                etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row.headers['content-type'] || 'application/octet-stream'
-            };
+            const headers = Object.assign({}, row.headers || {});
+            headers.etag = headers.etag || mwUtil.makeETag(row.rev, row.tid);
+            headers['content-type'] = headers['content-type'] || 'application/octet-stream';
             return {
                 status: 200,
                 headers,
@@ -141,9 +140,11 @@ class KRVBucket {
     putRevision(hyper, req) {
         const rp = req.params;
         const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-
         const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value')
             || uuid.now().toString();
+        const headers = Object.assign({}, req.headers || {});
+        headers.etag = mwUtil.makeETag(rev, tid);
+        headers['content-type'] = headers['content-type'] || 'application/octet-stream';
         return hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
@@ -153,7 +154,7 @@ class KRVBucket {
                     rev,
                     tid,
                     value: req.body,
-                    headers: req.headers
+                    headers
                 }
             }
         })
@@ -161,12 +162,11 @@ class KRVBucket {
             if (res.status === 201) {
                 return {
                     status: 201,
-                    headers: {
-                        etag: mwUtil.makeETag(rp.revision, tid)
-                    },
+                    headers,
                     body: {
                         message: "Created.",
-                        tid: rp.revision
+                        rev,
+                        tid
                     }
                 };
             } else {
