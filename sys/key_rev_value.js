@@ -17,10 +17,9 @@ function returnRevision(req) {
     return (dbResult) => {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
-            const headers = {
-                etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row.headers['content-type'] || 'application/octet-stream'
-            };
+            const headers = Object.assign({}, row.headers || {});
+            headers.etag = headers.etag || mwUtil.makeETag(row.rev, row.tid);
+            headers['content-type'] = headers['content-type'] || 'application/octet-stream';
             return {
                 status: 200,
                 headers,
