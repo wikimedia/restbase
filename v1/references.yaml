@@ -97,28 +97,7 @@ paths:
               headers: '{{ merge({"cache-control": options.response_cache_control},
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get references of a test page
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Video
-              revision: 830543386
-          response:
-            status: 200
-            headers:
-              content-type: /application\/json/
-            body:
-              revision: /.+/
-              tid: /.+/
-              reference_lists:
-                - id: /.*/
-                  section_heading:
-                    id: /.+/
-                    html: /.+/
-                  order: [ /.*/ ]
-              references_by_id: /.+/
+      x-monitor: false
 
 # copied from MCS spec.yaml
 definitions:

@@ -41,15 +41,5 @@ paths:
               headers:
                 cache_control: '{{options.random_cache_control}}'
                 location: '../{request.params.format}/{title_from_mobileapps.body.items[0].title}'
-      x-monitor: true
-      x-amples:
-        - title: Random title redirect
-          request:
-            params:
-              format: title
-          response:
-            status: 303
-            headers:
-              cache-control: /.+/
-              location: /^..\/title\/[^\/]+$/
-        
+      x-monitor: false
+

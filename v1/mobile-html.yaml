@@ -122,18 +122,5 @@ paths:
               headers: '{{ merge({"cache-control": options.response_cache_control},
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get mobile-html of a test page
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Video
-              revision: 830543386
-          response:
-            status: 200
-            headers:
-              content-type: /^text\/html/
-              etag: /830543386\/[0-9a-f-]+/
-            body: /^<!DOCTYPE html><html/
+      x-monitor: false
 

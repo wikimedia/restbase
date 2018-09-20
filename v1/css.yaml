@@ -62,32 +62,4 @@ paths:
               headers: '{{ merge({"cache-control": options.response_cache_control},
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get base CSS
-          request:
-            params:
-              type: base
-          response:
-            status: 200
-            headers:
-              content-type: /^text\/css; charset=utf-8/
-            body: /.+/
-        - title: Get pagelib CSS
-          request:
-            params:
-              type: pagelib
-          response:
-            status: 200
-            headers:
-              content-type: /^text\/css; charset=utf-8/
-            body: /.+/
-        - title: Get site CSS
-          request:
-            params:
-              type: site
-          response:
-            status: 200
-            headers:
-              content-type: /^text\/css; charset=utf-8/
-            body: /.+/
+      x-monitor: false

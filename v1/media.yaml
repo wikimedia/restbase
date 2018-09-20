@@ -97,24 +97,7 @@ paths:
               headers: '{{ merge({"cache-control": options.response_cache_control},
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get media in test page
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
-              revision: 803891963
-          response:
-            status: 200
-            headers:
-              content-type: /application\/json/
-            body:
-              revision: /.+/
-              tid: /.+/
-              items:
-                - section_id: /.+/
-                  type: /.+/
+      x-monitor: false
 
 # copied from MCS spec.yaml
 definitions:
