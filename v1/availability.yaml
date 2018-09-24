@@ -41,22 +41,7 @@ paths:
               status: '{{get_feed_content_availability.status}}'
               headers: '{{get_feed_content_availability.headers}}'
               body: '{{get_feed_content_availability.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Retrieve feed content availability
-          request:
-            params:
-              domain: wikimedia.org
-          response:
-            status: 200
-            headers:
-              content-type: application/json
-            body:
-              todays_featured_article: [ /.+/ ]
-              most_read: [ '*' ]
-              picture_of_the_day: [ '*' ]
-              in_the_news: [ /.+/ ]
-              on_this_day: [ /.+/ ]
+      x-monitor: false
 
 # copied from MCS spec.yaml
 definitions:

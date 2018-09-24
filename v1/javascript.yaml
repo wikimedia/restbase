@@ -50,11 +50,4 @@ paths:
               headers: '{{ merge({"cache-control": options.response_cache_control},
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get the wikimedia-page-library JavaScript bundle
-          response:
-            status: 200
-            headers:
-              content-type: /^text\/javascript; charset=utf-8/
-            body: /.+/
+      x-monitor: false

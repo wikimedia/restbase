@@ -96,52 +96,7 @@ paths:
               headers: '{{ merge({"cache-control": options.response_cache_control},
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
-      x-monitor: true
-      x-amples:
-        - title: Get extended metadata of a test page
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: Video
-              revision: 830543386
-          response:
-            status: 200
-            headers:
-              content-type: /application\/json/
-            body:
-              revision: /.+/
-              tid: /.+/
-              hatnotes:
-                - section: /.+/
-                  html: /.+/
-              issues:
-                - section: /.+/
-                  html: /.+/
-              toc:
-                title: /.+/
-                entries:
-                  - level: /.+/
-                    section: /.+/
-                    number: /.+/
-                    anchor: /.+/
-                    html: /.+/
-              language_links:
-                - lang: /.+/
-                  titles:
-                    canonical: /.+/
-                    normalized: /.+/
-                  summary_url: /.+/
-              categories:
-                - titles:
-                    canonical: /.+/
-                    normalized: /.+/
-                    display: /.+/
-                  hidden: /.+/
-                  ns: /.+/
-                  summary_url: /.+/
-              protection:
-                edit: [ /.+/ ]
-                move: [ /.+/ ]
+      x-monitor: false
 
 # copied from MCS spec.yaml
 definitions:
