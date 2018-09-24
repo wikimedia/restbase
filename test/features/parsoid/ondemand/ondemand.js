@@ -7,6 +7,7 @@ const assert = require('../../../utils/assert.js');
 const server = require('../../../utils/server.js');
 const preq   = require('preq');
 const mwUtil = require('../../../../lib/mwUtil');
+const uuid   = require('cassandra-uuid');
 
 const revA = '275843';
 const revB = '275844';
@@ -54,6 +55,18 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.localRequests(slice, false);
             assert.remoteRequests(slice, true);
             revBETag = res.headers.etag.replace(/^"(.*)"$/, '$1');
+        });
+    });
+
+    it('should not transparently create revision B via Parsoid if TID is provided', () => {
+        const slice = server.config.logStream.slice();
+        return preq.get({
+            uri: `${pageUrl}/html/${title}/${revB}/${uuid.TimeUuid.now().toString()}`,
+        })
+        .then((res) => {
+            throw new Error('404 should have been thrown');
+        }, (e) => {
+            assert.deepEqual(e.status, 404);
         });
     });
 

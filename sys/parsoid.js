@@ -479,7 +479,7 @@ class ParsoidService {
     getFormat(format, hyper, req) {
         const rp = req.params;
         const generateContent = (storageRes) => {
-            if (storageRes.status === 404 || storageRes.status === 200) {
+            if (!rp.tid && (storageRes.status === 404 || storageRes.status === 200)) {
                 return this.generateAndSave(hyper, req, format, storageRes);
             } else {
                 // Don't generate content if there's some other error.
