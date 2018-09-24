@@ -376,7 +376,7 @@ parallel('transform api', function() {
 
     it('supports reversed order of properties in TimeUuid meta', () => {
         const newHtml = testPage.html.replace(/<meta property="mw:TimeUuid" content="([^"]+)"\/?>/,
-            '<meta content="cc8ba6b3-636c-11e5-b601-24b4f65ab671" property="mw:TimeUuid" />');
+            '<meta content="$1" property="mw:TimeUuid" />');
         return preq.post({
             uri: `${server.config.labsURL
             }/transform/html/to/wikitext/${testPage.title
@@ -393,25 +393,6 @@ parallel('transform api', function() {
                 }\nSaw: ${JSON.stringify(res, null, 2)}`);
             }
             assert.contentType(res, contentTypes.wikitext);
-        });
-    });
-
-    it('returns 409 if revision was restricted while edit happened', () => {
-        const badPageName = 'User_talk:DivineAlpha%2fQ1_2015_discussions';
-        const badRevNumber = 645504917;
-        return preq.post({
-            uri: `${server.config.baseURL
-            }/transform/html/to/wikitext/${badPageName}/${badRevNumber}`,
-            body: {
-                html: '<html><head>' +
-                    '<meta property="mw:TimeUuid" content="71966eaf-62cd-11e5-8a88-952fdaad0387"/>' +
-                    '</head><body></body></html>'
-            }
-        })
-        .then(() => {
-            throw new Error('Error should be thrown');
-        }, (e) => {
-            assert.deepEqual(e.status, 409);
         });
     });
 
