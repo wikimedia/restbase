@@ -18,7 +18,7 @@ class ReadingLists {
     /**
      * Transform the continuation data into a string so it is easier for clients to deal with.
      * @param {!Object|undefined} continuation Continuation object returned by the MediaWiki API.
-     * @return {!String|undefined} Continuation string.
+     * @return {!string|undefined} Continuation string.
      */
     flattenContinuation(continuation) {
         return JSON.stringify(continuation);
@@ -26,7 +26,7 @@ class ReadingLists {
 
     /**
      * Inverse of flattenContinuation.
-     * @param {!String|undefined} continuation Continuation string returned by flattenContinuation()
+     * @param {!string|undefined} continuation Continuation string returned by flattenContinuation()
      * @return {!Object} Continuation object.
      */
     unflattenContinuation(continuation) {
@@ -63,7 +63,7 @@ class ReadingLists {
     /**
      * Convert an array of values into the format expected by the MediaWiki API.
      * @param {!Array} list A list containing strings and numbers.
-     * @return {!String}
+     * @return {!string}
      */
     flattenMultivalue(list) {
         return list.join('|');
@@ -72,7 +72,7 @@ class ReadingLists {
     /**
      * Takes an array of integers and formats them as an array of {<keyword>: <id>} objects.
     * @param {!Array} ids
-     * @param {!String} keyword
+     * @param {!string} keyword
      * @return {!Array}
     */
     idsToObjects(ids, keyword) {
@@ -90,7 +90,7 @@ class ReadingLists {
 
     /**
      * Get the sort parameters for the action API.
-     * @param {!String} sort Sort mode ('name' or 'updated').
+     * @param {!string} sort Sort mode ('name' or 'updated').
      * @return {!Object} { sort: <rlsort/rlesort parameter>, dir: <rldir/rledir parameter> }
      */
     getSortParameters(sort) {
@@ -110,8 +110,8 @@ class ReadingLists {
      * Normally the timstamp is just copied from the MediaWiki response, but for a transition
      * period we are going to generate it.
      * @param {!Object} responseBody The response object body.
-     * @param {!String} next The continuation parameter submitted by the client.
-     * @return {!String} An ISO 8601 timestamp.
+     * @param {!string} next The continuation parameter submitted by the client.
+     * @return {!string} An ISO 8601 timestamp.
      */
     getContinueFrom(responseBody, next) {
         const timestamp = responseBody.query['readinglists-synctimestamp'];
