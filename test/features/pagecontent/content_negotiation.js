@@ -28,7 +28,14 @@ describe('Content negotiation', function() {
         assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
     };
 
-    it('should not crash on malformad accept header', () => {
+    it('should request html with no accept', () => {
+        return preq.get({
+            uri: `${server.config.labsBucketURL}/html/Main_Page`
+        })
+        .then(assertCorrectResponse(currentParsoidContentType));
+    });
+
+    it('should not crash on malformed accept header', () => {
         return preq.get({
             uri: `${server.config.labsBucketURL}/html/Main_Page`,
             headers: {
@@ -42,10 +49,11 @@ describe('Content negotiation', function() {
         const wrongContentTypeAccept = currentParsoidContentType
             .replace(/text\/html/, 'application/json')
             .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
+        console.log(wrongContentTypeAccept);
         return preq.get({
             uri: `${server.config.labsBucketURL}/html/Main_Page`,
             headers: {
-                accept: 'this is a malformed accept header'
+                accept: wrongContentTypeAccept
             }
         })
         .then(assertCorrectResponse(currentParsoidContentType));
