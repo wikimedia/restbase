@@ -49,7 +49,6 @@ describe('Content negotiation', function() {
         const wrongContentTypeAccept = currentParsoidContentType
             .replace(/text\/html/, 'application/json')
             .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
-        console.log(wrongContentTypeAccept);
         return preq.get({
             uri: `${server.config.labsBucketURL}/html/Main_Page`,
             headers: {
