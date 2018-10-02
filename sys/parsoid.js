@@ -343,13 +343,8 @@ class ParsoidService {
 
             return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
             .spread((res, currentContentRes) => {
-                // If the content is coming from old storage - tid will already be there
-                // so reuse it.
-                let tid = extractTidMeta(res.body.html.body);
-                if (!tid) {
-                    tid = uuid.now().toString();
-                    res.body.html.body = insertTidMeta(res.body.html.body, tid);
-                }
+                const tid  = uuid.now().toString();
+                res.body.html.body = insertTidMeta(res.body.html.body, tid);
 
                 if (format === 'html'
                         && currentContentRes
