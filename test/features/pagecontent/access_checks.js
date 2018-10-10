@@ -46,6 +46,9 @@ describe('Access checks', () => {
     }
 
     before(() => {
+        if (!nock.isActive()) {
+            nock.activate();
+        }
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
         .then(() => P.join(

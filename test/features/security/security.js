@@ -10,6 +10,9 @@ describe('router - security', function() {
     this.timeout(20000);
 
     before(() => {
+        if (!nock.isActive()) {
+            nock.activate();
+        }
         return server.start()
         .then(() => {
             // Do preparation requests to force siteInfo fetch so that we don't need to mock it
