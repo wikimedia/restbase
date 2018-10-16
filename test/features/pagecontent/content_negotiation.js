@@ -3,7 +3,11 @@
 const assert = require('../../utils/assert.js');
 const preq = require('preq');
 const server = require('../../utils/server.js');
+const nock = require('nock');
 
+const PARSOID_VERSION_BEFORE_DOWNGRADE = '1.7.0';
+const PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE = 'User%3APchelolo%2FContent_Negotiation_Test';
+const PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE = 'User%3APchelolo%2FContent_Negotiation_Test1';
 const PARSOID_SUPPORTED_DOWNGRADE = '1.8.0';
 
 describe('Content negotiation', function() {
@@ -11,13 +15,34 @@ describe('Content negotiation', function() {
     this.timeout(20000);
 
     let currentParsoidContentType;
-    before(() =>
-        server.start()
-        .then(() => preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page`}))
+
+    function getFakePageVersion(pageName, version) {
+        let parsoidNock;
+        return preq.get({uri: `${server.config.parsoidURI}/en.wikipedia.org/v3/page/pagebundle/${pageName}`})
         .then((res) => {
-            currentParsoidContentType = res.headers['content-type'];
+            currentParsoidContentType = res.body.html.headers['content-type'];
+            res.body.html.headers['content-type'] = res.body.html.headers['content-type']
+            .replace(/\d+\.\d+\.\d+"$/, `${version}"`);
+            parsoidNock = nock(server.config.parsoidURI)
+            // Content-Location is absolute but for nock we need to transform it to relative.
+            .get(res.headers['content-location'].replace(server.config.parsoidURI, ''))
+            .reply(200, res.body, res.headers);
         })
-    );
+        // Just request it to store pre-supported-downgrade version
+        .then(() => preq.get({uri: `${server.config.bucketURL}/html/${pageName}`}))
+        .then(() => parsoidNock.done())
+        .finally(() => nock.cleanAll());
+    }
+
+    before(() => {
+        if (!nock.isActive()) {
+            nock.activate();
+        }
+        return server.start()
+        .then(() => getFakePageVersion(PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE, PARSOID_VERSION_BEFORE_DOWNGRADE))
+        .then(() => getFakePageVersion(PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE, PARSOID_VERSION_BEFORE_DOWNGRADE))
+        .finally(() => nock.restore());
+    });
 
     const assertCorrectResponse = (expectedContentType) => (res) => {
         assert.deepEqual(res.status, 200);
@@ -160,8 +185,6 @@ describe('Content negotiation', function() {
         const supportedMinorVersion = parseInt(/\d+\.(\d+)\.\d+$/.exec(PARSOID_SUPPORTED_DOWNGRADE)[1], 10);
         const higherMinorDowngradeVersion = PARSOID_SUPPORTED_DOWNGRADE
         .replace(/(\d+\.)\d+(.\d+$)/, `$1${supportedMinorVersion + 1}$2`);
-        const supportedDowngradeContentType = currentParsoidContentType
-        .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
         const higherDowngradeContentType = currentParsoidContentType
         .replace(/\d+\.\d+\.\d+"$/, `${higherMinorDowngradeVersion}"`);
         return preq.get({
@@ -175,5 +198,44 @@ describe('Content negotiation', function() {
         }, (e) => {
             assert.deepEqual(e.status, 406);
         });
+    });
+
+    it('should upgrade to new major version', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE}`,
+            headers: {
+                accept: currentParsoidContentType
+            }
+        })
+        .then(assertCorrectResponse(currentParsoidContentType));
+    });
+
+    it('should return stored if it satisfied ^ of requested', () => {
+        const beforeDowngradeMinor = /\d\.(\d)\.\d/.exec(PARSOID_VERSION_BEFORE_DOWNGRADE)[1];
+        const evenOlderMinorVersion = PARSOID_VERSION_BEFORE_DOWNGRADE
+        .replace(beforeDowngradeMinor, parseInt(beforeDowngradeMinor, 10) - 1);
+        const evenOlderParsoidContentType = currentParsoidContentType
+        .replace(/\d+\.\d+\.\d+"$/, `${evenOlderMinorVersion}"`);
+        const beforeDowngradeContentType = currentParsoidContentType
+        .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_VERSION_BEFORE_DOWNGRADE}"`);
+        return preq.get({
+            uri: `${server.config.bucketURL}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE}`,
+            headers: {
+                accept: evenOlderParsoidContentType
+            }
+        })
+        .then(assertCorrectResponse(beforeDowngradeContentType));
+    });
+
+    it('should downgrade after upgrading major version', () => {
+        const supportedDowngradeContentType = currentParsoidContentType
+        .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
+        return preq.get({
+            uri: `${server.config.bucketURL}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE}`,
+            headers: {
+                accept: supportedDowngradeContentType
+            }
+        })
+        .then(assertCorrectResponse(supportedDowngradeContentType));
     });
 });

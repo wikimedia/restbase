@@ -12,6 +12,9 @@ parallel('400 handling', function() {
     let siteInfo;
     let revisionInfo;
     before(() => {
+        if (!nock.isActive()) {
+            nock.activate();
+        }
         return server.start()
         .then(() => {
             // Fetch real siteInfo to return from a mock

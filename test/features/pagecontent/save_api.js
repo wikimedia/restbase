@@ -28,6 +28,9 @@ describe('page save api', function() {
     this.timeout(20000);
 
     before(() => {
+        if (!nock.isActive()) {
+            nock.activate();
+        }
         return server.start().then(() => {
             return P.all([
                 preq.get({

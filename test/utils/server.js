@@ -1,5 +1,6 @@
 'use strict';
 
+const P = require('bluebird');
 const ServiceRunner = require('service-runner');
 const logStream = require('./logStream');
 const fs        = require('fs');
@@ -16,6 +17,7 @@ const labsURL   = `${hostPort}/en.wikipedia.beta.wmflabs.org/v1`;
 const labsBucketURL = `${labsURL}/page`;
 const variantsWikiURL = `${hostPort}/sr.wikipedia.beta.wmflabs.org/v1`;
 const variantsWikiBucketURL = `${variantsWikiURL}/page`;
+const parsoidURI = 'https://parsoid-beta.wmflabs.org';
 
 function loadConfig(path, forceSqlite) {
     let confString = fs.readFileSync(path).toString();
@@ -51,7 +53,8 @@ const config = {
     variantsWikiBucketURL,
     labsApiURL: 'https://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
-    conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : `${__dirname}/../../config.test.yaml`)
+    conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : `${__dirname}/../../config.test.yaml`),
+    parsoidURI
 };
 
 config.conf.num_workers = 0;
@@ -91,7 +94,7 @@ function start(_options) {
             return true;
         });
     } else {
-        return Promise.resolve();
+        return P.resolve();
     }
 }
 
