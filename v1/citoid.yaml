@@ -30,13 +30,10 @@ paths:
             Uses [Zotero field names](https://aurimasv.github.io/z2csl/typeMap.xml).
           - `mediawiki-basefields`: `mediawiki` format with Zotero `basefield` field names.
           - `zotero`: format used by [Zotero](https://www.zotero.org/).
-          - `bibtex`: format used in conjunction with LaTeX documents.
-            See [bibtex.org](http://www.bibtex.org/).
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json; charset=utf-8;
-        - application/x-bibtex; charset=utf-8
         - application/problem+json
       parameters:
         - name: format
@@ -47,7 +44,6 @@ paths:
             - mediawiki
             - mediawiki-basefields
             - zotero
-            - bibtex
           required: true
         - name: query
           in: path
