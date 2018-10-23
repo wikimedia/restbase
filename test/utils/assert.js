@@ -203,6 +203,27 @@ function varyContains(res, header) {
     }
 }
 
+function varyDoesNotContainDuplicates(res, header) {
+    if (!res.headers) {
+        throw new assert.AssertionError({
+            message: `Empty headers verifying vary contains ${header}`
+        });
+    }
+    if (!res.headers.vary) {
+        throw new assert.AssertionError({
+            message: `Empty vary header verifying vary contains ${header}`
+        });
+    }
+    const varyAsList = res.headers.vary.split(',')
+        .map(header => header.trim().toLowerCase())
+        .filter(varyItem => varyItem === header.toLowerCase());
+    if (varyAsList.length > 1) {
+        throw new assert.AssertionError({
+            message: `Vary contains duplicates of ${header}`
+        });
+    }
+}
+
 module.exports.ok             = assert.ok;
 module.exports.AssertionError = assert.AssertionError;
 module.exports.fails          = fails;
@@ -217,3 +238,4 @@ module.exports.findParsoidRequest = findParsoidRequest;
 module.exports.checkString    = checkString;
 module.exports.varyNotContains = varyNotContains;
 module.exports.varyContains = varyContains;
+module.exports.varyDoesNotContainDuplicates = varyDoesNotContainDuplicates;

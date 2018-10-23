@@ -12,7 +12,7 @@ describe('Language variants', function() {
     before(() => server.start());
 
     it('should request html with impossible variants', () => {
-        return preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page`})
+        return preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page` })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.varyContains(res, 'accept');
@@ -38,6 +38,22 @@ describe('Language variants', function() {
             assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
             assert.deepEqual(/2\. Ovo je testna stranica/.test(res.body), true);
         });
+    });
+
+    it('should request html with no vary duplicates', () => {
+        return preq.get({ uri: `${server.config.variantsWikiBucketURL}/html/${variantsPageTitle}`})
+            .then((res) => {
+                storedEtag = res.headers.etag;
+                assert.deepEqual(res.status, 200);
+                assert.varyContains(res, 'accept');
+                assert.varyContains(res, 'accept-language');
+                assert.varyDoesNotContainDuplicates(res, 'accept-language');
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+                assert.deepEqual(res.headers['content-language'], 'sr');
+                assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
+                assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
+                assert.deepEqual(/2\. Ovo je testna stranica/.test(res.body), true);
+            });
     });
 
     it('should request html with default variant, from storage', () => {
