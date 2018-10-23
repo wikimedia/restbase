@@ -12,7 +12,7 @@ describe('Language variants', function() {
     before(() => server.start());
 
     it('should request html with impossible variants', () => {
-        return preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page` })
+        return preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.varyContains(res, 'accept');
