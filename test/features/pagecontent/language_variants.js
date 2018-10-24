@@ -15,8 +15,7 @@ describe('Language variants', function() {
         return preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyNotContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: ['Accept-Language'] });
             assert.deepEqual(res.headers['content-language'], 'en');
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -30,8 +29,7 @@ describe('Language variants', function() {
         .then((res) => {
             storedEtag = res.headers.etag;
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -49,8 +47,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
@@ -68,8 +65,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
@@ -87,8 +83,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr-ec');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -106,8 +101,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr-el');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -124,8 +118,7 @@ describe('Language variants', function() {
         .then((res) => {
             storedEtag = res.headers.etag;
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -140,8 +133,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
@@ -156,8 +148,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
@@ -174,8 +165,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.headers['content-language'], 'sr-el');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -190,8 +180,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
@@ -205,8 +194,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
@@ -222,8 +210,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept-language');
-            assert.varyNotContains(res, 'accept');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
@@ -238,7 +225,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(/1\. Ово је тестна страница/.test(JSON.stringify(res.body)), true);
@@ -255,8 +242,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr-el');
             assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);
@@ -272,8 +258,7 @@ describe('Language variants', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyNotContains(res, 'accept');
-            assert.varyContains(res, 'accept-language');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^(:?W\/)?"\d+\/[a-f0-9-]+"$/);

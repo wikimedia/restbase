@@ -160,46 +160,53 @@ function checkString(result, expected, message) {
     }
 }
 
-function varyNotContains(res, header) {
-    if (!res.headers) {
+/**
+ * Validates the comma-separated list of header names.
+ * @param {string} headerList - the list of header names
+ * @param {Object} options - the validator options
+ * @param {array=} options.require - list of header names required to be present. Example: [ 'Accept', 'Accept-Encoding']. Case-insensitive.
+ * @param {array=} options.disallow - list of header names NOT allowed. Example: [ 'Accept-Language' ]. Case-insensitive.
+ * @param {boolean} [options.allowDuplicates] - whether duplicated entries could be present in the `headerList`. Default: false
+ **/
+function validateListHeader(headerList, options) {
+    if (!headerList) {
         throw new assert.AssertionError({
-            message: `Empty headers verifying vary doesn't contain ${header}`
+            message: `Can not validate with empty headers`
         });
     }
-    if (!Object.prototype.hasOwnProperty.call(res.headers, 'vary')) {
-        return;
-    }
-    if (res.headers.vary === '') {
+    if (headerList === '') {
         throw new assert.AssertionError({
-            message: `Vary header should not be an empty string ('')`
+            message: `Header list should not be an empty string ('')`
         });
     }
-    const varyAsList = res.headers.vary.split(',')
-    .map(header => header.trim().toLowerCase());
-    if (varyAsList.includes(header.toLowerCase())) {
-        throw new assert.AssertionError({
-            message: `Vary header contains ${header} while it must not`
+    const headerArray = headerList.split(',').map(header => header.trim().toLowerCase());
+    if (options.require) {
+        options.require.forEach(header => {
+            if (!headerArray.includes(header.trim().toLowerCase())) {
+                throw new assert.AssertionError({
+                    message: `Header does not contain ${header}`
+                });
+            }
         });
     }
-}
 
-function varyContains(res, header) {
-    if (!res.headers) {
-        throw new assert.AssertionError({
-            message: `Empty headers verifying vary contains ${header}`
+    if (options.disallow) {
+        options.disallow.forEach(header => {
+            if (headerArray.includes(header.trim().toLowerCase())) {
+                throw new assert.AssertionError({
+                    message: `Header contains ${header} while it must not`
+                });
+            }
         });
     }
-    if (!res.headers.vary) {
-        throw new assert.AssertionError({
-            message: `Empty vary header verifying vary contains ${header}`
-        });
-    }
-    const varyAsList = res.headers.vary.split(',')
-    .map(header => header.trim().toLowerCase());
-    if (!varyAsList.includes(header.toLowerCase())) {
-        throw new assert.AssertionError({
-            message: `Vary header does not contain ${header}`
-        });
+
+    if (!options.allowDuplicates) {
+        const filterDuplicates = headerArray.filter((header, index) => headerArray.indexOf(header) === index);
+        if (filterDuplicates.length !== headerArray.length) {
+            throw new assert.AssertionError({
+                message: `${headerList} contains duplicates`
+            });
+        }
     }
 }
 
@@ -215,5 +222,4 @@ module.exports.localRequests  = localRequests;
 module.exports.remoteRequests = remoteRequests;
 module.exports.findParsoidRequest = findParsoidRequest;
 module.exports.checkString    = checkString;
-module.exports.varyNotContains = varyNotContains;
-module.exports.varyContains = varyContains;
+module.exports.validateListHeader = validateListHeader;
