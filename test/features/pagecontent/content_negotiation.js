@@ -47,8 +47,7 @@ describe('Content negotiation', function() {
     const assertCorrectResponse = (expectedContentType) => (res) => {
         assert.deepEqual(res.status, 200);
         assert.deepEqual(res.headers['content-type'], expectedContentType);
-        assert.varyContains(res, 'accept');
-        assert.varyNotContains(res, 'accept-language');
+        assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: ['Accept-Language'] });
         assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
         assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
     };

@@ -49,8 +49,7 @@ describe('item requests', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyNotContains(res, '');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
                 uri: `${server.config.labsBucketURL}/html/Main_Page/`
             });
@@ -67,8 +66,7 @@ describe('item requests', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyNotContains(res, '');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
 
@@ -99,8 +97,7 @@ describe('item requests', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.varyContains(res, 'accept');
-            assert.varyNotContains(res, '');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             rev2Etag = res.headers.etag.replace(/^"(.*)"$/, '$1');
         });
     });
@@ -112,8 +109,7 @@ describe('item requests', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
-            assert.varyContains(res, 'accept');
-            assert.varyNotContains(res, '');
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
                 uri: `${server.config.labsBucketURL}/data-parsoid/Foobar/${
                     res.headers.etag.replace(/^"(.*)"$/, '$1')}`
