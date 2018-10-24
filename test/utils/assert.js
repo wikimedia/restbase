@@ -200,7 +200,7 @@ function validateListHeader(headerList, options) {
         });
     }
 
-    if (options.allowDuplicates === false || !options.allowDuplicates) {
+    if (!options.allowDuplicates) {
         const filterDuplicates = headerArray.filter((header, index) => headerArray.indexOf(header) === index);
         if (filterDuplicates.length !== headerArray.length) {
             throw new assert.AssertionError({
