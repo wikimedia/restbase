@@ -1109,7 +1109,7 @@ paths:
         100 editors by edits count. You can filter by editor-type (all-editor-types,
         anonymous, group-bot, name-bot, user) or page-type (all-page-types, content or
         non-content). The user_text returned is either the mediawiki user_text if the user is
-        registered, or "Anonymous Editor" if user is anonymous.
+        registered, or null if user is anonymous.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 25 req/s
@@ -1291,7 +1291,7 @@ paths:
         editors by absolute bytes-difference. You can filter by editor-type (all-editor-types,
         anonymous, group-bot, name-bot, user) or page-type (all-page-types, content or non-content).
         The user_text returned is either the mediawiki user_text if the user is registered, or
-        "Anonymous Editor" if user is anonymous.
+        null if user is anonymous.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 25 req/s
