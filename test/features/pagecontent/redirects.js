@@ -9,53 +9,14 @@ describe('redirects', () => {
     before(() => { return server.start(); });
 
     describe('', () => {
-        it('should direct to a lowercase version of a title in wiktionary', () => {
-            return preq.get({
-                uri: `${server.config.wiktionaryURI}/page/definition/cat`,
-                followRedirect: false
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-location'],
-                    'https://en.wiktionary.org/api/rest_v1/page/definition/cat');
-                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-            });
-        });
-
-        it('should direct to an uppercase version of a title in wiktionary', () => {
-            return preq.get({
-                uri: `${server.config.wiktionaryURI}/page/definition/Cat`,
-                followRedirect: false
-            })
-                .then((res) => {
-                    assert.deepEqual(res.status, 200);
-                    assert.deepEqual(res.headers['content-location'],
-                        'https://en.wiktionary.org/api/rest_v1/page/definition/Cat');
-                    assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-                });
-        });
-
         it('should redirect to a normalized version of a title in wiktionary', () => {
             return preq.get({
-                uri: `${server.config.wiktionaryURI}/page/definition/Appendix%20Glossary`,
+                uri: `${server.config.wiktionaryURI}/page/definition/weekend%20warrior`,
                 followRedirect: false
             })
                 .then((res) => {
                     assert.deepEqual(res.status, 301);
-                    assert.deepEqual(res.headers.location,
-                        '../../../en.wiktionary.org/v1/page/definition/Appendix%20Glossary');
-                    assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-                });
-        });
-        it('should redirect to a normalized version of a title in wiktionary, #2', () => {
-            return preq.get({
-                uri: `${server.config.wiktionaryURI}/page/definition/Wiktionary%20ELE`,
-                followRedirect: false
-            })
-                .then((res) => {
-                    assert.deepEqual(res.status, 301);
-                    assert.deepEqual(res.headers.location,
-                        '../../../en.wiktionary.org/v1/page/definition/Wiktionary%20ELE');
+                    assert.deepEqual(res.headers.location, 'weekend_warrior');
                     assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
                 });
         });
@@ -66,6 +27,7 @@ describe('redirects', () => {
                 followRedirect: false
             })
             .then((res) => {
+                console.log(res);
                 assert.deepEqual(res.status, 301);
                 assert.deepEqual(res.headers.location, 'Main_Page?test=mwAQ');
                 assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
