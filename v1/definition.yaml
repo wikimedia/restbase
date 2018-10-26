@@ -15,6 +15,7 @@ paths:
   /definition/{term}:
     x-route-filters:
       - path: ./lib/access_check_filter.js
+      - path: ./lib/normalize_title_filter.js
         options:
           title: term
           redirect_cache_control: '{{options.response_cache_control}}'

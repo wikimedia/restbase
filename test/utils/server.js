@@ -18,6 +18,7 @@ const labsBucketURL = `${labsURL}/page`;
 const variantsWikiURL = `${hostPort}/sr.wikipedia.beta.wmflabs.org/v1`;
 const variantsWikiBucketURL = `${variantsWikiURL}/page`;
 const parsoidURI = 'https://parsoid-beta.wmflabs.org';
+const wiktionaryURI = `${hostPort}/en.wiktionary.org/v1`;
 
 function loadConfig(path, forceSqlite) {
     let confString = fs.readFileSync(path).toString();
@@ -54,7 +55,8 @@ const config = {
     labsApiURL: 'https://en.wikipedia.beta.wmflabs.org/w/api.php',
     logStream: logStream(),
     conf: loadConfig(process.env.RB_TEST_CONFIG ? process.env.RB_TEST_CONFIG : `${__dirname}/../../config.test.yaml`),
-    parsoidURI
+    parsoidURI,
+    wiktionaryURI
 };
 
 config.conf.num_workers = 0;
