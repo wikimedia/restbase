@@ -17,7 +17,7 @@ paths:
       - path: ./lib/access_check_filter.js
       - path: ./lib/normalize_title_filter.js
         options:
-          title: term
+          title_param_name: term
           redirect_cache_control: '{{options.response_cache_control}}'
     get:
       tags:
