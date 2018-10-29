@@ -9,6 +9,18 @@ describe('redirects', () => {
     before(() => { return server.start(); });
 
     describe('', () => {
+        it('should redirect to a normalized version of a title in wiktionary', () => {
+            return preq.get({
+                uri: `${server.config.wiktionaryURI}/page/definition/weekend%20warrior`,
+                followRedirect: false
+            })
+                .then((res) => {
+                    assert.deepEqual(res.status, 301);
+                    assert.deepEqual(res.headers.location, 'weekend_warrior');
+                    assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+                });
+        });
+
         it('should redirect to a normalized version of a title', () => {
             return preq.get({
                 uri: `${server.config.bucketURL}/html/Main%20Page?test=mwAQ`,
