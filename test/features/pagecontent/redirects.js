@@ -27,7 +27,6 @@ describe('redirects', () => {
                 followRedirect: false
             })
             .then((res) => {
-                console.log(res);
                 assert.deepEqual(res.status, 301);
                 assert.deepEqual(res.headers.location, 'Main_Page?test=mwAQ');
                 assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
