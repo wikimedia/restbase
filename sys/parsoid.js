@@ -257,13 +257,7 @@ class ParsoidService {
             uri: this.getNGBucketURI(rp, 'all', tid),
             body: {
                 html: parsoidResp.body.html,
-                'data-parsoid': parsoidResp.body['data-parsoid'],
-                'section-offsets': {
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-                }
+                'data-parsoid': parsoidResp.body['data-parsoid']
             }
         });
     }

@@ -113,8 +113,6 @@ paths:
                     dependent_content_types:
                       - name: data-parsoid
                         value_type: json
-                      - name: section-offsets
-                        value_type: json
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js

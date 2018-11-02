@@ -18,12 +18,12 @@ paths:
                   allows us to contact you quickly. Email addresses or URLs
                   of contact pages work well.
 
-                By using this API, you agree to Wikimedia's 
+                By using this API, you agree to Wikimedia's
                 [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
                 [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy).
                 Unless otherwise specified in the endpoint documentation
                 below, content accessed via this API is licensed under the
-                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
+                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
                 and [GFDL](https://www.gnu.org/copyleft/fdl.html) licenses,
                 and you irrevocably agree to release modifications or
                 additions made through this API under these licenses.
@@ -108,8 +108,6 @@ paths:
                       value_type: blob
                     dependent_content_types:
                       - name: data-parsoid
-                        value_type: json
-                      - name: section-offsets
                         value_type: json
             /key_value: &sys_key_value
               x-modules:
