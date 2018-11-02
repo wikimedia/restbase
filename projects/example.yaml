@@ -72,7 +72,5 @@ paths:
                     dependent_content_types:
                       - name: data-parsoid
                         value_type: json
-                      - name: section-offsets
-                        value_type: json
         options: '{{options}}'
 

@@ -257,33 +257,18 @@ class ParsoidService {
             uri: this.getNGBucketURI(rp, 'all', tid),
             body: {
                 html: parsoidResp.body.html,
-                'data-parsoid': parsoidResp.body['data-parsoid'],
-                'section-offsets': {
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-                }
+                'data-parsoid': parsoidResp.body['data-parsoid']
             }
         });
     }
 
     saveParsoidResultToFallback(hyper, req, tid, parsoidResp) {
         const rp = req.params;
-        return P.all([
-            hyper.put({
-                uri: this.getFallbackBucketURI(rp, 'data-parsoid', tid),
-                headers: parsoidResp.body['data-parsoid'].headers,
-                body: parsoidResp.body['data-parsoid'].body
-            }),
-            hyper.put({
-                uri: this.getFallbackBucketURI(rp, 'section-offsets', tid),
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: parsoidResp.body['data-parsoid'].body.sectionOffsets
-            }),
-        ])
+        return hyper.put({
+            uri: this.getFallbackBucketURI(rp, 'data-parsoid', tid),
+            headers: parsoidResp.body['data-parsoid'].headers,
+            body: parsoidResp.body['data-parsoid'].body
+        })
         .then(() => hyper.put({
             uri: this.getFallbackBucketURI(rp, 'html', tid),
             headers: parsoidResp.body.html.headers,
@@ -408,11 +393,11 @@ class ParsoidService {
                 tid: etagInfo.tid
             });
             return this._getContentWithFallback(hyper, sectionsRP,
-                'section-offsets', sectionsRP.tid)
-            .then(sectionOffsets => mwUtil.decodeBody(htmlRes).then((content) => {
+                'data-parsoid', sectionsRP.tid)
+            .then(dataParsoid => mwUtil.decodeBody(htmlRes).then((content) => {
                 const body = cheapBodyInnerHTML(content.body);
                 const chunks = sections.reduce((result, id) => {
-                    const offsets = sectionOffsets.body[id];
+                    const offsets = dataParsoid.body.sectionOffsets[id];
                     if (!offsets) {
                         throw new HTTPError({
                             status: 400,
@@ -902,16 +887,6 @@ module.exports = (options) => {
                 // TODO: the `-ng` is only here because we have just one cass cluster
                 // in dev. Remove before deploying to production
                 uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid-ng',
-                body: {
-                    valueType: 'json',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
-                }
-            },
-            {
-                // TODO: the `-ng` is only here because we have just one cass cluster
-                // in dev. Remove before deploying to production
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.section-offsets-ng',
                 body: {
                     valueType: 'json',
                     version: 3,

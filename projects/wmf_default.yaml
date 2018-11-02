@@ -127,8 +127,6 @@ paths:
                     dependent_content_types:
                       - name: data-parsoid
                         value_type: json
-                      - name: section-offsets
-                        value_type: json
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
