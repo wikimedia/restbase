@@ -87,11 +87,12 @@ paths:
             status: 200
             headers:
               content-type:  /^application\/json/
-            body:
-              - title: 'Darth Vader'
-                language: en
-                itemType: encyclopediaArticle
-                encyclopediaTitle: Wikipedia
+###            # TEMP: Uncomment once T211088 has been fixed
+###            body:
+###              - title: 'Darth Vader'
+###                language: en
+###                itemType: encyclopediaArticle
+###                encyclopediaTitle: Wikipedia
 
 definitions:
   result:
