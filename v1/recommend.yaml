@@ -56,6 +56,45 @@ paths:
             request:
               uri: '{{options.host}}/{domain}/v1/translation/articles/{from_lang}/{{default(seed_article,"")}}'
       x-monitor: false
+  /recommendation/article/morelike/translation/{seed_article}:
+    x-route-filters:
+      - path: ./lib/access_check_filter.js
+        options:
+          title: 'seed_article'
+    get:
+      tags:
+        - Recommendation
+      summary: Recommend missing articles
+      description: |
+        Recommends articles similar to the seed article but are missing
+        from the domain language Wikipedia.
+
+        Currently, this end point works only on eswiki, fawiki, and uzwiki.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json
+        - application/problem+json
+      parameters:
+        - name: seed_article
+          in: path
+          description: The article title used to search similar but missing articles
+          type: string
+          required: true
+      responses:
+        '200':
+          description: the prioritized list of Wikidata IDs recommended for creation as Wikipedia articles
+          schema:
+            $ref: '#/definitions/morelike_result'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/{{domain}}/v1/article/morelike/translation/{{seed_article}}'
+      x-monitor: false
 definitions:
   recommendation_result:
     type: object
@@ -78,3 +117,15 @@ definitions:
             sitelink_count:
               type: integer
               description: count of sites the wikidata item is linked to
+  morelike_result:
+    type: array
+    description: the prioritized list of Wikidata IDs recommended for creation as Wikipedia articles
+    items:
+      type: object
+      properties:
+        wikidata_id:
+          type: string
+          description: Wikidata ID for the item
+        score:
+          type: number
+          description: Score of the recommendation. The higher the score, the more important the recommendation is.
