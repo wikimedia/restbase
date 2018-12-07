@@ -88,10 +88,8 @@ paths:
             headers:
               content-type:  /^application\/json/
             body:
-              - title: 'Darth Vader'
-                language: en
-                itemType: encyclopediaArticle
-                encyclopediaTitle: Wikipedia
+              - title: /.+/
+                itemType: /.+/
 
 definitions:
   result:
