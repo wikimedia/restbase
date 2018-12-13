@@ -89,9 +89,11 @@ class Feed extends BaseFeed {
                 highQualityThumbRequest
             ).then((result) => {
                 const thumbRes = result[1].body;
+                result[0].body = result[0].body || {};
                 if (thumbRes.items && thumbRes.items.length && thumbRes.items[0].thumbnail) {
                     const newThumb = thumbRes.items[0].thumbnail;
                     newThumb.source = newThumb.source.replace(/^http:/, 'https:');
+                    result[0].body.tfa = result[0].body.tfa || {};
                     result[0].body.tfa.thumbnail = newThumb;
                     if (thumbRes.items[0].original) {
                         const newOriginal = thumbRes.items[0].original;
