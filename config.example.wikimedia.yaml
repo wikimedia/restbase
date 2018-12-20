@@ -47,11 +47,7 @@ default_project: &default_project
         pdf:
           # Cache PDF for 5 minutes since it's not purged
           cache_control: s-maxage=600, max-age=600
-          uri: https://pdfrender-beta.wmflabs.org
           new_uri: https://proton-beta.wmflabs.org
-          new_probability: 1
-          secret: secret
-          scheme: https
         transform:
           cx_host: https://cxserver-beta.wmflabs.org
         skip_updates: false

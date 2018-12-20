@@ -22,23 +22,14 @@ module.exports = options => ({
     operations: {
         generatePDF: (hyper, req) => {
             const rp = req.params;
-            const newProbability = options.new_probability || 0;
             return hyper.get(new URI([rp.domain, 'sys', 'page_revisions', 'page', rp.title]))
             .then((latestRevision) => {
-                if (options.new_uri && (Math.random() < newProbability || req.query.new_pdf)) {
-                    const newResult = hyper.get(new URI(
+                if (options.new_uri) {
+                    return hyper.get(new URI(
                         `${options.new_uri}/${rp.domain}/v1/`
-                        + `pdf/${encodeURIComponent(rp.title)}/a4/desktop`
-                    ))
-                    .catch((e) => {
-                        hyper.logger.log('error/proton', e);
-                        if (req.query.new_pdf) {
-                            throw e;
-                        }
-                    });
-                    if (req.query.new_pdf) {
-                        return newResult;
-                    }
+                        + `pdf/${encodeURIComponent(rp.title)}`
+                        + `/${rp.format || 'a4'}/${rp.type || `desktop`}`
+                    ));
                 }
                 return hyper.get({
                     uri: new URI(`${options.uri}/pdf`),
