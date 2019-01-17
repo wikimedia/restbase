@@ -54,9 +54,9 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: '{{options.host}}/{domain}/v1/translation/articles/{from_lang}/{default(seed_article,"")}'
+              uri: '{{options.host}}/{domain}/v1/article/creation/translation/{from_lang}/{default(seed_article,"")}'
       x-monitor: false
-  /recommendation/article/morelike/translation/{seed_article}:
+  /recommendation/article/creation/morelike/{seed_article}:
     x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
@@ -96,7 +96,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: '{{options.host}}/{{domain}}/v1/article/morelike/translation/{seed_article}'
+              uri: '{{options.host}}/{{domain}}/v1/article/creation/morelike/{seed_article}'
       x-monitor: false
 definitions:
   recommendation_result:
