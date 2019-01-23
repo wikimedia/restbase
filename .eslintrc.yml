@@ -12,10 +12,13 @@ rules:
     - error
     - properties: never
   computed-property-spacing:
-    - off
+    - error
+    - never
   indent: 
-    - off
+    - error
     - 4
+    - SwitchCase: 1
+      MemberExpression: 'off'
   no-multi-spaces:
     - off
   # defined in eslint-config-wikimedia to avoid breaking IE. Not needed here
