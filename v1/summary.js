@@ -29,9 +29,9 @@ const functions = {
         if (source.constructor === String) {
             source = source.replace(/^(?:https?:)?\/\//, protocol);
         } else if (Array.isArray(source)) {
-            source = source.map(elem => functions.changeProtocol(elem));
+            source = source.map((elem) => functions.changeProtocol(elem));
         } else if (source.constructor === Object) {
-            Object.keys(source).filter(key => !/title/.test(key)).forEach((key) => {
+            Object.keys(source).filter((key) => !/title/.test(key)).forEach((key) => {
                 source[key] = functions.changeProtocol(source[key]);
             });
         }
@@ -64,7 +64,7 @@ const functions = {
     },
     stripTags(extract) {
         if (!extract) {
-            return "";
+            return '';
         }
 
         return entities.decodeHTML(extract.replace(TAGS_MATCH, ''));

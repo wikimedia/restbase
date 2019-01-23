@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Key-value bucket handler
@@ -30,11 +30,11 @@ class PostDataBucket {
         .catch({ status: 404 }, () => hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, key]),
             headers: {
-                'content-type': 'application/json',
+                'content-type': 'application/json'
             },
             body: storedData
         })
-        .then(res => ({
+        .then((res) => ({
             status: res.status,
             headers: {
                 'content-type': 'text/plain'
@@ -78,7 +78,6 @@ class PostDataBucket {
         });
     }
 }
-
 
 module.exports = (options) => {
     const postDataBucket = new PostDataBucket(options);

@@ -155,7 +155,7 @@ function buildQueryResponse(apiReq, res) {
         // Rewrite res.body
         // XXX: Rethink!
         const pages = res.body.query.pages;
-        const newBody = Object.keys(pages).map(key => pages[key]);
+        const newBody = Object.keys(pages).map((key) => pages[key]);
 
         // XXX: Clean this up!
         res.body = {
@@ -187,7 +187,7 @@ function buildEditResponse(apiReq, res) {
 }
 
 function findSharedRepoDomain(siteInfoRes) {
-    const sharedRepo = (siteInfoRes.body.query.repos || []).find(repo => repo.name === 'shared');
+    const sharedRepo = (siteInfoRes.body.query.repos || []).find((repo) => repo.name === 'shared');
     if (sharedRepo) {
         const domainMatch = /^((:?https?:)?\/\/[^/]+)/.exec(sharedRepo.descBaseUrl);
         if (domainMatch) {
@@ -207,11 +207,13 @@ function logError(hyper, err) {
  */
 class ActionService {
     constructor(options) {
-        if (!options) { throw new Error("No options supplied for action module"); }
+        if (!options) {
+            throw new Error('No options supplied for action module');
+        }
         if (!options.apiUriTemplate || !options.baseUriTemplate) {
-            const e = new Error('Missing parameter in action module:\n'
-                    + '- baseUriTemplate string parameter, or\n'
-                    + '- apiUriTemplate string parameter.');
+            const e = new Error('Missing parameter in action module:\n' +
+                    '- baseUriTemplate string parameter, or\n' +
+                    '- apiUriTemplate string parameter.');
             e.options = options;
             throw e;
         }
@@ -222,7 +224,7 @@ class ActionService {
             headers: {
                 host: '{{request.params.domain}}'
             },
-            body: '{{request.body}}',
+            body: '{{request.body}}'
         });
         this.baseUriTemplate = new Template({
             uri: options.baseUriTemplate
@@ -281,6 +283,9 @@ class ActionService {
      *
      * Expects the project domain to be passed in req.params.domain. Fetching
      * siteinfo for other projects / domains is not supported.
+     * @param  {Object}  hyper   Hyperswitch instance
+     * @param  {Object}  req     request object
+     * @return {Object}          site info
      */
     siteinfo(hyper, req) {
         const rp = req.params;
@@ -315,8 +320,8 @@ class ActionService {
                         variants[lang.toLowerCase()] =
                             Object.keys(origVariants[lang])
                         // Filter out non-specific variants like `en`, `zh` etc.
-                        .filter(variant => /-/.test(variant))
-                        .map(variant => variant.toLowerCase());
+                        .filter((variant) => /-/.test(variant))
+                        .map((variant) => variant.toLowerCase());
                     });
                 }
                 return {

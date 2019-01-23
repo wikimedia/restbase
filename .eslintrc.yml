@@ -1,1 +1,31 @@
-extends: 'eslint-config-node-services'
+extends: 
+  - 'eslint-config-wikimedia/server'
+
+plugins:
+  - json
+  - jsdoc
+
+rules:
+  array-bracket-spacing:
+    - off
+  camelcase:
+    - error
+    - properties: never
+  computed-property-spacing:
+    - off
+  indent: 
+    - off
+    - 4
+  no-multi-spaces:
+    - off
+  # defined in eslint-config-wikimedia to avoid breaking IE. Not needed here
+  no-restricted-syntax:
+    - off    
+  no-underscore-dangle:
+    - off
+  no-unused-vars:
+    - error
+    - args: none
+  space-in-parens:
+    - error
+    - never

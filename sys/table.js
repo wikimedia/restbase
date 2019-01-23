@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*
  * A simple wrapper module over storage modules which allows to switch between storage
@@ -9,8 +9,8 @@ module.exports = (options) => {
     options.conf.backend = options.conf.backend || 'cassandra';
     options.log = options.logger.log.bind(options.logger);
 
-    if (options.conf.backend !== 'cassandra'
-            && options.conf.backend !== 'sqlite') {
+    if (options.conf.backend !== 'cassandra' &&
+            options.conf.backend !== 'sqlite') {
         throw new Error(`Unsupported backend version specified: ${options.conf.backend}`);
     }
 

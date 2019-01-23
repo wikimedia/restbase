@@ -2,7 +2,6 @@
 
 'use strict';
 
-
 const HyperSwitch = require('hyperswitch');
 const mwUtil = require('../lib/mwUtil');
 const uuid = require('cassandra-uuid').TimeUuid;
@@ -36,8 +35,8 @@ class TrendingEdits {
         return hyper.get({
             uri: `${this.options.host}/${rp.domain}/v1/feed/trending-edits/${rp.period || ''}`
         })
-        .then(res => this._assembleResult(res))
-        .then(res => mwUtil.hydrateResponse(res, uri =>
+        .then((res) => this._assembleResult(res))
+        .then((res) => mwUtil.hydrateResponse(res, (uri) =>
             mwUtil.fetchSummary(hyper, uri)));
     }
 }

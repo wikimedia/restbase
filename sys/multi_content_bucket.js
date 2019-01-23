@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Key-rev-value bucket handler
@@ -78,7 +78,7 @@ class MultiContentBucket {
         const mainCTypeName = this.options.main_content_type.name;
         const prefix = this.options.table_name_prefix;
         return P.join(this.options.dependent_content_types
-        .map(cTypeSpec => hyper.put({
+        .map((cTypeSpec) => hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${cTypeSpec.name}`, '']),
             body: {
                 table: `${prefix}.${cTypeSpec.name}`,
@@ -130,7 +130,7 @@ class MultiContentBucket {
 
         return deleteRender(this.options.main_content_type.name)
         .then(() => P.all(this.options.dependent_content_types
-            .map(cTypeSpec => deleteRender(cTypeSpec.name))));
+            .map((cTypeSpec) => deleteRender(cTypeSpec.name))));
     }
 
     _deleteRevisions(hyper, req, rev) {
@@ -153,9 +153,8 @@ class MultiContentBucket {
 
         return deleteRevision(this.options.main_content_type.name)
         .then(() => P.all(this.options.dependent_content_types
-        .map(cTypeSpec => deleteRevision(cTypeSpec.name))));
+        .map((cTypeSpec) => deleteRevision(cTypeSpec.name))));
     }
-
 
     createBucket(hyper, req) {
         const rp = req.params;
@@ -163,7 +162,7 @@ class MultiContentBucket {
 
         const createRequests = this.options.dependent_content_types
         .concat([this.options.main_content_type])
-        .map(cTypeSpec => ({
+        .map((cTypeSpec) => ({
             uri: new URI([rp.domain, 'sys', 'table', `${prefix}.${cTypeSpec.name}`]),
             body: this.makeSchema({
                 valueType: cTypeSpec.value_type,
@@ -183,7 +182,7 @@ class MultiContentBucket {
                     },
                     index: [
                         { attribute: 'key', type: 'hash' },
-                        { attribute: 'ts', type: 'range', order: 'desc' },
+                        { attribute: 'ts', type: 'range', order: 'desc' }
                     ],
                     options: {
                         default_time_to_live: this.options.index_ttl
@@ -204,7 +203,7 @@ class MultiContentBucket {
                     index: [
                         { attribute: 'key', type: 'hash' },
                         { attribute: 'rev', type: 'range', order: 'desc' },
-                        { attribute: 'ts', type: 'range', order: 'desc' },
+                        { attribute: 'ts', type: 'range', order: 'desc' }
                     ],
                     options: {
                         default_time_to_live: this.options.index_ttl
@@ -215,7 +214,7 @@ class MultiContentBucket {
 
         // Execute store requests strictly sequentially. Concurrent schema
         // changes are not supported in Cassandra.
-        return P.each(createRequests, storeReq => hyper.put(storeReq))
+        return P.each(createRequests, (storeReq) => hyper.put(storeReq))
         .thenReturn({ status: 201 });
     }
 
@@ -237,7 +236,7 @@ class MultiContentBucket {
                 ],
                 updates: opts.updates || {
                     pattern: 'timeseries'
-                },
+                }
             },
             attributes: {
                 key: opts.keyType || 'string',
@@ -279,9 +278,9 @@ class MultiContentBucket {
         }
 
         let indexCheck = P.resolve();
-        if (rp.content === this.options.main_content_type.name
-                && rp.revision
-                && this.options.renew_expiring) {
+        if (rp.content === this.options.main_content_type.name &&
+                rp.revision &&
+                this.options.renew_expiring) {
             // If it's the primary content - check whether it's about to expire
             indexCheck = hyper.get({
                 uri: new URI([rp.domain, 'sys', 'table', `${tablePrefix}-revision-timeline`, '']),
@@ -337,7 +336,7 @@ class MultiContentBucket {
         .then((res) => {
             if (!res || !res.body.items.length) {
                 // Nothing was ever there - put the first render and no need to update the index
-                return this._createContentStoreRequests(hyper, req,rev, tid);
+                return this._createContentStoreRequests(hyper, req, rev, tid);
             } else if (res && res.body.items.length && res.body.items[0].rev < rev) {
                 // New revision is being written - update revision index and do the revision deletes
                 const replacedRev = res.body.items[0].rev;
@@ -464,7 +463,7 @@ class MultiContentBucket {
                 limit: mwUtil.getLimit(hyper, req)
             }
         })
-        .then(res => ({
+        .then((res) => ({
             status: 200,
 
             headers: {
@@ -472,7 +471,7 @@ class MultiContentBucket {
             },
 
             body: {
-                items: res.body.items.map(row => ({
+                items: res.body.items.map((row) => ({
                     revision: row.rev,
                     tid: row.tid
                 })),
@@ -492,7 +491,7 @@ module.exports = (options) => {
             createBucket: mkBucket.createBucket.bind(mkBucket),
             getRevision: mkBucket.getRevision.bind(mkBucket),
             putRevision: mkBucket.putRevision.bind(mkBucket),
-            listRevisions: mkBucket.listRevisions.bind(mkBucket),
+            listRevisions: mkBucket.listRevisions.bind(mkBucket)
         }
     };
 };

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Page revision API module
@@ -68,7 +68,7 @@ class PRS {
         const rp = req.params;
         return this.fetchMWRevision(hyper, req)
         // Check if the same revision is already in storage
-        .then(revision => hyper.get({
+        .then((revision) => hyper.get({
             uri: this.tableURI(rp.domain),
             body: {
                 table: tableName,
@@ -79,9 +79,9 @@ class PRS {
             }
         })
         .then((res) => {
-            const sameRev = res && res.body.items
-                && res.body.items.length > 0
-                && this._checkSameRev(revision, res.body.items[0]);
+            const sameRev = res && res.body.items &&
+                res.body.items.length > 0 &&
+                this._checkSameRev(revision, res.body.items[0]);
             if (!sameRev) {
                 throw new HTTPError({ status: 404 });
             }
@@ -148,7 +148,7 @@ class PRS {
         if (mwUtil.isNoCacheRequest(req)) {
             revisionRequest = this.fetchAndStoreMWRevision(hyper, req)
             .catch({ status: 404 },
-                e => titleRevisionRequest()
+                (e) => titleRevisionRequest()
                 // In case 404 is returned by MW api, the page is deleted
                 // TODO: Handle this directly with more targeted page
                 // deletion/ un-deletion events.
@@ -251,8 +251,8 @@ class PRS {
      *  - sha1hidden or texthidden: raise 403 error
      *  - commenthidden: remove comment field from response
      *  - userhidden: remove user information from response
-     * @param {Object} item the revision item
-     * @throws HTTPError if access to the revision should be denied
+     * @param  {Object} item the revision item
+     * @throws               HTTPError if access to the revision should be denied
      */
     _checkRevReturn(item) {
         mwUtil.applyAccessChecks(item);
@@ -317,6 +317,9 @@ class PRS {
     /**
      * Checks if two revisions are the same, ignoring different tid values.
      * @private
+     * @param  {Object}  firstRev
+     * @param  {Object}  secondRev
+     * @return {boolean}            true if the same; false else
      */
     _checkSameRev(firstRev, secondRev) {
         const normalizeRev = (rev) => {
@@ -399,7 +402,7 @@ class PRS {
                 // Are there any restrictions set?
                 // FIXME: test for the precise attributes instead, this can easily
                 // break if new keys are added.
-                const restrictions = Object.keys(apiRev).filter(key => /hidden$/.test(key));
+                const restrictions = Object.keys(apiRev).filter((key) => /hidden$/.test(key));
 
                 return {
                     title: normTitle,

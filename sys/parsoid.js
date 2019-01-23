@@ -17,8 +17,8 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 // Temporary work-around for Parsoid issue
 // https://phabricator.wikimedia.org/T93715
 function normalizeHtml(html) {
-    return html && html.toString
-    && html.toString()
+    return html && html.toString &&
+    html.toString()
     .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
 }
 function sameHtml(a, b) {
@@ -30,6 +30,8 @@ function sameHtml(a, b) {
  *
  * This is safe as we know that the HTML we are receiving from Parsoid is
  * serialized as XML.
+ * @param  {string} html entire page content
+ * @return {string}      body tag innertext
  */
 function cheapBodyInnerHTML(html) {
     const match = /<body[^>]*>([\s\S]*)<\/body>/.exec(html);
@@ -42,9 +44,9 @@ function cheapBodyInnerHTML(html) {
 
 /**
  * Makes sure we have a meta tag for the tid in our output
- * @param {string} html original HTML content
- * @param {string} tid the tid to insert
- * @return {string} modified html
+ * @param  {string} html original HTML content
+ * @param  {string} tid  the tid to insert
+ * @return {string}      modified html
  */
 function insertTidMeta(html, tid) {
     if (!/<meta property="mw:TimeUuid" [^>]+>/.test(html)) {
@@ -65,9 +67,9 @@ function extractTidMeta(html) {
 /**
  *  Checks whether the content has been modified since the timestamp
  *  in `if-unmodified-since` header of the request
- * @param {Object} req the request
- * @param {Object} res the response
- * @return {boolean} true if content has beed modified
+ * @param  {Object} req the request
+ * @param  {Object} res the response
+ * @return {boolean}    true if content has beed modified
  */
 function isModifiedSince(req, res) {
     try {
@@ -84,6 +86,9 @@ function isModifiedSince(req, res) {
 
 /**
  * Replaces sections in original content with sections provided in sectionsJson
+ * @param {Object} original     content instance
+ * @param {Object} sectionsJson new content
+ * @return {string}             new body content
  */
 function replaceSections(original, sectionsJson) {
     const sectionOffsets = original['data-parsoid'].body.sectionOffsets;
@@ -91,7 +96,7 @@ function replaceSections(original, sectionsJson) {
     let newBody = originalBody;
 
     const sectionIds = Object.keys(sectionsJson);
-    const illegalId = sectionIds.some(id => !sectionOffsets[id]);
+    const illegalId = sectionIds.some((id) => !sectionOffsets[id]);
     if (illegalId) {
         throw new HTTPError({
             status: 400,
@@ -109,8 +114,8 @@ function replaceSections(original, sectionsJson) {
 
     function replaceSection(id, replacement) {
         const htmlOffset = sectionOffsets[id].html;
-        return newBody.substring(0, htmlOffset[0]) + replacement
-            + newBody.substring(htmlOffset[1], newBody.length);
+        return newBody.substring(0, htmlOffset[0]) + replacement +
+            newBody.substring(htmlOffset[1], newBody.length);
     }
 
     sectionIds.sort((id1, id2) => sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0])
@@ -139,9 +144,10 @@ function replaceSections(original, sectionsJson) {
 }
 
 /** HTML resource_change event emission
- * hyper {HyperSwitch} the hyperswitch router object
- * req {Object} the request
- * [newContent] {boolean} whether this is the newest revision
+ * @param   {HyperSwitch}   hyper           the hyperswitch router object
+ * @param   {Object}        req             the request
+ * @param   {boolean}       [newContent]    whether this is the newest revision
+ * @return  {Object}                        update response
  */
 function _dependenciesUpdate(hyper, req, newContent = true) {
     const rp = req.params;
@@ -244,10 +250,10 @@ class ParsoidService {
         const rp = req.params;
         const domain = rp.domain;
         const newReq = Object.assign({}, req);
-        if (!newReq.method) { newReq.method = 'get'; }
+        newReq.method = newReq.method || 'get';
         const path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
-        newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/`
-            + `${encodeURIComponent(rp.title)}/${rp.revision}`;
+        newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/` +
+            `${encodeURIComponent(rp.title)}/${rp.revision}`;
         return hyper.request(newReq);
     }
 
@@ -331,12 +337,12 @@ class ParsoidService {
                 const tid  = uuid.now().toString();
                 res.body.html.body = insertTidMeta(res.body.html.body, tid);
 
-                if (format === 'html'
-                        && currentContentRes
-                        && currentContentRes.status === 200
-                        && sameHtml(res.body.html.body, currentContentRes.body)
-                        && currentContentRes.headers['content-type']
-                                === res.body.html.headers['content-type']) {
+                if (format === 'html' &&
+                        currentContentRes &&
+                        currentContentRes.status === 200 &&
+                        sameHtml(res.body.html.body, currentContentRes.body) &&
+                        currentContentRes.headers['content-type'] ===
+                                res.body.html.headers['content-type']) {
                     // New render is the same as the previous one, no need to store it.
                     hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
                     return currentContentRes;
@@ -382,7 +388,7 @@ class ParsoidService {
 
     getSections(hyper, req) {
         const rp = req.params;
-        const sections = req.query.sections.split(',').map(id => id.trim());
+        const sections = req.query.sections.split(',').map((id) => id.trim());
         delete req.query.sections;
 
         return this.getFormat('html', hyper, req)
@@ -394,7 +400,7 @@ class ParsoidService {
             });
             return this._getContentWithFallback(hyper, sectionsRP,
                 'data-parsoid', sectionsRP.tid)
-            .then(dataParsoid => mwUtil.decodeBody(htmlRes).then((content) => {
+            .then((dataParsoid) => mwUtil.decodeBody(htmlRes).then((content) => {
                 const body = cheapBodyInnerHTML(content.body);
                 const chunks = sections.reduce((result, id) => {
                     const offsets = dataParsoid.body.sectionOffsets[id];
@@ -432,8 +438,8 @@ class ParsoidService {
      * https://phabricator.wikimedia.org/T120171 and
      * https://phabricator.wikimedia.org/T120972 are resolved / resource
      * consumption for these articles has been reduced to a reasonable level.
-     * @param {Request} req the request being processed
-     * @return {boolean} Whether re-rendering this title is okay.
+     * @param  {Request} req    the request being processed
+     * @return {boolean}        Whether re-rendering this title is okay.
      */
     _okayToRerender(req) {
         if (mwUtil.isNoCacheRequest(req) && this._blacklist[req.params.domain]) {
@@ -465,7 +471,7 @@ class ParsoidService {
                     status: 403,
                     body: {
                         type: 'bad_request#rerenders_disabled',
-                        description: "Rerenders for this article are blacklisted in the config."
+                        description: 'Rerenders for this article are blacklisted in the config.'
                     }
                 });
             });
@@ -536,7 +542,7 @@ class ParsoidService {
 
     _getStashedContent(hyper, req, etag) {
         const rp = req.params;
-        const getStash = format => hyper.get({
+        const getStash = (format) => hyper.get({
             uri: this.getStashBucketURI(rp, format, etag.tid)
         })
         .then(mwUtil.decodeBody);
@@ -580,8 +586,8 @@ class ParsoidService {
                     status: 400,
                     body: {
                         type: 'bad_request',
-                        description: 'No or invalid If-Match header supplied, '
-                            + 'or missing mw:TimeUuid meta element in the supplied HTML.',
+                        description: 'No or invalid If-Match header supplied, ' +
+                            'or missing mw:TimeUuid meta element in the supplied HTML.'
                     }
                 });
             }
@@ -595,9 +601,9 @@ class ParsoidService {
         }
         return contentPromise.then((original) => {
             // Check if parsoid metadata is present as it's required by parsoid.
-            if (!original['data-parsoid'].body
-                    || original['data-parsoid'].body.constructor !== Object
-                    || !original['data-parsoid'].body.ids) {
+            if (!original['data-parsoid'].body ||
+                    original['data-parsoid'].body.constructor !== Object ||
+                    !original['data-parsoid'].body.ids) {
                 throw new HTTPError({
                     status: 400,
                     body: {
@@ -637,7 +643,7 @@ class ParsoidService {
                 params: req.params,
                 headers: {
                     'content-type': 'application/json',
-                    'user-agent': req['user-agent'],
+                    'user-agent': req['user-agent']
                 },
                 body: body2
             };
@@ -654,7 +660,7 @@ class ParsoidService {
         const rp = req.params;
         const tid = uuid.now().toString();
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        return transformPromise.then(original =>
+        return transformPromise.then((original) =>
             // Save the returned data-parsoid for the transform and the wikitext sent by the client
             P.all([
                 hyper.put({
@@ -708,11 +714,13 @@ class ParsoidService {
             parsoidExtras.push(rp.revision);
         }
         let parsoidExtraPath = parsoidExtras.map(encodeURIComponent).join('/');
-        if (parsoidExtraPath) { parsoidExtraPath = `/${parsoidExtraPath}`; }
+        if (parsoidExtraPath) {
+            parsoidExtraPath = `/${parsoidExtraPath}`;
+        }
 
         const parsoidReq = {
-            uri: `${this.parsoidHost}/${rp.domain}/v3/transform/`
-                + `${parsoidFrom}/to/${parsoidTo}${parsoidExtraPath}`,
+            uri: `${this.parsoidHost}/${rp.domain}/v3/transform/` +
+                `${parsoidFrom}/to/${parsoidTo}${parsoidExtraPath}`,
             headers: {
                 'content-type': 'application/json',
                 'user-agent': req['user-agent'],
@@ -732,8 +740,8 @@ class ParsoidService {
 
     getLintErrors(hyper, req) {
         const rp = req.params;
-        let path = `${this.parsoidHost}/${rp.domain}/v3/transform/`
-            + `wikitext/to/lint/${encodeURIComponent(rp.title)}`;
+        let path = `${this.parsoidHost}/${rp.domain}/v3/transform/` +
+            `wikitext/to/lint/${encodeURIComponent(rp.title)}`;
         if (rp.revision) {
             path += `/${rp.revision}`;
         }
@@ -743,11 +751,11 @@ class ParsoidService {
     makeTransform(from, to) {
         return (hyper, req) => {
             const rp = req.params;
-            if ((!req.body && req.body !== '')
+            if ((!req.body && req.body !== '') ||
                     // The html/to/html endpoint is a bit different so the `html`
                     // might not be provided.
-                    || (!(from === 'html' && to === 'html')
-                        && !req.body[from] && req.body[from] !== '')) {
+                    (!(from === 'html' && to === 'html') &&
+                        !req.body[from] && req.body[from] !== '')) {
                 throw new HTTPError({
                     status: 400,
                     body: {
@@ -782,10 +790,10 @@ class ParsoidService {
             .catch((e) => {
                 // In case a page was deleted/revision restricted while edit was happening,
                 // return 410 Gone or 409 Conflict error instead of a general 400
-                const pageDeleted = e.status === 404 && e.body
-                        && /Page was deleted/.test(e.body.description);
-                const revisionRestricted = e.status === 403 && e.body
-                        && /Access is restricted/.test(e.body.description);
+                const pageDeleted = e.status === 404 && e.body &&
+                        /Page was deleted/.test(e.body.description);
+                const revisionRestricted = e.status === 403 && e.body &&
+                        /Access is restricted/.test(e.body.description);
                 if (pageDeleted || revisionRestricted) {
                     throw new HTTPError({
                         status: pageDeleted ? 410 : 409,
@@ -814,7 +822,6 @@ class ParsoidService {
         };
     }
 
-
     // Get / check the revision metadata for a request
     getRevisionInfo(hyper, req) {
         const rp = req.params;
@@ -831,7 +838,7 @@ class ParsoidService {
                 'cache-control': req.headers && req.headers['cache-control']
             }
         })
-        .then(res => res.body.items[0]);
+        .then((res) => res.body.items[0]);
     }
 
     _getOriginalContent(hyper, req, revision, tid) {

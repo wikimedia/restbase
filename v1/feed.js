@@ -1,6 +1,5 @@
 'use strict';
 
-
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
@@ -125,7 +124,7 @@ class Feed extends BaseFeed {
         const props = {};
         let parts = Object.keys(PARTS_URIS);
         if (isHistoric) {
-            parts = parts.filter(part => PARTS_URIS[part].renewable);
+            parts = parts.filter((part) => PARTS_URIS[part].renewable);
         }
         parts.forEach((part) => {
             props[part] = hyper.get(PARTS_URIS[part].reqTemplate.expand({

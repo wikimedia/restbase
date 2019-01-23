@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
@@ -20,7 +20,7 @@ class MobileApps {
         const rp = req.params;
         const fetchPaths = {
             lead: [rp.domain, 'sys', 'mobile_bucket', 'lead', rp.title],
-            remaining: [rp.domain, 'sys', 'mobile_bucket', 'remaining', rp.title],
+            remaining: [rp.domain, 'sys', 'mobile_bucket', 'remaining', rp.title]
         };
         if (rp.revision) {
             fetchPaths.lead.push(rp.revision);
@@ -28,10 +28,10 @@ class MobileApps {
         }
         return P.join(
             hyper.get({
-                uri: new URI(fetchPaths.lead),
+                uri: new URI(fetchPaths.lead)
             }),
             hyper.get({
-                uri: new URI(fetchPaths.remaining),
+                uri: new URI(fetchPaths.remaining)
             })
         ).spread((lead, remaining) => ({
             status: 200,
@@ -65,7 +65,7 @@ class MobileApps {
         }
 
         return hyper.get({
-            uri: new URI(fetchPath),
+            uri: new URI(fetchPath)
         })
         .catch({ status: 404 }, fetchAndReturnPart);
     }
@@ -77,14 +77,14 @@ class MobileApps {
             const prefix = `${siteInfo.baseUri}/page/mobile-sections`.replace(/^https?:/, '');
             const title = encodeURIComponent(rp.title);
             const postfixes = ['', '-lead', '-remaining'];
-            let purgeEvents = postfixes.map(postfix => ({
+            let purgeEvents = postfixes.map((postfix) => ({
                 meta: {
                     uri: `${prefix}${postfix}/${title}/${revision}`
                 }
             }));
 
             if (purgeLatest) {
-                purgeEvents = purgeEvents.concat(postfixes.map(postfix => ({
+                purgeEvents = purgeEvents.concat(postfixes.map((postfix) => ({
                     meta: {
                         uri: `${prefix}${postfix}/${title}`
                     },
@@ -158,7 +158,7 @@ module.exports = (options) => {
         },
         resources: [
             {
-                uri: '/{domain}/sys/mobile_bucket/',
+                uri: '/{domain}/sys/mobile_bucket/'
             }
         ]
     };

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Key-value bucket handler
@@ -72,7 +72,7 @@ class KVBucket {
                 ],
                 updates: opts.updates || {
                     pattern: 'timeseries'
-                },
+                }
             },
             attributes: {
                 key: opts.keyType || 'string',
@@ -85,7 +85,6 @@ class KVBucket {
             ]
         };
     }
-
 
     getRevision(hyper, req) {
         if (mwUtil.isNoCacheRequest(req)) {
@@ -106,7 +105,6 @@ class KVBucket {
         return hyper.get(storeReq).then(returnRevision(req));
     }
 
-
     listRevisions(hyper, req) {
         const rp = req.params;
         const storeRequest = {
@@ -121,17 +119,16 @@ class KVBucket {
             }
         };
         return hyper.get(storeRequest)
-        .then(res => ({
+        .then((res) => ({
             status: 200,
             headers: {
                 'content-type': 'application/json'
             },
             body: {
-                items: res.body.items.map(row => row.tid)
+                items: res.body.items.map((row) => row.tid)
             }
         }));
     }
-
 
     putRevision(hyper, req) {
         const rp = req.params;
@@ -159,7 +156,7 @@ class KVBucket {
                     key: rp.key,
                     tid,
                     value: req.body,
-                    headers: req.headers,
+                    headers: req.headers
                 }
             }
         })
@@ -171,7 +168,7 @@ class KVBucket {
                         etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
                     },
                     body: {
-                        message: "Created.",
+                        message: 'Created.',
                         tid
                     }
                 };
@@ -191,8 +188,8 @@ class KVBucket {
             })
             .then((oldContent) => {
                 if (stringify(req.body) === stringify(oldContent.body) &&
-                        (!req.headers['content-type']
-                        || req.headers['content-type'] === oldContent.headers['content-type'])) {
+                        (!req.headers['content-type'] ||
+                        req.headers['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
                     return {
                         status: 412,
