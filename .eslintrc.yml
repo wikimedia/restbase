@@ -1,5 +1,5 @@
 extends: 
-  - 'eslint-config-wikimedia/server'
+  - 'wikimedia/server'
 
 plugins:
   - json
