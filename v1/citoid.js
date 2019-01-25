@@ -21,11 +21,11 @@ class Citoid {
         return acceptLanguagePromise.then((acceptLanguage) => {
             let reqURI;
             if (rp.format === 'mediawiki-basefields') {
-                reqURI = `${this._options.host}/api?format=mediawiki&`
-                    + `search=${encodeURIComponent(rp.query)}&basefields=true`;
+                reqURI = `${this._options.host}/api?format=mediawiki&` +
+                    `search=${encodeURIComponent(rp.query)}&basefields=true`;
             } else {
-                reqURI = `${this._options.host}/api?format=${rp.format}&`
-                    + `search=${encodeURIComponent(rp.query)}`;
+                reqURI = `${this._options.host}/api?format=${rp.format}&` +
+                    `search=${encodeURIComponent(rp.query)}`;
             }
             return hyper.get({
                 uri: reqURI,

@@ -45,7 +45,7 @@ class Related {
             delete res.body.items;
 
             // Step 2: Hydrate response as always.
-            return mwUtil.hydrateResponse(res, uri => mwUtil.fetchSummary(hyper, uri));
+            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri));
         });
     }
 }
@@ -60,4 +60,3 @@ module.exports = (options) => {
         }
     };
 };
-

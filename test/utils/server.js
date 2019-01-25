@@ -66,9 +66,9 @@ config.conf.logging = {
     stream: config.logStream
 };
 
-let stop    = function() {};
+let stop     = () => {};
 let isRunning;
-let options = null;
+let options  = null;
 const runner = new ServiceRunner();
 
 function start(_options) {
@@ -91,7 +91,7 @@ function start(_options) {
                     console.log('stopping restbase');
                     isRunning = false;
                     server.close();
-                    stop = function() {};
+                    stop = () => {};
                 };
             return true;
         });
@@ -102,5 +102,5 @@ function start(_options) {
 
 module.exports.config = config;
 module.exports.start  = start;
-module.exports.stop   = function() { stop(); };
+module.exports.stop   = () => { stop(); };
 module.exports.loadConfig = loadConfig;

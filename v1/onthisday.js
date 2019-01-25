@@ -29,7 +29,7 @@ class Feed extends BaseFeed {
     constructBody(result, req) {
         if (req.params.type === 'all') {
             const body = {};
-            Object.keys(result).forEach(key => Object.assign(body, result[key].body));
+            Object.keys(result).forEach((key) => Object.assign(body, result[key].body));
             return body;
         }
         return result.body;

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Key-rev-value bucket handler
@@ -119,7 +119,7 @@ class KRVBucket {
                 limit: mwUtil.getLimit(hyper, req)
             }
         })
-        .then(res => ({
+        .then((res) => ({
             status: 200,
 
             headers: {
@@ -127,7 +127,7 @@ class KRVBucket {
             },
 
             body: {
-                items: res.body.items.map(row => ({
+                items: res.body.items.map((row) => ({
                     revision: row.rev,
                     tid: row.tid
                 })),
@@ -136,12 +136,11 @@ class KRVBucket {
         }));
     }
 
-
     putRevision(hyper, req) {
         const rp = req.params;
         const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value')
-            || uuid.now().toString();
+        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') ||
+            uuid.now().toString();
         const headers = Object.assign({}, req.headers || {});
         headers.etag = mwUtil.makeETag(rev, tid);
         headers['content-type'] = headers['content-type'] || 'application/octet-stream';
@@ -164,7 +163,7 @@ class KRVBucket {
                     status: 201,
                     headers,
                     body: {
-                        message: "Created.",
+                        message: 'Created.',
                         rev,
                         tid
                     }

@@ -162,11 +162,15 @@ function checkString(result, expected, message) {
 
 /**
  * Validates the comma-separated list of header names.
- * @param {string} headerList - the list of header names
- * @param {Object} options - the validator options
- * @param {array=} options.require - list of header names required to be present. Example: [ 'Accept', 'Accept-Encoding']. Case-insensitive.
- * @param {array=} options.disallow - list of header names NOT allowed. Example: [ 'Accept-Language' ]. Case-insensitive.
- * @param {boolean} [options.allowDuplicates] - whether duplicated entries could be present in the `headerList`. Default: false
+ * @param {string}  headerList                the list of header names
+ * @param {Object}  options                   the validator options
+ * @param {array=}  options.require           list of header names required to be present. 
+ *                                            Example: [ 'Accept', 'Accept-Encoding']. 
+ *                                            Case-insensitive.
+ * @param {array=}  options.disallow          list of header names NOT allowed. 
+*                                             Example: [ 'Accept-Language' ]. Case-insensitive.
+ * @param {boolean} [options.allowDuplicates] whether duplicated entries could be present in 
+ *                                            the `headerList`. Default: false
  **/
 function validateListHeader(headerList, options) {
     if (!headerList) {
