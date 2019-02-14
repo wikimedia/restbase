@@ -24,3 +24,6 @@ db.sqlite3
 
 # uri dumps
 uri_dump
+
+# nyc
+.nyc_output
