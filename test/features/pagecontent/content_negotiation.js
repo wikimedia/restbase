@@ -10,7 +10,9 @@ const PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE = 'User%3APchelolo%2FContent_Negotia
 const PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE = 'User%3APchelolo%2FContent_Negotiation_Test1';
 const PARSOID_SUPPORTED_DOWNGRADE = '1.8.0';
 
-describe('Content negotiation', function() {
+// TODO: Convert tests to nock or think of an alternative approach to testing this without
+// relying on Parsoid versions
+describe.skip('Content negotiation', function() {
 
     this.timeout(20000);
 
