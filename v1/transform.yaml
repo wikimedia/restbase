@@ -93,6 +93,9 @@ paths:
             $ref: '#/definitions/problem'
 
       x-route-filters:
+        - path: ./lib/ve_logger_filter.js
+          options:
+            probability: 0.25
         - type: default
           name: ratelimit_route
           options:
@@ -181,6 +184,9 @@ paths:
             $ref: '#/definitions/problem'
 
       x-route-filters:
+        - path: ./lib/ve_logger_filter.js
+          options:
+            probability: 0.25
         - type: default
           name: ratelimit_route
           options:
