@@ -119,6 +119,9 @@ paths:
 
   /html/{title}:
     x-route-filters:
+      - path: ./lib/ve_logger_filter.js
+        options:
+          probability: 0.5
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -403,6 +406,9 @@ paths:
 
   /html/{title}/{revision}{/tid}:
     x-route-filters:
+      - path: ./lib/ve_logger_filter.js
+        options:
+          probability: 0.5
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
