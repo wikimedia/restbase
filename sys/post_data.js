@@ -6,7 +6,7 @@
 
 const HyperSwitch = require('hyperswitch');
 const crypto = require('crypto');
-const stringify = require('json-stable-stringify');
+const stringify = require('fast-json-stable-stringify');
 const URI = HyperSwitch.URI;
 
 function calculateHash(storedData) {

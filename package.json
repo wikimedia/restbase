@@ -37,15 +37,15 @@
   "dependencies": {
     "bluebird": "^3.5.2",
     "cassandra-uuid": "^0.1.0",
-    "restbase-mod-table-cassandra": "^1.1.2",
-    "service-runner": "^2.6.9",
-    "json-stable-stringify": "^1.0.1",
     "content-type": "git+https://github.com/wikimedia/content-type#master",
+    "entities": "^1.1.1",
+    "fast-json-stable-stringify": "^2.0.0",
     "hyperswitch": "^0.10.3",
     "jsonwebtoken": "^8.3.0",
     "mediawiki-title": "^0.6.5",
-    "entities": "^1.1.1",
-    "semver": "latest"
+    "restbase-mod-table-cassandra": "^1.1.2",
+    "semver": "latest",
+    "service-runner": "^2.6.9"
   },
   "devDependencies": {
     "ajv": "^6.5.4",
