@@ -15,7 +15,7 @@ const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 const TimeUuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
-const stringify = require('json-stable-stringify');
+const stringify = require('fast-json-stable-stringify');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/page_revisions.yaml`);
 

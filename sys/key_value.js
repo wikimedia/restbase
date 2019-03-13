@@ -7,7 +7,7 @@
 const uuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
-const stringify = require('json-stable-stringify');
+const stringify = require('fast-json-stable-stringify');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 
