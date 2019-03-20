@@ -3,14 +3,14 @@ tags:
   - name: Mobile
     description: mobile-friendly page content
 paths:
-  /mobile-sections/{title}{/revision}:
-    x-route-filters:
+  /mobile-sections/{title}:
+    x-route-filters: &mobile-sections_title_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js
       - path: lib/language_variants_filter.js
-    get:
+    get: &mobile-sections_title_get_spec
       tags:
         - Mobile
       summary: Get mobile-optimized HTML sections for a title.
@@ -28,13 +28,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
-          required: false
         - name: redirect
           in: query
           description: >
@@ -59,6 +52,7 @@ paths:
             # FIXME!
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -114,13 +108,48 @@ paths:
               lead: /.+/
               remaining: /.+/
 
-  /mobile-sections-lead/{title}{/revision}:
+  /mobile-sections/{title}/{revision}:
     x-route-filters:
+      <<: *mobile-sections_title_filters
+    get:
+      <<: *mobile-sections_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          type: integer
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
+
+  /mobile-sections-lead/{title}:
+    x-route-filters: &mobile-sections-lead_title_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js
-    get:
+    get: &mobile-sections-lead_title_get_spec
       tags:
         - Mobile
       summary: Get mobile-optimized HTML lead section and metadata for a title.
@@ -138,13 +167,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
-          required: false
         - name: redirect
           in: query
           description: >
@@ -169,6 +191,7 @@ paths:
             # FIXME!
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -211,13 +234,48 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: false
 
-  /mobile-sections-remaining/{title}{/revision}:
+  /mobile-sections-lead/{title}/{revision}:
     x-route-filters:
+      <<: *mobile-sections-lead_title_filters
+    get:
+      <<: *mobile-sections-lead_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          type: integer
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
+
+  /mobile-sections-remaining/{title}:
+    x-route-filters:  &mobile-sections-remaining_title_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/ensure_content_type.js
-    get:
+    get: &mobile-sections-remaining_title_get_spec
       tags:
         - Mobile
       summary: Get non-lead mobile-optimized HTML sections for a title.
@@ -236,13 +294,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
-          required: false
         - name: redirect
           in: query
           description: >
@@ -267,6 +318,7 @@ paths:
             # FIXME!
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -309,3 +361,37 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: false
 
+  /mobile-sections-remaining/{title}/{revision}:
+    x-route-filters:
+      <<: *mobile-sections-remaining_title_filters
+    get:
+      <<: *mobile-sections-remaining_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          type: integer
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string

@@ -15,8 +15,8 @@ tags:
   - name: Transforms
     description: convert content between HTML and Wikitext
 paths:
-  /html/to/wikitext{/title}{/revision}:
-    post:
+  /html/to/wikitext:
+    post: &html_to_wikitext_post_spec
       tags:
         - Transforms
       summary: Transform HTML to Wikitext
@@ -38,16 +38,6 @@ paths:
         - text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"
         - application/problem+json
       parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: false
-        - name: revision
-          in: path
-          description: The page revision
-          type: integer
-          required: false
         - name: html
           in: formData
           description: The HTML to transform
@@ -111,8 +101,69 @@ paths:
                 scrub_wikitext: '{{scrub_wikitext}}'
       x-monitor: false
 
-  /wikitext/to/html{/title}{/revision}:
+  /html/to/wikitext/{title}:
+    post: 
+      <<: *html_to_wikitext_post_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: html
+          in: formData
+          description: The HTML to transform
+          type: string
+          required: true
+          x-textarea: true
+        - name: scrub_wikitext
+          in: formData
+          description: Normalise the DOM to yield cleaner wikitext?
+          type: boolean
+          required: false
+        - name: if-match
+          in: header
+          description: |
+            The `ETag` header of the original render indicating it's revision and timeuuid.
+            Required if both `title` and `revision` parameters are present.
+          type: string
+          required: false
+
+  /html/to/wikitext/{title}/{revision}:
     post:
+      <<: *html_to_wikitext_post_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: true
+        - name: html
+          in: formData
+          description: The HTML to transform
+          type: string
+          required: true
+          x-textarea: true
+        - name: scrub_wikitext
+          in: formData
+          description: Normalise the DOM to yield cleaner wikitext?
+          type: boolean
+          required: false
+        - name: if-match
+          in: header
+          description: |
+            The `ETag` header of the original render indicating it's revision and timeuuid.
+            Required if both `title` and `revision` parameters are present.
+          type: string
+          required: false
+    
+  /wikitext/to/html:
+    post: &wikitext_to_html_post_spec
       tags:
         - Transforms
       summary: Transform Wikitext to HTML
@@ -128,16 +179,6 @@ paths:
         - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"
         - application/problem+json
       parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: false
-        - name: revision
-          in: path
-          description: The page revision
-          type: integer
-          required: false
         - name: wikitext
           in: formData
           description: The Wikitext to transform to HTML
@@ -212,8 +253,65 @@ paths:
               content-type: /^text\/html.+/
             body: /^<h2.*>Heading<\/h2>$/
 
-  /wikitext/to/lint{/title}{/revision}:
+  /wikitext/to/html/{title}:
     post:
+      <<: *wikitext_to_html_post_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: wikitext
+          in: formData
+          description: The Wikitext to transform to HTML
+          type: string
+          required: true
+          x-textarea: true
+        - name: body_only
+          in: formData
+          description: Return only `body.innerHTML`
+          type: boolean
+          required: false
+        - name: stash
+          in: formData
+          description: Whether to temporarily stash the result of the transformation
+          type: boolean
+          required: false
+
+  /wikitext/to/html/{title}/{revision}:
+    post:
+      <<: *wikitext_to_html_post_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: true
+        - name: wikitext
+          in: formData
+          description: The Wikitext to transform to HTML
+          type: string
+          required: true
+          x-textarea: true
+        - name: body_only
+          in: formData
+          description: Return only `body.innerHTML`
+          type: boolean
+          required: false
+        - name: stash
+          in: formData
+          description: Whether to temporarily stash the result of the transformation
+          type: boolean
+          required: false
+    
+  /wikitext/to/lint:
+    post: &wikitext_to_lint_post_spec
       tags:
         - Transforms
       summary: Check Wikitext for lint errors
@@ -229,16 +327,6 @@ paths:
         - application/json
         - application/problem+json
       parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: false
-        - name: revision
-          in: path
-          description: The page revision
-          type: integer
-          required: false
         - name: wikitext
           in: formData
           description: The Wikitext to check
@@ -283,6 +371,43 @@ paths:
                 wikitext: '{{wikitext}}'
       x-monitor: false
 
+  /wikitext/to/lint/{title}:
+    post:
+      <<: *wikitext_to_lint_post_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: wikitext
+          in: formData
+          description: The Wikitext to check
+          type: string
+          required: true
+          x-textarea: true
+
+  /wikitext/to/lint/{title}/{revision}:
+    post:
+      <<: *wikitext_to_lint_post_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The page revision
+          type: integer
+          required: true
+        - name: wikitext
+          in: formData
+          description: The Wikitext to check
+          type: string
+          required: true
+          x-textarea: true
+      
 # Keeping this in, as we'll re-introduce a html2html end point later.
 #  /html/to/html{/title}{/revision}:
 #    post:
@@ -384,6 +509,7 @@ paths:
           type: integer
           required: true
         - in: body
+          name: section
           description: Section changes to transform
           required: true
           schema:
@@ -391,17 +517,6 @@ paths:
             properties:
               changes:
                 type: object
-                patternProperties:
-                  '^mw\w+$':
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        html:
-                          type: string
-                      additionalProperties: false
                 example:
                   mwAg:
                     - html: '<h2>Prepended section</h2>'

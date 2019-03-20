@@ -11,13 +11,13 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /metadata/{title}{/revision}:
-    x-route-filters:
+  /metadata/{title}:
+    x-route-filters: &metadata_title_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/security_response_header_filter.js
-    get:
+    get: &metadata_title_get_spec
       tags:
         - Page content
       summary: Get additional metadata of a page.
@@ -34,13 +34,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
-          required: false
         - name: redirect
           in: query
           description: >
@@ -57,6 +50,7 @@ paths:
             $ref: '#/definitions/metadata'
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -97,6 +91,34 @@ paths:
                                  get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
       x-monitor: false
+
+  /metadata/{title}/{revision}:
+    x-route-filters: 
+      <<: *metadata_title_filters
+    get:
+      <<: *metadata_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          type: integer
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
 
 # copied from MCS spec.yaml
 definitions:

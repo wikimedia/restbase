@@ -34,9 +34,14 @@ parallel('Responses should conform to the provided JSON schema of the response',
 
     it('should expose valid OpenAPI spec', () => {
         return preq.get({ uri: `${server.config.baseURL()}/?spec` })
-        .then((res) => {
-            // TODO: validate the openapi spec!
-        });
+            .then((res) =>  {
+                return preq.post({uri: `http://online.swagger.io/validator/debug`,
+                    body: JSON.stringify(res.body)})
+                    .then((res) => {
+                        // if valid will return an empty object: {}
+                        assert.deepEqual({}, res.body, 'Spec must have no validation errors');
+                    })
+            });
     });
 
     it('/feed/featured should conform schema', () => {
@@ -107,3 +112,4 @@ parallel('Responses should conform to the provided JSON schema of the response',
         });
     });
 });
+

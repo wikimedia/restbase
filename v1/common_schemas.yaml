@@ -97,7 +97,7 @@ definitions:
           lon:
             type: number
             description: The longitude
-        requiredProperties: [ 'lat', 'lon' ]
+        required: [ 'lat', 'lon' ]
     required: ['title', 'extract', 'lang', 'dir']
 
   cx_mt:
