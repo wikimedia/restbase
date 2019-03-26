@@ -1,29 +1,17 @@
 'use strict';
 
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 
-function assertStorageRequest(requests, method, bucket, expected) {
-    const storageRequests = requests.filter(log =>
-        log.req && log.req.uri === `/en.wikipedia.org/sys/table/${bucket}/`
-            && log.req.method === method);
-    if (expected) {
-        assert.deepEqual(storageRequests.length > 0, true,
-            `Should have made ${method} request to ${bucket}`);
-    } else {
-        assert.deepEqual(storageRequests.length === 0, true,
-            `Should NOT have made ${method} request to ${bucket}`);
-    }
-}
-
-function assertMCSRequest(requests, content, date, expected) {
-    let serviceURI = `https://appservice.wmflabs.org/en.wikipedia.org/v1/${content}`;
+function assertMCSRequest(content, date, expected) {
+    const serviceURI = 'https://appservice.wmflabs.org';
+    let path = `/en.wikipedia.org/v1/${content}`;
     if (date) {
-        serviceURI += `/${date}`;
+        path += `/${date}`;
     }
-    const serviceRequests = requests.filter(log =>
-        log.req && log.req.uri === serviceURI);
+    const serviceRequests = assert.findRequests(log =>
+        log.scope.startsWith(serviceURI) && log.path.startsWith(path));
     if (expected) {
         assert.deepEqual(serviceRequests.length > 0, true,
             `Should have made request to service for ${content}`);
@@ -33,133 +21,113 @@ function assertMCSRequest(requests, content, date, expected) {
     }
 }
 
-
 describe('Featured feed', () => {
-
+    const server = new Server();
     before(() => server.start());
+    after(() => server.stop());
 
     it('Should render non-available historic content', () => {
         const date = '2016/10/01';
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/${date}`
+            uri: `${server.config.baseURL()}/feed/featured/${date}`
         })
-        .delay(1000)
         .then(() => {
-            slice.halt();
-            const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', false);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertMCSRequest(requests, 'page/featured', date, true);
-            assertMCSRequest(requests, 'page/most-read', date, true);
-            assertMCSRequest(requests, 'media/image/featured', date, true);
-            assertMCSRequest(requests, 'page/news', undefined, false);
-        });
+            assertMCSRequest('page/featured', date, true);
+            assertMCSRequest('page/most-read', date, true);
+            assertMCSRequest('media/image/featured', date, true);
+            assertMCSRequest('page/news', undefined, false);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it.skip('Should not rerender available historic content', () => {
         const date = '2016/10/01';
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/2016/10/01`
+            uri: `${server.config.baseURL()}/feed/featured/2016/10/01`
         })
-        .delay(1000)
         .then(() => {
-            slice.halt();
-            const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', false);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertMCSRequest(requests, 'page/featured', date, false);
-            assertMCSRequest(requests, 'page/most-read', date, false);
-            assertMCSRequest(requests, 'media/image/featured', date, false);
-            assertMCSRequest(requests, 'page/news', undefined, false);
-        });
+            assertMCSRequest('page/featured', date, false);
+            assertMCSRequest('page/most-read', date, false);
+            assertMCSRequest('media/image/featured', date, false);
+            assertMCSRequest('page/news', undefined, false);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it.skip('Should partially rerender available historic content, no-cache', () => {
         const date = '2016/10/01';
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/2016/10/01`,
+            uri: `${server.config.baseURL()}/feed/featured/2016/10/01`,
             headers: {
                 'cache-control': 'no-cache'
             }
         })
-        .delay(1000)
         .then(() => {
-            slice.halt();
-            const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'get', 'feed.aggregated', false);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertMCSRequest(requests, 'page/featured', date, true);
-            assertMCSRequest(requests, 'page/most-read', date, true);
-            assertMCSRequest(requests, 'media/image/featured', date, true);
-            assertMCSRequest(requests, 'page/news', undefined, false);
-        });
+            assertMCSRequest('page/featured', date, true);
+            assertMCSRequest('page/most-read', date, true);
+            assertMCSRequest('media/image/featured', date, true);
+            assertMCSRequest('page/news', undefined, false);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('Should render non-available current content', () => {
         const now = new Date();
         const date = now.toISOString().split('T').shift().split('-').join('/');
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/${date}`
+            uri: `${server.config.baseURL()}/feed/featured/${date}`
         })
-        .delay(1000)
         .then(() => {
-            slice.halt();
-            const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertMCSRequest(requests, 'page/featured', date, true);
-            assertMCSRequest(requests, 'page/most-read', date, true);
-            assertMCSRequest(requests, 'media/image/featured', date, true);
-            assertMCSRequest(requests, 'page/news', undefined, true);
-        });
+            assertMCSRequest('page/featured', date, true);
+            assertMCSRequest('page/most-read', date, true);
+            assertMCSRequest('media/image/featured', date, true);
+            assertMCSRequest('page/news', undefined, true);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('Should rerender available current content', () => {
         const now = new Date();
         const date = now.toISOString().split('T').shift().split('-').join('/');
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/${date}`
+            uri: `${server.config.baseURL()}/feed/featured/${date}`
         })
-        .delay(1000)
         .then(() => {
-            slice.halt();
-            const requests = slice.get().map(JSON.parse);
-            assertMCSRequest(requests, 'page/featured', date, true);
-            assertMCSRequest(requests, 'page/most-read', date, true);
-            assertMCSRequest(requests, 'media/image/featured', date, true);
-            assertMCSRequest(requests, 'page/news', undefined, true);
-        });
+            assertMCSRequest('page/featured', date, true);
+            assertMCSRequest('page/most-read', date, true);
+            assertMCSRequest('media/image/featured', date, true);
+            assertMCSRequest('page/news', undefined, true);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('Should rerender available current content with no-cache', () => {
         const now = new Date();
         const date = now.toISOString().split('T').shift().split('-').join('/');
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/${date}`,
+            uri: `${server.config.baseURL()}/feed/featured/${date}`,
             headers: {
                 'cache-control': 'no-cache'
             }
         })
-        .delay(1000)
         .then(() => {
-            slice.halt();
-            const requests = slice.get().map(JSON.parse);
-            assertStorageRequest(requests, 'put', 'feed.aggregated', false);
-            assertMCSRequest(requests, 'page/featured', date, true);
-            assertMCSRequest(requests, 'page/most-read', date, true);
-            assertMCSRequest(requests, 'media/image/featured', date, true);
-            assertMCSRequest(requests, 'page/news', undefined, true);
-        });
+            assertMCSRequest('page/featured', date, true);
+            assertMCSRequest('page/most-read', date, true);
+            assertMCSRequest('media/image/featured', date, true);
+            assertMCSRequest('page/news', undefined, true);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('Should not allow invalid yyyy param', () => {
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/0000/01/01`,
+            uri: `${server.config.baseURL()}/feed/featured/0000/01/01`,
             headers: {
                 'cache-control': 'no-cache'
             }
@@ -173,7 +141,7 @@ describe('Featured feed', () => {
 
     it('Should not allow invalid mm param', () => {
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/2016/1/01`,
+            uri: `${server.config.baseURL()}/feed/featured/2016/1/01`,
             headers: {
                 'cache-control': 'no-cache'
             }
@@ -187,7 +155,7 @@ describe('Featured feed', () => {
 
     it('Should not allow invalid dd param', () => {
         return preq.get({
-            uri: `${server.config.baseURL}/feed/featured/2016/01/1`,
+            uri: `${server.config.baseURL()}/feed/featured/2016/01/1`,
             headers: {
                 'cache-control': 'no-cache'
             }

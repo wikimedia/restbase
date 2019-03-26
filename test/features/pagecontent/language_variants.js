@@ -2,17 +2,18 @@
 
 const assert = require('../../utils/assert.js');
 const preq = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const variantsPageTitle = 'RESTBase_Testing_Page';
 
 describe('Language variants', function() {
-
     this.timeout(20000);
+    const server = new Server();
 
     before(() => server.start());
+    after(() => server.stop());
 
     it('should request html with impossible variants', () => {
-        return preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page`})
+        return preq.get({ uri: `${server.config.bucketURL()}/html/Main_Page`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: ['Accept-Language'] });
@@ -25,7 +26,7 @@ describe('Language variants', function() {
     let storedEtag;
 
     it('should request html with no variants', () => {
-        return preq.get({ uri: `${server.config.variantsWikiBucketURL}/html/${variantsPageTitle}`})
+        return preq.get({ uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/html/${variantsPageTitle}`})
         .then((res) => {
             storedEtag = res.headers.etag;
             assert.deepEqual(res.status, 200);
@@ -40,7 +41,7 @@ describe('Language variants', function() {
 
     it('should request html with default variant, from storage', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/html/${variantsPageTitle}`,
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/html/${variantsPageTitle}`,
             headers: {
                 'accept-language': 'sr'
             }
@@ -58,7 +59,7 @@ describe('Language variants', function() {
 
     it('should request html with wrong variant, from storage', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/html/${variantsPageTitle}`,
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/html/${variantsPageTitle}`,
             headers: {
                 'accept-language': 'sr-blablabla'
             }
@@ -76,7 +77,7 @@ describe('Language variants', function() {
 
     it('should request html with cyrillic variant', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/html/${variantsPageTitle}`,
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/html/${variantsPageTitle}`,
             headers: {
                 'accept-language': 'sr-ec'
             }
@@ -94,7 +95,7 @@ describe('Language variants', function() {
 
     it('should request html with latin variant', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/html/${variantsPageTitle}`,
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/html/${variantsPageTitle}`,
             headers: {
                 'accept-language': 'sr-el'
             }
@@ -113,7 +114,7 @@ describe('Language variants', function() {
     it('should request summary with no variant and store it', () => {
         let storedEtag;
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/summary/${variantsPageTitle}`
         })
         .then((res) => {
             storedEtag = res.headers.etag;
@@ -125,7 +126,7 @@ describe('Language variants', function() {
             assert.deepEqual('1. Ово је тестна страница', res.body.extract);
             // Not try fetching again with a default variant and see if etag matches
             return preq.get({
-                uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+                uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/summary/${variantsPageTitle}`,
                 headers: {
                     'accept-language': 'sr'
                 }
@@ -140,7 +141,7 @@ describe('Language variants', function() {
             assert.deepEqual('1. Ово је тестна страница', res.body.extract);
             // Now try the impossible variant and see that stored one is served again.
             return preq.get({
-                uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+                uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/summary/${variantsPageTitle}`,
                 headers: {
                     'accept-language': 'sr-this-is-no-a-variant'
                 }
@@ -158,7 +159,7 @@ describe('Language variants', function() {
 
     it('should request summary with latin variant and not store it', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/summary/${variantsPageTitle}`,
             headers: {
                 'accept-language': 'sr-el'
             }
@@ -172,7 +173,7 @@ describe('Language variants', function() {
             assert.deepEqual('1. Ovo je testna stranica', res.body.extract);
             // Try again without variant to see that stored didn't change
             return preq.get({
-                uri: `${server.config.variantsWikiBucketURL}/summary/${variantsPageTitle}`,
+                uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/summary/${variantsPageTitle}`,
                 headers: {
                     'accept-language': 'sr'
                 }
@@ -190,7 +191,7 @@ describe('Language variants', function() {
 
     it('should request mobile-sections with no variant and store it', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -202,7 +203,7 @@ describe('Language variants', function() {
             assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
             // Not try fetching again with a default variant and see if etag matches
             return preq.get({
-                uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+                uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`,
                 headers: {
                     'accept-language': 'sr'
                 }
@@ -217,7 +218,7 @@ describe('Language variants', function() {
             assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
             // Now try the impossible variant and see that stored one is served again.
             return preq.get({
-                uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+                uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`,
                 headers: {
                     'accept-language': 'sr-this-is-no-a-variant'
                 }
@@ -235,7 +236,7 @@ describe('Language variants', function() {
 
     it('should request mobile-sections with latin variant and not store it', () => {
         return preq.get({
-            uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+            uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`,
             headers: {
                 'accept-language': 'sr-el'
             }
@@ -250,7 +251,7 @@ describe('Language variants', function() {
             assert.deepEqual(/2\. Ovo je testna stranica/.test(JSON.stringify(res.body)), true);
             // Try again without variant to see that stored didn't change
             return preq.get({
-                uri: `${server.config.variantsWikiBucketURL}/mobile-sections/${variantsPageTitle}`,
+                uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`,
                 headers: {
                     'accept-language': 'sr'
                 }

@@ -1,19 +1,20 @@
 'use strict';
 
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 
 describe('post_data', function() {
     this.timeout(20000);
-
-    before(() => { return server.start(); });
+    const server = new Server();
+    before(() => server.start());
+    after(() => server.stop());
 
     let hash = '';
 
     it('should store post request by hash', () => {
         return preq.post({
-            uri: `${server.config.baseURL}/post_data/`,
+            uri: `${server.config.baseURL()}/post_data/`,
             body: {
                 key: 'value'
             }
@@ -23,7 +24,7 @@ describe('post_data', function() {
             assert.deepEqual(res.status, 201);
             assert.deepEqual(hash, '228458095a9502070fc113d99504226a6ff90a9a');
             return preq.get({
-                uri: `${server.config.baseURL}/post_data/${res.body}`
+                uri: `${server.config.baseURL()}/post_data/${res.body}`
             });
         })
         .then((res) => {
@@ -34,7 +35,7 @@ describe('post_data', function() {
 
     it('should not explode on empty body', () => {
         return preq.post({
-            uri: `${server.config.baseURL}/post_data/`
+            uri: `${server.config.baseURL()}/post_data/`
         })
         .then((res) => {
             assert.deepEqual(res.status, 201);
@@ -43,7 +44,7 @@ describe('post_data', function() {
 
     it('should not store identical request', () => {
         return preq.post({
-            uri: `${server.config.baseURL}/post_data/`,
+            uri: `${server.config.baseURL()}/post_data/`,
             body: {
                 key: 'value'
             }
@@ -56,7 +57,7 @@ describe('post_data', function() {
 
     it('should allow read on remote request', () => {
         return preq.get({
-            uri: `${server.config.baseURL}/post_data/${hash}`
+            uri: `${server.config.baseURL()}/post_data/${hash}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -66,7 +67,7 @@ describe('post_data', function() {
 
     it('should deny write on remote requests', () => {
         return preq.post({
-            uri: `${server.config.baseURL}/post_data/`,
+            uri: `${server.config.baseURL()}/post_data/`,
             headers: {
                 'x-client-ip': '123.123.123.123'
             },

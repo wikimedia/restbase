@@ -2,90 +2,85 @@
 
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
+
+function getHeader(res, name) {
+    if (res.rawHeaders.indexOf(name) === -1) {
+        return undefined;
+    }
+    return res.rawHeaders[res.rawHeaders.indexOf(name) + 1];
+}
 
 describe('router - misc', function() {
-
     this.timeout(20000);
-
-    before(() => { return server.start(); });
+    const server = new Server();
+    before(() => server.start());
+    after(() => server.stop());
 
     it('should deny access to /{domain}/sys', () => {
-        return preq.get({
-            uri: `${server.config.hostPort}/en.wikipedia.org/sys/table`
-        }).catch((err) => {
+        return preq.get({uri: `${server.config.hostPort}/en.wikipedia.org/sys/table`})
+        .catch((err) => {
             assert.deepEqual(err.status, 403);
         });
     });
 
     it('should set a request ID for each sub-request and return it', () => {
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Foobar`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar`,
             headers: {
                 'Cache-Control': 'no-cache'
             }
         })
-        .delay(1000)
         .then((res) => {
-            slice.halt();
             const reqId = res.headers['x-request-id'];
             assert.notDeepEqual(reqId, undefined, 'Request ID not returned');
-            slice.get().forEach((line) => {
-                const a = JSON.parse(line);
-                if (a.req || a.request_id) {
-                    assert.deepEqual(a.request_id, reqId, 'Request ID mismatch');
-                }
+            assert.findRequests(() => {}).forEach((req) => {
+                assert.deepEqual(req.headers['x-request-id'], reqId, 'Request ID mismatch');
             });
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('should honour the provided request ID', () => {
+        assert.recordRequests();
         const reqId = 'b6c17ea83d634b31bb28d60aae1caaac';
-        const slice = server.config.logStream.slice();
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Foobar`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar`,
             headers: {
                 'X-Request-Id': reqId
             }
         }).then((res) => {
-            slice.halt();
             assert.deepEqual(res.headers['x-request-id'], reqId, 'Returned request ID does not match the sent one');
-            slice.get().forEach((line) => {
-                const a = JSON.parse(line);
-                if (a.req || a.request_id) {
-                    assert.deepEqual(a.request_id, reqId, 'Request ID mismatch');
-                }
+            assert.findRequests(() => true).forEach((req) => {
+                assert.deepEqual(getHeader(req, 'x-request-id'), reqId, 'Request ID mismatch');
             });
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
-    it('should log the request ID for a 404', () => {
+    it('should set the request ID for a 404', () => {
         const reqId = '9c54ff673d634b31bb28d60aae1cb43c';
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${server.config.labsBucketURL}/foo-bucket/Foobar`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/foo-bucket/Foobar`,
             headers: {
                 'X-Request-Id': reqId
             }
         }).then((res) => {
-            slice.halt();
             throw new Error(`Expected a 404, got ${res.status}`);
         }, (err) => {
-            slice.halt();
             assert.deepEqual(err.headers['x-request-id'], reqId, 'Returned request ID does not match the sent one');
-            slice.get().forEach((line) => {
-                const a = JSON.parse(line);
-                if (a.req || a.request_id) {
-                    assert.deepEqual(a.request_id, reqId, 'Request ID mismatch');
-                }
+            assert.findRequests(() => true).forEach((req) => {
+                assert.deepEqual(getHeader(req, 'x-request-id'), reqId, 'Request ID mismatch');
             });
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('should truncate body upon HEAD request', () => {
         return preq.head({
-            uri: `${server.config.labsBucketURL}/html/Foobar`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);

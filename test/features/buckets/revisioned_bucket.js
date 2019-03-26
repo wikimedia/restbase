@@ -2,7 +2,7 @@
 
 const preq   = require('preq');
 const assert = require('../../utils/assert.js');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const uuid = require('cassandra-uuid').TimeUuid;
 const P = require('bluebird');
 
@@ -10,11 +10,6 @@ const mwUtils = require('../../../lib/mwUtil');
 const parallel = require('mocha.parallel');
 
 describe('Revisioned buckets', () => {
-
-    before(() => {
-        return server.start();
-    });
-
     function randomString(length) {
         let result = '';
         for (let i = 0; i < length / 10; i++) {
@@ -24,13 +19,15 @@ describe('Revisioned buckets', () => {
     }
 
     function runTests(bucketName) {
-        const bucketBaseURI = `${server.config.baseURL}/buckets/${bucketName
-        }/${bucketName}TestingBucket`;
-
-        before(() => {
+        const server = new Server();
+        let bucketBaseURI;
+        before(() =>  server.start()
+        .then(() => {
+            bucketBaseURI =
+                `${server.config.baseURL()}/buckets/${bucketName}/${bucketName}TestingBucket`;
             return preq.put({ uri: bucketBaseURI });
-        });
-
+        }));
+        after(() =>  server.stop());
         parallel('Newer revisions', () => {
             it('stores a content in a bucket and gets it back', () => {
                 const testData = randomString(60000);

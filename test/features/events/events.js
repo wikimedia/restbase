@@ -4,16 +4,17 @@ const preq   = require('preq');
 const http   = require('http');
 const uuid   = require('cassandra-uuid').TimeUuid;
 
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const assert = require('../../utils/assert.js');
 
 describe('Change event emitting', () => {
-
-    before(() => { return server.start(); });
+    const server = new Server();
+    before(() => server.start());
+    after(() => server.stop());
 
     it('should not explode if events config is not provided', () => {
         return preq.post({
-            uri: `${server.config.baseURL}/events_no_config/`,
+            uri: `${server.config.baseURL()}/events_no_config/`,
             body: [
                 { uri: '//en.wikipedia.org' }
             ]
@@ -74,7 +75,7 @@ describe('Change event emitting', () => {
         });
 
         preq.post({
-            uri: `${server.config.baseURL}/events/`,
+            uri: `${server.config.baseURL()}/events/`,
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
@@ -114,7 +115,7 @@ describe('Change event emitting', () => {
         });
 
         preq.post({
-            uri: `${server.config.baseURL}/events/`,
+            uri: `${server.config.baseURL()}/events/`,
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
@@ -153,7 +154,7 @@ describe('Change event emitting', () => {
         });
 
         preq.post({
-            uri: `${server.config.baseURL}/events/`,
+            uri: `${server.config.baseURL()}/events/`,
             headers: {
                 'content-type': 'application/json',
                 'x-triggered-by': 'resource_change:https://en.wikipedia.org/wiki/Prohibited'

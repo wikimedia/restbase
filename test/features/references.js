@@ -1,11 +1,13 @@
 'use strict';
 
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 
 describe('Page Content Service: /page/references', () => {
+    const server = new Server();
     before(() => server.start());
+    after(() => server.stop());
 
     const pageTitle = 'Foobar';
     const pageRev = 757550077;
@@ -21,7 +23,7 @@ describe('Page Content Service: /page/references', () => {
 
     it('Should fetch latest references', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/references/${pageTitle}`
+            uri: `${server.config.bucketURL()}/references/${pageTitle}`
         })
         .then((res) => {
             commonChecks(res);
@@ -31,7 +33,7 @@ describe('Page Content Service: /page/references', () => {
 
     it('Should fetch older references', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/references/${pageTitle}/${pageRev}`
+            uri: `${server.config.bucketURL()}/references/${pageTitle}/${pageRev}`
         })
         .then((res) => {
             commonChecks(res);

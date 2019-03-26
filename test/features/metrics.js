@@ -1,18 +1,19 @@
 'use strict';
 
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 const parallel = require('mocha.parallel');
 
 parallel('Metrics', function() {
     this.timeout(20000);
-
-    before(() => { return server.start(); });
+    const server = new Server();
+    before(() => server.start());
+    after(() => server.stop());
 
     it('Should get page views per page', () => {
         return preq.get({
-            uri: `${server.config.globalURL}/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Main_Page/daily/2016010100/2016010100`
+            uri: `${server.config.baseURL('wikimedia.org')}/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/Main_Page/daily/2016010100/2016010100`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -35,7 +36,7 @@ parallel('Metrics', function() {
 
     it('Should get top articles', () => {
         return preq.get({
-            uri: `${server.config.globalURL}/metrics/pageviews/top/en.wikipedia/all-access/2016/01/01`
+            uri: `${server.config.baseURL('wikimedia.org')}/metrics/pageviews/top/en.wikipedia/all-access/2016/01/01`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);

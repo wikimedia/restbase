@@ -2,16 +2,12 @@
 
 const preq   = require('preq');
 const assert = require('../../utils/assert.js');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const uuid = require('cassandra-uuid').TimeUuid;
 const P = require('bluebird');
 const parallel = require('mocha.parallel');
 
 describe('Key value buckets', () => {
-
-    before(() => {
-        return server.start();
-    });
 
     function randomString(length) {
         let result = '';
@@ -22,11 +18,15 @@ describe('Key value buckets', () => {
     }
 
     function runTests(bucketName) {
-        const bucketBaseURI = `${server.config.baseURL}/buckets/${bucketName}/${bucketName}TestingBucket`;
-
-        before(() => {
-            return preq.put({ uri: bucketBaseURI });
-        });
+        const server = new Server();
+        let bucketBaseURI;
+        before(() => server.start()
+        .then(() => {
+            bucketBaseURI =
+                `${server.config.baseURL()}/buckets/${bucketName}/${bucketName}TestingBucket`;
+            return preq.put({ uri: bucketBaseURI} );
+        }));
+        after(() => server.stop());
 
         it('stores a content in a bucket and gets it back', () => {
             const testData = randomString(60000);

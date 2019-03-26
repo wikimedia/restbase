@@ -2,13 +2,13 @@
 
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const nock   = require('nock');
 const P      = require('bluebird');
 
 describe('router - security', function() {
     this.timeout(20000);
-
+    const server = new Server();
     before(() => {
         if (!nock.isActive()) {
             nock.activate();
@@ -17,15 +17,12 @@ describe('router - security', function() {
         .then(() => {
             // Do preparation requests to force siteInfo fetch so that we don't need to mock it
             return P.join(
-                preq.get({
-                    uri: `${server.config.baseURL}/page/title/Main_Page`
-                }),
-                preq.get({
-                    uri: `${server.config.secureURL}/page/title/Wikipédia:Accueil_principal`
-                })
+                preq.get({uri: `${server.config.bucketURL()}/title/Main_Page`}),
+                preq.get({uri: `${server.config.bucketURL('fr.wikipedia.org')}/title/Wikipédia:Accueil_principal`})
             );
         });
     });
+    after(() => server.stop());
 
     const sampleRightsResponse = {
         batchcomplete: '',
@@ -53,7 +50,7 @@ describe('router - security', function() {
 
     it('should forward cookies on request to api', () => {
         nock.enableNetConnect();
-        const apiURI = server.config.secureApiURL;
+        const apiURI = server.config.apiURL('fr.wikipedia.org');
         const api = nock(apiURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
@@ -65,7 +62,7 @@ describe('router - security', function() {
         .reply(200, sampleRightsResponse);
 
         return preq.get({
-            uri: `${server.config.secureBucketURL}/title/`,
+            uri: `${server.config.bucketURL('fr.wikipedia.org')}/title/`,
             headers: {
                 'Cookie': 'test=test_cookie'
             }
@@ -76,10 +73,9 @@ describe('router - security', function() {
 
     it('should forward cookies on request to parsoid', () => {
         nock.enableNetConnect();
-        const parsoidURI = 'https://parsoid-beta.wmflabs.org';
         const title = 'Test';
         const revision = 117795883;
-        const api = nock(parsoidURI, {
+        const api = nock(server.config.parsoidURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
             }
@@ -111,7 +107,7 @@ describe('router - security', function() {
         });
 
         return preq.get({
-            uri: `${server.config.secureBucketURL}/html/${title}/${revision}`,
+            uri: `${server.config.bucketURL('fr.wikipedia.org')}/html/${title}/${revision}`,
             headers: {
                 'Cookie': 'test=test_cookie',
                 'Cache-control': 'no-cache'
@@ -131,7 +127,7 @@ describe('router - security', function() {
         .reply(200);
 
         return preq.get({
-            uri: `${server.config.secureURL}/http/${encodeURIComponent(externalURI)}`,
+            uri: `${server.config.baseURL('fr.wikipedia.org')}/http/${encodeURIComponent(externalURI)}`,
             headers: {
                 'cookie': 'test=test_cookie'
             }
@@ -140,17 +136,15 @@ describe('router - security', function() {
         .finally(() => { nock.cleanAll(); });
     });
 
-
     it('should not send cookies to non-restricted domains', () => {
-        const apiURI = server.config.apiURL;
-        const api = nock(apiURI, {
+        const api = nock(server.config.apiURL(), {
             badheaders: ['cookie']
         })
         .post('', (body) => { return body && body.generator === 'allpages'; })
         .reply(200, sampleApiResponse);
 
         return preq.get({
-            uri: `${server.config.bucketURL}/title/`,
+            uri: `${server.config.bucketURL()}/title/`,
             headers: {
                 'Cookie': 'test=test_cookie'
             }
@@ -161,10 +155,9 @@ describe('router - security', function() {
 
     it('should deny access to resources stored in restbase', () => {
         nock.enableNetConnect();
-        const apiURI = server.config.secureApiURL;
         const title = 'TestingTitle';
 
-        const api = nock(apiURI)
+        const api = nock(server.config.apiURL('fr.wikipedia.org'))
         .post('')
         .reply(200, {
             'query': {
@@ -176,7 +169,7 @@ describe('router - security', function() {
             }
         });
         return preq.get({
-            uri: `${server.config.secureBucketURL}/title/${title}`,
+            uri: `${server.config.bucketURL('fr.wikipedia.org')}/title/${title}`,
             headers: {
                 'cache-control': 'no-cache'
             }

@@ -2,17 +2,18 @@
 
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const P      = require('bluebird');
 const nock   = require('nock');
 
 const NOCK_TESTS = true;
 
 describe('page save api', function() {
+    this.timeout(20000);
+    const server = new Server();
+    after(() =>  server.stop());
 
     const pageTitle = 'Save_test';
-    const wikitextUri = `${server.config.labsBucketURL}/wikitext/${pageTitle}`;
-    const htmlUri = `${server.config.labsBucketURL}/html/${pageTitle}`;
     let token = '';
     let oldETag = '';
     const saveText = `${"Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
@@ -23,9 +24,6 @@ describe('page save api', function() {
     const oldRev = 259419;
     let lastRev = 0;
     let lastETag = '';
-    const labsApiURL = server.config.labsApiURL;
-
-    this.timeout(20000);
 
     before(() => {
         if (!nock.isActive()) {
@@ -34,7 +32,7 @@ describe('page save api', function() {
         return server.start().then(() => {
             return P.all([
                 preq.get({
-                    uri: server.config.labsApiURL,
+                    uri: server.config.apiURL('en.wikipedia.beta.wmflabs.org'),
                     query: {
                         action: 'query',
                         meta: 'tokens',
@@ -47,7 +45,7 @@ describe('page save api', function() {
                 }),
 
                 preq.get({
-                    uri: `${server.config.labsBucketURL}/title/${pageTitle}/${oldRev}`
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${pageTitle}/${oldRev}`
                 })
                 .then((res) => {
                     oldETag = res.headers.etag;
@@ -57,14 +55,14 @@ describe('page save api', function() {
         .then(() => {
             // Do a preparation request to force siteinfo fetch so that we don't need to mock it
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/Main_Page`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
             });
         });
     });
 
     it('fail for missing content', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 wikitext: '',
                 csrf_token: token
@@ -79,7 +77,7 @@ describe('page save api', function() {
 
     it('fail for missing token', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 wikitext: 'abcd'
             }
@@ -94,7 +92,7 @@ describe('page save api', function() {
     it('fail for bad token', () => {
         const test = () => {
             return preq.post({
-                uri: wikitextUri,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
                 body: {
                     wikitext: 'abcd',
                     csrf_token: 'this_is_a_bad_token'
@@ -108,7 +106,7 @@ describe('page save api', function() {
         };
 
         if (NOCK_TESTS) {
-            const api = nock(labsApiURL)
+            const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'))
                 // Mock MW API badtoken response
             .post('')
             .reply(200, {
@@ -129,7 +127,7 @@ describe('page save api', function() {
 
     it('fail for bad base_etag', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 base_etag: 'this_is_a_bad_ETag',
                 wikitext: 'abcd',
@@ -145,7 +143,7 @@ describe('page save api', function() {
 
     it('fails for bad base_etag timestamp', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 base_etag: `${oldETag}this_should_not_be_here`,
                 wikitext: 'abcd',
@@ -161,7 +159,7 @@ describe('page save api', function() {
 
     it('fail for bad if-match etag', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
@@ -179,7 +177,7 @@ describe('page save api', function() {
 
     it('fail for bad if-match etag timestamp', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
@@ -197,7 +195,7 @@ describe('page save api', function() {
 
     it('fail for bad if-match etag revision', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 wikitext: 'abcd',
                 csrf_token: 'this_is_a_bad_token'
@@ -215,7 +213,7 @@ describe('page save api', function() {
 
     it('fail for bad revision', () => {
         return preq.post({
-            uri: wikitextUri,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
             body: {
                 base_etag: '12sd121s/test_test',
                 wikitext: 'abcd',
@@ -232,7 +230,7 @@ describe('page save api', function() {
     it('save page', () => {
         const test = () => {
             return preq.post({
-                uri: wikitextUri,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
                 body: {
                     wikitext: saveText,
                     csrf_token: token
@@ -242,7 +240,7 @@ describe('page save api', function() {
                 assert.deepEqual(res.status, 201);
                 lastRev = res.body.newrevid;
                 return preq.get({
-                    uri: `${server.config.labsBucketURL}/title/${pageTitle}/${lastRev}`
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${pageTitle}/${lastRev}`
                 });
             })
             .then((res) => {
@@ -252,7 +250,7 @@ describe('page save api', function() {
 
         if (NOCK_TESTS) {
             const now = new Date().toISOString();
-            const api = nock(labsApiURL)
+            const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'))
             .post('')
             .reply(200, {
                 edit: {
@@ -302,7 +300,7 @@ describe('page save api', function() {
     it('no change', () => {
         const test = () => {
             return preq.post({
-                uri: wikitextUri,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
                 body: {
                     wikitext: saveText,
                     csrf_token: token
@@ -318,7 +316,7 @@ describe('page save api', function() {
         };
 
         if (NOCK_TESTS) {
-            const api = nock(labsApiURL)
+            const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'))
             // Mock MW API nochange response
             .post('')
             .reply(200, {
@@ -341,7 +339,7 @@ describe('page save api', function() {
     it('detect conflict', () => {
         const test = () => {
             return preq.post({
-                uri: wikitextUri,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
                 body: {
                     base_etag: oldETag,
                     wikitext: `${saveText}\n\nExtra text`,
@@ -359,7 +357,7 @@ describe('page save api', function() {
         };
 
         if (NOCK_TESTS) {
-            const api = nock(labsApiURL)
+            const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'))
                 // Mock MW API editconflict response
             .post('')
             .reply(200, {
@@ -381,11 +379,11 @@ describe('page save api', function() {
     it('save HTML', () => {
         const test = () => {
             return preq.get({
-                uri: `${htmlUri}/${lastRev}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${pageTitle}/${lastRev}`
             }).then((res) => {
                 assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
                 return preq.post({
-                    uri: htmlUri,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${pageTitle}`,
                     headers: {
                         'x-client-ip': '123.123.123.123',
                         cookie: 'test'
@@ -403,7 +401,7 @@ describe('page save api', function() {
         };
 
         if (NOCK_TESTS) {
-            const api = nock(labsApiURL, {
+            const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'), {
                 reqheaders: {
                     'x-client-ip': '123.123.123.123',
                     'x-forwarded-for'(headerValue) {
@@ -431,56 +429,4 @@ describe('page save api', function() {
             return test();
         }
     });
-
-    /*
-     // The summary endpoint gets rerendered on this test. As it's done asyncronously, without waiting
-     // for a rerender to happen, there's no way to predict an order of the API calls, se we
-     // cannot set up NOCK for this test. When we switch to controlling rerenders with a change propagation
-     // system, this test should be uncommented back.
-     //
-     // TODO: uncomment when explicit `summary` invalidation from parsoid is replaced by change propagation
-    it('detect conflict on save HTML', () => {
-        const test = () => {
-            return preq.get({
-                uri: htmlUri + '/' + lastRev
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 200, 'Could not retrieve test page!');
-                return preq.post({
-                    uri: htmlUri,
-                    headers: {
-                        'if-match': lastETag
-                    },
-                    body: {
-                        html: res.body.replace(/\<\/body\>/, '<p>Old revision edit that should detect conflict!</p></body>'),
-                        csrf_token: token,
-                        base_etag: oldETag
-                    }
-                });
-            }).then((res) => {
-                throw new Error('Expected an error, but got status: ' + res.status);
-            }, (err) => {
-                assert.deepEqual(err.status, 409);
-                assert.deepEqual(err.body.title, 'editconflict');
-            });
-        }
-
-        if (NOCK_TESTS) {
-            const api = nock(labsApiURL)
-            .post('')
-            .reply(200, {
-                "servedby": "nock",
-                "error": {
-                    "code": "editconflict",
-                    "info": "Edit conflict detected"
-                }
-            });
-            return test()
-            .then(() => { api.done(); })
-            .finally(() => { nock.cleanAll(); });
-        } else {
-            return test();
-        }
-    });
-    */
 });

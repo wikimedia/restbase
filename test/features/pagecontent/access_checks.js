@@ -4,11 +4,12 @@
 
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const nock   = require('nock');
 const P      = require('bluebird');
 
 describe('Access checks', () => {
+    const server = new Server();
 
     const deletedPageTitle = 'User:Pchelolo/Access_Check_Tests';
     const deletedPageOlderRevision = 705347919;
@@ -52,16 +53,16 @@ describe('Access checks', () => {
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
         .then(() => P.join(
-            preq.get({ uri: `${server.config.bucketURL}/html/Main_Page` }),
-            preq.get({ uri: `${server.config.labsBucketURL}/html/Main_Page` })
+            preq.get({ uri: `${server.config.bucketURL()}/html/Main_Page` }),
+            preq.get({ uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page` })
         ))
         // Load in the revisions
         .then(() => {
-            let api = nock(server.config.apiURL);
+            let api = nock(server.config.apiURL());
             api = setUpNockResponse(api, deletedPageTitle, deletedPageOlderRevision);
             api = setUpNockResponse(api, deletedPageTitle, deletedPageRevision);
             return preq.get({
-                uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
+                uri: `${server.config.bucketURL()}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -69,7 +70,7 @@ describe('Access checks', () => {
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
-                    uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageRevision}`,
+                    uri: `${server.config.bucketURL()}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageRevision}`,
                     headers: {
                         'cache-control': 'no-cache'
                     }
@@ -80,15 +81,16 @@ describe('Access checks', () => {
             .finally(() => nock.cleanAll());
         });
     });
+    after(() =>  server.stop());
 
     describe('Deleting', () => {
         it('should understand the page was deleted', () => {
-            const api = nock(server.config.apiURL)
+            const api = nock(server.config.apiURL())
             // Other requests return nothing as if the page is deleted.
             .post('').reply(200, emptyResponse);
             // Fetch the page
             return preq.get({
-                uri: `${server.config.bucketURL}/title/${encodeURIComponent(deletedPageTitle)}`,
+                uri: `${server.config.bucketURL()}/title/${encodeURIComponent(deletedPageTitle)}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -99,12 +101,8 @@ describe('Access checks', () => {
                 assert.deepEqual(e.status, 404);
                 assert.contentType(e, 'application/problem+json');
             })
-            .then(() => {
-                api.done();
-            })
-            .finally(() => {
-                nock.cleanAll();
-            });
+            .then(() => api.done())
+            .finally(() => nock.cleanAll());
         });
     });
 
@@ -114,7 +112,7 @@ describe('Access checks', () => {
         name += ` ${contentVariant}`;
         it(name, () => {
             // Check that access is enforced to html
-            let uri = `${server.config.bucketURL}/${contentVariant}/${encodeURIComponent(title)}`;
+            let uri = `${server.config.bucketURL()}/${contentVariant}/${encodeURIComponent(title)}`;
             if (rev) {
                 uri += `/${rev}`;
             }
@@ -131,11 +129,11 @@ describe('Access checks', () => {
     describe('Checking deletions', () => {
         it('should restrict access to deleted page latest revision', () => {
             // This is only required until the hack for no-cache header is in place
-            const api = nock(server.config.apiURL)
+            const api = nock(server.config.apiURL())
             .post('').reply(200, emptyResponse);
 
             return preq.get({
-                uri: `${server.config.bucketURL}/title/${encodeURIComponent(deletedPageTitle)}/${deletedPageRevision}`
+                uri: `${server.config.bucketURL()}/title/${encodeURIComponent(deletedPageTitle)}/${deletedPageRevision}`
             })
             .then(() => {
                 throw new Error('404 should have been returned for a deleted page');
@@ -143,21 +141,17 @@ describe('Access checks', () => {
                 assert.deepEqual(e.status, 404);
                 assert.contentType(e, 'application/problem+json');
             })
-            .then(() => {
-                api.done();
-            })
-            .finally(() => {
-                nock.cleanAll();
-            });
+            .then(() => api.done())
+            .finally(() => nock.cleanAll());
         });
 
         it('should restrict access to older revision of a deleted page', () => {
             // This is only required until the hack for no-cache header is in place
-            const api = nock(server.config.apiURL)
+            const api = nock(server.config.apiURL())
             .post('').reply(200, emptyResponse);
 
             return preq.get({
-                uri: `${server.config.bucketURL}/title/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`
+                uri: `${server.config.bucketURL()}/title/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`
             })
             .then(() => {
                 throw new Error('404 should have been returned for a deleted page');
@@ -165,12 +159,8 @@ describe('Access checks', () => {
                 assert.deepEqual(e.status, 404);
                 assert.contentType(e, 'application/problem+json');
             })
-            .then(() => {
-                api.done();
-            })
-            .finally(() => {
-                nock.cleanAll();
-            });
+            .then(() => api.done())
+            .finally(() => nock.cleanAll());
         });
 
         testAccess('html', 'deleted', deletedPageTitle);
@@ -190,7 +180,7 @@ describe('Access checks', () => {
     describe('Undeleting', () => {
         it('Should understand that the page was undeleted', () => {
             return preq.get({
-                uri: `${server.config.bucketURL}/title/${encodeURIComponent(deletedPageTitle)}`,
+                uri: `${server.config.bucketURL()}/title/${encodeURIComponent(deletedPageTitle)}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -198,7 +188,7 @@ describe('Access checks', () => {
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
-                    uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
+                    uri: `${server.config.bucketURL()}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
                 });
             })
             .then((res) => {
@@ -207,12 +197,12 @@ describe('Access checks', () => {
         });
 
         it('should understand the page was deleted again', () => {
-            const api = nock(server.config.apiURL)
+            const api = nock(server.config.apiURL())
             // Other requests return nothing as if the page is deleted.
             .post('').reply(200, emptyResponse);
             // Fetch the page
             return preq.get({
-                uri: `${server.config.bucketURL}/title/${encodeURIComponent(deletedPageTitle)}`,
+                uri: `${server.config.bucketURL()}/title/${encodeURIComponent(deletedPageTitle)}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -223,17 +213,13 @@ describe('Access checks', () => {
                 assert.deepEqual(e.status, 404);
                 assert.contentType(e, 'application/problem+json');
             })
-            .then(() => {
-                api.done();
-            })
-            .finally(() => {
-                nock.cleanAll();
-            });
+            .then(() => api.done())
+            .finally(() => nock.cleanAll());
         });
 
         it('Should understand that the page was undeleted base on html request', () => {
             return preq.get({
-                uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}`,
+                uri: `${server.config.bucketURL()}/html/${encodeURIComponent(deletedPageTitle)}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -241,7 +227,7 @@ describe('Access checks', () => {
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
-                    uri: `${server.config.bucketURL}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
+                    uri: `${server.config.bucketURL()}/html/${encodeURIComponent(deletedPageTitle)}/${deletedPageOlderRevision}`,
                 });
             })
             .then((res) => {
@@ -279,7 +265,7 @@ describe('Access checks', () => {
             restrictedRev.sha1hidden = true;
             const restrictedResponse = Object.assign({}, normalResponse);
             restrictedResponse.revisions = [restrictedRev];
-            const api = nock(server.config.labsApiURL)
+            const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'))
             .post('').reply(200, {
                 "batchcomplete": "",
                 "query": { "pages": { "45161196": normalResponse } }
@@ -290,14 +276,14 @@ describe('Access checks', () => {
 
             // First fetch a non-restricted revision
             return preq.get({
-                uri: `${server.config.labsBucketURL}/title/${encodeURIComponent(pageTitle)}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${encodeURIComponent(pageTitle)}`
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body.items.length, 1);
                 // Now fetch update with restrictions
                 return preq.get({
-                    uri: `${server.config.labsBucketURL}/title/${encodeURIComponent(pageTitle)}`,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${encodeURIComponent(pageTitle)}`,
                     headers: {
                         'cache-control': 'no-cache'
                     }
@@ -306,18 +292,14 @@ describe('Access checks', () => {
                 throw new Error('403 should be thrown');
             }, (e) => {
                 assert.deepEqual(e.status, 403);
-            }).then(() => {
-                api.done();
-            })
-            .finally(() => {
-                nock.cleanAll();
-            });
+            }).then(() => api.done())
+            .finally(() => nock.cleanAll());
         });
 
 
         it('should store updated restrictions', () => {
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/${encodeURIComponent(pageTitle)}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${encodeURIComponent(pageTitle)}`
             })
             .then(() => {
                 throw new Error('403 should be thrown');
@@ -328,7 +310,7 @@ describe('Access checks', () => {
 
         it('should restrict access to restricted revision html', () => {
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/${encodeURIComponent(pageTitle)}/${pageRev}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${encodeURIComponent(pageTitle)}/${pageRev}`
             })
             .then(() => {
                 throw new Error('403 should have been returned for a deleted page');
@@ -340,7 +322,7 @@ describe('Access checks', () => {
 
         it('should allow to view content if restrictions disappeared', () => {
             return preq.get({
-                uri: `${server.config.labsBucketURL}/title/${encodeURIComponent(pageTitle)}`,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${encodeURIComponent(pageTitle)}`,
                 headers: {
                     'cache-control': 'no-cache'
                 }
@@ -348,7 +330,7 @@ describe('Access checks', () => {
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 return preq.get({
-                    uri: `${server.config.labsBucketURL}/html/${encodeURIComponent(pageTitle)}/${pageRev}`,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${encodeURIComponent(pageTitle)}/${pageRev}`,
                 });
             })
             .then((res) => {

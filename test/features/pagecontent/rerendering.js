@@ -2,7 +2,7 @@
 
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const P = require('bluebird');
 
 function getTid(etag) {
@@ -11,8 +11,9 @@ function getTid(etag) {
 
 describe('page re-rendering', function() {
     this.timeout(20000);
-
-    before(() => { return server.start(); });
+    const server = new Server();
+    before(() =>  server.start());
+    after(() =>  server.stop());
 
     // A test page that includes the current date, so that it changes if
     // re-rendered more than a second apart.
@@ -27,9 +28,7 @@ describe('page re-rendering', function() {
         let r1etag1;
         let r1etag2;
         let r2etag1;
-        return preq.get({
-            uri: server.config.labsBucketURL + dynamic1
-        })
+        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
             r1etag1 = res.headers.etag;
@@ -39,7 +38,7 @@ describe('page re-rendering', function() {
             return P.delay(1500)
             .then(() => {
                 return preq.get({
-                    uri: server.config.labsBucketURL + dynamic1,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`,
                     headers: { 'cache-control': 'no-cache' }
                 });
             });
@@ -51,51 +50,38 @@ describe('page re-rendering', function() {
             assert.notDeepEqual(r1etag2, r1etag1);
             assert.notDeepEqual(r1etag2, undefined);
             hasTextContentType(res);
-
-            return preq.get({
-                uri: `${server.config.labsBucketURL + dynamic1}/${getTid(r1etag1)}`
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}}/${getTid(r1etag1)}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag1);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: server.config.labsBucketURL + dynamic1
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: `${server.config.labsBucketURL + dynamic1}/${getTid(r1etag2)}`
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}}/${getTid(r1etag2)}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: server.config.labsBucketURL + dynamic2
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`});
         })
         .then((res) => {
             r2etag1 = res.headers.etag;
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: `${server.config.labsBucketURL + dynamic2}/${getTid(r2etag1)}`
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}/${getTid(r2etag1)}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r2etag1);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: server.config.labsBucketURL + dynamic1
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
@@ -105,7 +91,7 @@ describe('page re-rendering', function() {
 
     it('should render & re-render independent revisions, if-unmodified-since support', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + dynamic1,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`,
             headers: {
                 'cache-control': 'no-cache',
                 'if-unmodified-since': 'Wed, 11 Dec 2013 16:00:00 GMT',
@@ -128,16 +114,14 @@ describe('page re-rendering', function() {
         let r1etag2;
         let r2etag1;
         let tid;
-        return preq.get({
-            uri: server.config.labsBucketURL + static1
-        })
+        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
             r1etag1 = res.headers.etag;
             hasTextContentType(res);
 
             return preq.get({
-                uri: server.config.labsBucketURL + static1,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`,
                 headers: { 'cache-control': 'no-cache' }
             });
         })
@@ -149,50 +133,38 @@ describe('page re-rendering', function() {
             assert.notDeepEqual(r1etag2, undefined);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: `${server.config.labsBucketURL + static1}/${getTid(r1etag1)}`
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}/${getTid(r1etag1)}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag1);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: server.config.labsBucketURL + static1
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: `${server.config.labsBucketURL + static1}/${getTid(r1etag2)}`
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}/${getTid(r1etag2)}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: server.config.labsBucketURL + static2
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static2}`});
         })
         .then((res) => {
             r2etag1 = res.headers.etag;
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: `${server.config.labsBucketURL + static2}/${getTid(r2etag1)}`
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static2}/${getTid(r2etag1)}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r2etag1);
             hasTextContentType(res);
 
-            return preq.get({
-                uri: server.config.labsBucketURL + static1
-            });
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
