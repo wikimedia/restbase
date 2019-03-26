@@ -5,13 +5,13 @@
 
 const parallel = require('mocha.parallel');
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 const Ajv = require('ajv');
 
 parallel('Responses should conform to the provided JSON schema of the response', () => {
     const ajv = new Ajv({});
-
+    const server = new Server(`${__dirname}/../../config.example.wikimedia.yaml`);
     function getToday() {
         function zeroPad(num) {
             if (num < 10) {
@@ -23,18 +23,24 @@ parallel('Responses should conform to the provided JSON schema of the response',
         return `${now.getUTCFullYear()}/${zeroPad(now.getUTCMonth() + 1)}/${zeroPad(now.getUTCDate())}`;
     }
 
-    before(() => {
-        return server.start()
-        .then(() => { return preq.get({ uri: `${server.config.baseURL}/?spec` }); })
+    before(() => server.start()
+    .then(() => preq.get({uri: `${server.config.baseURL()}/?spec`}))
+    .then((res) => {
+        Object.keys(res.body.definitions).forEach((defName) => {
+            ajv.addSchema(res.body.definitions[defName], `#/definitions/${defName}`);
+        });
+    }));
+    after(() => server.stop());
+
+    it('should expose valid OpenAPI spec', () => {
+        return preq.get({ uri: `${server.config.baseURL()}/?spec` })
         .then((res) => {
-            Object.keys(res.body.definitions).forEach((defName) => {
-                ajv.addSchema(res.body.definitions[defName], `#/definitions/${defName}`);
-            });
+            // TODO: validate the openapi spec!
         });
     });
 
     it('/feed/featured should conform schema', () => {
-        return preq.get({ uri: `${server.config.baseURL}/feed/featured/${getToday()}` })
+        return preq.get({ uri: `${server.config.baseURL()}/feed/featured/${getToday()}` })
         .then((res) => {
             if (!ajv.validate('#/definitions/feed', res.body)) {
                 throw new assert.AssertionError({
@@ -45,7 +51,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
     });
 
     it('/feed/featured should conform schema, ruwiki', () => {
-        return preq.get({ uri: `${server.config.hostPort}/ru.wikipedia.org/v1/feed/featured/${getToday()}` })
+        return preq.get({ uri: `${server.config.baseURL('ru.wikipedia.org')}/feed/featured/${getToday()}` })
         .then((res) => {
             if (!ajv.validate('#/definitions/feed', res.body)) {
                 throw new assert.AssertionError({
@@ -57,7 +63,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
 
 
     it('/page/summary/{title} should conform schema', () => {
-        return preq.get({ uri: `${server.config.baseURL}/page/summary/Tank` })
+        return preq.get({ uri: `${server.config.baseURL()}/page/summary/Tank` })
         .then((res) => {
             if (!ajv.validate('#/definitions/summary', res.body)) {
                 throw new assert.AssertionError({
@@ -68,7 +74,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
     });
 
     it('/feed/announcements should conform schema', () => {
-        return preq.get({ uri: `${server.config.baseURL}/feed/announcements` })
+        return preq.get({ uri: `${server.config.baseURL()}/feed/announcements` })
         .then((res) => {
             if (!ajv.validate('#/definitions/announcementsResponse', res.body)) {
                 throw new assert.AssertionError({
@@ -79,7 +85,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
     });
 
     it('/feed/onthisday should conform schema', () => {
-        return preq.get({ uri: `${server.config.baseURL}/feed/onthisday/all/01/03` })
+        return preq.get({ uri: `${server.config.baseURL()}/feed/onthisday/all/01/03` })
         .then((res) => {
             if (!ajv.validate('#/definitions/onthisdayResponse', res.body)) {
                 throw new assert.AssertionError({
@@ -91,7 +97,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
 
 
     it('/page/related should conform schema', () => {
-        return preq.get({ uri: `${server.config.bucketURL}/related/Tank` })
+        return preq.get({ uri: `${server.config.bucketURL()}/related/Tank` })
         .then((res) => {
             if (!ajv.validate('#/definitions/related', res.body)) {
                 throw new assert.AssertionError({

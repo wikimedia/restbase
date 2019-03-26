@@ -1,11 +1,13 @@
 'use strict';
 
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 
 describe('Page Content Service: /page/metadata', () => {
+    const server = new Server();
     before(() => server.start());
+    after(() => server.stop());
 
     const pageTitle = 'Foobar';
     const pageRev = 757550077;
@@ -23,7 +25,7 @@ describe('Page Content Service: /page/metadata', () => {
 
     it('Should fetch latest metadata', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/metadata/${pageTitle}`
+            uri: `${server.config.bucketURL()}/metadata/${pageTitle}`
         })
         .then((res) => {
             commonChecks(res);
@@ -33,7 +35,7 @@ describe('Page Content Service: /page/metadata', () => {
 
     it('Should fetch older metadata', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/metadata/${pageTitle}/${pageRev}`
+            uri: `${server.config.bucketURL()}/metadata/${pageTitle}/${pageRev}`
         })
         .then((res) => {
             commonChecks(res);

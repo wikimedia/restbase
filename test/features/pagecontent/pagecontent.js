@@ -2,18 +2,28 @@
 
 const assert = require('../../utils/assert.js');
 const preq = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const P = require('bluebird');
 const mwUtils = require('../../../lib/mwUtil');
-let pagingToken = '';
 
 describe('item requests', function() {
     this.timeout(20000);
+    let pagingToken = '';
+    let contentTypes;
 
-    before(() => { return server.start(); });
+    const server = new Server();
+    before(() => server.start()
+    .then(() => {
+        contentTypes = server.config.conf.test.content_types;
+    }));
+    after(() => server.stop());
 
-    const contentTypes = server.config.conf.test.content_types;
+    const deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
+    const deniedRev = '645504917';
 
+    function contentURI(format) {
+        return [server.config.bucketURL(), format, deniedTitle, deniedRev].join('/');
+    }
     const assertCORS = (res) => {
         assert.deepEqual(res.headers['access-control-allow-origin'], '*');
         assert.deepEqual(res.headers['access-control-allow-methods'], 'GET,HEAD');
@@ -26,7 +36,7 @@ describe('item requests', function() {
     };
     const createTest = (method) => {
         it(`should respond to ${method} request with CORS headers`, () => {
-            return preq[method]({ uri: `${server.config.bucketURL}/html/Foobar/624484477` })
+            return preq[method]({ uri: `${server.config.bucketURL()}/html/Foobar/624484477` })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assertCORS(res);
@@ -36,7 +46,7 @@ describe('item requests', function() {
     createTest('options');
     createTest('get');
     it(`should respond to GET request with CORS headers, 404`, () => {
-        return preq.get({ uri: `${server.config.bucketURL}/html/This_page_is_likely_does_not_exist` })
+        return preq.get({ uri: `${server.config.bucketURL()}/html/This_page_is_likely_does_not_exist` })
         .catch((res) => {
             assert.deepEqual(res.status, 404);
             assertCORS(res);
@@ -45,13 +55,13 @@ describe('item requests', function() {
 
     it('should transparently create a new HTML revision for Main_Page', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/Main_Page/`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/`
             });
         })
         .then((res) => {
@@ -62,7 +72,7 @@ describe('item requests', function() {
     });
     it('should transparently create a new HTML revision with id 252937', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Foobar/252937`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/252937`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -72,7 +82,7 @@ describe('item requests', function() {
 
     it('should request page lints. no revision', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/lint/User%3APchelolo%2FLintTest`
+            uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -82,7 +92,7 @@ describe('item requests', function() {
 
     it('should request page lints. with revision', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/lint/User%3APchelolo%2FLintTest/830278619`
+            uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest/830278619`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -93,7 +103,7 @@ describe('item requests', function() {
     let rev2Etag;
     it('should transparently create data-parsoid with id 241155, rev 2', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Foobar/241155`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -104,14 +114,14 @@ describe('item requests', function() {
 
     it('should return HTML and data-parsoid just created by revision 241155', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Foobar/241155`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: `${server.config.labsBucketURL}/data-parsoid/Foobar/${
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${
                     res.headers.etag.replace(/^"(.*)"$/, '$1')}`
             });
         })
@@ -123,7 +133,7 @@ describe('item requests', function() {
 
     it('should return data-parsoid just created with revision 252937, rev 2', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/data-parsoid/Foobar/${rev2Etag}`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${rev2Etag}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -133,18 +143,18 @@ describe('item requests', function() {
 
     it('should return sections of Main_Page, with revision', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page/262492`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/262492`
         })
         .then((res) => {
             const tid = mwUtils.parseETag(res.headers.etag).tid;
             return preq.get({
-                uri: `${server.config.labsBucketURL}/data-parsoid/Main_Page/262492/${tid}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Main_Page/262492/${tid}`
             });
         })
         .then((res) => {
             const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/Main_Page/262492`,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/262492`,
                 query: {
                     sections: ids.join(',')
                 }
@@ -165,19 +175,19 @@ describe('item requests', function() {
 
     it('should return sections of Main_Page, no revision', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
         })
         .then((res) => {
             const tid = mwUtils.parseETag(res.headers.etag).tid;
             const rev = mwUtils.parseETag(res.headers.etag).rev;
             return preq.get({
-                uri: `${server.config.labsBucketURL}/data-parsoid/Main_Page/${rev}/${tid}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Main_Page/${rev}/${tid}`
             });
         })
         .then((res) => {
             const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/Main_Page`,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
                 query: {
                     sections: ids.join(',')
                 }
@@ -198,19 +208,19 @@ describe('item requests', function() {
 
     it('should get sections of Main_Page with no-cache and unchanged render', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
         })
         .then((res) => {
             const tid = mwUtils.parseETag(res.headers.etag).tid;
             const rev = mwUtils.parseETag(res.headers.etag).rev;
             return preq.get({
-                uri: `${server.config.labsBucketURL}/data-parsoid/Main_Page/${rev}/${tid}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Main_Page/${rev}/${tid}`
             });
         })
         .then((res) => {
             const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
             return preq.get({
-                uri: `${server.config.labsBucketURL}/html/Main_Page`,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
                 query: {
                     sections: ids.join(',')
                 },
@@ -234,7 +244,7 @@ describe('item requests', function() {
 
     it('section retrieval: error handling', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page/262492`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/262492`,
             query: {
                 sections: 'somethingThatDoesNotExist'
             },
@@ -261,7 +271,7 @@ describe('item requests', function() {
 
     it('should retrieve the spec', () => {
         return preq.get({
-            uri: `${server.config.baseURL}/?spec`
+            uri: `${server.config.baseURL()}/?spec`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -272,7 +282,7 @@ describe('item requests', function() {
 
     it('should retrieve the swagger-ui main page', () => {
         return preq.get({
-            uri: `${server.config.baseURL}/`,
+            uri: `${server.config.baseURL()}/`,
             headers: { accept: 'text/html' }
         })
         .then((res) => {
@@ -283,7 +293,7 @@ describe('item requests', function() {
     });
 
     it('should retrieve all dependencies of the swagger-ui main page', () => {
-        return preq.get({ uri: `${server.config.baseURL}/?doc` })
+        return preq.get({ uri: `${server.config.baseURL()}/?doc` })
         .then((res) => {
             const assertions = [];
             const linkRegex = /<link\s[^>]*href=["']([^"']+)["']/g;
@@ -320,7 +330,7 @@ describe('item requests', function() {
 
     it('should list page titles', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/title/`
+            uri: `${server.config.bucketURL()}/title/`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -338,7 +348,7 @@ describe('item requests', function() {
 
     it('should list another set of page titles using pagination', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/title/${pagingToken}`,
+            uri: `${server.config.bucketURL()}/title/${pagingToken}`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -348,28 +358,6 @@ describe('item requests', function() {
             }
         });
     });
-
-    // it('should return a new wikitext revision using proxy handler with id 624165266', function() {
-    //    this.timeout(20000);
-    //    return preq.get({
-    //        uri: server.config.baseURL + '/test/Foobar/wikitext/624165266'
-    //    })
-    //    .then(function(res) {
-    //        assert.deepEqual(res.status, 200);
-    //    });
-    // });
-});
-
-describe('page content access', function() {
-
-    const deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
-    const deniedRev = '645504917';
-
-    this.timeout(30000);
-
-    function contentURI(format) {
-        return [server.config.bucketURL, format, deniedTitle, deniedRev].join('/');
-    }
 
     it('should deny access to the HTML of a restricted revision', () => {
         return preq.get({ uri: contentURI('html') }).then((res) => {
@@ -392,7 +380,7 @@ describe('page content access', function() {
 
     it('Should throw error for invalid title access', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/html/[asdf]`
+            uri: `${server.config.bucketURL()}/html/[asdf]`
         })
         .then(() => {
             throw new Error('Error should be thrown');
@@ -401,13 +389,10 @@ describe('page content access', function() {
             assert.deepEqual(e.body.detail, 'title-invalid-characters');
         });
     });
-});
 
-describe('page content hierarchy', function() {
-    this.timeout(20000);
     it('should list available properties', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/`,
+            uri: `${server.config.bucketURL()}/`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);

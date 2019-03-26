@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const nock   = require('nock');
 const mwUtil = require('../../lib/mwUtil');
 
 /**
@@ -16,55 +17,24 @@ function contentType(res, expected) {
     }
 }
 
-/**
- * Asserts whether all requests in the given
- * slice were routed to local recipients
- */
-function localRequests(slice, expected) {
-    var hasRec = false;
-    var localReqs = !slice.get().some(function(line) {
-        var entry = JSON.parse(line);
-        if (!entry.req) {
-            return false;
-        }
-        hasRec = true;
-        // if the URI starts with a slash,
-        // it's a local request
-        return !/^\//.test(entry.req.uri);
-    });
-    if (!hasRec) {
-        // there were no records in the slice, so
-        // we cannot really decide what that means
-        return;
-    }
-    deepEqual(
-        localReqs,
-        expected,
-        expected ?
-          'Should have made a local request' :
-          'Should not have made a local request'
-    );
+function recordRequests() {
+    nock.recorder.rec({
+        dont_print: true,
+        output_objects: true
+    })
+}
+
+function cleanupRecorder() {
+    nock.restore();
+    nock.recorder.clear();
 }
 
 /**
  * Asserts whether some requests in the given
  * slice were made to remote entities
  */
-function remoteRequests(slice, expected) {
-    var hasRec = false;
-    var remoteReqs = slice.get().some(function(line) {
-        var entry = JSON.parse(line);
-        if (!entry.req) {
-            return false;
-        }
-        hasRec = true;
-        return entry.req && /^https?/.test(entry.req.uri);
-    });
-    if (!hasRec) {
-        // there were no records in the slice, so
-        // we cannot really decide what that means
-        return;
-    }
+function remoteRequests(expected) {
+    const remoteReqs = nock.recorder.play().some((req) => req && !/localhost/.test(req.scope));
     deepEqual(
         remoteReqs,
         expected,
@@ -77,12 +47,14 @@ function remoteRequests(slice, expected) {
 /**
  * Finds the first request to parsoid
  */
-function findParsoidRequest(slice) {
-    var logEntry = slice.get().find(function(line) {
-        var entry = JSON.parse(line);
-        return entry.req && /^https?:\/\/parsoid/.test(entry.req.uri);
+function findParsoidRequest() {
+    return nock.recorder.play().find(function(line) {
+        return line.slice && /^https?:\/\/parsoid/.test(line.scope);
     });
-    return JSON.parse(logEntry).req;
+}
+
+function findRequests(predicate) {
+    return nock.recorder.play().filter(predicate);
 }
 
 function isDeepEqual(result, expected, message) {
@@ -164,12 +136,12 @@ function checkString(result, expected, message) {
  * Validates the comma-separated list of header names.
  * @param {string}  headerList                the list of header names
  * @param {Object}  options                   the validator options
- * @param {array=}  options.require           list of header names required to be present. 
- *                                            Example: [ 'Accept', 'Accept-Encoding']. 
+ * @param {array=}  options.require           list of header names required to be present.
+ *                                            Example: [ 'Accept', 'Accept-Encoding'].
  *                                            Case-insensitive.
- * @param {array=}  options.disallow          list of header names NOT allowed. 
+ * @param {array=}  options.disallow          list of header names NOT allowed.
 *                                             Example: [ 'Accept-Language' ]. Case-insensitive.
- * @param {boolean} [options.allowDuplicates] whether duplicated entries could be present in 
+ * @param {boolean} [options.allowDuplicates] whether duplicated entries could be present in
  *                                            the `headerList`. Default: false
  **/
 function validateListHeader(headerList, options) {
@@ -222,8 +194,10 @@ module.exports.isDeepEqual    = isDeepEqual;
 module.exports.notDeepEqual   = notDeepEqual;
 module.exports.isSuperset     = isSuperset;
 module.exports.contentType    = contentType;
-module.exports.localRequests  = localRequests;
+module.exports.recordRequests = recordRequests;
+module.exports.cleanupRecorder = cleanupRecorder;
 module.exports.remoteRequests = remoteRequests;
 module.exports.findParsoidRequest = findParsoidRequest;
+module.exports.findRequests = findRequests;
 module.exports.checkString    = checkString;
 module.exports.validateListHeader = validateListHeader;

@@ -1,18 +1,15 @@
 'use strict';
 
 const assert = require('../../utils/assert.js');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const preq   = require('preq');
 const P = require('bluebird');
 
 describe('handler template', function() {
     this.timeout(20000);
-
-    before(() => { return server.start(); });
-
-    // A test page that includes the current date, so that it changes if
-    // re-rendered more than a second apart.
-    const testPage = `${server.config.baseURL}/service/test/User:GWicke%2fDate`;
+    const server = new Server();
+    before(() => server.start());
+    after(() => server.stop());
 
     function hasTextContentType(res) {
         assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
@@ -24,7 +21,7 @@ describe('handler template', function() {
         let tid1;
         let tid2;
         return preq.get({
-            uri: testPage
+            uri: `${server.config.baseURL()}/service/test/User:GWicke%2fDate`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -33,11 +30,11 @@ describe('handler template', function() {
 
             // Delay for 1s to make sure that the content differs on
             // re-render, then force a re-render and check that it happened.
-            slice = server.config.logStream.slice();
+            assert.recordRequests();
             return P.delay(1100)
             .then(() => {
                 return preq.get({
-                    uri: testPage,
+                    uri: `${server.config.baseURL()}/service/test/User:GWicke%2fDate`,
                     headers: { 'cache-control': 'no-cache' }
                 });
             });
@@ -47,16 +44,14 @@ describe('handler template', function() {
             assert.notDeepEqual(tid2, tid1);
             assert.notDeepEqual(tid2, undefined);
             hasTextContentType(res);
-            slice.halt();
-            assert.remoteRequests(slice, true);
+            assert.remoteRequests(true);
+            assert.cleanupRecorder();
             // delay for 1s to let the content change on re-render
-            slice = server.config.logStream.slice();
-
             // Check retrieval of a stored render
             return P.delay(1100)
             .then(() => {
                 return preq.get({
-                    uri: testPage,
+                    uri: `${server.config.baseURL()}/service/test/User:GWicke%2fDate`,
                 });
             });
         })
@@ -65,8 +60,7 @@ describe('handler template', function() {
             assert.deepEqual(tid3, tid2);
             assert.notDeepEqual(tid3, undefined);
             // Check that there were no remote requests
-            slice.halt();
-            assert.remoteRequests(slice, false);
+            assert.remoteRequests(false);
             hasTextContentType(res);
         });
     });

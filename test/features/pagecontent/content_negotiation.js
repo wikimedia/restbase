@@ -2,7 +2,7 @@
 
 const assert = require('../../utils/assert.js');
 const preq = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const nock = require('nock');
 
 const PARSOID_VERSION_BEFORE_DOWNGRADE = '1.7.0';
@@ -13,8 +13,8 @@ const PARSOID_SUPPORTED_DOWNGRADE = '1.8.0';
 // TODO: Convert tests to nock or think of an alternative approach to testing this without
 // relying on Parsoid versions
 describe.skip('Content negotiation', function() {
-
     this.timeout(20000);
+    const server = new Server();
 
     let currentParsoidContentType;
 
@@ -31,7 +31,7 @@ describe.skip('Content negotiation', function() {
             .reply(200, res.body, res.headers);
         })
         // Just request it to store pre-supported-downgrade version
-        .then(() => preq.get({uri: `${server.config.bucketURL}/html/${pageName}`}))
+        .then(() => preq.get({uri: `${server.config.bucketURL()}/html/${pageName}`}))
         .then(() => parsoidNock.done())
         .finally(() => nock.cleanAll());
     }
@@ -45,6 +45,7 @@ describe.skip('Content negotiation', function() {
         .then(() => getFakePageVersion(PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE, PARSOID_VERSION_BEFORE_DOWNGRADE))
         .finally(() => nock.restore());
     });
+    after(() => server.stop());
 
     const assertCorrectResponse = (expectedContentType) => (res) => {
         assert.deepEqual(res.status, 200);
@@ -56,14 +57,14 @@ describe.skip('Content negotiation', function() {
 
     it('should request html with no accept', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
         })
         .then(assertCorrectResponse(currentParsoidContentType));
     });
 
     it('should not crash on malformed accept header', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: 'this is a malformed accept header'
             }
@@ -76,7 +77,7 @@ describe.skip('Content negotiation', function() {
             .replace(/text\/html/, 'application/json')
             .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: wrongContentTypeAccept
             }
@@ -87,7 +88,7 @@ describe.skip('Content negotiation', function() {
 
     it('should request html with current content type', () => {
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: currentParsoidContentType
             }
@@ -98,7 +99,7 @@ describe.skip('Content negotiation', function() {
     it('should ignore the higher patch version in accept', () => {
        const bumpPatchAccept = currentParsoidContentType.replace(/\d+"$/, '999"');
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: bumpPatchAccept
             }
@@ -109,7 +110,7 @@ describe.skip('Content negotiation', function() {
     it('should throw on higher minor version in accept', () => {
         const bumpMinorAccept = currentParsoidContentType.replace(/\d+\.\d+"$/, '999.0"');
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: bumpMinorAccept
             }
@@ -124,7 +125,7 @@ describe.skip('Content negotiation', function() {
     it('should throw on higher major version in accept', () => {
         const bumpMinorAccept = currentParsoidContentType.replace(/\d+\.\d+\.\d+"$/, '999.0.0"');
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: bumpMinorAccept
             }
@@ -140,7 +141,7 @@ describe.skip('Content negotiation', function() {
         const supportedDowngradeContentType = currentParsoidContentType
             .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: supportedDowngradeContentType
             }
@@ -157,7 +158,7 @@ describe.skip('Content negotiation', function() {
         const lowerDowngradeContentType = currentParsoidContentType
         .replace(/\d+\.\d+\.\d+"$/, `${lowerMinorDowngradeVersion}"`);
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: lowerDowngradeContentType
             }
@@ -174,7 +175,7 @@ describe.skip('Content negotiation', function() {
         const lowerDowngradeContentType = currentParsoidContentType
         .replace(/\d+\.\d+\.\d+"$/, `${lowerMinorDowngradeVersion}"`);
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: lowerDowngradeContentType
             }
@@ -189,7 +190,7 @@ describe.skip('Content negotiation', function() {
         const higherDowngradeContentType = currentParsoidContentType
         .replace(/\d+\.\d+\.\d+"$/, `${higherMinorDowngradeVersion}"`);
         return preq.get({
-            uri: `${server.config.labsBucketURL}/html/Main_Page`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
             headers: {
                 accept: higherDowngradeContentType
             }
@@ -203,7 +204,7 @@ describe.skip('Content negotiation', function() {
 
     it('should upgrade to new major version', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE}`,
+            uri: `${server.config.bucketURL()}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_ANOTHER_PAGE}`,
             headers: {
                 accept: currentParsoidContentType
             }
@@ -220,7 +221,7 @@ describe.skip('Content negotiation', function() {
         const beforeDowngradeContentType = currentParsoidContentType
         .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_VERSION_BEFORE_DOWNGRADE}"`);
         return preq.get({
-            uri: `${server.config.bucketURL}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE}`,
+            uri: `${server.config.bucketURL()}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE}`,
             headers: {
                 accept: evenOlderParsoidContentType
             }
@@ -232,7 +233,7 @@ describe.skip('Content negotiation', function() {
         const supportedDowngradeContentType = currentParsoidContentType
         .replace(/\d+\.\d+\.\d+"$/, `${PARSOID_SUPPORTED_DOWNGRADE}"`);
         return preq.get({
-            uri: `${server.config.bucketURL}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE}`,
+            uri: `${server.config.bucketURL()}/html/${PARSOID_VERSION_BEFORE_DOWNGRADE_PAGE}`,
             headers: {
                 accept: supportedDowngradeContentType
             }

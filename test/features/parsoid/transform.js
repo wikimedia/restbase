@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('../../utils/assert.js');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 const preq   = require('preq');
 const parallel = require('mocha.parallel');
 
@@ -14,73 +14,25 @@ const testPage = {
 
 parallel('transform api', function() {
     this.timeout(20000);
-
+    let contentTypes;
+    const server = new Server();
     before(() => {
         return server.start()
         .then(() => {
+            contentTypes = server.config.conf.test.content_types;
             return preq.get({
-                uri: `${server.config.labsBucketURL
-                }/html/${testPage.title
-                }/${testPage.revision}`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${testPage.title}/${testPage.revision}`
             });
         })
         .then((res) => {
             testPage.html = res.body;
         });
     });
-
-    const contentTypes = server.config.conf.test.content_types;
-
-    /**
-     * I don't think these have ever really worked.
-     * Blocked on https://phabricator.wikimedia.org/T114413 (provide html2html
-     * end point in Parsoid).
-    it('html2html', function () {
-        return preq.post({
-            uri: server.config.labsURL
-                + '/transform/html/to/html/' + testPage.title
-                + '/' + testPage.revision,
-            body: {
-                html: testPage.html
-            }
-        })
-        .then(function (res) {
-            assert.deepEqual(res.status, 200);
-            var pattern = /<div id="bar">Selser test<\/div>/;
-            if (!pattern.test(res.body)) {
-                throw new Error('Expected pattern in response: ' + pattern
-                        + '\nSaw: ' + JSON.stringify(res, null, 2));
-            }
-            assert.contentType(res, contentTypes.html);
-        });
-    });
-
-    it('html2html with body_only', function () {
-        return preq.post({
-            uri: server.config.labsURL
-                + '/transform/html/to/html/' + testPage.title
-                + '/' + testPage.revision,
-            body: {
-                html: testPage.html,
-                body_only: true
-            }
-        })
-        .then(function (res) {
-            assert.deepEqual(res.status, 200);
-            var pattern = /^<div id="bar">Selser test<\/div>$/;
-            if (!pattern.test(res.body)) {
-                throw new Error('Expected pattern in response: ' + pattern
-                        + '\nSaw: ' + JSON.stringify(res, null, 2));
-            }
-            assert.contentType(res, contentTypes.html);
-        });
-    });
-    */
+    after(() => server.stop());
 
     it('wt2html', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
             body: {
                 wikitext: '== Heading =='
             }
@@ -98,8 +50,7 @@ parallel('transform api', function() {
 
     it('wt2html with body_only', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
             body: {
                 wikitext: '== Heading ==',
                 body_only: true
@@ -119,7 +70,7 @@ parallel('transform api', function() {
 
     it('wt2lint', () => {
         return preq.post({
-            uri: `${server.config.labsURL}/transform/wikitext/to/lint`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/lint`,
             body: {
                 wikitext: '== Heading =='
             }
@@ -131,7 +82,7 @@ parallel('transform api', function() {
 
     it('wt2lint with errors', () => {
         return preq.post({
-            uri: `${server.config.labsURL}/transform/wikitext/to/lint`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/lint`,
             body: {
                 wikitext: '<div>No div ending'
             }
@@ -143,8 +94,7 @@ parallel('transform api', function() {
 
     it('html2wt, no-selser', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/html/to/wikitext/User:GWicke%2F_restbase_test`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/User:GWicke%2F_restbase_test`,
             body: {
                 html: '<body>The modified HTML</body>'
             }
@@ -159,9 +109,7 @@ parallel('transform api', function() {
 
     it('html2wt, selser', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/html/to/wikitext/${testPage.title
-            }/${testPage.revision}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
             body: {
                 html: testPage.html
             }
@@ -175,7 +123,7 @@ parallel('transform api', function() {
 
     it('html2wt with scrub_wikitext', () => {
         return preq.post({
-            uri: `${server.config.labsURL}/transform/html/to/wikitext`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext`,
             body: {
                 html: '<h2></h2>',
                 scrub_wikitext: 1
@@ -191,10 +139,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             headers: {
                 'content-type': 'application/json'
             },
@@ -218,10 +163,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             body: {
                 changes: JSON.stringify({
                     mwAQ: [],
@@ -243,10 +185,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             headers: {
                 'content-type': 'application/json'
             },
@@ -270,10 +209,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             headers: {
                 'content-type': 'application/json'
             },
@@ -300,10 +236,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             body: {
                 changes: {
                     mwAQ: [],
@@ -328,10 +261,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             body: {
                 changes: {
                     mwAASDC: []
@@ -353,10 +283,7 @@ parallel('transform api', function() {
         const pageWithSectionsTitle = 'User:Pchelolo%2Fsections_test';
         const pageWithSectionsRev = 275834;
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/section-changes/to/wikitext/${
-                pageWithSectionsTitle
-            }/${pageWithSectionsRev}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/section-changes/to/wikitext/${pageWithSectionsTitle}/${pageWithSectionsRev}`,
             body: {
                 changes: {
                     mwAw:[ { id: 'mwAASDC' }, { id: 'mwAw' } ]
@@ -378,9 +305,7 @@ parallel('transform api', function() {
         const newHtml = testPage.html.replace(/<meta property="mw:TimeUuid" content="([^"]+)"\/?>/,
             '<meta content="$1" property="mw:TimeUuid" />');
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/html/to/wikitext/${testPage.title
-            }/${testPage.revision}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
             body: {
                 html: newHtml
             }
@@ -398,8 +323,7 @@ parallel('transform api', function() {
 
     it('supports stashing content', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/wikitext/to/html/${testPage.title}/${testPage.revision}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}/${testPage.revision}`,
             body: {
                 wikitext: '== ABCDEF ==',
                 stash: true
@@ -410,8 +334,7 @@ parallel('transform api', function() {
             const etag = res.headers.etag;
             assert.deepEqual(/\/stash"$/.test(etag), true);
             return preq.post({
-                uri: `${server.config.labsURL
-                }/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
+                uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
                 headers: {
                     'if-match': etag
                 },
@@ -428,8 +351,7 @@ parallel('transform api', function() {
 
     it('substitutes 0 as revision if not provided for stashing', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/wikitext/to/html/${testPage.title}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}`,
             body: {
                 wikitext: '== ABCDEF ==',
                 stash: true
@@ -444,8 +366,7 @@ parallel('transform api', function() {
 
     it('does not allow stashing without title', () => {
         return preq.post({
-            uri: `${server.config.labsURL
-            }/transform/wikitext/to/html`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html`,
             body: {
                 wikitext: '== ABCDEF ==',
                 stash: true
@@ -460,8 +381,7 @@ parallel('transform api', function() {
 
     it('does not allow to transform html with no tid', () => {
         return preq.post({
-            uri: `${server.config.labsURL}/transform/html/to/wikitext/${
-                testPage.title}/${testPage.revision}`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
             body: {
                 html: '<h1>A</h1>'
             }
@@ -474,36 +394,3 @@ parallel('transform api', function() {
     });
 });
 
-
-/* TODO: actually implement wikitext fetching
-describe('storage-backed transform api', () => {
-    this.timeout(20000);
-
-    before(() => { return server.start(); });
-
-    it('should load a specific title/revision from storage to send as the "original"', () => {
-        return preq.post({
-            uri: server.config.baseURL + '/transform/html/to/wikitext/Main_Page/1',
-            headers: { 'content-type': 'application/json' },
-            body: {
-                headers: {
-                  'content-type': 'text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"'
-                },
-                body: '<html>The modified HTML</html>'
-            }
-        })
-        .then(res => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, {
-                wikitext: {
-                    headers: {
-                        'content-type': 'text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0"'
-                    },
-                    body: 'The modified HTML'
-                }
-            });
-        });
-    });
-
-});
-*/

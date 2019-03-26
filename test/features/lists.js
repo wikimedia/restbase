@@ -2,27 +2,21 @@
 
 const nock = require('nock');
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const querystring = require('querystring');
 const preq = require('preq');
 
-
 describe('reading lists', function() {
+    this.timeout(20000);
+    const server = new Server();
     const csrfToken = '<mock>';
     const sessionCookies = '<mock>';
-    const config = {
-        // domain: 'dev.wiki.local.wmftest.net',
-        // baseURL: 'http://localhost:7231/dev.wiki.local.wmftest.net/v1',
-        baseURL: server.config.baseURL,
-        apiDomain: server.config.apiURL.replace(/^(.*)(\/w\/.+)$/, "$1"),
-        apiPath: server.config.apiURL.replace(/^(.*)(\/w\/.+)$/, "$2"),
-    };
 
     function getApi() {
-        return nock(config.apiDomain, {
+        return nock(server.config.apiBase(), {
             reqheaders: {
                 'Cookie': sessionCookies,
-                'Host': config.domain,
+                'Host': server.config.defaultDomain,
             },
         })
         .defaultReplyHeaders({
@@ -48,10 +42,8 @@ describe('reading lists', function() {
         };
     }
 
-    this.timeout(20000);
-
     function unmockedListener(req) {
-        if (!req.href.startsWith(`${config.baseURL}/data/lists/`)) {
+        if (!req.href.startsWith(`${server.config.baseURL()}/data/lists/`)) {
             throw Error(`Unmocked request to ${req.href}`);
         }
     }
@@ -63,7 +55,7 @@ describe('reading lists', function() {
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
         .then(() => preq.get({
-            uri: `${config.baseURL}/page/html/Main_Page`,
+            uri: `${server.config.baseURL()}/page/html/Main_Page`,
         }))
         // After this, there should be no unmocked requests other than those to /lists
         .then(() => nock.emitter.on('no match', unmockedListener));
@@ -71,6 +63,7 @@ describe('reading lists', function() {
 
     after(() => {
         nock.emitter.removeListener('no match', unmockedListener);
+        return server.stop();
     });
 
     afterEach(() => {
@@ -80,7 +73,7 @@ describe('reading lists', function() {
     describe('POST /lists/setup', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'setup',
                     token: csrfToken,
@@ -90,7 +83,7 @@ describe('reading lists', function() {
                 .reply(200, {});
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/setup`,
+                uri: `${server.config.baseURL()}/data/lists/setup`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -106,7 +99,7 @@ describe('reading lists', function() {
 
         it('error handling', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'setup',
                     token: csrfToken,
@@ -123,7 +116,7 @@ describe('reading lists', function() {
                 });
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/setup`,
+                uri: `${server.config.baseURL()}/data/lists/setup`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -146,7 +139,7 @@ describe('reading lists', function() {
     describe('POST /lists/teardown', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'teardown',
                     token: csrfToken,
@@ -156,7 +149,7 @@ describe('reading lists', function() {
                 .reply(200, {});
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/teardown`,
+                uri: `${server.config.baseURL()}/data/lists/teardown`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -188,7 +181,7 @@ describe('reading lists', function() {
 
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     rllimit: 'max',
@@ -204,7 +197,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/`,
+                uri: `${server.config.baseURL()}/data/lists/`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -223,7 +216,7 @@ describe('reading lists', function() {
 
         it('paging', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     rllimit: 'max',
@@ -243,7 +236,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/`,
+                uri: `${server.config.baseURL()}/data/lists/`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -263,7 +256,7 @@ describe('reading lists', function() {
 
         it('paging 2', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     rlsort: 'updated',
@@ -281,7 +274,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/`,
+                uri: `${server.config.baseURL()}/data/lists/`,
                 query: {
                     next: '{"rlcontinue":1,"continue":"-||"}',
                 },
@@ -305,7 +298,7 @@ describe('reading lists', function() {
             const scope = getApi();
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/`,
+                uri: `${server.config.baseURL()}/data/lists/`,
                 query: {
                     next: '{invalid}',
                 },
@@ -328,7 +321,7 @@ describe('reading lists', function() {
     describe('POST /lists/', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'create',
                     name: 'Test list',
@@ -344,7 +337,7 @@ describe('reading lists', function() {
                 });
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/`,
+                uri: `${server.config.baseURL()}/data/lists/`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -371,7 +364,7 @@ describe('reading lists', function() {
     describe('PUT /lists/{id}', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'update',
                     list: 2,
@@ -393,7 +386,7 @@ describe('reading lists', function() {
                 });
 
             return preq.put({
-                uri: `${config.baseURL}/data/lists/2`,
+                uri: `${server.config.baseURL()}/data/lists/2`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -419,7 +412,7 @@ describe('reading lists', function() {
     describe('DELETE /lists/{id}', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'delete',
                     list: 2,
@@ -430,7 +423,7 @@ describe('reading lists', function() {
                 .reply(200, {});
 
             return preq.delete({
-                uri: `${config.baseURL}/data/lists/2`,
+                uri: `${server.config.baseURL()}/data/lists/2`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -458,7 +451,7 @@ describe('reading lists', function() {
                 },
             ];
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'create',
                     batch: JSON.stringify(batchLists),
@@ -489,7 +482,7 @@ describe('reading lists', function() {
                 });
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/batch`,
+                uri: `${server.config.baseURL()}/data/lists/batch`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -589,7 +582,7 @@ describe('reading lists', function() {
             .defaultReplyHeaders({
                 'Content-Type': 'application/json; charset=utf-8',
             })
-            .post(config.apiPath, (query) => {
+            .post(server.config.apiPath, (query) => {
                 const params = (typeof query === 'string') ? querystring.parse(query) : query;
                 return params.action === 'query' && params.meta === 'siteinfo|filerepoinfo'
                     && !params.list && !params.prop;
@@ -626,7 +619,7 @@ describe('reading lists', function() {
 
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 4,
@@ -648,7 +641,7 @@ describe('reading lists', function() {
                 .reply(200, { title: 'Boo(m)?', summaryData: '<data2>' });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/4/entries/`,
+                uri: `${server.config.baseURL()}/data/lists/4/entries/`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -667,7 +660,7 @@ describe('reading lists', function() {
 
         it('paging', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 4,
@@ -691,7 +684,7 @@ describe('reading lists', function() {
                 .reply(200, { title: 'Foo Bar', summaryData: '<data1>' });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/4/entries/`,
+                uri: `${server.config.baseURL()}/data/lists/4/entries/`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -711,7 +704,7 @@ describe('reading lists', function() {
 
         it('paging2', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 4,
@@ -733,7 +726,7 @@ describe('reading lists', function() {
                 .reply(200, { title: 'Boo(m)?', summaryData: '<data2>' });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/4/entries/`,
+                uri: `${server.config.baseURL()}/data/lists/4/entries/`,
                 query: {
                     next: '{"rlecontinue":1,"continue":"-||"}',
                 },
@@ -766,7 +759,7 @@ describe('reading lists', function() {
             ];
 
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     list: 'readinglistentries',
                     rlelists: 1,
@@ -783,7 +776,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/1/entries/`,
+                uri: `${server.config.baseURL()}/data/lists/1/entries/`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -800,7 +793,7 @@ describe('reading lists', function() {
     describe('POST /lists/{id}/entries/', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'createentry',
                     list: '3',
@@ -817,7 +810,7 @@ describe('reading lists', function() {
                 });
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/3/entries/`,
+                uri: `${server.config.baseURL()}/data/lists/3/entries/`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -842,7 +835,7 @@ describe('reading lists', function() {
     describe('DELETE /lists/{id}/entries/{entry_id}', () => {
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'deleteentry',
                     entry: 1,
@@ -853,7 +846,7 @@ describe('reading lists', function() {
                 .reply(200, {});
 
             return preq.delete({
-                uri: `${config.baseURL}/data/lists/3/entries/1`,
+                uri: `${server.config.baseURL()}/data/lists/3/entries/1`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -881,7 +874,7 @@ describe('reading lists', function() {
                 },
             ];
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'readinglists',
                     command: 'createentry',
                     list: '3',
@@ -913,7 +906,7 @@ describe('reading lists', function() {
                 });
 
             return preq.post({
-                uri: `${config.baseURL}/data/lists/3/entries/batch`,
+                uri: `${server.config.baseURL()}/data/lists/3/entries/batch`,
                 query: {
                     csrf_token: csrfToken,
                 },
@@ -988,7 +981,7 @@ describe('reading lists', function() {
 
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     rlproject: 'en.wikipedia.org',
@@ -1004,7 +997,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
+                uri: `${server.config.baseURL()}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -1020,7 +1013,7 @@ describe('reading lists', function() {
 
         it('paging', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     rlproject: 'en.wikipedia.org',
@@ -1040,7 +1033,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
+                uri: `${server.config.baseURL()}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -1057,7 +1050,7 @@ describe('reading lists', function() {
 
         it('paging 2', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     rlproject: 'en.wikipedia.org',
@@ -1075,7 +1068,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
+                uri: `${server.config.baseURL()}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
                 query: {
                     next: '{"rlcontinue":1,"continue":"-||"}',
                 },
@@ -1142,7 +1135,7 @@ describe('reading lists', function() {
 
         it('forward call', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     list: 'readinglistentries',
@@ -1165,7 +1158,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/changes/since/2017-10-15T00%3A00%3A00Z`,
+                uri: `${server.config.baseURL()}/data/lists/changes/since/2017-10-15T00%3A00%3A00Z`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -1184,7 +1177,7 @@ describe('reading lists', function() {
 
         it('paging', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     list: 'readinglistentries',
@@ -1212,7 +1205,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/changes/since/2017-10-15T00%3A00%3A00Z`,
+                uri: `${server.config.baseURL()}/data/lists/changes/since/2017-10-15T00%3A00%3A00Z`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -1232,7 +1225,7 @@ describe('reading lists', function() {
 
         it('paging 2', () => {
             const scope = getApi()
-                .post(config.apiPath, nockDiff({
+                .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
                     list: 'readinglistentries',
@@ -1258,7 +1251,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${config.baseURL}/data/lists/changes/since/2017-10-15T00%3A00%3A00Z`,
+                uri: `${server.config.baseURL()}/data/lists/changes/since/2017-10-15T00%3A00%3A00Z`,
                 query: {
                     next: '{"rlcontinue":1,"rlecontinue":1,"continue":"-||"}',
                 },

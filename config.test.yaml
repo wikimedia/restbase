@@ -8,7 +8,7 @@ default_project: &default_project
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
-          backend: sqlite
+          backend: '{env(RB_TEST_BACKEND, sqlite)}'
           hosts: [localhost]
           keyspace: system
           username: cassandra
@@ -107,10 +107,6 @@ spec_root: &spec_root
   title: "The RESTBase root"
   # Some more general RESTBase info
   x-request-filters:
-    - path: test/utils/uri_dump_filter.js
-      options:
-        dump_test_uris: false
-        filepath: uri_dump
     - path: lib/security_response_header_filter.js
     - path: lib/normalize_headers_filter.js
 
@@ -171,15 +167,9 @@ services:
       ui_title: RESTBase docs
 
 logging:
-  name: restbase
-  level: info
-  #streams:
-  #- type: gelf
-  #  host: <%= @logstash_host %>
-  #  port: <%= @logstash_port %>
+  name: restbase-test
+  level: fatal
+  streams:
+    - type: stdout
 
-metrics:
-  #type: txstatsd
-  #host: localhost
-  #port: 8125
-  #batch: true
+num_workers: 0

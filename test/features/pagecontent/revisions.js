@@ -1,19 +1,12 @@
 'use strict';
 
-/* eslint-disable max-len */
-
 const assert = require('../../utils/assert.js');
 const preq   = require('preq');
-const server = require('../../utils/server.js');
+const Server = require('../../utils/server.js');
 
-function generateTests(options) {
-
-    const bucketURL = server.config.makeBucketURL(options.domain);
-
-    before(() => server.start());
-
+function generateTests(server, options) {
     it('should return valid revision info', () => {
-        return preq.get({ uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}` })
+        return preq.get({ uri: `${server.config.bucketURL(options.domain)}/title/${encodeURIComponent(options.pageName)}` })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
@@ -25,7 +18,7 @@ function generateTests(options) {
 
     it('should return redirect true when included', () => {
         return preq.get({
-            uri: `${bucketURL}/title/${encodeURIComponent(options.redirectPageName)}/${options.revRedirect}`
+            uri: `${server.config.bucketURL(options.domain)}/title/${encodeURIComponent(options.redirectPageName)}/${options.revRedirect}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -36,23 +29,23 @@ function generateTests(options) {
     });
 
     it('should query the MW API for revision info', () => {
-        const slice = server.config.logStream.slice();
+        assert.recordRequests();
         return preq.get({
-            uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}/${options.revPrevious}`,
+            uri: `${server.config.bucketURL(options.domain)}/title/${encodeURIComponent(options.pageName)}/${options.revPrevious}`,
             headers: { 'cache-control': 'no-cache' }
         })
         .then((res) => {
-            slice.halt();
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.body.items.length, 1);
             assert.deepEqual(res.body.items[0].rev, options.revPrevious);
             assert.deepEqual(res.body.items[0].title, options.pageName);
-            assert.remoteRequests(slice, true);
-        });
+            assert.remoteRequests(true);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('should fail for an invalid revision', () => {
-        return preq.get({ uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}/faultyrevid` })
+        return preq.get({ uri: `${server.config.bucketURL(options.domain)}/title/${encodeURIComponent(options.pageName)}/faultyrevid` })
         .then((res) => {
             throw new Error(`Expected status 400 for an invalid revision, got ${res.status}`);
         },
@@ -62,22 +55,21 @@ function generateTests(options) {
     });
 
     it('should query the MW API for a non-existent revision and return a 404', () => {
-        const slice = server.config.logStream.slice();
-        return preq.get({ uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}/0` })
+        assert.recordRequests();
+        return preq.get({ uri: `${server.config.bucketURL(options.domain)}/title/${encodeURIComponent(options.pageName)}/0` })
         .then((res) => {
-            slice.halt();
             throw new Error(`Expected status 404 for an invalid revision, got ${res.status}`);
         },
         (res) => {
-            slice.halt();
             assert.deepEqual(res.status, 404);
-            assert.remoteRequests(slice, true);
-        });
+            assert.remoteRequests(true);
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
     it('should return latest revision for a page', () => {
         return preq.get({
-            uri: `${bucketURL}/title/${encodeURIComponent(options.pageName)}`,
+            uri: `${server.config.bucketURL(options.domain)}/title/${encodeURIComponent(options.pageName)}`,
             headers: {
                 'cache-control': 'no-cache'
             }
@@ -93,11 +85,14 @@ function generateTests(options) {
 
 describe('revision requests with en.wikipedia.org', function() {
     this.timeout(20000);
+    const server = new Server();
+    before(() =>  server.start());
+    after(() =>  server.stop());
 
     const titleDeleted = 'User_talk:DivineAlpha/Q1_2015_discussions';
     const revDeleted = 645504917;
 
-    generateTests({
+    generateTests(server,{
         domain: 'en.wikipedia.org',
         redirectPageName: 'Main_page',
         revRedirect: 591082967,
@@ -106,11 +101,9 @@ describe('revision requests with en.wikipedia.org', function() {
         revPrevious: 653529842
     });
 
-    const bucketURL = server.config.makeBucketURL('en.wikipedia.org');
-
     it('should fail for a restricted revision fetched from MW API', () => {
         return preq.get({
-            uri: `${bucketURL}/title/${encodeURIComponent(titleDeleted)}/${revDeleted}`,
+            uri: `${server.config.bucketURL()}/title/${encodeURIComponent(titleDeleted)}/${revDeleted}`,
             headers: { 'cache-control': 'no-cache' }
         })
         .then((res) => {
@@ -120,7 +113,7 @@ describe('revision requests with en.wikipedia.org', function() {
 
     it('should fail for a restricted revision present in storage', () => {
         return preq.get({
-            uri: `${bucketURL}/title/${encodeURIComponent(titleDeleted)}/${revDeleted}`,
+            uri: `${server.config.bucketURL()}/title/${encodeURIComponent(titleDeleted)}/${revDeleted}`,
         })
         .then((res) => {
             throw new Error(`Expected status 403 for a restricted revision, got ${res.status}`);
@@ -129,7 +122,7 @@ describe('revision requests with en.wikipedia.org', function() {
 
     it('should restrict user and comment', () => {
         return preq.get({
-            uri: `${bucketURL}/title/User:Pchelolo%2fRestricted_Rev`
+            uri: `${server.config.bucketURL()}/title/User:Pchelolo%2fRestricted_Rev`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -143,7 +136,10 @@ describe('revision requests with en.wikipedia.org', function() {
 
 describe('revision requests with test2.wikipedia.org', function() {
     this.timeout(20000);
-    generateTests({
+    const server = new Server();
+    before(() =>  server.start());
+    after(() =>  server.stop());
+    generateTests(server,{
         domain: 'test2.wikipedia.org',
         redirectPageName: 'User:Pchelolo/Redir',
         revRedirect: 157490,
@@ -155,7 +151,10 @@ describe('revision requests with test2.wikipedia.org', function() {
 
 describe('revision requests with test.wikipedia.org', function() {
     this.timeout(20000);
-    generateTests({
+    const server = new Server();
+    before(() =>  server.start());
+    after(() =>  server.stop());
+    generateTests(server, {
         domain: 'test.wikipedia.org',
         redirectPageName: 'User:Pchelolo/Redir',
         revRedirect: 234965,

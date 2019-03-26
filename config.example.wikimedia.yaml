@@ -7,7 +7,7 @@ default_project: &default_project
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
-          backend: cassandra
+          backend: '{env(RB_TEST_BACKEND, sqlite)}'
           hosts: [localhost]
           keyspace: system
           username: cassandra
@@ -25,7 +25,7 @@ default_project: &default_project
         graphoid:
           host: https://graphoid-beta.wmflabs.org
         mathoid:
-          host: https://mathoid-tester.wmflabs.org
+          host: https://mathoid-beta.wmflabs.org
           # 10 days Varnish caching, one day client-side
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
@@ -110,7 +110,7 @@ spec_root: &spec_root
           - pattern: /^https?:\/\//
   paths:
     /{domain:en.wikipedia.org}: *en.wikipedia.org
-    /{domain:fr.wikipedia.org}: *wikipedia_project
+    /{domain:ru.wikipedia.org}: *wikipedia_project
     /{domain:de.wikipedia.org}: *wikipedia_project
     /{domain:es.wikipedia.org}: *wikipedia_project
     /{domain:it.wikipedia.org}: *wikipedia_project
@@ -162,17 +162,15 @@ services:
 
 logging:
   name: restbase
-  level: info
-  #streams:
-  #- type: gelf
-  #  host: <%= @logstash_host %>
-  #  port: <%= @logstash_port %>
+  level: warn
+  streams:
+    - type: stdout
 
-metrics:
-  type: statsd
-  host: localhost
-  port: 8125
-  batch: true
+#metrics:
+#  type: statsd
+#  host: localhost
+#  port: 8125
+#  batch: true
 
 ratelimiter:
   type: kademlia
@@ -180,3 +178,5 @@ ratelimiter:
   seeds:
     # Port 3050 used by default
     - 127.0.0.1
+
+num_workers: 0

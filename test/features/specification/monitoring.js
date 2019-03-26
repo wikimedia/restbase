@@ -3,7 +3,7 @@
 const parallel = require('mocha.parallel');
 const preq     = require('preq');
 const assert   = require('../../utils/assert.js');
-const server   = require('../../utils/server.js');
+const Server   = require('../../utils/server.js');
 const URI      = require('hyperswitch').URI;
 const P        = require('bluebird');
 
@@ -26,7 +26,7 @@ function constructTestCase(title, path, method, request, response) {
     };
 }
 
-function constructTests(spec, options) {
+function constructTests(spec, options, server) {
     const paths = spec.paths;
     const ret = [];
     Object.keys(paths).forEach((pathStr) => {
@@ -152,23 +152,21 @@ function validateBody(resBody, expBody) {
 
 describe('Monitoring tests', function() {
     this.timeout(20000);
-
-    before(() => {
-        return server.start();
-    });
+    const server = new Server();
+    before(() => server.start());
 
     it('should get the spec', () => {
         return P.each([{
             domain: 'en.wikipedia.org',
-            specURI: `${server.config.baseURL}/?spec`
+            specURI: `${server.config.baseURL()}/?spec`
         },
         {
             domain: 'wikimedia.org',
-            specURI: `${server.config.globalURL}/?spec`
+            specURI: `${server.config.baseURL('wikimedia.org')}/?spec`
         },
         {
             domain: 'en.wiktionary.org',
-            specURI: `${server.config.hostPort}/en.wiktionary.org/v1/?spec`
+            specURI: `${server.config.baseURL('en.wiktionary.org')}/?spec`
         }],
         (options) => {
             return preq.get(options.specURI)
@@ -180,7 +178,7 @@ describe('Monitoring tests', function() {
             })
             .then((spec) => {
                 parallel(`Monitoring routes, ${options.domain} domain`, () => {
-                    constructTests(spec, options).forEach((testCase) => {
+                    constructTests(spec, options, server).forEach((testCase) => {
                         it(testCase.title, () => {
                             return preq(testCase.request)
                             .then((res) => {
@@ -191,6 +189,7 @@ describe('Monitoring tests', function() {
                         });
                     });
                 });
+                after(() => server.stop());
             });
         });
     });

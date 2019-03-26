@@ -3,12 +3,12 @@
 const parallel = require('mocha.parallel');
 const assert  = require('../../utils/assert.js');
 const preq    = require('preq');
-const server  = require('../../utils/server.js');
+const Server  = require('../../utils/server.js');
 const nock    = require('nock');
 
 parallel('400 handling', function() {
     this.timeout(20000);
-
+    const server = new Server();
     let siteInfo;
     let revisionInfo;
     before(() => {
@@ -19,7 +19,7 @@ parallel('400 handling', function() {
         .then(() => {
             // Fetch real siteInfo to return from a mock
             return preq.post({
-                uri: server.config.labsApiURL,
+                uri: server.config.apiURL('en.wikipedia.beta.wmflabs.org'),
                 body: {
                     action: 'query',
                     meta: 'siteinfo|filerepoinfo',
@@ -33,7 +33,7 @@ parallel('400 handling', function() {
             siteInfo = res.body;
             // Fetch real revision info for Main_Page
             return preq.post({
-                uri: server.config.labsApiURL,
+                uri: server.config.apiURL('en.wikipedia.beta.wmflabs.org'),
                 body: {
                     action: 'query',
                     prop: 'info|revisions',
@@ -49,24 +49,25 @@ parallel('400 handling', function() {
             revisionInfo = res.body;
         });
     });
+    after(() => server.stop());
 
     it('should refetch siteInfo on error', () => {
         // Set up nock:
         // 1. Throw an error on siteInfo fetch
         // 2. Return correct siteInfo
         // 3. Return revision data
-        const mwApi = nock(server.config.labsApiURL, { allowUnmocked: true })
+        const mwApi = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'), { allowUnmocked: true })
         .post('').reply(400)
         .post('').reply(200, siteInfo)
         .post('').reply(200, revisionInfo);
 
         return preq.get({
-            uri: `${server.config.labsBucketURL}/title/Main_Page`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/Main_Page`
         })
         .catch((e) => {
             assert.deepEqual(e.status, 500);
             return preq.get({
-                uri: `${server.config.labsBucketURL}/title/Main_Page`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/Main_Page`
             });
         })
         .then((res) => {

@@ -1,18 +1,20 @@
 'use strict';
 
 const assert = require('../utils/assert.js');
-const server = require('../utils/server.js');
+const Server = require('../utils/server.js');
 const preq   = require('preq');
 
 describe('Page Content Service: /page/media', () => {
+    const server = new Server();
     before(() => server.start());
+    after(() => server.stop());
 
     const pageTitle = 'Foobar';
     const pageRev = 757550077;
 
     it('Should fetch latest media', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/media/${pageTitle}`
+            uri: `${server.config.bucketURL()}/media/${pageTitle}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -24,7 +26,7 @@ describe('Page Content Service: /page/media', () => {
 
     it('Should fetch older media', () => {
         return preq.get({
-            uri: `${server.config.bucketURL}/media/${pageTitle}/${pageRev}`
+            uri: `${server.config.bucketURL()}/media/${pageTitle}/${pageRev}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
