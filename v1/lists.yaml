@@ -22,7 +22,7 @@ x-yaml-anchors:
     required: true
     type: string
     description: "The CRSF edit token provided by the MediaWiki API"
-    example: "f63c343876da566045e6b59c4532450559c828d3+\\"
+#    example: "f63c343876da566045e6b59c4532450559c828d3+\\"
   list_common: &list_common
     name:
       type: string
@@ -34,11 +34,11 @@ x-yaml-anchors:
     project: &list_entry_common_project
       type: string
       description: 'Domain of the wiki containing the page.'
-      example: 'https://en.wikipedia.org'
+#      example: 'https://en.wikipedia.org'
     title: &list_entry_common_title
       type: string
       description: 'Title of the page containing the page, in database format.'
-      example: 'Barack_Obama'
+#      example: Barack_Obama
 paths:
   /lists/setup:
     post:
@@ -228,10 +228,11 @@ paths:
 
                   Deprecated, will be removed. Use the full list object.
                 example: 7
-                required: true
               list:
                 $ref: '#/definitions/list_read'
-                required: true
+            required:
+              - id
+              - list
         default:
           description: Error
           schema:
@@ -270,7 +271,7 @@ paths:
         - name: id
           in: path
           type: integer
-          example: 42
+#          example: 42
           required: true
         - name: list
           in: body
@@ -293,10 +294,11 @@ paths:
 
                   Deprecated, will be removed. Use the full list object.
                 example: 7
-                required: true
               list:
                 $ref: '#/definitions/list_read'
-                required: true
+            required:
+              - id
+              - list
         default:
           description: Error
           schema:
@@ -338,7 +340,7 @@ paths:
         - name: id
           in: path
           type: integer
-          example: 42
+#          example: 42
           required: true
         - <<: *csrf_token
       responses:
@@ -400,7 +402,6 @@ paths:
             properties:
               batch:
                 type: array
-                required: true
                 description: Deprecated, will be removed. Use the full list objects instead.
                 items:
                   title: list_id
@@ -413,9 +414,11 @@ paths:
                       example: 7
               lists:
                 type: array
-                required: true
                 items:
                   $ref: '#/definitions/list_read'
+            required:
+              - batch
+              - lists
         default:
           description: Error
           schema:
@@ -456,7 +459,7 @@ paths:
         - name: id
           in: path
           type: integer
-          example: 42
+#          example: 42
           required: true
         - name: next
           in: query
@@ -520,7 +523,7 @@ paths:
         - name: id
           in: path
           type: integer
-          example: 42
+#          example: 42
           required: true
         - name: list_entry
           in: body
@@ -541,10 +544,11 @@ paths:
 
                   Deprecated, will be removed. Use the full entry object instead.
                 example: 13
-                required: true
               entry:
                 $ref: '#/definitions/list_entry_read'
-                required: true
+            required:
+              - id
+              - entry
         default:
           description: Error
           schema:
@@ -586,12 +590,12 @@ paths:
         - name: id
           in: path
           type: integer
-          example: 42
+#          example: 42
           required: true
         - name: entry_id
           in: path
           type: integer
-          example: 64
+#          example: 64
           required: true
         - <<: *csrf_token
       produces:
@@ -635,7 +639,7 @@ paths:
         - name: id
           in: path
           type: integer
-          example: 42
+#          example: 42
           required: true
         - name: batch
           in: body
@@ -659,7 +663,6 @@ paths:
             properties:
               batch:
                 type: array
-                required: true
                 items:
                   type: object
                   properties:
@@ -669,9 +672,11 @@ paths:
                       example: 13
               entries:
                 type: array
-                required: true
                 items:
                   $ref: '#/definitions/list_entry_read'
+            required:
+              - entries
+              - batch
         default:
           description: Error
           schema:

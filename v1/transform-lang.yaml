@@ -7,8 +7,8 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /html/from/{from}{/provider}:
-    post:
+  /html/from/{from}:
+    post: &html_from_from_post_spec
       tags: ['Transforms']
       summary: Machine-translate content
       description: |
@@ -27,15 +27,6 @@ paths:
           description: The source language code
           type: string
           required: true
-        - name: provider
-          in: path
-          description: The machine translation provider id
-          type: string
-          required: false
-          enum:
-           - Apertium
-           - Yandex
-           - Youdao
         - name: html
           in: formData
           description: The HTML content to translate
@@ -53,8 +44,35 @@ paths:
             $ref: '#/definitions/problem'
       x-monitor: false
       operationId: doMT
-  /word/from/{from}/{word}{/provider}:
-    get:
+
+  /html/from/{from}/{provider}:
+    post:
+      <<: *html_from_from_post_spec
+      operationId: doMTProvider
+      parameters:
+        - name: from
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: provider
+          in: path
+          description: The machine translation provider id
+          type: string
+          required: true
+          enum:
+            - Apertium
+            - Yandex
+            - Youdao
+        - name: html
+          in: formData
+          description: The HTML content to translate
+          type: string
+          required: true
+          x-textarea: true
+      
+  /word/from/{from}/{word}:
+    get: &word_from_from_word_get_spec
       tags: ['Transforms']
       summary: Fetch the dictionary meaning of a word
       description: |
@@ -76,14 +94,6 @@ paths:
           description: The word to lookup
           type: string
           required: true
-        - name: provider
-          in: path
-          description: The dictionary provider id
-          type: string
-          required: false
-          enum:
-           - JsonDict
-           - Dictd
       responses:
         '200':
           description: the dictionary translation for the given word
@@ -95,3 +105,27 @@ paths:
             $ref: '#/definitions/problem'
       x-monitor: false
       operationId: doDict
+      
+  /word/from/{from}/{word}/{provider}:
+    get:
+      <<: *word_from_from_word_get_spec
+      operationId: doDictProvider
+      parameters:
+        - name: from
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: word
+          in: path
+          description: The word to lookup
+          type: string
+          required: true
+        - name: provider
+          in: path
+          description: The dictionary provider id
+          type: string
+          required: true
+          enum:
+            - JsonDict
+            - Dictd

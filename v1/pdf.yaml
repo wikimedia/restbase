@@ -41,6 +41,7 @@ paths:
             type: file
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"

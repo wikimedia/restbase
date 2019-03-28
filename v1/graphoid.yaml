@@ -34,7 +34,7 @@ paths:
         '200':
           description: The PNG render of the requested graph.
           schema:
-            type: blob
+            type: file
           # FIXME: Actually return a decent ETag from graphoid & document it here!
           # See https://phabricator.wikimedia.org/T125924
           #headers:

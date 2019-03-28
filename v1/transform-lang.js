@@ -50,7 +50,9 @@ module.exports = (options) => {
         spec,
         operations: {
             doMT: transformLang.doMT.bind(transformLang),
-            doDict: transformLang.doDict.bind(transformLang)
+            doMTProvider: transformLang.doMT.bind(transformLang),
+            doDict: transformLang.doDict.bind(transformLang),
+            doDictProvider: transformLang.doDict.bind(transformLang)
         }
     };
 };

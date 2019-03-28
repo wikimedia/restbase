@@ -60,7 +60,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-      operationId: aggregatedFeed
+      operationId: onThisDay
       x-monitor: false
 #      TODO: the check has been disabled due to RB deployment
 #      failures, cf. T203588

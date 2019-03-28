@@ -81,8 +81,7 @@ definitions:
       action:
         type: object
         description: The action for the button of the announcement
-        schema:
-          $ref: '#/definitions/action'
+        $ref: '#/definitions/action'
       caption_HTML:
         type: string
         description: HTML to display below the announcement. Usually a privacy statment and link to a policy
@@ -108,8 +107,6 @@ definitions:
       announce:
         type: array
         items:
-          type: object
-          schema:
-            $ref: '#/definitions/announcement'
+          $ref: '#/definitions/announcement'
     required:
       - announce

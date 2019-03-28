@@ -47,6 +47,7 @@ paths:
           description: Success
           headers:
             ETag:
+              type: string
               description: Different values indicate that the content has changed
         default:
           description: Error

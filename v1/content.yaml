@@ -36,8 +36,8 @@ paths:
             $ref: '#/definitions/problem'
       x-monitor: false
 
-  /title/{title}{/revision}:
-    get:
+  /title/{title}:
+    get: &title_title_get_spec
       tags:
         - Page content
       summary: Get revision metadata for a title.
@@ -55,11 +55,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: The revision id
-          type: integer
-          required: false
       responses:
         '200':
           description: The latest revision metadata for the provided title.
@@ -116,6 +111,21 @@ paths:
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
                   page_language: 'en'
+
+  /title/{title}/{revision}:
+    get:
+      <<: *title_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: true
 
   /html/{title}:
     x-route-filters:
@@ -401,8 +411,8 @@ paths:
                 page: '{{page}}'
       x-monitor: false
 
-  /html/{title}/{revision}{/tid}:
-    x-route-filters:
+  /html/{title}/{revision}:
+    x-route-filters: &html_title_revision_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -411,7 +421,7 @@ paths:
         options:
           allowInlineStyles: true
       - path: lib/content_negotiation_filter.js
-    get:
+    get: &html_title_revision_get_spec
       x-route-filters:
         - path: lib/ensure_content_type.js
         - path: ./lib/language_variants_filter.js
@@ -436,10 +446,6 @@ paths:
           description: The revision
           type: integer
           required: true
-        - name: tid
-          in: path
-          description: The revision's time ID
-          type: string
         - name: sections
           in: query
           description: Comma-separated list of section IDs
@@ -474,12 +480,6 @@ paths:
             can be converted back to wikitext using the
             [/transform/html/to/wikitext{/title}{/revision}](#!/Transforms/transform_html_to_wikitext__title___revision__post)
             entry point.
-          schema:
-            oneOf:
-              - type: string
-              - type: object
-                patternProperties:
-                  '^mw\w+$': string
           headers:
             ETag:
               description: |
@@ -535,6 +535,49 @@ paths:
               query:
                 sections: '{{sections}}'
       x-monitor: false
+
+  /html/{title}/{revision}/{tid}:
+    x-route-filters: 
+      <<: *html_title_revision_filters
+    get: 
+      <<: *html_title_revision_get_spec
+      operationId: getFormatRevision2
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: integer
+          required: true
+        - name: tid
+          in: path
+          description: The revision's time ID
+          type: string
+          required: true
+        - name: sections
+          in: query
+          description: Comma-separated list of section IDs
+          type: string
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
 
   /data-parsoid/{title}/{revision}/{tid}:
     x-route-filters:
@@ -638,13 +681,13 @@ paths:
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
       x-monitor: false
 
-  /lint/{title}{/revision}:
-    x-route-filters:
+  /lint/{title}:
+    x-route-filters: &lint_title_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/security_response_header_filter.js
-    get:
+    get: &lint_title_get_spec
       tags:
         - Page content
       summary: Get the linter errors for a specific title/revision.
@@ -659,11 +702,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: The revision
-          type: integer
-          required: false
       responses:
         '200':
           description: |
@@ -671,9 +709,6 @@ paths:
 
             See [the Linter extension docs](https://www.mediawiki.org/wiki/Extension:Linter) for more
             details.
-          schema:
-            - type: object
-          headers:
         '301':
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
@@ -711,6 +746,23 @@ paths:
             request:
               uri: /{domain}/sys/parsoid/lint/{title}{/revision}
       x-monitor: false
+
+  /lint/{title}/{revision}:
+    x-route-filters: 
+      <<: *lint_title_filters
+    get: 
+      <<: *lint_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: integer
+          required: true
 
   /wikitext/{title}:
     post:
@@ -864,6 +916,7 @@ definitions:
         $ref: '#/definitions/revisionInfo'
 
   revisionInfo:
+    type: object
     description: Complete information about the revision
     properties:
       title:

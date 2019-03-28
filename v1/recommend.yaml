@@ -10,8 +10,8 @@ tags:
   - name: Recommendation
     description: article translation recommendations
 paths:
-  /recommendation/article/creation/translation/{from_lang}{/seed_article}:
-    get:
+  /recommendation/article/creation/translation/{from_lang}:
+    get: &recommendation_article_creation_translation_from-lang_get_spec
       tags:
         - Recommendation
       summary: Recommend articles for translation.
@@ -31,11 +31,6 @@ paths:
           description: The source language code
           type: string
           required: true
-        - name: seed_article
-          in: path
-          description: The article to use as a search seed
-          type: string
-          required: false
         - name: count
           in: query
           description: The max number of articles to return
@@ -56,6 +51,28 @@ paths:
             request:
               uri: '{{options.host}}/{domain}/v1/article/creation/translation/{from_lang}/{default(seed_article,"")}'
       x-monitor: false
+
+/recommendation/article/creation/translation/{from_lang}/{seed_article}:
+  get:
+    <<:  *recommendation_article_creation_translation_from-lang_get_spec
+    parameters:
+      - name: from_lang
+        in: path
+        description: The source language code
+        type: string
+        required: true
+      - name: seed_article
+        in: path
+        description: The article to use as a search seed
+        type: string
+        required: true
+      - name: count
+        in: query
+        description: The max number of articles to return
+        type: integer
+        required: false
+        default: 24
+
   /recommendation/article/creation/morelike/{seed_article}:
     x-route-filters:
       - path: ./lib/access_check_filter.js
