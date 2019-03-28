@@ -1,0 +1,14 @@
+kind: pipeline
+name: node6
+services:
+  - name: cassandra
+    image: cassandra:3.11.2
+steps:
+  - name: test_node_6
+    image: node:6
+    environment:
+      CASSANDRA_HOST: cassandra
+    commands:
+      - npm install
+      - apt-get update && apt-get install -qy netcat
+      - sh test/utils/run_tests.sh coverage all && (npm run-script coveralls || exit 0)

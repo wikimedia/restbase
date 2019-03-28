@@ -3,13 +3,14 @@
 mod_dir=$( cd "$( dirname "$0" )"/../.. && pwd )/node_modules
 mocha="$mod_dir"/mocha/bin/mocha
 nyc="$mod_dir"/.bin/nyc
+CASSANDRA_HOST=${CASSANDRA_HOST:-localhost}
 
 runTest ( ) {
     if [ "$1" = "cassandra" ]; then
         echo "Running with Cassandra backend"
-        if [ `nc -z localhost 9042 < /dev/null; echo $?` != 0 ]; then
+        if [ `nc -z ${CASSANDRA_HOST} 9042 < /dev/null; echo $?` != 0 ]; then
           echo "Waiting for Cassandra to start..."
-          while [ `nc -z localhost 9042; echo $?` != 0 ]; do
+          while [ `nc -z ${CASSANDRA_HOST} 9042; echo $?` != 0 ]; do
             sleep 1
           done
           echo "Cassandra is ready."
