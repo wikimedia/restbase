@@ -1,0 +1,153 @@
+# RESTBase wikimedia example config
+
+# Load some project templates. These are referenced / shared between domains
+# in the root_spec further down.
+default_project: &default_project
+  x-modules:
+    - spec:
+        paths:
+          /{api:sys}:
+            x-modules:
+              - spec:
+                  paths:
+                    /table: &sys_table
+                      x-modules:
+                        - path: sys/table.js
+                          options:
+                            conf:
+                              backend: '{env(RB_TEST_BACKEND, sqlite)}'
+                              hosts: [localhost]
+                              keyspace: system
+                              username: cassandra
+                              password: cassandra
+                              defaultConsistency: one # or 'localQuorum' for production
+                              storage_groups:
+                                - name: default.group.local
+                                  domains: /./
+                    /parsoid_bucket:
+                      x-modules:
+                        - path: sys/multi_content_bucket.js
+                          options:
+                            grace_ttl: 1
+                            index_ttl: 864000
+                            renew_expiring: true
+                            delete_probability: 1
+                            table_name_prefix: parsoid_ng
+                            main_content_type:
+                              name: html
+                              value_type: blob
+                            dependent_content_types:
+                              - name: data-parsoid
+                                value_type: json
+                    /mobile_bucket:
+                      x-modules:
+                        - path: sys/multi_content_bucket.js
+                          options:
+                            grace_ttl: 1
+                            delete_probability: 1
+                            table_name_prefix: mobile_ng
+                            main_content_type:
+                              name: lead
+                              value_type: json
+                            dependent_content_types:
+                              - name: remaining
+                                value_type: json
+                    /key_value: &sys_key_value
+                      x-modules:
+                        - path: sys/key_value.js
+                    /key_rev_value:
+                      x-modules:
+                        - path: sys/key_rev_value.js
+                    /page_revisions:
+                      x-modules:
+                        - path: sys/page_revisions.js
+
+# The root of the spec tree. Domains tend to share specs by referencing them
+# using YAML references.
+spec_root: &spec_root
+  title: "The RESTBase root"
+  x-request-filters:
+    - path: lib/security_response_header_filter.js
+    - path: lib/normalize_headers_filter.js
+  x-sub-request-filters:
+    - type: default
+      name: http
+      options:
+        allow:
+          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+            forward_headers: true
+          - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
+            forward_headers: true
+          - pattern: /^https?:\/\//
+  paths:
+    /{domain:en.wikipedia.org}: *default_project
+    /{domain:ru.wikipedia.org}: *default_project
+    /{domain:de.wikipedia.org}: *default_project
+    /{domain:es.wikipedia.org}: *default_project
+    /{domain:it.wikipedia.org}: *default_project
+    /{domain:da.wikipedia.org}: *default_project
+    /{domain:sv.wikipedia.org}: *default_project
+
+    # Example for wiktionary
+    /{domain:en.wiktionary.org}: *default_project
+
+    # global domain
+    /{domain:wikimedia.org}: *default_project
+
+    # special case for wikidata
+    /{domain:www.wikidata.org}: *default_project
+
+    # example for non-wikipedia
+    /{domain:en.wikivoyage.beta.wmflabs.org}: *default_project
+
+    # A robots.txt to make sure that the content isn't indexed.
+    /robots.txt:
+      get:
+        x-request-handler:
+          - static:
+              return:
+                status: 200
+                headers:
+                  content-type: text/plain
+                body: |
+                  User-agent: *
+                  Allow: /*/v1/?doc
+                  Disallow: /
+
+# Finally, a standard service-runner config.
+info:
+  name: restbase
+
+services:
+  - name: restbase
+    module: hyperswitch
+    conf:
+      port: 7232
+      spec: *spec_root
+      salt: secret
+      default_page_size: 125
+      user_agent: RESTBase
+      ui_name: RESTBase
+      ui_url: https://www.mediawiki.org/wiki/RESTBase
+      ui_title: RESTBase docs
+
+logging:
+  name: restbase
+  level: warn
+  streams:
+    - type: stdout
+
+#metrics:
+#  type: statsd
+#  host: localhost
+#  port: 8125
+#  batch: true
+
+ratelimiter:
+  type: kademlia
+  # Cluster nodes
+  seeds:
+    # Port 3050 used by default
+    - 127.0.0.1
+
+num_workers: 0
