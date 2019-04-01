@@ -74,10 +74,6 @@ paths:
                         uri: /{domain}/sys/post_data/post.test/{hash}
                 x-monitor: false
 
-            /buckets/key_value:
-              x-modules:
-                - path: sys/key_value.js
-
             /events_no_config:
               x-modules:
                 - path: sys/events.js

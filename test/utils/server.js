@@ -12,8 +12,10 @@ class TestRestbase extends TestRunner {
         if (!this._running) {
             throw new Error('Accessing test service config before starting the service');
         }
-        const hostPort = 'http://localhost:7231';
+        const conf = this._runner._impl.config;
+        const hostPort = `http://localhost:${conf.services[0].conf.port}`;
         const baseURL = (domain = DEFAULT_DOMAIN) => `${hostPort}/${domain}/v1`;
+        const sysURL = (domain = DEFAULT_DOMAIN) => `${hostPort}/${domain}/sys`;
         const bucketURL = (domain) => `${baseURL(domain)}/page`;
         const apiPath = '/w/api.php';
         const apiBase = (domain = DEFAULT_DOMAIN) => `https://${domain}`;
@@ -22,12 +24,13 @@ class TestRestbase extends TestRunner {
             defaultDomain: DEFAULT_DOMAIN,
             hostPort,
             baseURL,
+            sysURL,
             bucketURL,
             apiBase,
             apiPath,
             apiURL,
             parsoidURI: 'https://parsoid-beta.wmflabs.org',
-            conf: this._runner._impl.config
+            conf
         }
     }
 }
