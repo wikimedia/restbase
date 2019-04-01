@@ -18,12 +18,13 @@ describe('Key value buckets', () => {
     }
 
     function runTests(bucketName) {
-        const server = new Server();
+        const server = new Server(`${__dirname}/../../../config.example.storage.wikimedia.yaml`);
         let bucketBaseURI;
         before(() => server.start()
         .then(() => {
             bucketBaseURI =
-                `${server.config.baseURL()}/buckets/${bucketName}/${bucketName}TestingBucket`;
+                `${server.config.sysURL()}/${bucketName}/${bucketName}TestingBucket`;
+            console.log(bucketBaseURI);
             return preq.put({ uri: bucketBaseURI} );
         }));
         after(() => server.stop());
