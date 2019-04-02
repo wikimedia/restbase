@@ -51,7 +51,10 @@ function constructTests(spec, options, server) {
 
                 ret.push(constructTestCase(
                     ex.title,
-                    uri.toString({ params: ex.request.params }),
+                    uri.toString({
+                        params: ex.request.params,
+                        format: 'simplePattern'
+                    }),
                     method,
                     ex.request,
                     ex.response || {}
@@ -180,6 +183,12 @@ describe('Monitoring tests', function() {
                 parallel(`Monitoring routes, ${options.domain} domain`, () => {
                     constructTests(spec, options, server).forEach((testCase) => {
                         it(testCase.title, () => {
+                            const missingParam = /\/{(.+)}/.exec(testCase.request.uri);
+                            if (missingParam) {
+                                throw new assert.AssertionError({
+                                    message: `Incorrect test spec, missing '${missingParam[1]}'`
+                                });
+                            }
                             return preq(testCase.request)
                             .then((res) => {
                                 validateTestResponse(testCase, res);

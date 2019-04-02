@@ -126,6 +126,7 @@ paths:
           description: The revision id
           type: integer
           required: true
+      x-monitor: false
 
   /html/{title}:
     x-route-filters:
@@ -537,9 +538,9 @@ paths:
       x-monitor: false
 
   /html/{title}/{revision}/{tid}:
-    x-route-filters: 
+    x-route-filters:
       <<: *html_title_revision_filters
-    get: 
+    get:
       <<: *html_title_revision_get_spec
       operationId: getFormatRevision2
       parameters:
@@ -748,9 +749,9 @@ paths:
       x-monitor: false
 
   /lint/{title}/{revision}:
-    x-route-filters: 
+    x-route-filters:
       <<: *lint_title_filters
-    get: 
+    get:
       <<: *lint_title_get_spec
       parameters:
         - name: title

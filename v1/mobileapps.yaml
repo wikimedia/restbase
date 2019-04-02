@@ -142,6 +142,7 @@ paths:
             Example: `sr-el` for Latin transcription of the Serbian language.
           required: false
           type: string
+      x-monitor: false
 
   /mobile-sections-lead/{title}:
     x-route-filters: &mobile-sections-lead_title_filters
