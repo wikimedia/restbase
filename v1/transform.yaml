@@ -102,7 +102,7 @@ paths:
       x-monitor: false
 
   /html/to/wikitext/{title}:
-    post: 
+    post:
       <<: *html_to_wikitext_post_spec
       parameters:
         - name: title
@@ -161,7 +161,7 @@ paths:
             Required if both `title` and `revision` parameters are present.
           type: string
           required: false
-    
+
   /wikitext/to/html:
     post: &wikitext_to_html_post_spec
       tags:
@@ -237,21 +237,7 @@ paths:
                 wikitext: '{{wikitext}}'
                 body_only: '{{body_only}}'
                 stash: '{{stash}}'
-      x-monitor: true
-      x-amples:
-        - title: Transform wikitext to html
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
-            body:
-              wikitext: == Heading ==
-              body_only: true
-          response:
-            status: 200
-            headers:
-              content-type: /^text\/html.+/
-            body: /^<h2.*>Heading<\/h2>$/
+      x-monitor: false
 
   /wikitext/to/html/{title}:
     post:
@@ -278,6 +264,21 @@ paths:
           description: Whether to temporarily stash the result of the transformation
           type: boolean
           required: false
+      x-monitor: true
+      x-amples:
+        - title: Transform wikitext to html
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+            body:
+              wikitext: == Heading ==
+              body_only: true
+          response:
+            status: 200
+            headers:
+              content-type: /^text\/html.+/
+            body: /^<h2.*>Heading<\/h2>$/
 
   /wikitext/to/html/{title}/{revision}:
     post:
@@ -309,7 +310,7 @@ paths:
           description: Whether to temporarily stash the result of the transformation
           type: boolean
           required: false
-    
+
   /wikitext/to/lint:
     post: &wikitext_to_lint_post_spec
       tags:
@@ -407,7 +408,7 @@ paths:
           type: string
           required: true
           x-textarea: true
-      
+
 # Keeping this in, as we'll re-introduce a html2html end point later.
 #  /html/to/html{/title}{/revision}:
 #    post:
