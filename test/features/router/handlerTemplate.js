@@ -15,17 +15,12 @@ describe('handler template', function() {
         assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
     }
 
-    let slice;
-
     it('retrieve content from backend service', () => {
-        let tid1;
-        let tid2;
         return preq.get({
             uri: `${server.config.baseURL()}/service/test/User:GWicke%2fDate`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            tid1 = res.headers.etag;
             hasTextContentType(res);
 
             // Delay for 1s to make sure that the content differs on
@@ -40,9 +35,6 @@ describe('handler template', function() {
             });
         })
         .then((res) => {
-            tid2 = res.headers.etag;
-            assert.notDeepEqual(tid2, tid1);
-            assert.notDeepEqual(tid2, undefined);
             hasTextContentType(res);
             assert.remoteRequests(true);
             assert.cleanupRecorder();
@@ -56,12 +48,9 @@ describe('handler template', function() {
             });
         })
         .then((res) => {
-            const tid3 = res.headers.etag;
-            assert.deepEqual(tid3, tid2);
-            assert.notDeepEqual(tid3, undefined);
             // Check that there were no remote requests
             assert.remoteRequests(false);
             hasTextContentType(res);
-        });
+        }).tapCatch(console.log);
     });
 });

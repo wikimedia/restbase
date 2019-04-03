@@ -193,6 +193,7 @@ describe('Monitoring tests', function() {
                             .then((res) => {
                                 validateTestResponse(testCase, res);
                             }, (err) => {
+                                console.log(err);
                                 validateTestResponse(testCase, err);
                             });
                         });
