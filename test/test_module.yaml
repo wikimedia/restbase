@@ -39,9 +39,7 @@ paths:
                   - return_response:
                       return:
                         status: '{{get_from_api.status}}'
-                        headers:
-                          'content-type': '{{get_from_api.headers.content-type}}'
-                          'etag': '{{store.headers.etag}}'
+                        headers: '{{get_from_api.headers}}'
                         body: '{{get_from_api.body}}'
 
                 x-monitor: false

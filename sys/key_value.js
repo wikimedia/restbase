@@ -4,7 +4,6 @@
  * Key-value bucket handler
  */
 
-const uuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
 const stringify = require('fast-json-stable-stringify');
@@ -19,15 +18,9 @@ function returnRevision(req) {
     return (dbResult) => {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
-            let headers = {
-                etag: row.headers.etag || mwUtil.makeETag('0', row.tid)
-            };
-            if (row.headers) {
-                headers = Object.assign(headers, row.headers);
-            }
             return {
                 status: 200,
-                headers,
+                headers: row.headers,
                 body: row.value
             };
         } else {
@@ -56,7 +49,7 @@ class KVBucket {
     }
 
     makeSchema(opts) {
-        const schemaVersionMajor = 5;
+        const schemaVersionMajor = 6;
 
         return {
             // Combine option & bucket version into a monotonically increasing
@@ -76,7 +69,6 @@ class KVBucket {
             },
             attributes: {
                 key: opts.keyType || 'string',
-                tid: 'timeuuid',
                 headers: 'json',
                 value: opts.valueType || 'blob'
             },
@@ -88,7 +80,13 @@ class KVBucket {
 
     getRevision(hyper, req) {
         if (mwUtil.isNoCacheRequest(req)) {
-            throw new HTTPError({ status: 404 });
+            throw new HTTPError({
+                status: 404,
+                body: {
+                    type: 'not_found',
+                    description: 'Not attempting to fetch content for no-cache request'
+                }
+            });
         }
 
         const rp = req.params;
@@ -98,8 +96,7 @@ class KVBucket {
                 table: rp.bucket,
                 attributes: {
                     key: rp.key
-                },
-                limit: 1
+                }
             }
         };
         return hyper.get(storeReq).then(returnRevision(req));
@@ -114,7 +111,6 @@ class KVBucket {
                 attributes: {
                     key: req.params.key
                 },
-                proj: ['tid'],
                 limit: 1000
             }
         };
@@ -132,20 +128,8 @@ class KVBucket {
 
     putRevision(hyper, req) {
         const rp = req.params;
-        let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value');
-
-        if (!tid) {
-            tid = (mwUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
-            tid = tid || uuid.now().toString();
-        }
-
         if (mwUtil.isNoStoreRequest(req)) {
-            return {
-                status: 202,
-                headers: {
-                    etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
-                }
-            };
+            return { status: 202 };
         }
 
         const doPut = () => hyper.put({
@@ -154,7 +138,6 @@ class KVBucket {
                 table: rp.bucket,
                 attributes: {
                     key: rp.key,
-                    tid,
                     value: req.body,
                     headers: req.headers
                 }
@@ -164,22 +147,15 @@ class KVBucket {
             if (res.status === 201) {
                 return {
                     status: 201,
-                    headers: {
-                        etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
-                    },
                     body: {
-                        message: 'Created.',
-                        tid
+                        message: 'Created.'
                     }
                 };
             } else {
                 throw res;
             }
         })
-        .catch((error) => {
-            hyper.logger.log('error/kv/putRevision', error);
-            return { status: 400 };
-        });
+        .tapCatch((error) => hyper.logger.log('error/kv/putRevision', error));
 
         if (req.headers['if-none-hash-match']) {
             delete req.headers['if-none-hash-match'];
@@ -191,14 +167,15 @@ class KVBucket {
                         (!req.headers['content-type'] ||
                         req.headers['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
-                    return {
+                    throw new HTTPError({
                         status: 412,
-                        headers: {
-                            etag: oldContent.headers.etag
+                        body: {
+                            type: 'precondition_failed',
+                            description: 'Not replacing existing content'
                         }
-                    };
+                    });
                 }
-                throw new HTTPError({ status: 404 });
+                return doPut();
             })
             .catch({ status: 404 }, doPut);
         } else {

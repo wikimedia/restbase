@@ -4,6 +4,7 @@ const preq   = require('preq');
 const assert = require('../../utils/assert.js');
 const Server = require('../../utils/server.js');
 const uuid = require('cassandra-uuid').TimeUuid;
+const mwUtils = require('../../../lib/mwUtil');
 const P = require('bluebird');
 const parallel = require('mocha.parallel');
 
@@ -46,10 +47,14 @@ describe('Key value buckets', () => {
             });
         });
 
-        it('assigns etag to a value', () => {
+        it('preserves headers', () => {
             const testData = randomString(100);
+            const testEtag = mwUtils.makeETag();
             return preq.put({
                 uri: `${bucketBaseURI}/Test3`,
+                headers: {
+                    etag: testEtag
+                },
                 body: new Buffer(testData)
             })
             .then((res) => {
@@ -60,7 +65,7 @@ describe('Key value buckets', () => {
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
-                assert.ok(res.headers.etag);
+                assert.deepEqual(res.headers.etag, testEtag);
                 assert.ok(new RegExp('^"0\/').test(res.headers.etag), true);
             });
         });

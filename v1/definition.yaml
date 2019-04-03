@@ -115,17 +115,20 @@ paths:
         - extract:
             request:
               method: get
-              uri: '{{$$.options.host}}/{domain}/v1/page/definition/{term}'
+              uri: '{{options.host}}/{domain}/v1/page/definition/{term}'
             response:
-              # Define the response to save & return.
-              headers:
-                content-type: '{{extract.headers.content-type}}'
+              status: '{{extract.status}}'
+              headers: '{{extract.headers}}'
               body: '{{extract.body}}'
         - store:
             request:
               method: put
-              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
-              headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
+              uri: /{domain}/sys/key_value/term.definition-ng/{term}
+              headers:
+                content-type: '{{extract.headers.content-type}}'
+                etag: '{{extract.headers.etag}}'
+                content-language: '{{extract.headers.content-language}}'
+                if-none-hash-match: '*'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
             # if the content is not changed. In that case, return from the
@@ -138,7 +141,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store.headers.etag}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
         - emit_change_event:
@@ -152,7 +155,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store.headers.etag}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
               body: '{{extract.body}}'
 

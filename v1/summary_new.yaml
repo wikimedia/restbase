@@ -135,7 +135,13 @@ paths:
             request:
               method: put
               uri: /{domain}/sys/key_value/page_summary/{request.params.title}
-              headers: '{{merge({"if-none-hash-match": "*", "cache-control": request.headers.cache-control}, extract.headers)}}'
+              headers:
+                content-type: '{{extract.headers.content-type}}'
+                cache-control: '{{request.headers.cache-control}}'
+                etag: '{{extract.headers.etag}}'
+                content-language: '{{extract.headers.content-language}}'
+                vary: '{{extract.headers.vary}}'
+                if-none-hash-match: '*'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
             # if the content is not changed. In that case, return from the
@@ -149,7 +155,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
                 content-language: '{{extract.headers.content-language}}'
                 vary: '{{extract.headers.vary}}'
@@ -165,7 +171,7 @@ paths:
               status: 200
               headers:
                 content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
                 content-language: '{{extract.headers.content-language}}'
                 vary: '{{extract.headers.vary}}'
