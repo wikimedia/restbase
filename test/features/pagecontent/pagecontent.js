@@ -1,174 +1,266 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
-
-var assert = require('../../utils/assert.js');
-var preq   = require('preq');
-var server = require('../../utils/server.js');
-var P      = require('bluebird');
-var pagingToken = '';
+const assert = require('../../utils/assert.js');
+const preq = require('preq');
+const Server = require('../../utils/server.js');
+const P = require('bluebird');
+const mwUtils = require('../../../lib/mwUtil');
 
 describe('item requests', function() {
     this.timeout(20000);
+    let pagingToken = '';
+    let contentTypes;
 
-    before(function () { return server.start(); });
+    const server = new Server();
+    before(() => server.start()
+    .then(() => {
+        contentTypes = server.config.conf.test.content_types;
+    }));
+    after(() => server.stop());
 
-    var contentTypes = server.config.conf.test.content_types;
+    const deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
+    const deniedRev = '645504917';
 
-    it('should respond to OPTIONS request with CORS headers', function() {
-        return preq.options({ uri: server.config.bucketURL + '/html/Foobar/624484477' })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['access-control-allow-origin'], '*');
-            assert.deepEqual(res.headers['access-control-allow-methods'], 'GET');
-            assert.deepEqual(res.headers['access-control-allow-headers'], 'accept, content-type, cache-control, ' +
-                'accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding');
-            assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
+    function contentURI(format) {
+        return [server.config.bucketURL(), format, deniedTitle, deniedRev].join('/');
+    }
+    const assertCORS = (res) => {
+        assert.deepEqual(res.headers['access-control-allow-origin'], '*');
+        assert.deepEqual(res.headers['access-control-allow-methods'], 'GET,HEAD');
+        assert.deepEqual(res.headers['access-control-allow-headers'],
+            'accept, content-type, content-length, cache-control, '
+            + 'accept-language, api-user-agent, if-match, if-modified-since, '
+            + 'if-none-match, dnt, accept-encoding');
+        assert.deepEqual(res.headers['access-control-expose-headers'], 'etag');
+        assert.deepEqual(res.headers['referrer-policy'], 'origin-when-cross-origin');
+    };
+    const createTest = (method) => {
+        it(`should respond to ${method} request with CORS headers`, () => {
+            return preq[method]({ uri: `${server.config.bucketURL()}/html/Foobar/624484477` })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assertCORS(res);
+            });
+        });
+    };
+    createTest('options');
+    createTest('get');
+    it(`should respond to GET request with CORS headers, 404`, () => {
+        return preq.get({ uri: `${server.config.bucketURL()}/html/This_page_is_likely_does_not_exist` })
+        .catch((res) => {
+            assert.deepEqual(res.status, 404);
+            assertCORS(res);
         });
     });
-    it('should transparently create a new HTML revision for Main_Page', function() {
+
+    it('should transparently create a new HTML revision for Main_Page', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Main_Page',
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: server.config.labsBucketURL + '/html/Main_Page/'
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/`
             });
         })
-        .then(function(res) {
+        .then((res) => {
             if (res.body.items.length !== 1) {
                 throw new Error('Expected a single revision for Main_Page');
             }
         });
     });
-    it('should transparently create a new HTML revision with id 252937', function() {
+    it('should transparently create a new HTML revision with id 252937', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Foobar/252937',
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/252937`,
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
 
-    var rev2Etag;
-    it('should transparently create data-parsoid with id 241155, rev 2', function() {
+    it('should request page lints. no revision', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Foobar/241155'
+            uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.length > 0, true);
+        });
+    });
+
+    it('should request page lints. with revision', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest/830278619`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.body.length > 0, true);
+        });
+    });
+
+    let rev2Etag;
+    it('should transparently create data-parsoid with id 241155, rev 2', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             rev2Etag = res.headers.etag.replace(/^"(.*)"$/, '$1');
         });
     });
 
-    it('should return HTML and data-parsoid just created by revision 241155', function() {
+    it('should return HTML and data-parsoid just created by revision 241155', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Foobar/241155'
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: server.config.labsBucketURL + '/data-parsoid/Foobar/'
-                    + res.headers.etag.replace(/^"(.*)"$/, '$1')
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${
+                    res.headers.etag.replace(/^"(.*)"$/, '$1')}`
             });
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes['data-parsoid']);
         });
     });
 
-    it('should return data-parsoid just created with revision 252937, rev 2', function() {
+    it('should return data-parsoid just created with revision 252937, rev 2', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/data-parsoid/Foobar/' + rev2Etag
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${rev2Etag}`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes['data-parsoid']);
         });
     });
 
-    it('should return sections of Main_Page', function() {
+    it('should return sections of Main_Page, with revision', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Main_Page/262492',
-            query: {
-                sections: 'mp-sister,mp-lang'
-            },
-            headers: {
-                'cache-control': 'no-cache'
-            }
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/262492`
         })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            var body = res.body;
-            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
-                    || !body['mp-lang']) {
-                throw new Error('Missing section content!');
-            }
+        .then((res) => {
+            const tid = mwUtils.parseETag(res.headers.etag).tid;
             return preq.get({
-                uri: server.config.labsBucketURL + '/html/Main_Page',
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Main_Page/262492/${tid}`
+            });
+        })
+        .then((res) => {
+            const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/262492`,
                 query: {
-                    sections: 'mp-sister'
-                },
+                    sections: ids.join(',')
+                }
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.deepEqual(res.headers['cache-control'], 'no-cache');
+                const body = res.body;
+                ids.forEach((id) => {
+                    if (!body[id] || typeof body[id] !== 'string') {
+                        throw new Error(`Missing section content for id ${id}!`);
+                    }
+                });
+            });
+        });
+    });
+
+    it('should return sections of Main_Page, no revision', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
+        })
+        .then((res) => {
+            const tid = mwUtils.parseETag(res.headers.etag).tid;
+            const rev = mwUtils.parseETag(res.headers.etag).rev;
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Main_Page/${rev}/${tid}`
             });
         })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            var body = res.body;
-            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string') {
-                throw new Error('Missing section content!');
-            }
+        .then((res) => {
+            const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
+                query: {
+                    sections: ids.join(',')
+                }
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.deepEqual(res.headers['cache-control'], 'no-cache');
+                const body = res.body;
+                ids.forEach((id) => {
+                    if (!body[id] || typeof body[id] !== 'string') {
+                        throw new Error(`Missing section content for id ${id}!`);
+                    }
+                });
+            });
         });
     });
 
-    it('should get sections of Main_Page with no-cache and unchanged render', function() {
+    it('should get sections of Main_Page with no-cache and unchanged render', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Main_Page',
-            query: {
-                sections: 'mp-sister,mp-lang'
-            },
-            headers: {
-                'cache-control': 'no-cache'
-            }
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
         })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            var body = res.body;
-            if (!body['mp-sister'] || typeof body['mp-sister'] !== 'string'
-            || !body['mp-lang']) {
-                throw new Error('Missing section content!');
-            }
+        .then((res) => {
+            const tid = mwUtils.parseETag(res.headers.etag).tid;
+            const rev = mwUtils.parseETag(res.headers.etag).rev;
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Main_Page/${rev}/${tid}`
+            });
+        })
+        .then((res) => {
+            const ids = Object.keys(res.body.sectionOffsets).slice(0, 2);
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
+                query: {
+                    sections: ids.join(',')
+                },
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.contentType(res, 'application/json');
+                assert.deepEqual(res.headers['cache-control'], 'no-cache');
+                const body = res.body;
+                ids.forEach((id) => {
+                    if (!body[id] || typeof body[id] !== 'string') {
+                        throw new Error(`Missing section content for id ${id}!`);
+                    }
+                });
+            });
         });
     });
 
-    it('section retrieval: error handling', function() {
+    it('section retrieval: error handling', () => {
         return preq.get({
-            uri: server.config.labsBucketURL + '/html/Main_Page/262492',
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/262492`,
             query: {
                 sections: 'somethingThatDoesNotExist'
             },
         })
-        .then(function(res) {
+        .then((res) => {
             throw new Error('Request should return status 400');
-        }, function(res) {
+        }, (res) => {
             assert.deepEqual(res.status, 400);
         });
     });
 
-    it('should list APIs using the generic listing handler', function() {
+    it('should list APIs using the generic listing handler', () => {
         return preq.get({
-            uri: server.config.hostPort + '/en.wikipedia.org/'
+            uri: `${server.config.hostPort}/en.wikipedia.org/`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.body, {
@@ -177,70 +269,70 @@ describe('item requests', function() {
         });
     });
 
-    it('should retrieve the spec', function() {
+    it('should retrieve the spec', () => {
         return preq.get({
-            uri: server.config.baseURL + '/?spec'
+            uri: `${server.config.baseURL()}/?spec`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.body.swagger, '2.0');
         });
     });
 
-    it('should retrieve the swagger-ui main page', function() {
+    it('should retrieve the swagger-ui main page', () => {
         return preq.get({
-            uri: server.config.baseURL + '/',
+            uri: `${server.config.baseURL()}/`,
             headers: { accept: 'text/html' }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'text/html');
             assert.deepEqual(/<html/.exec(res.body)[0], '<html');
         });
     });
 
-    it('should retrieve all dependencies of the swagger-ui main page', function() {
-        return preq.get({ uri: server.config.baseURL + '/?doc' })
-        .then(function(res) {
-            var assertions = [];
-            var linkRegex = /<link\s[^>]*href=["']([^"']+)["']/g;
-            var scriptRegex =  /<script\s[^>]*src=["']([^"']+)["']/g;
-            var match;
+    it('should retrieve all dependencies of the swagger-ui main page', () => {
+        return preq.get({ uri: `${server.config.baseURL()}/?doc` })
+        .then((res) => {
+            const assertions = [];
+            const linkRegex = /<link\s[^>]*href=["']([^"']+)["']/g;
+            const scriptRegex =  /<script\s[^>]*src=["']([^"']+)["']/g;
+            let match;
             while (match = linkRegex.exec(res.body)) {
                 assertions.push(match[1]);
             }
             while (match = scriptRegex.exec(res.body)) {
                 assertions.push(match[1]);
             }
-            return P.all(assertions.map(function(path) {
-                return preq.get({ uri: server.config.baseURL + '/' + path })
-                .then(function(res) {
+            return P.all(assertions.map((path) => {
+                return preq.get({ uri: `${server.config.baseURL}/${path}` })
+                .then((res) => {
                     assert.deepEqual(res.status, 200);
                 });
             }));
         });
     });
 
-    it('should retrieve domain listing in html', function() {
+    it('should retrieve domain listing in html', () => {
         return preq.get({
-            uri: server.config.hostPort + '/',
+            uri: `${server.config.hostPort}/`,
             headers: {
                 accept: 'text/html'
             }
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'text/html');
             assert.deepEqual(/<html/.exec(res.body)[0], '<html');
         });
     });
 
-    it('should list page titles', function() {
+    it('should list page titles', () => {
         return preq.get({
-            uri: server.config.bucketURL + '/title/'
+            uri: `${server.config.bucketURL()}/title/`
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             if (!res.body.items || !res.body.items.length) {
@@ -250,15 +342,15 @@ describe('item requests', function() {
                 throw new Error("Expected the first titles to start with !");
             }
             pagingToken = res.body._links.next.href;
-       });
+        });
     });
 
 
-    it('should list another set of page titles using pagination', function() {
+    it('should list another set of page titles using pagination', () => {
         return preq.get({
-            uri: server.config.bucketURL + '/title/' + pagingToken,
+            uri: `${server.config.bucketURL()}/title/${pagingToken}`,
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             if (!res.body.items || !res.body.items.length) {
@@ -267,89 +359,42 @@ describe('item requests', function() {
         });
     });
 
-    it('should list revisions for a title', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/title/Foobar/'
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [252937]);
-            pagingToken = res.body._links.next.href;
-        });
-    });
-
-    it('should list next set of revisions for a title using pagination', function() {
-        return preq.get({
-            uri: server.config.labsBucketURL + '/title/Foobar/' + pagingToken
-        })
-        .then(function(res) {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, 'application/json');
-            assert.deepEqual(res.body.items, [241155]);
-        });
-    });
-    //it('should return a new wikitext revision using proxy handler with id 624165266', function() {
-    //    this.timeout(20000);
-    //    return preq.get({
-    //        uri: server.config.baseURL + '/test/Foobar/wikitext/624165266'
-    //    })
-    //    .then(function(res) {
-    //        assert.deepEqual(res.status, 200);
-    //    });
-    //});
-});
-
-describe('page content access', function() {
-
-    var deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
-    var deniedRev = '645504917';
-
-    this.timeout(30000);
-
-    function contentURI(format) {
-        return [server.config.bucketURL, format, deniedTitle, deniedRev].join('/');
-    }
-
-    it('should deny access to the HTML of a restricted revision', function() {
-        return preq.get({ uri: contentURI('html') }).then(function(res) {
-            throw new Error('Expected status 403, but gotten ' + res.status);
-        }, function(res) {
+    it('should deny access to the HTML of a restricted revision', () => {
+        return preq.get({ uri: contentURI('html') }).then((res) => {
+            throw new Error(`Expected status 403, but gotten ${res.status}`);
+        }, (res) => {
             assert.deepEqual(res.status, 403);
         });
     });
 
-    it('should deny access to the same HTML even after re-fetching it', function() {
+    it('should deny access to the same HTML even after re-fetching it', () => {
         return preq.get({
             uri: contentURI('html'),
             headers: { 'cache-control': 'no-cache' }
-        }).then(function(res) {
-            throw new Error('Expected status 403, but gotten ' + res.status);
-        }, function(res) {
+        }).then((res) => {
+            throw new Error(`Expected status 403, but gotten ${res.status}`);
+        }, (res) => {
             assert.deepEqual(res.status, 403);
         });
     });
 
-    it('Should throw error for invalid title access', function() {
+    it('Should throw error for invalid title access', () => {
         return preq.get({
-            uri: server.config.bucketURL + '/html/[asdf]'
+            uri: `${server.config.bucketURL()}/html/[asdf]`
         })
-        .then(function() {
-            throw new Error('Error should be thrown')
-        }, function(e) {
+        .then(() => {
+            throw new Error('Error should be thrown');
+        }, (e) => {
             assert.deepEqual(e.status, 400);
             assert.deepEqual(e.body.detail, 'title-invalid-characters');
         });
     });
-});
 
-describe('page content hierarchy', function() {
-    this.timeout(20000);
-    it('should list available properties', function() {
+    it('should list available properties', () => {
         return preq.get({
-            uri: server.config.bucketURL + '/',
+            uri: `${server.config.bucketURL()}/`,
         })
-        .then(function(res) {
+        .then((res) => {
             assert.deepEqual(res.status, 200);
             if (!res.body.items || res.body.items.indexOf('html') === -1) {
                 throw new Error('Expected property listing that includes "html"');

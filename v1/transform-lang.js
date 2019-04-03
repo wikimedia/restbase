@@ -1,11 +1,9 @@
 'use strict';
 
-
 const HyperSwitch = require('hyperswitch');
 const mwUtil = require('../lib/mwUtil');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/transform-lang.yaml`);
-
 
 class TransformLang {
     constructor(options) {
@@ -46,14 +44,15 @@ class TransformLang {
 
 }
 
-
 module.exports = (options) => {
     const transformLang = new TransformLang(options);
     return {
         spec,
         operations: {
             doMT: transformLang.doMT.bind(transformLang),
-            doDict: transformLang.doDict.bind(transformLang)
+            doMTProvider: transformLang.doMT.bind(transformLang),
+            doDict: transformLang.doDict.bind(transformLang),
+            doDictProvider: transformLang.doDict.bind(transformLang)
         }
     };
 };

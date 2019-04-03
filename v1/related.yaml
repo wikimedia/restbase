@@ -3,7 +3,7 @@ info:
   version: '1.0.0-beta'
   title: MediaWiki Related Pages API
   description: Related pages API
-  termsofservice: https://github.com/wikimedia/restbase#restbase
+  termsOfService: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Services
     email: services@lists.wikimedia.org
@@ -18,13 +18,14 @@ paths:
         - Page content
       summary: Get pages related to the given title
       description: |
-        Returns summaries for 5 pages related to the given page. Summaries include
+        Returns summaries for 20 pages related to the given page. Summaries include
         page title, namespace and id along with short text description of the page
         and a thumbnail.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -54,36 +55,4 @@ definitions:
       pages:
         type: array
         items:
-          type: object
-          properties:
-            pageid:
-              type: integer
-              description: Page ID
-            ns:
-              type: integer
-              description: The page namespace number
-            index:
-              type: integer
-              description: Relevance index of this result
-            title:
-              type: string
-              description: Article title in a form of DB key
-            normalizedtitle:
-              type: string
-              description: Article title as it should be presented to the user
-            thumbnail:
-              description: Lead image for the article
-              $ref: '#/definitions/thumbnail'
-            originalimage:
-              description: The original of the lead image for the article
-              $ref: '#/definitions/originalimage'
-            description:
-              type: string
-              description: Wikidata description of the article
-            extract:
-              type: string
-              description: First several sentences of an article in plain text
-          required:
-            - title
-            - normalizedtitle
-        required: ['title', 'ns']
+          $ref: '#/definitions/summary'

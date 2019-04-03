@@ -1,20 +1,20 @@
-"use strict";
+'use strict';
 
-var dgram  = require('dgram');
-var preq   = require('preq');
-var http   = require('http');
-var uuid   = require('cassandra-uuid').TimeUuid;
+const preq   = require('preq');
+const http   = require('http');
+const uuid   = require('cassandra-uuid').TimeUuid;
 
-var server = require('../../utils/server.js');
-var assert = require('../../utils/assert.js');
+const Server = require('../../utils/server.js');
+const assert = require('../../utils/assert.js');
 
-describe('Change event emitting', function() {
+describe('Change event emitting', () => {
+    const server = new Server();
+    before(() => server.start());
+    after(() => server.stop());
 
-    before(function () { return server.start(); });
-
-    it('should not explode if events config is not provided', function() {
+    it('should not explode if events config is not provided', () => {
         return preq.post({
-            uri: server.config.baseURL + '/events_no_config/',
+            uri: `${server.config.baseURL()}/events_no_config/`,
             body: [
                 { uri: '//en.wikipedia.org' }
             ]
@@ -22,18 +22,18 @@ describe('Change event emitting', function() {
     });
 
     function createEventLogging(done, eventOptions) {
-        var eventLogging = http.createServer(function(request) {
+        const eventLogging = http.createServer((request) => {
             try {
                 assert.deepEqual(request.method, 'POST');
-                var postData;
-                request.on('data', function(data) {
+                let postData;
+                request.on('data', (data) => {
                     postData = postData ? Buffer.concat(postData, data) : data;
                 });
-                request.on('end', function() {
+                request.on('end', () => {
                     try {
-                        var events = JSON.parse(postData.toString());
+                        const events = JSON.parse(postData.toString());
                         assert.deepEqual(events.length, 1);
-                        var event = events[0];
+                        const event = events[0];
                         assert.deepEqual(event.meta.domain, 'en.wikipedia.org');
                         assert.deepEqual(!!new Date(event.meta.dt), true);
                         assert.deepEqual(uuid.test(event.meta.id), true);
@@ -58,14 +58,14 @@ describe('Change event emitting', function() {
         return eventLogging;
     }
 
-    it('should send correct events to the service', function(done) {
-        var eventLogging;
+    it('should send correct events to the service', (done) => {
+        let eventLogging;
 
         function really_done(e) {
             if (eventLogging) {
                 eventLogging.close();
                 eventLogging = undefined;
-                done(e)
+                done(e);
             }
         }
 
@@ -75,7 +75,7 @@ describe('Change event emitting', function() {
         });
 
         preq.post({
-            uri: server.config.baseURL + '/events/',
+            uri: `${server.config.baseURL()}/events/`,
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
@@ -87,24 +87,24 @@ describe('Change event emitting', function() {
                     },
                     tags: ['test']
                 },
-                {meta: {}},
-                {should_not_be: 'here'}
+                { meta: {} },
+                { should_not_be: 'here' }
             ]
         })
-        .delay(10000)
-        .finally(function() {
+        .delay(20000)
+        .finally(() => {
             really_done(new Error('HTTP event server timeout!'));
         });
     });
 
-    it('should send correct events to the service, transcludes', function(done) {
-        var eventLogging;
+    it('should send correct events to the service, transcludes', (done) => {
+        let eventLogging;
 
         function really_done(e) {
             if (eventLogging) {
                 eventLogging.close();
                 eventLogging = undefined;
-                done(e)
+                done(e);
             }
         }
 
@@ -115,7 +115,7 @@ describe('Change event emitting', function() {
         });
 
         preq.post({
-            uri: server.config.baseURL + '/events/',
+            uri: `${server.config.baseURL()}/events/`,
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
@@ -130,20 +130,20 @@ describe('Change event emitting', function() {
                 }
             ]
         })
-        .delay(10000)
-        .finally(function() {
+        .delay(20000)
+        .finally(() => {
             really_done(new Error('HTTP event server timeout!'));
         });
     });
 
-    it('Should skip event if it will cause a loop', function(done) {
-        var eventLogging;
+    it('Should skip event if it will cause a loop', (done) => {
+        let eventLogging;
 
         function really_done(e) {
             if (eventLogging) {
                 eventLogging.close();
                 eventLogging = undefined;
-                done(e)
+                done(e);
             }
         }
 
@@ -154,7 +154,7 @@ describe('Change event emitting', function() {
         });
 
         preq.post({
-            uri: server.config.baseURL + '/events/',
+            uri: `${server.config.baseURL()}/events/`,
             headers: {
                 'content-type': 'application/json',
                 'x-triggered-by': 'resource_change:https://en.wikipedia.org/wiki/Prohibited'
@@ -174,9 +174,9 @@ describe('Change event emitting', function() {
                 }
             ]
         })
-        .delay(10000)
-        .finally(function() {
+        .delay(20000)
+        .finally(() => {
             really_done(new Error('HTTP event server timeout!'));
         });
-    })
+    });
 });

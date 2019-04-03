@@ -1,101 +1,95 @@
 'use strict';
 
-
-var assert = require('../utils/assert.js');
-var server = require('../utils/server.js');
-var preq   = require('preq');
-var P = require('bluebird');
-
+const assert = require('../utils/assert.js');
+const Server = require('../utils/server.js');
+const preq   = require('preq');
 
 describe('Mathoid', function() {
-
-    var f = 'c^2 = a^2 + b^2';
-    var nf = 'c^{2}=a^{2}+b^{2}';
-    var uri = server.config.hostPort + '/wikimedia.org/v1/media/math';
-    var formats = ['mml', 'svg', 'png'];
-    var hash;
-
     this.timeout(20000);
+    const server = new Server();
+    const f = 'c^2 = a^2 + b^2';
+    const nf = 'c^{2}=a^{2}+b^{2}';
+    const formats = ['mml', 'svg', 'png'];
+    const formats_regex = [/mathml/, /svg/, /png/];
+    let hash;
 
-    before(function () { return server.start(); });
+    before(() => server.start());
+    after(() => server.stop());
 
-    it('checks the formula with Mathoid', function() {
-        var slice = server.config.logStream.slice();
+    it('checks the formula with Mathoid', () => {
+        assert.recordRequests();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${server.config.baseURL('wikimedia.org')}/media/math/check/tex`,
             headers: { 'content-type': 'application/json' },
             body: { q: f }
-        }).then(function(res) {
-            slice.halt();
+        }).then((res) => {
             hash = res.headers['x-resource-location'];
-            assert.localRequests(slice, false);
-            assert.remoteRequests(slice, true);
+            assert.remoteRequests(true);
             assert.checkString(res.headers['cache-control'], 'no-cache');
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
-    it('retrieves the check output from storage', function() {
-        var slice = server.config.logStream.slice();
+    it('retrieves the check output from storage', () => {
+        assert.recordRequests();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${server.config.baseURL('wikimedia.org')}/media/math/check/tex`,
             headers: { 'content-type': 'application/json' },
             body: { q: f }
-        }).then(function(res) {
-            slice.halt();
-            assert.localRequests(slice, true);
-            assert.remoteRequests(slice, false);
+        }).then((res) => {
+            assert.remoteRequests(false);
             assert.checkString(res.headers['cache-control'], 'no-cache');
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
-    it('retrieves the check output of the normalised version', function() {
-        var slice = server.config.logStream.slice();
+    it('retrieves the check output of the normalised version', () => {
+        assert.recordRequests();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${server.config.baseURL('wikimedia.org')}/media/math/check/tex`,
             headers: { 'content-type': 'application/json' },
             body: { q: nf }
-        }).then(function(res) {
-            slice.halt();
-            assert.localRequests(slice, true);
-            assert.remoteRequests(slice, false);
+        }).then((res) => {
+            assert.remoteRequests(false);
             assert.checkString(res.headers['cache-control'], 'no-cache');
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
-    it('ignores stored version for no-cache', function() {
-        var slice = server.config.logStream.slice();
+    it('ignores stored version for no-cache', () => {
+        assert.recordRequests();
         return preq.post({
-            uri: uri + '/check/tex',
+            uri: `${server.config.baseURL('wikimedia.org')}/media/math/check/tex`,
             headers: {
                 'content-type': 'application/json',
                 'cache-control': 'no-cache'
             },
             body: { q: f }
-        }).then(function(res) {
-            slice.halt();
-            assert.localRequests(slice, false);
-            assert.remoteRequests(slice, true);
+        }).then((res) => {
+            assert.remoteRequests(true);
             assert.checkString(res.headers['cache-control'], 'no-cache');
-        });
+        })
+        .finally(() => assert.cleanupRecorder());
     });
 
-    it('gets the formula from storage', function() {
+    it('gets the formula from storage', () => {
         return preq.get({
-            uri: uri + '/formula/' + hash
-        }).then(function(res) {
+            uri: `${server.config.baseURL('wikimedia.org')}/media/math/formula/${hash}`
+        }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.checkString(res.headers['x-resource-location'], hash);
             assert.ok(res.body);
         });
     });
 
-    for (var i = 0; i < formats.length; i++) {
-        var format = formats[i];
-        it('gets the render in ' + format, function() {
+    for (let i = 0; i < formats.length; i++) {
+        const format = formats[i];
+        const regex = formats_regex[i];
+        it(`gets the render in ${format}`, () => { // eslint-disable-line no-loop-func
             return preq.get({
-                uri: uri + '/render/' + format + '/' + hash
-            }).then(function(res) {
-                assert.checkString(res.headers['content-type'], new RegExp(format));
+                uri: `${server.config.baseURL('wikimedia.org')}/media/math/render/${format}/${hash}`
+            }).then((res) => {
+                assert.checkString(res.headers['content-type'], regex);
                 assert.ok(res.body);
             });
         });

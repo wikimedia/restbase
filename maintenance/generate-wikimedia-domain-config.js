@@ -4,19 +4,15 @@
  * Simple script to update sitematrix.json
  */
 
-"use strict";
-var P = require('bluebird');
+'use strict';
 
-var fs = require("fs");
-var writeFile = P.promisify(fs.writeFile);
 var preq = require('preq');
-var downloadUrl = "https://en.wikipedia.org/w/api.php?action=sitematrix&format=json";
-var filename = "sitematrix.json";
+var downloadUrl = 'https://en.wikipedia.org/w/api.php?action=sitematrix&format=json';
 
 preq.get({
     uri: downloadUrl
 })
-.then(function(res) {
+.then((res) => {
     var sm = res.body.sitematrix;
     var projects = {
         wikipedia: [],
@@ -31,11 +27,11 @@ preq.get({
         '*': []
     };
 
-    Object.keys(sm).forEach(function(k) {
+    Object.keys(sm).forEach((k) => {
         var lang = sm[k];
         if (lang.site || k === 'specials') {
             var sites = lang.site || lang;
-            sites.forEach(function(site) {
+            sites.forEach((site) => {
                 if (site.closed === undefined && site.private === undefined) {
                     var domain = site.url.replace(/^https?:\/\//, '');
                     var name = domain.replace(/[^.]+\.(\w+)\.org$/, '$1');
@@ -49,9 +45,11 @@ preq.get({
         }
     });
 
-    Object.keys(projects).forEach(function(name) {
+    Object.keys(projects).forEach((name) => {
+        // eslint-disable-next-line no-console
         console.log('\n    # ' + name);
-        projects[name].forEach(function(domain) {
+        projects[name].forEach((domain) => {
+            // eslint-disable-next-line no-console
             console.log('    /{domain:' + domain + '}: *wp/default/1.0.0');
         });
     });

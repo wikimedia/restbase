@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
@@ -19,10 +19,8 @@ class MobileApps {
 
         const rp = req.params;
         const fetchPaths = {
-            lead: [rp.domain, 'sys', 'key_rev_value',
-                'mobile-sections-lead', rp.title],
-            remaining: [rp.domain, 'sys', 'key_rev_value',
-                'mobile-sections-remaining', rp.title]
+            lead: [rp.domain, 'sys', 'mobile_bucket', 'lead', rp.title],
+            remaining: [rp.domain, 'sys', 'mobile_bucket', 'remaining', rp.title]
         };
         if (rp.revision) {
             fetchPaths.lead.push(rp.revision);
@@ -30,10 +28,10 @@ class MobileApps {
         }
         return P.join(
             hyper.get({
-                uri: new URI(fetchPaths.lead),
+                uri: new URI(fetchPaths.lead)
             }),
             hyper.get({
-                uri: new URI(fetchPaths.remaining),
+                uri: new URI(fetchPaths.remaining)
             })
         ).spread((lead, remaining) => ({
             status: 200,
@@ -52,7 +50,7 @@ class MobileApps {
         .then((res) => {
             return {
                 status: 200,
-                headers: req.headers,
+                headers: res.headers,
                 body: res.body[part]
             };
         });
@@ -61,14 +59,13 @@ class MobileApps {
             return fetchAndReturnPart();
         }
 
-        const fetchPath = [rp.domain, 'sys', 'key_rev_value',
-            `mobile-sections-${part}`, rp.title];
+        const fetchPath = [rp.domain, 'sys', 'mobile_bucket', part, rp.title];
         if (rp.revision) {
             fetchPath.push(rp.revision);
         }
 
         return hyper.get({
-            uri: new URI(fetchPath),
+            uri: new URI(fetchPath)
         })
         .catch({ status: 404 }, fetchAndReturnPart);
     }
@@ -80,17 +77,18 @@ class MobileApps {
             const prefix = `${siteInfo.baseUri}/page/mobile-sections`.replace(/^https?:/, '');
             const title = encodeURIComponent(rp.title);
             const postfixes = ['', '-lead', '-remaining'];
-            let purgeEvents = postfixes.map(postfix => ({
+            let purgeEvents = postfixes.map((postfix) => ({
                 meta: {
                     uri: `${prefix}${postfix}/${title}/${revision}`
                 }
             }));
 
             if (purgeLatest) {
-                purgeEvents = purgeEvents.concat(postfixes.map(postfix => ({
+                purgeEvents = purgeEvents.concat(postfixes.map((postfix) => ({
                     meta: {
                         uri: `${prefix}${postfix}/${title}`
-                    }
+                    },
+                    tags: [ `mobile-sections${postfix}` ]
                 })));
             }
 
@@ -111,56 +109,39 @@ class MobileApps {
             serviceURI += `/${rp.revision}`;
         }
 
-        const requests = {
-            newContent: hyper.get({
-                uri: new URI(serviceURI)
-            })
-        };
-
-        if (rp.revision) {
-            // This might be a request to the old revision and we don't want
-            // to issue a purge for the latest revision nor store it in the
-            // key_rev bucket, so check if it's indeed the latest
-            requests.latestRev = hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                    'mobile-sections-lead', rp.title])
-            })
-            .then(res => res.body.revision)
-            .catch({ status: 404 }, () => {
-                // We have no revisions for this title, so it's certainly latest.
-                return -1;
-            });
-        } else {
-            requests.latestRev = P.resolve(-1);
-        }
-
-        const shouldStoreNewRev = latestRev => !rp.revision || rp.revision >= latestRev;
-
-        return P.props(requests)
-        .then((res) => {
-            const newContent = res.newContent;
-            let storeRequests = P.resolve();
-            if (shouldStoreNewRev(res.latestRev)) {
-                storeRequests = P.join(
-                    hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                            'mobile-sections-lead', rp.title,
-                            newContent.body.lead.revision]),
-                        headers: newContent.headers,
-                        body: newContent.body.lead
-                    }),
-                    hyper.put({
-                        uri: new URI([rp.domain, 'sys', 'key_rev_value',
-                            'mobile-sections-remaining', rp.title,
-                            newContent.body.lead.revision]),
-                        headers: newContent.headers,
-                        body: newContent.body.remaining
-                    }));
+        return hyper.get({
+            uri: new URI(serviceURI),
+            headers: {
+                'accept-language': req.headers['accept-language']
             }
-            return storeRequests
-            .tap(() => this._purgeURIs(hyper, req,
-                newContent.body.lead.revision, shouldStoreNewRev(res.latestRev)))
-            .thenReturn(newContent);
+        })
+        .then((res) => {
+            if (mwUtils.isNoStoreRequest(req)) {
+                return res;
+            }
+            return hyper.put({
+                uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
+                    res.body.lead.revision,
+                    mwUtils.parseETag(res.headers.etag).tid]),
+                body: {
+                    lead: {
+                        headers: res.headers,
+                        body: res.body.lead
+                    },
+                    remaining: {
+                        headers: res.headers,
+                        body: res.body.remaining
+                    }
+                }
+            })
+            .tap(() =>
+                this._purgeURIs(hyper, req, res.body.lead.revision, true))
+            // TODO: This means we never store older revisions for mobile!
+            // Need to add the fallback when mobile-references get implemented!
+            .catch({ status: 412 }, () =>
+                // 412 means that it's an older revision
+                this._purgeURIs(hyper, req, res.body.lead.revision, false))
+            .thenReturn(res);
         });
     }
 }
@@ -177,35 +158,8 @@ module.exports = (options) => {
         },
         resources: [
             {
-                uri: '/{domain}/sys/key_rev_value/mobile-sections-lead',
-                body: {
-                    version: 4,
-                    revisionRetentionPolicy: {
-                        type: 'latest_hash',
-                        count: 1,
-                        grace_ttl: 1
-                    },
-                    valueType: 'json',
-                    updates: {
-                        pattern: 'timeseries'
-                    }
-                }
-            },
-            {
-                uri: '/{domain}/sys/key_rev_value/mobile-sections-remaining',
-                body: {
-                    version: 4,
-                    revisionRetentionPolicy: {
-                        type: 'latest_hash',
-                        count: 1,
-                        grace_ttl: 1
-                    },
-                    valueType: 'json',
-                    updates: {
-                        pattern: 'timeseries'
-                    }
-                }
-            },
+                uri: '/{domain}/sys/mobile_bucket/'
+            }
         ]
     };
 };

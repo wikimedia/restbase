@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Key-rev-value bucket handler
@@ -17,10 +17,9 @@ function returnRevision(req) {
     return (dbResult) => {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
-            const headers = {
-                etag: mwUtil.makeETag(row.rev, row.tid),
-                'content-type': row['content-type']
-            };
+            const headers = Object.assign({}, row.headers || {});
+            headers.etag = headers.etag || mwUtil.makeETag(row.rev, row.tid);
+            headers['content-type'] = headers['content-type'] || 'application/octet-stream';
             return {
                 status: 200,
                 headers,
@@ -52,7 +51,7 @@ class KRVBucket {
     }
 
     makeSchema(opts) {
-        const schemaVersionMajor = 2;
+        const schemaVersionMajor = 1;
 
         return {
             // Combine option & bucket version into a monotonically increasing
@@ -69,21 +68,14 @@ class KRVBucket {
                 updates: opts.updates || {
                     pattern: 'timeseries'
                 },
+                default_time_to_live: opts.default_time_to_live
             },
-            revisionRetentionPolicy: opts.retention_policy
-            // Deprecated version. TODO: Remove eventually.
-            || opts.revisionRetentionPolicy,
             attributes: {
                 key: opts.keyType || 'string',
                 rev: 'int',
                 tid: 'timeuuid',
-                latestTid: 'timeuuid',
                 value: opts.valueType || 'blob',
-                'content-type': 'string',
-                'content-sha256': 'blob',
-                // Redirect
-                'content-location': 'string',
-                tags: 'set<string>'
+                headers: 'json'
             },
             index: [
                 { attribute: 'key', type: 'hash' },
@@ -127,7 +119,7 @@ class KRVBucket {
                 limit: mwUtil.getLimit(hyper, req)
             }
         })
-        .then(res => ({
+        .then((res) => ({
             status: 200,
 
             headers: {
@@ -135,7 +127,7 @@ class KRVBucket {
             },
 
             body: {
-                items: res.body.items.map(row => ({
+                items: res.body.items.map((row) => ({
                     revision: row.rev,
                     tid: row.tid
                 })),
@@ -144,12 +136,14 @@ class KRVBucket {
         }));
     }
 
-
     putRevision(hyper, req) {
         const rp = req.params;
         const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
-
-        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') || uuid.now().toString();
+        const tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_rev_value') ||
+            uuid.now().toString();
+        const headers = Object.assign({}, req.headers || {});
+        headers.etag = mwUtil.makeETag(rev, tid);
+        headers['content-type'] = headers['content-type'] || 'application/octet-stream';
         return hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
             body: {
@@ -159,8 +153,7 @@ class KRVBucket {
                     rev,
                     tid,
                     value: req.body,
-                    'content-type': req.headers['content-type']
-                    // TODO: include other data!
+                    headers
                 }
             }
         })
@@ -168,19 +161,18 @@ class KRVBucket {
             if (res.status === 201) {
                 return {
                     status: 201,
-                    headers: {
-                        etag: mwUtil.makeETag(rp.revision, tid)
-                    },
+                    headers,
                     body: {
-                        message: "Created.",
-                        tid: rp.revision
+                        message: 'Created.',
+                        rev,
+                        tid
                     }
                 };
             } else {
                 throw res;
             }
         }, (error) => {
-            hyper.log('error/krv/putRevision', error);
+            hyper.logger.log('error/krv/putRevision', error);
             return { status: 400 };
         });
     }

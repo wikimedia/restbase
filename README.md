@@ -36,7 +36,7 @@ issues](https://phabricator.wikimedia.org/maniphest/task/create/?projects=PHID-P
 
 ## Installation
 
-Make sure that you have node 4+:
+Make sure that you have node 6+:
 ```sh
 sudo apt-get install nodejs nodejs-legacy nodejs-dev npm
 ```
@@ -73,9 +73,8 @@ development environment), set `defaultConsistency` to `one` in
 
 ## Usage
 
-See the [Wikimedia REST content API
-sandbox](https://rest.wikimedia.org/en.wikipedia.org/v1/?doc) for a fine
-example of what RESTBase can do.
+See the [Wikimedia REST content API sandbox](https://en.wikipedia.org/api/rest_v1/)
+for a fine example of what RESTBase can do.
 
 ## Development
 

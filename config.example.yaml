@@ -30,16 +30,17 @@ services:
       spec:
         x-request-filters:
           - path: lib/security_response_header_filter.js
+          - path: lib/normalize_headers_filter.js
         x-sub-request-filters:
           - type: default
             name: http
             options:
-            allow:
-              - pattern: http://localhost/w/api.php
-                forward_headers: true
-              - pattern: http://localhost:8142
-                forward_headers: true
-              - pattern: /^https?:\/\//
+              allow:
+                - pattern: http://localhost/w/api.php
+                  forward_headers: true
+                - pattern: http://localhost:8142
+                  forward_headers: true
+                - pattern: /^https?:\/\//
         paths:
           /{domain:localhost}:
             x-modules:
@@ -60,12 +61,8 @@ services:
                     retry_delay: 250
                     retry_limit: 10
                     show_sql: false
-                  citoid:
-                    host: http://citoid-beta.wmflabs.org
-                  mathoid:
-                    host: http://mathoid-tester.wmflabs.org
                   mobileapps:
-                    host: http://appservice.wmflabs.org
+                    host: https://appservice.wmflabs.org
                   purged_cache_control: s-maxage=0, max-age=86400
                   purged_cache_control_client_cache: s-maxage=0, max-age=300
 

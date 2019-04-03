@@ -11,6 +11,9 @@ info:
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Citation
+    description: generation of citation data
 paths:
   /citation/{format}/{query}:
     get:
@@ -34,10 +37,12 @@ paths:
       produces:
         - application/json; charset=utf-8;
         - application/x-bibtex; charset=utf-8
+        - application/problem+json
       parameters:
         - name: format
           in: path
           description: "The format to use for the resulting citation data"
+          type: string
           enum:
             - mediawiki
             - mediawiki-basefields
@@ -70,23 +75,23 @@ paths:
             $ref: '#/definitions/problem'
 
       operationId: getCitation
-      x-monitor: true
-      x-amples:
-        - title: Get citation for Darth Vader
-          request:
-            params:
-              domain: en.wikipedia.org
-              format: mediawiki
-              query: 'https://en.wikipedia.org/wiki/Darth_Vader'
-          response:
-            status: 200
-            headers:
-              content-type:  /^application\/json/
-            body:
-              - title: 'Darth Vader'
-                language: en
-                itemType: encyclopediaArticle
-                encyclopediaTitle: Wikipedia
+      # TEMP TEMP TEMP
+      # Citoid monitoring temporarily disabled due to T211411
+      x-monitor: false
+#      x-amples:
+#        - title: Get citation for Darth Vader
+#          request:
+#            params:
+#              domain: en.wikipedia.org
+#              format: mediawiki
+#              query: 'https://en.wikipedia.org/wiki/Darth_Vader'
+#          response:
+#            status: 200
+#            headers:
+#              content-type:  /^application\/json/
+#            body:
+#              - title: /.+/
+#                itemType: /.+/
 
 definitions:
   result:

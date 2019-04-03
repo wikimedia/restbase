@@ -110,15 +110,9 @@ paths:
                         uri: /{domain}/sys/post_data/post.test/{hash}
                 x-monitor: false
 
-            /buckets/key_rev_large_value:
-              x-modules:
-                - path: sys/key_rev_large_value.js
             /buckets/key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
-            /buckets/key_rev_latest_value:
-              x-modules:
-                - path: sys/key_rev_latest_value.js
             /buckets/key_value:
               x-modules:
                 - path: sys/key_value.js

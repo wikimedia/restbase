@@ -15,15 +15,32 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
-                  options: '{{options}}'
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
                 - path: v1/content_segments.yaml
                   options:
-                      purged_cache_control: '{{options.purged_cache_control}}'
+                      response_cache_control: '{{options.purged_cache_control}}'
                       cx_host: '{{options.transform.cx_host}}'
                 - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
                 - path: v1/mobileapps.yaml
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
+                - path: v1/media.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
+                - path: v1/metadata.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
+                - path: v1/references.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
+                - path: v1/mobile-html.yaml
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
+                    host: '{{options.mobileapps.host}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
@@ -37,26 +54,31 @@ paths:
               x-modules:
                 - path: v1/citoid.js
                   options: '{{options.citoid}}'
+                - path: v1/lists.js
+                  options: '{{options.lists}}'
+                - path: v1/css.yaml
+                  options:
+                    host: '{{options.mobileapps.host}}'
+                - path: v1/javascript.yaml
+                  options:
+                    host: '{{options.mobileapps.host}}'
         options: '{{options}}'
 
   /{api:sys}:
     x-modules:
       - spec:
           paths:
-            /table:
+            /table: &sys_table
               x-modules:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
-            /key_value:
+            /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
-            /key_rev_latest_value:
-              x-modules:
-                - path: sys/key_rev_latest_value.js
             /page_revisions:
               x-modules:
                 - path: sys/page_revisions.js
@@ -76,10 +98,38 @@ paths:
                   options:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
+            /parsoid_bucket:
+              x-modules:
+                - path: sys/multi_content_bucket.js
+                  options:
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
+                    renew_expiring: true
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
+                    table_name_prefix: parsoid_ng
+                    main_content_type:
+                      name: html
+                      value_type: blob
+                    dependent_content_types:
+                      - name: data-parsoid
+                        value_type: json
             /mobileapps:
               x-modules:
                 - path: sys/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
+            /mobile_bucket:
+              x-modules:
+                - path: sys/multi_content_bucket.js
+                  options:
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
+                    table_name_prefix: mobile
+                    main_content_type:
+                      name: lead
+                      value_type: json
+                    dependent_content_types:
+                      - name: remaining
+                        value_type: json
         options: '{{options}}'
 

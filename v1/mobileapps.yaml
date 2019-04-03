@@ -3,12 +3,14 @@ tags:
   - name: Mobile
     description: mobile-friendly page content
 paths:
-  /mobile-sections/{title}{/revision}:
-    x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+  /mobile-sections/{title}:
+    x-route-filters: &mobile-sections_title_filters
+      - path: ./lib/access_check_filter.js
         options:
-          redirect_cache_control: '{{options.purged_cache_control}}'
-    get:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/ensure_content_type.js
+      - path: lib/language_variants_filter.js
+    get: &mobile-sections_title_get_spec
       tags:
         - Mobile
       summary: Get mobile-optimized HTML sections for a title.
@@ -18,19 +20,14 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1"
+        - application/problem+json
       parameters:
         - name: title
           in: path
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          required: false
         - name: redirect
           in: query
           description: >
@@ -40,6 +37,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: JSON containing HTML sections and metadata for the given page title.
@@ -48,6 +52,7 @@ paths:
             # FIXME!
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -81,7 +86,8 @@ paths:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections/{title}{/revision}
               headers:
-                cache-control: '{{cache-control}}'
+                cache-control: '{{default(options.cache-control, cache-control)}}'
+                accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -89,11 +95,11 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: true
       x-amples:
-        - title: Get MobileApps Foobar page
+        - title: Get mobile-sections for a test page on enwiki
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:
@@ -102,22 +108,11 @@ paths:
               lead: /.+/
               remaining: /.+/
 
-  /mobile-sections-lead/{title}{/revision}:
+  /mobile-sections/{title}/{revision}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
-        options:
-          redirect_cache_control: '{{options.purged_cache_control}}'
+      <<: *mobile-sections_title_filters
     get:
-      tags:
-        - Mobile
-      summary: Get mobile-optimized HTML lead section and metadata for a title.
-      description: |
-        Retrieve the lead section of the latest HTML for a page title optimised
-        for viewing with native mobile applications.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
+      <<: *mobile-sections_title_get_spec
       parameters:
         - name: title
           in: path
@@ -129,7 +124,8 @@ paths:
           description: >
             Optional page revision. Note that older revisions are not stored, so
             request latency with the revision would be higher.
-          required: false
+          type: integer
+          required: true
         - name: redirect
           in: query
           description: >
@@ -139,6 +135,55 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
+      x-monitor: false
+
+  /mobile-sections-lead/{title}:
+    x-route-filters: &mobile-sections-lead_title_filters
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/ensure_content_type.js
+    get: &mobile-sections-lead_title_get_spec
+      tags:
+        - Mobile
+      summary: Get mobile-optimized HTML lead section and metadata for a title.
+      description: |
+        Retrieve the lead section of the latest HTML for a page title optimised
+        for viewing with native mobile applications.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1"
+        - application/problem+json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: The HTML for the given page title.
@@ -147,6 +192,7 @@ paths:
             # FIXME!
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -179,6 +225,9 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
+              headers:
+                cache-control: '{{default(options.cache-control, cache-control)}}'
+                accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -186,23 +235,11 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: false
 
-  /mobile-sections-remaining/{title}{/revision}:
+  /mobile-sections-lead/{title}/{revision}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
-        options:
-          redirect_cache_control: '{{options.purged_cache_control}}'
+      <<: *mobile-sections-lead_title_filters
     get:
-      tags:
-        - Mobile
-      summary: Get non-lead mobile-optimized HTML sections for a title.
-      description: |
-        Retrieve the remainder of the latest HTML (without the lead section) for
-        a page title optimised for viewing with native mobile applications,
-        provided as a JSON object containing the sections.
-
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
+      <<: *mobile-sections-lead_title_get_spec
       parameters:
         - name: title
           in: path
@@ -214,7 +251,8 @@ paths:
           description: >
             Optional page revision. Note that older revisions are not stored, so
             request latency with the revision would be higher.
-          required: false
+          type: integer
+          required: true
         - name: redirect
           in: query
           description: >
@@ -224,6 +262,55 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
+
+  /mobile-sections-remaining/{title}:
+    x-route-filters:  &mobile-sections-remaining_title_filters
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/ensure_content_type.js
+    get: &mobile-sections-remaining_title_get_spec
+      tags:
+        - Mobile
+      summary: Get non-lead mobile-optimized HTML sections for a title.
+      description: |
+        Retrieve the remainder of the latest HTML (without the lead section) for
+        a page title optimised for viewing with native mobile applications,
+        provided as a JSON object containing the sections.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1"
+        - application/problem+json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: JSON wrapping HTML sections for the given page title.
@@ -232,6 +319,7 @@ paths:
             # FIXME!
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -264,6 +352,9 @@ paths:
             request:
               method: get
               uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
+              headers:
+                cache-control: '{{default(options.cache-control, cache-control)}}'
+                accept-language: '{{accept-language}}'
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -271,3 +362,37 @@ paths:
               body: '{{from_backend.body}}'
       x-monitor: false
 
+  /mobile-sections-remaining/{title}/{revision}:
+    x-route-filters:
+      <<: *mobile-sections-remaining_title_filters
+    get:
+      <<: *mobile-sections-remaining_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          type: integer
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string

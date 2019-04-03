@@ -19,6 +19,7 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: type
           in: path
@@ -82,6 +83,7 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: hash
           in: path
@@ -124,6 +126,7 @@ paths:
         - image/svg+xml
         - application/mathml+xml
         - image/png
+        - application/problem+json
       parameters:
         - name: format
           in: path
@@ -154,17 +157,17 @@ paths:
       x-monitor: false
       x-setup-handler:
         - init_svg:
-            uri: /wikimedia.org/sys/key_value/mathoid.svg
+            uri: /wikimedia.org/sys/key_value/mathoid_ng.svg
             body:
               keyType: string
               valueType: string
         - init_mml:
-            uri: /wikimedia.org/sys/key_value/mathoid.mml
+            uri: /wikimedia.org/sys/key_value/mathoid_ng.mml
             body:
               keyType: string
               valueType: string
         - init_png:
-            uri: /wikimedia.org/sys/key_value/mathoid.png
+            uri: /wikimedia.org/sys/key_value/mathoid_ng.png
             body:
               keyType: string
               valueType: blob
@@ -172,7 +175,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /wikimedia.org/sys/key_value/mathoid.{$.request.params.format}/{$.request.params.hash}
+              uri: /wikimedia.org/sys/key_value/mathoid_ng.{$.request.params.format}/{$.request.params.hash}
               headers:
                 cache-control: '{{ cache-control }}'
             catch:

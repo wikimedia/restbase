@@ -1,0 +1,283 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: MediaWiki page media API
+  description: API for retrieving data about media items appearing on a given page
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /media/{title}:
+    x-route-filters: &media_title_filters
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
+    get: &media_title_get_spec
+      tags:
+        - Page content
+      summary: Get information on media files used on a page.
+      description: |
+        Gets the media items (images, audio, and video) in the order in which they appear on a
+        given wiki page.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Media/1.3.1"
+        - application/problem+json
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+      responses:
+        '200':
+          description: JSON containing metadata of media items appearing on the given page.
+          schema:
+            $ref: '#/definitions/media_list'
+          headers:
+            ETag:
+              type: string
+              description: >
+                Syntax: "{revision}/{tid}".
+                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '404':
+          description: Unknown page title
+          schema:
+            $ref: '#/definitions/problem'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/media/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: false
+
+  /media/{title}/{revision}:
+    x-route-filters:
+      <<: *media_title_filters
+    get:
+      <<: *media_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: >
+            Optional page revision. Note that older revisions are not stored, so
+            request latency with the revision would be higher.
+          type: integer
+          required: true
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+  
+# copied from MCS spec.yaml
+definitions:
+  media_list:
+    type: object
+    properties:
+      revision:
+        type: string
+        description: the revision ID used to create the list
+      tid:
+        type: string
+        description: the time uuid of the page rendering used to create the list
+      items:
+        type: array
+        description: a list of media items
+        items:
+          $ref: '#/definitions/media_item'
+    required:
+      - revision
+      - tid
+      - items
+
+  media_item:
+    type: object
+    properties:
+      titles:
+        $ref: '#/definitions/titles_set'
+      thumbnail:
+        type: object
+        properties:
+          source:
+            type: string
+            description: thumb URL
+          width:
+            type: integer
+            description: thumb width
+          height:
+            type: integer
+            description: thumb height
+          mime:
+            type: string
+            description: thumb MIME type
+      original:
+        type: object
+        properties:
+          source:
+            type: string
+            description: original URL
+          width:
+            type: integer
+            description: original width
+          height:
+            type: integer
+            description: original height
+          mime:
+            type: string
+            description: original MIME type
+          size:
+            type: integer
+            description: the original file size in bytes (sizes are not provided for video derivatives)
+      page_count:
+        type: integer
+        description: page count, if the item is a paged item (PDF, TIFF, DjVu, etc.)
+      file_page:
+        type: string
+        description: Full URL to the file page for the item on Wikimedia Commons
+      type:
+        type: string
+        enum:
+          - image
+          - video
+          - audio
+      caption:
+        type: object
+        properties:
+          html:
+            type: string
+            description: on-wiki caption for the media item, including all HTML markup
+          text:
+            type: string
+            description: plain text of the on-wiki caption for the media item
+      start_time:
+        type: number
+        description: start time (if any) for the media item
+      end_time:
+        type: number
+        description: end time (if any) for the media item
+      duration:
+        type: number
+        description: the playback duration in seconds (for audio and video items)
+      sources:
+        type: array
+        description: a list of derivatives of the original file (applies only to videos)
+        items:
+          type: object
+      artist:
+        type: object
+        description: structured info about the author of the media item
+        properties:
+          html:
+            type: string
+            description: HTML string describing the artist
+          name:
+            type: string
+            description: the plain text artist name, if available
+          user_page:
+            type: string
+            description: Wikimedia Commons user page for the artist, if available
+        required:
+          - html
+      credit:
+        type: string
+        description: source of the media item
+      license:
+        type: object
+        description: license under which the media item is available on Wikimedia Commons
+        properties:
+          type:
+            type: string
+            description: license type
+          url:
+            type: string
+            description: URL describing the terms and conditions of the license, if any
+        required:
+          - type
+      license_url:
+        type: string
+        description: URL for the pertinent license
+      description:
+        type: object
+        description: description of the image from Wikimedia Commons
+        properties:
+          html:
+            type: string
+            description: html image description
+          text:
+            type: string
+            description: plain text image description
+        required: [ html, text ]
+    required:
+      - titles
+      - file_page
+      - type
+
+  titles_set:
+    type: object
+    properties:
+      canonical:
+        type: string
+        description: the DB key (non-prefixed)
+      normalized:
+        type: string
+        description: the normalized title (https://www.mediawiki.org/wiki/API:Query#Title_normalization)
+      display:
+        type: string
+        description: the title as it should be displayed to the user
+    required:
+      - canonical
+      - normalized
+      - display
+    additionalProperties: false

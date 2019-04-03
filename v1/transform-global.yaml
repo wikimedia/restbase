@@ -2,13 +2,13 @@ info:
   version: '1.0.0'
   title: Global Transform API
   description: Global Transform API
-  termsofservice: https://github.com/wikimedia/restbase
+  termsOfService: https://github.com/wikimedia/restbase
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /html/from/{from_lang}/to/{to_lang}{/provider}:
-    post:
+  /html/from/{from_lang}/to/{to_lang}:
+    post: &html_from_lang_to_lang_post_spec
       tags: ['Transform']
       summary: Machine-translate content
       description: |
@@ -17,9 +17,10 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       consumes:
-        - application/json
+        - application/x-www-form-urlencoded
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: from_lang
           in: path
@@ -31,17 +32,8 @@ paths:
           description: The target language code
           type: string
           required: true
-        - name: provider
-          in: path
-          description: The machine translation provider id
-          type: string
-          required: false
-          enum:
-           - Apertium
-           - Yandex
-           - Youdao
         - name: html
-          in: body
+          in: formData
           description: The HTML content to translate
           type: string
           required: true
@@ -59,9 +51,43 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
+              method: post
               uri: '{{options.cx_host}}/v1/mt/{from_lang}/{to_lang}/{provider}'
-  /word/from/{from_lang}/to/{to_lang}/{word}{/provider}:
-    get:
+              body:
+                html: '{{html}}'
+
+  /html/from/{from_lang}/to/{to_lang}/{provider}:
+    post:
+      <<: *html_from_lang_to_lang_post_spec
+      parameters:
+        - name: from_lang
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: to_lang
+          in: path
+          description: The target language code
+          type: string
+          required: true
+        - name: provider
+          in: path
+          description: The machine translation provider id
+          type: string
+          required: true
+          enum:
+            - Apertium
+            - Yandex
+            - Youdao
+        - name: html
+          in: formData
+          description: The HTML content to translate
+          type: string
+          required: true
+          x-textarea: true
+
+  /word/from/{from_lang}/to/{to_lang}/{word}:
+    get: &word_from_lang_to_lang_word_get_spec
       tags: ['Transform']
       summary: Fetch the dictionary meaning of a word
       description: |
@@ -71,6 +97,41 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
+        - application/problem+json
+      parameters:
+        - name: from_lang
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: to_lang
+          in: path
+          description: The target language code
+          type: string
+          required: true
+        - name: word
+          in: path
+          description: The word to lookup
+          type: string
+          required: true
+      responses:
+        '200':
+          description: the dictionary translation for the given word
+          schema:
+            $ref: '#/definitions/cx_dict'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-monitor: false
+      x-request-handler:
+        - get_from_cx:
+            request:
+              uri: '{{options.cx_host}}/v1/dictionary/{word}/{from_lang}/{to_lang}/{provider}'
+
+  /word/from/{from_lang}/to/{to_lang}/{word}/{provider}:
+    get:
+      <<: *word_from_lang_to_lang_word_get_spec
       parameters:
         - name: from_lang
           in: path
@@ -91,24 +152,11 @@ paths:
           in: path
           description: The dictionary provider id
           type: string
-          required: false
+          required: true
           enum:
-           - JsonDict
-           - Dictd
-      responses:
-        '200':
-          description: the dictionary translation for the given word
-          schema:
-            $ref: '#/definitions/cx_dict'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-monitor: false
-      x-request-handler:
-        - get_from_cx:
-            request:
-              uri: '{{options.cx_host}}/v1/dictionary/{word}/{from_lang}/{to_lang}/{provider}'
+            - JsonDict
+            - Dictd
+
   /list/pair/{from}/{to}/:
     get:
       tags: ['Transform']
@@ -119,6 +167,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: from
           in: path
@@ -144,8 +193,8 @@ paths:
         - get_from_cx:
             request:
               uri: '{{options.cx_host}}/v1/list/pair/{from}/{to}'
-  /list/tool/{tool}/:
-    get:
+  /list/tool/{tool}:
+    get: &list_tool_tool_get_spec
       tags: ['Transform']
       summary: Lists the tools and language pairs available for the given tool category
       description: |
@@ -154,6 +203,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: tool
           in: path
@@ -176,7 +226,31 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
-              uri: '{{options.cx_host}}/v1/list/tool/{tool}'
+              uri: '{{options.cx_host}}/v1/list/{tool}{/from}{/to}'
+
+  /list/tool/{tool}/{from}/{to}:
+    get:
+      <<: *list_tool_tool_get_spec
+      parameters:
+        - name: tool
+          in: path
+          description: The tool category to list tools and language pairs for
+          type: string
+          required: true
+          enum:
+            - mt
+            - dictionary
+        - name: from
+          in: path
+          description: The source language code
+          type: string
+          required: true
+        - name: to
+          in: path
+          description: The target language code
+          type: string
+          required: true
+
   /list/languagepairs/:
     get:
       tags: ['Transform']

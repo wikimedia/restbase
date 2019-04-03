@@ -7,7 +7,7 @@ default_project: &default_project
     - path: projects/wmf_default.yaml
       options: &default_options
         table:
-          backend: cassandra
+          backend: '{env(RB_TEST_BACKEND, sqlite)}'
           hosts: [localhost]
           keyspace: system
           username: cassandra
@@ -17,33 +17,41 @@ default_project: &default_project
             - name: default.group.local
               domains: /./
         parsoid:
-          host: http://parsoid-beta.wmflabs.org
+          host: https://parsoid-beta.wmflabs.org
+          grace_ttl: 1
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
         graphoid:
-          host: http://graphoid.wikimedia.org
+          host: https://graphoid-beta.wmflabs.org
         mathoid:
-          host: http://mathoid-tester.wmflabs.org
+          host: https://mathoid-beta.wmflabs.org
           # 10 days Varnish caching, one day client-side
           cache-control: s-maxage=864000, max-age=86400
         mobileapps:
-          host: http://appservice.wmflabs.org
+          host: https://appservice.wmflabs.org
+        summary:
+          protocol: https
+          implementation: mcs
+          host: https://appservice.wmflabs.org
         related:
           cache_control: s-maxage=86400, max-age=86400
         citoid:
-          host: http://citoid-beta.wmflabs.org
+          host: https://citoid-beta.wmflabs.org
         recommendation:
           host: https://recommendation-api-beta.wmflabs.org
         # 10 days Varnish caching, one day client-side
-        purged_cache_control: s-maxage=864000, max-age=86400
+        purged_cache_control: s-maxage=1209600, max-age=0, must-revalidate
         # Cache control for purged endpoints allowing short-term client caching
         purged_cache_control_client_cache: s-maxage=1209600, max-age=300
         pdf:
           # Cache PDF for 5 minutes since it's not purged
           cache_control: s-maxage=600, max-age=600
           uri: https://pdfrender-beta.wmflabs.org
+          new_uri: https://proton-beta.wmflabs.org
+          new_probability: 1
           secret: secret
+          scheme: https
         transform:
           cx_host: https://cxserver-beta.wmflabs.org
         skip_updates: false
@@ -52,11 +60,7 @@ default_project: &default_project
 en.wikipedia.org: &en.wikipedia.org
   x-modules:
     - path: projects/wmf_enwiki.yaml
-      options:
-        <<: *default_options
-        trending:
-          host: https://trending-beta.wmflabs.org
-          cache_control: s-maxage=1800, max-age=1800
+      options: *default_options
 
 # A different project template, sharing configuration options.
 wikimedia.org: &wikimedia.org
@@ -77,12 +81,23 @@ wiktionary_project: &wiktionary_project
     - path: projects/wmf_wiktionary.yaml
       options: *default_options
 
+wikipedia_project: &wikipedia_project
+  x-modules:
+    - path: projects/wmf_wikipedia.yaml
+      options: *default_options
+
+wikivoyage_project: &wikivoyage_project
+  x-modules:
+  - path: projects/wmf_wikivoyage.yaml
+    options: *default_options
+
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.
 spec_root: &spec_root
   title: "The RESTBase root"
   x-request-filters:
     - path: lib/security_response_header_filter.js
+    - path: lib/normalize_headers_filter.js
   x-sub-request-filters:
     - type: default
       name: http
@@ -95,12 +110,12 @@ spec_root: &spec_root
           - pattern: /^https?:\/\//
   paths:
     /{domain:en.wikipedia.org}: *en.wikipedia.org
-    /{domain:fr.wikipedia.org}: *default_project
-    /{domain:de.wikipedia.org}: *default_project
-    /{domain:es.wikipedia.org}: *default_project
-    /{domain:it.wikipedia.org}: *default_project
-    /{domain:da.wikipedia.org}: *default_project
-    /{domain:sv.wikipedia.org}: *default_project
+    /{domain:ru.wikipedia.org}: *wikipedia_project
+    /{domain:de.wikipedia.org}: *wikipedia_project
+    /{domain:es.wikipedia.org}: *wikipedia_project
+    /{domain:it.wikipedia.org}: *wikipedia_project
+    /{domain:da.wikipedia.org}: *wikipedia_project
+    /{domain:sv.wikipedia.org}: *wikipedia_project
 
     # Example for wiktionary
     /{domain:en.wiktionary.org}: *wiktionary_project
@@ -110,6 +125,9 @@ spec_root: &spec_root
 
     # special case for wikidata
     /{domain:www.wikidata.org}: *wikidata.org
+
+    # example for non-wikipedia
+    /{domain:en.wikivoyage.beta.wmflabs.org}: *wikivoyage_project
 
     # A robots.txt to make sure that the content isn't indexed.
     /robots.txt:
@@ -132,7 +150,7 @@ info:
 services:
   - name: restbase
     module: hyperswitch
-    conf: 
+    conf:
       port: 7231
       spec: *spec_root
       salt: secret
@@ -144,17 +162,15 @@ services:
 
 logging:
   name: restbase
-  level: info
-  #streams:
-  #- type: gelf
-  #  host: <%= @logstash_host %>
-  #  port: <%= @logstash_port %>
+  level: warn
+  streams:
+    - type: stdout
 
-metrics:
-  type: statsd
-  host: localhost
-  port: 8125
-  batch: true
+#metrics:
+#  type: statsd
+#  host: localhost
+#  port: 8125
+#  batch: true
 
 ratelimiter:
   type: kademlia
@@ -162,3 +178,5 @@ ratelimiter:
   seeds:
     # Port 3050 used by default
     - 127.0.0.1
+
+num_workers: 0

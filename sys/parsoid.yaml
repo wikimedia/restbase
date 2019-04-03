@@ -63,6 +63,11 @@ paths:
       summary: Retrieve the data-parsoid JSON for title & revision.
       operationId: getDataParsoid
 
+  /lint/{title}{/revision}:
+    get:
+      summary: Retreive the lint errors for a specific page revision
+      operationId: getLintErrors
+
   /transform/html/to/html{/title}{/revision}:
     post:
       summary: Update HTML, while optionally passing in title & revision.

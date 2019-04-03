@@ -1,0 +1,54 @@
+swagger: '2.0'
+info:
+  version: '1.0.0-beta'
+  title: JavaScript bundle from the wikimedia-page-library
+  description: API for retrieving JavaScript for mobile apps
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /javascript/mobile/pagelib:
+    x-route-filters:
+      - path: lib/security_response_header_filter.js
+    get:
+      tags:
+        - Mobile
+      summary: Get JavaScript bundle from the wikimedia-page-library
+      description: |
+        Gets the javascript bundle from the wikimedia-page-library so that clients can have
+        convenient access to that for consuming the content-html HTML.
+        Amongst other things,
+        * it allows to detect the platform and through that enable platform specific CSS rules,
+        * has code to lazy load images on the page,
+        * code for collapsing and expanding tables.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/JavaScript/1.0.0"
+        - application/problem+json
+      responses:
+        '200':
+          description: Success
+          headers:
+            ETag:
+              type: string
+              description: Different values indicate that the content has changed
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/data/javascript/mobile/pagelib'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                                 get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: false

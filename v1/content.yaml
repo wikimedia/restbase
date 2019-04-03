@@ -3,7 +3,7 @@ info:
   version: '1.0.0'
   title: MediaWiki Content API
   description: Basic MediaWiki content api.
-  termsofservice: https://github.com/wikimedia/restbase#restbase
+  termsOfService: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Services
     email: services@lists.wikimedia.org
@@ -24,6 +24,7 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: A list of page-related API end points.
@@ -35,49 +36,19 @@ paths:
             $ref: '#/definitions/problem'
       x-monitor: false
 
-  /title/:
-    get:
-      tags:
-        - Page content
-      summary: List all pages.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: A pageable list of page titles.
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/page/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
   /title/{title}:
-    get:
+    get: &title_title_get_spec
       tags:
         - Page content
-      summary: Get latest revision metadata for a title.
+      summary: Get revision metadata for a title.
       description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
+        Returns the revision metadata for the given title. If a revision ID is provided,
+        metadata for that revision is returned, otherwise the latest revision ID is assumed.
+
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -116,35 +87,18 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/page_revisions/page/{title}
+              uri: /{domain}/sys/page_revisions/page/{title}{/revision}
               headers:
                 # FIXME: Temporary work-around (see T120212).
                 cache-control: 'no-cache'
                 if-unmodified-since: '{{if-unmodified-since}}'
       x-monitor: true
       x-amples:
-        #- title: Get rev of by title from MW
-        #  request:
-        #    params:
-        #      title: Foobar
-        #    headers:
-        #      cache-control: no-cache
-        #  response:
-        #    status: 200
-        #    headers:
-        #      etag: /.+/
-        #      content-type: application/json
-        #    body:
-        #      items:
-        #        - title: 'Foobar'
-        #          rev: /\d+/
-        #          tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-        #          comment: /.*/
         - title: Get rev by title from storage
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:
@@ -152,67 +106,42 @@ paths:
               content-type: application/json
             body:
               items:
-                - title: 'Foobar'
+                - title: 'User:BSitzmann_(WMF)/MCS/Test/Frankenstein'
                   rev: /\d+/
                   tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
                   comment: /.*/
+                  page_language: 'en'
 
-  /title/{title}/:
+  /title/{title}/{revision}:
     get:
-      tags:
-        - Page content
-      summary: List revisions for a title.
-      description: |
-        Currently this lists all revisions that ever used this title and are
-        stored in RESTBase, but eventually it should return the
-        linear history (across renames) of the page currently using this
-        title.
-
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
+      <<: *title_title_get_spec
       parameters:
         - name: title
           in: path
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: A list of revisions for a title.
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/page/{title}/
-              query:
-                page: '{{page}}'
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: true
       x-monitor: false
 
   /html/{title}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
-      #- path: ./lib/access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
-          redirect_cache_control: '{{options.purged_cache_control}}'
+          redirect_cache_control: '{{options.response_cache_control}}'
           attach_body_to_redirect: true
       - path: lib/security_response_header_filter.js
         options:
           allowInlineStyles: true
+      - path: lib/content_negotiation_filter.js
     get:
       x-route-filters:
         - path: lib/ensure_content_type.js
+        - path: ./lib/language_variants_filter.js
       tags:
         - Page content
       summary: Get latest HTML for a title.
@@ -237,8 +166,17 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"
+        - application/json
+        - application/problem+json
       responses:
         '200':
           description: |
@@ -322,7 +260,7 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              title: Foobar
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
           response:
             status: 200
             headers:
@@ -390,6 +328,7 @@ paths:
         - multipart/form-data
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: The content was not changed, and no new version was created.
@@ -439,6 +378,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -472,19 +412,20 @@ paths:
                 page: '{{page}}'
       x-monitor: false
 
-  /html/{title}/{revision}{/tid}:
-    x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
-      #- path: ./lib/access_check_filter.js
+  /html/{title}/{revision}:
+    x-route-filters: &html_title_revision_filters
+      - path: ./lib/access_check_filter.js
         options:
-          redirect_cache_control: '{{options.purged_cache_control}}'
+          redirect_cache_control: '{{options.response_cache_control}}'
           attach_body_to_redirect: true
       - path: lib/security_response_header_filter.js
         options:
           allowInlineStyles: true
-    get:
+      - path: lib/content_negotiation_filter.js
+    get: &html_title_revision_get_spec
       x-route-filters:
         - path: lib/ensure_content_type.js
+        - path: ./lib/language_variants_filter.js
       tags:
         - Page content
       summary: Get HTML for a specific title/revision & optionally timeuuid.
@@ -492,7 +433,9 @@ paths:
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       operationId: getFormatRevision
       produces:
-        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.5.0"
+        - text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/1.7.0"
+        - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -504,10 +447,6 @@ paths:
           description: The revision
           type: integer
           required: true
-        - name: tid
-          in: path
-          description: The revision's time ID
-          type: string
         - name: sections
           in: query
           description: Comma-separated list of section IDs
@@ -521,6 +460,13 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           type: boolean
           required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
       responses:
         '200':
           description: |
@@ -535,12 +481,6 @@ paths:
             can be converted back to wikitext using the
             [/transform/html/to/wikitext{/title}{/revision}](#!/Transforms/transform_html_to_wikitext__title___revision__post)
             entry point.
-          schema:
-            oneOf:
-              - type: string
-              - type: object
-                patternProperties:
-                  '^mw\w+$': string
           headers:
             ETag:
               description: |
@@ -597,12 +537,54 @@ paths:
                 sections: '{{sections}}'
       x-monitor: false
 
+  /html/{title}/{revision}/{tid}:
+    x-route-filters:
+      <<: *html_title_revision_filters
+    get:
+      <<: *html_title_revision_get_spec
+      operationId: getFormatRevision2
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: integer
+          required: true
+        - name: tid
+          in: path
+          description: The revision's time ID
+          type: string
+          required: true
+        - name: sections
+          in: query
+          description: Comma-separated list of section IDs
+          type: string
+        - name: redirect
+          in: query
+          description: >
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
+            return HTTP 302 with a redirect target in `Location` header and content in the body.
+
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          type: boolean
+          required: false
+        - name: Accept-Language
+          in: header
+          description: >
+            The desired language variant code for wikis where LanguageConverter is enabled.
+            Example: `sr-el` for Latin transcription of the Serbian language.
+          required: false
+          type: string
+
   /data-parsoid/{title}/{revision}/{tid}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
-      #- path: ./lib/access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
-          redirect_cache_control: '{{options.purged_cache_control}}'
+          redirect_cache_control: '{{options.response_cache_control}}'
           attach_body_to_redirect: true
     get:
       tags:
@@ -621,7 +603,8 @@ paths:
 
         Stability: [Stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.5.0"
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/data-parsoid/1.7.0"
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -699,62 +682,52 @@ paths:
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
       x-monitor: false
 
-  /revision/:
-    get:
+  /lint/{title}:
+    x-route-filters: &lint_title_filters
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
+    get: &lint_title_get_spec
       tags:
         - Page content
-      summary: List all page revisions.
+      summary: Get the linter errors for a specific title/revision.
       description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
-        - name: page
-          in: query
-          description: Next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: The queriable sub-items
-          schema:
-            $ref: '#/definitions/listing'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/page_revisions/rev/
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
-  /revision/{revision}:
-    get:
-      tags:
-        - Page content
-      summary: Get metadata about a specific revision.
-      description: |
-        Stability: **[Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated).**
-        To be removed on May, 1st 2017
-      produces:
-        - application/json
-      parameters:
-        - name: revision
+        - name: title
           in: path
-          description: The revision id
-          type: integer
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
           required: true
       responses:
         '200':
-          description: The revision's properties
-          schema:
-            $ref: '#/definitions/revision'
+          description: |
+            The lint errors for the given page and optionally revision.
+
+            See [the Linter extension docs](https://www.mediawiki.org/wiki/Extension:Linter) for more
+            details.
+        '301':
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        '302':
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page revision contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
         '400':
-          description: Invalid revision
+          description: Invalid revision or tid
           schema:
             $ref: '#/definitions/problem'
         '403':
@@ -762,7 +735,7 @@ paths:
           schema:
             $ref: '#/definitions/problem'
         '404':
-          description: Unknown revision id or domain
+          description: Unknown page, revision or tid
           schema:
             $ref: '#/definitions/problem'
         default:
@@ -772,28 +745,25 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/page_revisions/rev/{revision}
-              headers:
-                # FIXME: Temporary work-around (see T120212).
-                cache-control: 'no-cache'
-      x-monitor: true
-      x-amples:
-        - title: Get rev by ID
-          request:
-            params:
-              domain: en.wikipedia.org
-              revision: 642497713
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: application/json
-            body:
-              items:
-                - title: 'Foobar'
-                  rev: /\d+/
-                  tid: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-                  comment: /.*/
+              uri: /{domain}/sys/parsoid/lint/{title}{/revision}
+      x-monitor: false
+
+  /lint/{title}/{revision}:
+    x-route-filters:
+      <<: *lint_title_filters
+    get:
+      <<: *lint_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision
+          type: integer
+          required: true
 
   /wikitext/{title}:
     post:
@@ -852,6 +822,7 @@ paths:
         - multipart/form-data
       produces:
         - application/json
+        - application/problem+json
       responses:
         '200':
           description: The existing revision of the page matches the sent text
@@ -946,6 +917,7 @@ definitions:
         $ref: '#/definitions/revisionInfo'
 
   revisionInfo:
+    type: object
     description: Complete information about the revision
     properties:
       title:
@@ -958,19 +930,8 @@ definitions:
         format: int32
       tid:
         type: string
-      latest_rev:
-        type: integer
-        format: int32
-      latest_tid:
-        type: string
-      nextrev_tid:
-        type: string
       comment:
         type: string
-      renames:
-        type: array
-        items:
-          type: string
       restrictions:
         type: array
         items:
@@ -989,6 +950,8 @@ definitions:
         format: date-time
       redirect:
         type: boolean
+      page_language:
+        type: string
 
   revisionIdentifier:
     description: Unique revision identifier

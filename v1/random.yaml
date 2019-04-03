@@ -9,6 +9,9 @@ paths:
         Redirects the client to the URI for the desired format for a random page title.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Random/0.6.0"
+        - application/problem+json
       parameters:
         - name: format
           in: path
@@ -38,15 +41,5 @@ paths:
               headers:
                 cache_control: '{{options.random_cache_control}}'
                 location: '../{request.params.format}/{title_from_mobileapps.body.items[0].title}'
-      x-monitor: true
-      x-amples:
-        - title: Random title redirect
-          request:
-            params:
-              format: title
-          response:
-            status: 303
-            headers:
-              cache-control: /.+/
-              location: /^..\/title\/[^\/]+$/
-        
+      x-monitor: false
+

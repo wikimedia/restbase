@@ -1,6 +1,5 @@
 'use strict';
 
-
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
@@ -57,7 +56,18 @@ class Feed extends BaseFeed {
     // TODO: this is temporary code to increase the size of the TFA thumbnail
     _hydrateResponse(hyper, req, res) {
         const rp = req.params;
-        const fetchSummary = uri => mwUtil.fetchSummary(hyper, uri);
+        const updateForDupes = (orig, dupe) => {
+            orig.views += dupe.views;
+            orig.view_history.forEach((toViewsForDate) => {
+                const filteredViews = dupe.view_history.filter((fromViewsForDate) => {
+                    return toViewsForDate.date === fromViewsForDate.date;
+                });
+                if (filteredViews.length) {
+                    toViewsForDate.views += filteredViews[0].views;
+                }
+            });
+            return orig;
+        };
         if (res.body.tfa && res.body.tfa.$merge && res.body.tfa.$merge.length) {
             const summaryURI = res.body.tfa.$merge[0];
             const title = decodeURIComponent(
@@ -74,13 +84,15 @@ class Feed extends BaseFeed {
                 }
             });
             return P.join(
-                mwUtil.hydrateResponse(res, fetchSummary),
+                super._hydrateResponse(hyper, req, res),
                 highQualityThumbRequest
             ).then((result) => {
                 const thumbRes = result[1].body;
+                result[0].body = result[0].body || {};
                 if (thumbRes.items && thumbRes.items.length && thumbRes.items[0].thumbnail) {
                     const newThumb = thumbRes.items[0].thumbnail;
                     newThumb.source = newThumb.source.replace(/^http:/, 'https:');
+                    result[0].body.tfa = result[0].body.tfa || {};
                     result[0].body.tfa.thumbnail = newThumb;
                     if (thumbRes.items[0].original) {
                         const newOriginal = thumbRes.items[0].original;
@@ -88,10 +100,23 @@ class Feed extends BaseFeed {
                         result[0].body.tfa.originalimage = newOriginal;
                     }
                 }
+                if (result[0].body.mostread && result[0].body.mostread.articles) {
+                    result[0].body.mostread.articles =
+                        mwUtil.removeDuplicateTitles(result[0].body.mostread.articles,
+                            updateForDupes);
+                }
                 return result[0];
             });
         } else {
-            return mwUtil.hydrateResponse(res, fetchSummary);
+            return super._hydrateResponse(hyper, req, res)
+            .then((response) => {
+                if (response.body.mostread && response.body.mostread.articles) {
+                    response.body.mostread.articles =
+                        mwUtil.removeDuplicateTitles(response.body.mostread.articles,
+                            updateForDupes);
+                }
+                return response;
+            });
         }
     }
 
@@ -99,7 +124,7 @@ class Feed extends BaseFeed {
         const props = {};
         let parts = Object.keys(PARTS_URIS);
         if (isHistoric) {
-            parts = parts.filter(part => PARTS_URIS[part].renewable);
+            parts = parts.filter((part) => PARTS_URIS[part].renewable);
         }
         parts.forEach((part) => {
             props[part] = hyper.get(PARTS_URIS[part].reqTemplate.expand({
@@ -145,7 +170,7 @@ module.exports = (options) => {
     options.content_type = 'application/json; charset=utf-8; ' +
         'profile="https://www.mediawiki.org/wiki/Specs/aggregated-feed/0.5.0"';
     options.spec = spec;
-    options.storeHistory = true;
+    options.storeHistory = false;
 
     return new Feed(options).getModuleDeclaration();
 };

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const P         = require('bluebird');
 const uuid = require('cassandra-uuid').TimeUuid;
@@ -27,18 +27,18 @@ class EventService {
             // the event which caused the rerender. In case RESTBase is about to emit
             // the same event, it will cause a rerender loop. So, log an error and skip
             // the event.
-            let triggeredBy = req.headers && req.headers['x-triggered-by']
-                || hyper._rootReq && hyper._rootReq.headers
-                    && hyper._rootReq.headers['x-triggered-by'];
+            let triggeredBy = req.headers && req.headers['x-triggered-by'] ||
+                hyper._rootReq && hyper._rootReq.headers &&
+                    hyper._rootReq.headers['x-triggered-by'];
             let topic = this.options.topic;
-            if (triggeredBy && this.options.transcludes_topic
-                    && /transcludes/.test(triggeredBy)) {
+            if (triggeredBy && this.options.transcludes_topic &&
+                    /transcludes/.test(triggeredBy)) {
                 topic = this.options.transcludes_topic;
             }
 
             let events = req.body.map((event) => {
                 if (!event.meta || !event.meta.uri || !/^\/\//.test(event.meta.uri)) {
-                    hyper.log('error/events/emit', {
+                    hyper.logger.log('error/events/emit', {
                         message: 'Invalid event URI',
                         event
                     });
@@ -57,14 +57,14 @@ class EventService {
                 event.triggered_by = triggeredBy;
                 return event;
             })
-            .filter(event => !!event);
+            .filter((event) => !!event);
 
             if (triggeredBy) {
                 triggeredBy = triggeredBy.replace(/https?:/g, '');
                 events = events.filter((event) => {
                     const eventId = `${event.meta.topic}:${event.meta.uri.replace(/^https?:/, '')}`;
                     if (triggeredBy.indexOf(eventId) !== -1) {
-                        hyper.log('error/events/rerender_loop', {
+                        hyper.logger.log('error/events/rerender_loop', {
                             message: 'Rerender loop detected',
                             event
                         });
@@ -88,7 +88,7 @@ class EventService {
             }
         })
         .catch((e) => {
-            hyper.log('error/events/emit', e);
+            hyper.logger.log('error/events/emit', e);
         }).thenReturn({ status: 200 });
     }
 }

@@ -20,7 +20,7 @@ class MathoidService {
 
         // start by calculating the hash
         return hyper.post({
-            uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', 'hash']),
+            uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid_ng.input', 'hash']),
             body: { q: req.body.q, type: rp.type }
         }).then((res) => {
             hash = origHash = res.body;
@@ -30,67 +30,67 @@ class MathoidService {
             }
             // check the post storage
             return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash])
+                uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.check', hash])
             }).catch({ status: 404 }, () => // let's try to find an indirection
                 hyper.get({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])
+                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.hash_table', hash])
                 }).then((hashRes) => {
                     // we have a normalised version of the formula
                     hash = hashRes.body;
                     // grab that version from storage
                     return hyper.get({
-                        uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash])
+                        uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.check', hash])
                     });
                 }));
         }).catch({ status: 404 }, () => // if we are here, it means this is a new input formula
         // so call mathoid
-        hyper.post({
-            uri: `${this.options.host}/texvcinfo`,
-            headers: { 'content-type': 'application/json' },
-            body: {
-                q: req.body.q,
-                type: rp.type
-            }
-        }).then((res) => {
-            checkRes = res;
-            // store the normalised version
-            return hyper.put({
-                uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', '']),
+            hyper.post({
+                uri: `${this.options.host}/texvcinfo`,
                 headers: { 'content-type': 'application/json' },
                 body: {
-                    q: res.body.checked,
+                    q: req.body.q,
                     type: rp.type
                 }
-            });
-        }).then((res) => {
-            let indirectionP = P.resolve();
-            hash = res.body;
-            // add the indirection to the hash table if the hashes don't match
-            if (hash !== origHash) {
-                indirectionP = hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table',
-                        origHash]),
-                    headers: { 'content-type': 'text/plain' },
-                    body: hash
+            }).then((res) => {
+                checkRes = res;
+                // store the normalised version
+                return hyper.put({
+                    uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid_ng.input', '']),
+                    headers: { 'content-type': 'application/json' },
+                    body: {
+                        q: res.body.checked,
+                        type: rp.type
+                    }
                 });
-            }
-            // store the result
-            checkRes.headers = {
-                'content-type': 'application/json',
-                'cache-control': 'no-cache',
-                'x-resource-location': hash
-            };
-            return P.join(
-                hyper.put({
-                    uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.check', hash]),
-                    headers: checkRes.headers,
-                    body: checkRes.body
-                }),
-                indirectionP,
-                this._invalidateCache.bind(this, hyper, hash),
-                () => checkRes
-            );
-        }));
+            }).then((res) => {
+                let indirectionP = P.resolve();
+                hash = res.body;
+                // add the indirection to the hash table if the hashes don't match
+                if (hash !== origHash) {
+                    indirectionP = hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.hash_table',
+                            origHash]),
+                        headers: { 'content-type': 'text/plain' },
+                        body: hash
+                    });
+                }
+                // store the result
+                checkRes.headers = {
+                    'content-type': 'application/json',
+                    'cache-control': 'no-cache',
+                    'x-resource-location': hash
+                };
+                return P.join(
+                    hyper.put({
+                        uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.check', hash]),
+                        headers: checkRes.headers,
+                        body: checkRes.body
+                    }),
+                    indirectionP,
+                    this._invalidateCache.bind(this, hyper, hash),
+                    () => checkRes
+                );
+            }));
 
     }
 
@@ -102,9 +102,9 @@ class MathoidService {
         for (idx = 0; idx < len; idx++) {
             const format = FORMATS[idx];
             // ensure that we have a proper response for a given format
-            if (!completeBody[format]
-                    || !completeBody[format].headers
-                    || !completeBody[format].body) {
+            if (!completeBody[format] ||
+                    !completeBody[format].headers ||
+                    !completeBody[format].body) {
                 return P.reject(new HTTPError({
                     status: 500,
                     body: {
@@ -115,7 +115,7 @@ class MathoidService {
             }
             // construct the request object that will be emitted
             const reqObj = {
-                uri: new URI([domain, 'sys', 'key_value', `mathoid.${format}`, hash]),
+                uri: new URI([domain, 'sys', 'key_value', `mathoid_ng.${format}`, hash]),
                 headers: Object.assign(
                     completeBody[format].headers, { 'x-resource-location': hash }),
                 body: completeBody[format].body
@@ -147,8 +147,8 @@ class MathoidService {
             uri: `${this.options.host}/complete`,
             headers: { 'content-type': 'application/json' },
             body: req.body
-        }).then(res => // now store all of the renders
-        this._storeRenders(hyper, rp.domain, hash, res.body)).then((res) => {
+        }).then((res) => // now store all of the renders
+            this._storeRenders(hyper, rp.domain, hash, res.body)).then((res) => {
             // and return a proper response
             const ret = res[rp.format];
             ret.status = 200;
@@ -171,11 +171,11 @@ class MathoidService {
 
         return hyper.post({
             uri: new URI(['wikimedia.org', 'sys', 'events', '']),
-            body: routes.map(route => ({
+            body: routes.map((route) => ({
                 meta: { uri: route }
             }))
         }).catch((e) => {
-            hyper.log('warn/bg-updates', e);
+            hyper.logger.log('warn/bg-updates', e);
         });
 
     }
@@ -184,19 +184,19 @@ class MathoidService {
         const rp = req.params;
         let hash = rp.hash;
         return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', hash])
+            uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid_ng.input', hash])
         }).then((res) => {
             res.headers['x-resource-location'] = hash;
             return res;
         }).catch({ status: 404 }, () => // let's try to find an indirection
             hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid.hash_table', hash])
+                uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.hash_table', hash])
             }).then((hashRes) => {
                 // we have a normalised version of the formula
                 hash = hashRes.body;
                 // grab that version from storage
                 return hyper.get({
-                    uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid.input', hash])
+                    uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid_ng.input', hash])
                 }).then((res) => {
                     res.headers['x-resource-location'] = hash;
                     return res;
@@ -236,16 +236,15 @@ module.exports = (options) => {
         },
         resources: [
             {
-                uri: '/{domain}/sys/post_data/mathoid.input'
+                uri: '/{domain}/sys/post_data/mathoid_ng.input'
             }, {
-                uri: '/{domain}/sys/key_value/mathoid.hash_table',
+                uri: '/{domain}/sys/key_value/mathoid_ng.hash_table',
                 body: { valueType: 'string' }
             }, {
-                uri: '/{domain}/sys/key_value/mathoid.check',
+                uri: '/{domain}/sys/key_value/mathoid_ng.check',
                 body: { valueType: 'json' }
             }
         ]
     };
 
 };
-

@@ -7,8 +7,8 @@ tags:
   - name: Page content
     description: page content in different formats
 paths:
-  /segments/{title}{/revision}:
-    get:
+  /segments/{title}:
+    get: &segments_title_get_spec
       tags:
         - Page content
       summary: Fetches a segmented page to be used in machine translation
@@ -20,17 +20,13 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: title
           in: path
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: revision
-          in: path
-          description: The revision id
-          type: integer
-          required: false
       responses:
         '200':
           description: The segmented page for the given title and revision
@@ -70,3 +66,18 @@ paths:
             request:
               uri: '{{options.cx_host}}/v1/page/{domain}/{title}/{revision}'
       x-monitor: false
+
+  /segments/{title}/{revision}:
+    get: 
+      <<:  *segments_title_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
+          type: string
+          required: true
+        - name: revision
+          in: path
+          description: The revision id
+          type: integer
+          required: true

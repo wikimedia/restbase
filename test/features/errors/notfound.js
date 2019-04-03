@@ -1,81 +1,79 @@
 'use strict';
 
-// mocha defines to avoid JSHint breakage
-/* global describe, it, before, beforeEach, after, afterEach */
-
 const parallel = require('mocha.parallel');
-var assert = require('../../utils/assert.js');
-var preq   = require('preq');
-var server = require('../../utils/server.js');
+const assert   = require('../../utils/assert.js');
+const preq     = require('preq');
+const Server   = require('../../utils/server.js');
 
 parallel('404 handling', function() {
-
     this.timeout(20000);
+    const server = new Server();
 
-    before(function () { return server.start(); });
+    before(() => server.start());
+    after(() => server.stop());
 
-    it('should return a proper 404 when trying to retrieve a non-existing domain', function() {
+    it('should return a proper 404 when trying to retrieve a non-existing domain', () => {
         return preq.get({
-            uri: server.config.hostPort + '/v1/foobar.com'
+            uri: `${server.config.hostPort}/v1/foobar.com`
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });
     });
-    it('should return a proper 404 when trying to list a non-existing domain', function() {
+    it('should return a proper 404 when trying to list a non-existing domain', () => {
         return preq.get({
-            uri: server.config.hostPort + '/v1/foobar.com/'
+            uri: `${server.config.hostPort}/v1/foobar.com/`
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });
     });
-    it('should return a proper 404 when accessing an unknown bucket', function() {
+    it('should return a proper 404 when accessing an unknown bucket', () => {
         return preq.get({
-            uri: server.config.baseURL + '/some_nonexisting_bucket'
+            uri: `${server.config.baseURL()}/some_nonexisting_bucket`
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });
     });
-    it('should return a proper 404 when trying to list an unknown bucket', function() {
+    it('should return a proper 404 when trying to list an unknown bucket', () => {
         return preq.get({
-            uri: server.config.baseURL + '/some_nonexisting_bucket/'
+            uri: `${server.config.baseURL()}/some_nonexisting_bucket/`
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });
     });
-    it('should return a proper 404 when accessing an item in an unknown bucket', function() {
+    it('should return a proper 404 when accessing an item in an unknown bucket', () => {
         return preq.get({
-            uri: server.config.baseURL + '/some_nonexisting_bucket/item'
+            uri: `${server.config.baseURL()}/some_nonexisting_bucket/item`
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });
     });
-    it('should return a proper 404 for the latest revision of a missing page', function() {
+    it('should return a proper 404 for the latest revision of a missing page', () => {
         return preq.get({
-            uri: server.config.bucketURL + '/ThisIsProblablyNotARealPateTitle/html'
+            uri: `${server.config.bucketURL()}/ThisIsProblablyNotARealPateTitle/html`
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });
     });
-    it('should return 404 on deleted revision', function() {
+    it('should return 404 on deleted revision', () => {
         return preq.get({
-            uri: server.config.bucketURL + '/revision/668588412'
+            uri: `${server.config.bucketURL()}/revision/668588412`
         })
-        .then(function() {
-            throw new Error('404 should be returned')
+        .then(() => {
+            throw new Error('404 should be returned');
         })
-        .catch(function(e) {
+        .catch((e) => {
             assert.deepEqual(e.status, 404);
             assert.contentType(e, 'application/problem+json');
         });

@@ -14,7 +14,7 @@ info:
 paths:
   /pdf/{title}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+      - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.cache_control}}'
     get:
@@ -27,6 +27,7 @@ paths:
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       produces:
         - application/pdf
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -40,6 +41,7 @@ paths:
             type: file
           headers:
             ETag:
+              type: string
               description: >
                 Syntax: "{revision}/{tid}".
                 Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
@@ -51,27 +53,27 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/problem'
-
-      x-request-handler:
-        - get_latest_revision:
-            request:
-              method: get
-              uri: /{domain}/sys/page_revisions/page/{title}
-        - get_pdf_from_backend:
-            request:
-              method: get
-              # Note: The title needs to be encoded twice.
-              uri: '{{options.uri}}/pdf?accessKey={options.secret}&url=https://{{domain}}/wiki/{_encodeURIComponent(title)}%3Fprintable=yes'
-            return:
-              status: 200
-              headers:
-                # Firefox supports filename*= syntax while Chrome respect
-                # filename=. Safari is stupid and understands neither.
-                # TODO: Quote raw `"` chars in filename.
-                content-disposition: 'attachment; {{filenameParameters(request.params.title)}}'
-                content-type: '{{get_pdf_from_backend.headers.content-type}}'
-                content-length: '{{get_pdf_from_backend.headers.content-length}}'
-                cache-control: '{{default(options.cache_control, "s-maxage=600, max-age=600")}}'
-                etag: '{{get_latest_revision.headers.etag}}'
-              body: '{{get_pdf_from_backend.body}}'
+      operationId: 'generatePDF'
+#      x-request-handler:
+#        - get_latest_revision:
+#            request:
+#              method: get
+#              uri: /{domain}/sys/page_revisions/page/{title}
+#        - get_pdf_from_backend:
+#            request:
+#              method: get
+#              # Note: The title needs to be encoded twice.
+#              uri: '{{options.uri}}/pdf?accessKey={options.secret}&url={{default(options.scheme, "https")}}://{{domain}}/wiki/{_encodeURIComponent(title)}%3Fprintable=yes'
+#            return:
+#              status: 200
+#              headers:
+#                # Firefox supports filename*= syntax while Chrome respect
+#                # filename=. Safari is stupid and understands neither.
+#                # TODO: Quote raw `"` chars in filename.
+#                content-disposition: 'attachment; {{filenameParameters(request.params.title)}}'
+#                content-type: '{{get_pdf_from_backend.headers.content-type}}'
+#                content-length: '{{get_pdf_from_backend.headers.content-length}}'
+#                cache-control: '{{default(options.cache_control, "s-maxage=600, max-age=600")}}'
+#                etag: '{{get_latest_revision.headers.etag}}'
+#              body: '{{get_pdf_from_backend.body}}'
       x-monitor: false # PDF generation is expensive and it's not stored, so don't run checker script

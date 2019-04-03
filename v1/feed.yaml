@@ -17,6 +17,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
+        - application/problem+json
       parameters:
         - name: yyyy
           in: path
@@ -117,7 +118,6 @@ definitions:
       - normalizedtitle
       - views
       - rank
-      - pageid
 
   mostread:
     type: object
@@ -179,7 +179,7 @@ definitions:
         description: Full-size image
         $ref: '#/definitions/thumbnail'
       description:
-        descrtiption: Description of an image
+        description: Description of an image
         $ref: '#/definitions/image_description'
     required:
       - title

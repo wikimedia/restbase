@@ -3,7 +3,7 @@ info:
   version: '1.0.0-beta'
   title: MediaWiki Definition API
   description: Wikitionary word definition API
-  termsofservice: https://github.com/wikimedia/restbase#restbase
+  termsOfService: https://github.com/wikimedia/restbase#restbase
   contact:
     name: Services
     email: services@lists.wikimedia.org
@@ -14,9 +14,10 @@ info:
 paths:
   /definition/{term}:
     x-route-filters:
-      - path: ./lib/revision_table_access_check_filter.js
+      - path: ./lib/access_check_filter.js
+      - path: ./lib/normalize_title_filter.js
         options:
-          title: term
+          title_param_name: term
           redirect_cache_control: '{{options.response_cache_control}}'
     get:
       tags:
@@ -31,7 +32,8 @@ paths:
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       produces:
-        - application/json
+        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/definition/0.8.0"
+        - application/problem+json
       parameters:
         - name: term
           in: path
@@ -85,7 +87,7 @@ paths:
         # Set up a simple key-value bucket.
         - init:
             method: 'put'
-            uri: /{domain}/sys/key_value/term.definition
+            uri: /{domain}/sys/key_value/term.definition-ng
             body:
               valueType: 'json'
 
@@ -95,7 +97,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/term.definition/{request.params.term}
+              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
             catch:
               status: 404
             return_if:
@@ -117,12 +119,12 @@ paths:
             response:
               # Define the response to save & return.
               headers:
-                content-type: application/json
+                content-type: '{{extract.headers.content-type}}'
               body: '{{extract.body}}'
         - store:
             request:
               method: put
-              uri: /{domain}/sys/key_value/term.definition/{request.params.term}
+              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
               headers: '{{merge({"if-none-hash-match": "*"}, extract.headers)}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
@@ -146,7 +148,6 @@ paths:
               body:
                 - meta:
                     uri: //{request.params.domain}/api/rest_v1/page/definition/{request.params.title}
-          response:
             return:
               status: 200
               headers:
@@ -166,7 +167,7 @@ paths:
             status: 200
             headers:
               etag: /.+/
-              content-type: /^application\/json$/
+              content-type: /^application\/json/
 
 definitions:
   definition:

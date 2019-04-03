@@ -2,13 +2,16 @@ info:
   version: '1.0.0'
   title: Recommendation API
   description: Recommendation API
-  termsofservice: https://github.com/wikimedia/restbase
+  termsOfService: https://github.com/wikimedia/restbase
   license:
     name: Apache license, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Recommendation
+    description: article translation recommendations
 paths:
-  /recommendation/translation/{from_lang}{/seed_article}:
-    get:
+  /recommendation/article/creation/translation/{from_lang}:
+    get: &recommendation_article_creation_translation_from-lang_get_spec
       tags:
         - Recommendation
       summary: Recommend articles for translation.
@@ -20,18 +23,14 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
-        - applicaiton/json
+        - application/json
+        - application/problem+json
       parameters:
         - name: from_lang
           in: path
           description: The source language code
           type: string
           required: true
-        - name: seed_article
-          in: path
-          description: The article to use as a search seed
-          type: string
-          required: false
         - name: count
           in: query
           description: The max number of articles to return
@@ -50,7 +49,71 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: '{{options.host}}/{domain}/v1/translation/articles/{from_lang}/{{default(seed_article,"")}}'
+              uri: '{{options.host}}/{domain}/v1/article/creation/translation/{from_lang}/{default(seed_article,"")}'
+      x-monitor: false
+
+/recommendation/article/creation/translation/{from_lang}/{seed_article}:
+  get:
+    <<:  *recommendation_article_creation_translation_from-lang_get_spec
+    parameters:
+      - name: from_lang
+        in: path
+        description: The source language code
+        type: string
+        required: true
+      - name: seed_article
+        in: path
+        description: The article to use as a search seed
+        type: string
+        required: true
+      - name: count
+        in: query
+        description: The max number of articles to return
+        type: integer
+        required: false
+        default: 24
+
+  /recommendation/article/creation/morelike/{seed_article}:
+    x-route-filters:
+      - path: ./lib/access_check_filter.js
+        options:
+          title: seed_article
+      - path: ./lib/normalize_title_filter.js
+        options:
+          title_param_name: seed_article
+    get:
+      tags:
+        - Recommendation
+      summary: Recommend missing articles
+      description: |
+        Recommends articles similar to the seed article but are missing
+        from the domain language Wikipedia.
+
+        Currently, this end point works only on eswiki, fawiki, and uzwiki.
+
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+      produces:
+        - application/json
+        - application/problem+json
+      parameters:
+        - name: seed_article
+          in: path
+          description: The article title used to search similar but missing articles
+          type: string
+          required: true
+      responses:
+        '200':
+          description: the prioritized list of Wikidata IDs recommended for creation as Wikipedia articles
+          schema:
+            $ref: '#/definitions/morelike_result'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/{{domain}}/v1/article/creation/morelike/{seed_article}'
       x-monitor: false
 definitions:
   recommendation_result:
@@ -74,3 +137,15 @@ definitions:
             sitelink_count:
               type: integer
               description: count of sites the wikidata item is linked to
+  morelike_result:
+    type: array
+    description: the prioritized list of Wikidata IDs recommended for creation as Wikipedia articles
+    items:
+      type: object
+      properties:
+        wikidata_id:
+          type: string
+          description: Wikidata ID for the item
+        score:
+          type: number
+          description: Score of the recommendation. The higher the score, the more important the recommendation is.

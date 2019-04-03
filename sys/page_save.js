@@ -1,12 +1,10 @@
 'use strict';
 
-
 /**
  * Page_save module
  *
  * Sends the HTML or wikitext of a page to the MW API for saving
  */
-
 
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
@@ -134,7 +132,7 @@ class PageSave {
         }
         path.push(revision);
         return hyper.get({ uri: new URI(path) })
-        .then(res => res.body.items[0])
+        .then((res) => res.body.items[0])
         // We are dealing with a restricted revision
         // however, let MW deal with it as the user
         // might have sufficient permissions to do an edit
@@ -143,8 +141,8 @@ class PageSave {
 
     _checkParams(params) {
         if (!(params && params.csrf_token &&
-                ((params.wikitext && params.wikitext.trim()) || (params.html && params.html.trim()))
-            )) {
+                ((params.wikitext && params.wikitext.trim()) ||
+                (params.html && params.html.trim())))) {
             throw new HTTPError({
                 status: 400,
                 body: {
@@ -174,11 +172,9 @@ module.exports = () => {
                 }
             }
         },
-        operations:  {
+        operations: {
             saveWikitext: ps.saveWikitext.bind(ps),
             saveHTML: ps.saveHtml.bind(ps)
-        },
+        }
     };
 };
-
-

@@ -13,6 +13,7 @@ paths:
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - image/png
+        - application/problem+json
       parameters:
         - name: title
           in: path
@@ -33,7 +34,7 @@ paths:
         '200':
           description: The PNG render of the requested graph.
           schema:
-            type: blob
+            type: file
           # FIXME: Actually return a decent ETag from graphoid & document it here!
           # See https://phabricator.wikimedia.org/T125924
           #headers:

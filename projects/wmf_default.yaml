@@ -8,31 +8,42 @@ paths:
             title: Wikimedia REST API
             description: >
                 This API provides cacheable and straightforward access to
-                Wikimedia content and data, in machine-readable formats. Each
-                entry point has explicit stability markers to inform you about
-                development status and change policy, according to [our API
-                version policy](https://www.mediawiki.org/wiki/API_versioning).
+                Wikimedia content and data, in machine-readable formats.
 
-                See https://www.mediawiki.org/wiki/REST_API for background and details.
+                ### Global Rules
 
-                ### High-volume access
-                  - Limit your clients to no more than 200 requests/s to this API.
-                  - Set a unique `User-Agent` or `Api-User-Agent` header that
-                    allows us to contact you quickly. Email addresses or URLs
-                    of contact pages work well.
+                - Limit your clients to no more than 200 requests/s to this API.
+                  Each API endpoint's documentation may detail more specific usage limits.
+                - Set a unique `User-Agent` or `Api-User-Agent` header that
+                  allows us to contact you quickly. Email addresses or URLs
+                  of contact pages work well.
 
                 By using this API, you agree to Wikimedia's 
                 [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
-                [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy), and
-                you irrevocably agree to release modifications or additions
-                made through this API under the 
+                [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy).
+                Unless otherwise specified in the endpoint documentation
+                below, content accessed via this API is licensed under the
                 [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
-                License and the [GFDL](https://www.gnu.org/copyleft/fdl.html).
+                and [GFDL](https://www.gnu.org/copyleft/fdl.html) licenses,
+                and you irrevocably agree to release modifications or
+                additions made through this API under these licenses.
+                See https://www.mediawiki.org/wiki/REST_API for background and details.
+
+                ### Endpoint documentation
+
+                Please consult each endpoint's documentation for details on:
+
+                - Licensing information for the specific type of content
+                  and data served via the endpoint.
+                - Stability markers to inform you about development status and
+                  change policy, according to
+                  [our API version policy](https://www.mediawiki.org/wiki/API_versioning).
+                - Endpoint specific usage limits.
 
             termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
             contact:
               name: the Wikimedia Services team
-              url: http://mediawiki.org/wiki/RESTBase
+              url: http://mediawiki.org/wiki/REST_API
             license:
               name: Apache2
               url: http://www.apache.org/licenses/LICENSE-2.0
@@ -48,19 +59,17 @@ paths:
             /page:
               x-modules:
                 - path: v1/content.yaml
-                  options: '{{options}}'
+                  options:
+                    response_cache_control: '{{options.purged_cache_control}}'
                 - path: v1/content_segments.yaml
                   options:
-                    purged_cache_control: '{{options.purged_cache_control}}'
+                    response_cache_control: '{{options.purged_cache_control}}'
                     cx_host: '{{options.transform.cx_host}}'
-                - path: v1/mobileapps.yaml
-                  options: '{{merge({"response_cache_control": options.purged_cache_control},
-                                options.mobileapps)}}'
                 - path: v1/graphoid.yaml
                   options: '{{options.graphoid}}'
                 - path: v1/summary.js
-                  options:
-                    response_cache_control: '{{options.purged_cache_control_client_cache}}'
+                  options: '{{merge({"response_cache_control": options.purged_cache_control_client_cache},
+                                options.summary)}}'
                 - path: v1/related.js
                   options: '{{options.related}}'
                 - path: v1/random.yaml
@@ -69,14 +78,6 @@ paths:
                 - path: v1/pdf.js
                   options: '{{options.pdf}}'
                 - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
-            /feed:
-              x-modules:
-                - path: v1/feed.js
-                  options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60", "ttl": 7200}, options.mobileapps)}}'
-                - path: v1/announcements.yaml
-                  options: '{{merge({"announcement_cache_control": "s-maxage=86400, max-age=86400"}, options.mobileapps)}}'
-                - path: v1/onthisday.js
-                  options: '{{merge({"feed_cache_control": "s-maxage=300, max-age=60", "ttl": 7200}, options.mobileapps)}}'
             /transform:
               x-modules:
                 - path: v1/transform.yaml
@@ -90,8 +91,16 @@ paths:
               x-modules:
                 - path: v1/citoid.js
                   options: '{{options.citoid}}'
+                - path: v1/lists.js
+                  options: '{{options.lists}}'
                 - path: v1/recommend.yaml
                   options: '{{options.recommendation}}'
+                - path: v1/css.yaml
+                  options:
+                    host: '{{options.mobileapps.host}}'
+                - path: v1/javascript.yaml
+                  options:
+                    host: '{{options.mobileapps.host}}'
         options: '{{options}}'
 
   /{api:sys}:
@@ -103,15 +112,27 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
+            /parsoid_bucket:
+              x-modules:
+                - path: sys/multi_content_bucket.js
+                  options:
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
+                    index_ttl: '{{default(options.parsoid.index_ttl, 864000)}}'
+                    renew_expiring: true
+                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
+                    table_name_prefix: parsoid_ng
+                    main_content_type:
+                      name: html
+                      value_type: blob
+                    dependent_content_types:
+                      - name: data-parsoid
+                        value_type: json
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
             /key_rev_value:
               x-modules:
                 - path: sys/key_rev_value.js
-            /key_rev_latest_value:
-              x-modules:
-                - path: sys/key_rev_latest_value.js
             /page_revisions:
               x-modules:
                 - path: sys/page_revisions.js
@@ -128,66 +149,14 @@ paths:
             /parsoid:
               x-modules:
                 - path: sys/parsoid.js
-                  options:
+                  options: &parsoid_options
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
+                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
                     # A list of pages that we don't currently want to re-render on
                     # each edit. Most of these are huge bot-edited pages, which are
                     # rarely viewed in any case.
                     rerenderBlacklist:
-                      # Wikipedia
-                      ca.wikipedia.org:
-                        - 'Usuari:TronaBot/log:Activitat_reversors_per_hores'
-                      ceb.wikipedia.org:
-                        - 'Gumagamit:Lsjbot/Anomalier-PRIVAT'
-                        - 'Gumagamit:Lsjbot/Kartrutor2'
-                      de.wikipedia.org:
-                        - '/The_Big_Bang_Theory\/Staffel/'
-                        - 'Wikipedia:Café'
-                        - 'Wikipedia:Defekte_Weblinks/Bot2015-Problem'
-                        - 'Wikipedia_Diskussion:Hauptseite/Schon_gewusst'
-                        - 'Benutzer:Anglo-Araneophilus/Almigdad_Mojalli'
-                        - 'Benutzer:Wartungsstube/Berlin'
-                        - 'Benutzer:Wartungsstube/Musik'
-                        - 'Benutzer:Wartungsstube/Unternehmen'
-                        - 'Benutzer:Wartungsstube/Schifffahrt'
-                        - 'Benutzer:Verum/ege'
-                        - 'Benutzer:Septembermorgen/Bottabelle/Französische_Kantone_N–Z'
-                        - 'Wikipedia:WikiProjekt_Planen_und_Bauen/Zu_überarbeitende_Artikel'
-                      es.wikipedia.org:
-                        - 'Wikipedia:Café/Archivo/Miscelánea/Actual'
-                      fr.wikipedia.org:
-                        - 'Utilisateur:ZéroBot/Log/Erreurs'
-                        - 'Utilisateur:SyntaxTerror/Ajouts_du_modèle_Autorité'
-                        - '/^Utilisateur:[\s\S]+[Bb]rouillon'
-                        - 'Discussion_utilisateur:NaggoBot/CommonsDR'
-                        - 'Projet:France/Annonces/Admissibilité'
-                        - '/Wikipédia:Le_saviez-vous_.+/Anecdotes_proposées/'
-                      hy.wikipedia.org:
-                        - "/Մասնակից:Omicroñ\\'R/"
-                      it.wikipedia.org:
-                        - 'Utente:Effems/Sandbox7'
-                      nl.wikipedia.org:
-                        - 'Gebruiker:Eg-T2g/Kladblok'
-                      pt.wikipedia.org:
-                        - 'Wikipédia:Pedidos/Bloqueio'
-                      ru.wikipedia.org:
-                        - 'Википедия:Форум/Технический'
-                        - 'Портал:Герпетология'
-                      sv.wikipedia.org:
-                        - 'Användare:Lsjbot/Anomalier-PRIVAT'
-                        - 'Användare:Lsjbot/Namnkonflikter-PRIVAT'
-                      ur.wikipedia.org:
-                        - 'نام_مقامات_ایل'
-                        - 'نام_مقامات_ڈی'
-                        - 'نام_مقامات_جے'
-                        - 'نام_مقامات_جی'
-                        - 'نام_مقامات_ایچ'
-                        - 'نام_مقامات_ایم'
-                        - 'نام_مقامات_ایس'
-                      zh.wikipedia.org:
-                        - 'Wikipedia:互助客栈/条目探讨'
-                        - 'Draft:日本人工湖列表'
                       # Wikisource
                       pl.wikisource.org:
                         - '/^Wśród_czarnych\//'
@@ -198,26 +167,6 @@ paths:
                         - '/Commons:Undeletion_requests\//'
                         - '/Commons:WikiProject_Aviation\/recent_uploads\//'
                         - '/^(?:User|Benutzer):/'
-#                        - '/^User:Darafsh\//'
-#                        - '/^User:Darkweasel94\/Vienna\//'
-#                        - '/User:Huckety\//'
-#                        - '/^User:J_budissin\/Uploads\/BiH\//'
-#                        - 'User:Jarekt/d'
-#                        - '/^User:JJMC89_bot\/report\/BSicons\/changes\//'
-#                        - '/^User:Marcus_Cyron\/OgreBotCeramics\//'
-#                        - '/^User:Marek_Mazurkiewicz\/nowe_biologia\//'
-#                        - '/User:Multichill\//'
-#                        - '/^(?:User|Benutzer):Nicolas_Rück_\(WMDE\)\/Supported_by_Wikimedia_Deutschland_2015/'
-#                        - 'User:OgreBot/Uploads_by_new_users'
-#                        - '/^User:Oxyman\/Buildings_in_London\//'
-#                        - '/^User:Oxyman\/London\//'
-#                        - 'User:Stunteltje/gallery'
-#                        - 'User:PIERRE_ANDRE_LECLERCQ/gallery'
-            /mobileapps:
-              x-modules:
-                - path: sys/mobileapps.js
-                  options: '{{merge({"response_cache_control": options.purged_cache_control},
-                                options.mobileapps)}}'
             /events:
               x-modules:
                 - path: sys/events.js

@@ -42,12 +42,38 @@ const errCodes = {
     notext: errDefs['400'],
     notitle: errDefs['400'],
     pagecannotexist: errDefs['400'],
+    'readinglists-db-error-not-set-up': errDefs['400'],
+    'readinglists-db-error-already-set-up': errDefs['400'],
+    'readinglists-db-error-cannot-delete-default-list': errDefs['400'],
+    'readinglists-db-error-cannot-update-default-list': errDefs['400'],
+    'readinglists-db-error-no-such-list': errDefs['400'],
+    'readinglists-db-error-no-such-list-entry': errDefs['400'],
+    'readinglists-db-error-not-own-list': errDefs['400'],
+    'readinglists-db-error-not-own-list-entry': errDefs['400'],
+    'readinglists-db-error-list-deleted': errDefs['400'],
+    'readinglists-db-error-list-entry-deleted': errDefs['400'],
+    'readinglists-db-error-duplicate-page': errDefs['400'],
+    'readinglists-db-error-empty-list-ids': errDefs['400'],
+    'readinglists-db-error-user-required': errDefs['400'],
+    'readinglists-db-error-list-limit': errDefs['400'],
+    'readinglists-db-error-entry-limit': errDefs['400'],
+    'readinglists-db-error-too-long': errDefs['400'],
+    'readinglists-db-error-no-such-project': errDefs['400'],
+    'readinglists-project-title-param': errDefs['400'],
+    'readinglists-too-old': errDefs['400'],
+    'readinglists-invalidsort-notbyname': errDefs['400'],
+    'readinglists-batch-invalid-json': errDefs['400'],
+    'readinglists-batch-invalid-structure': errDefs['400'],
+    'readinglists-batch-toomanyvalues': errDefs['400'],
+    'readinglists-batch-missingparam-at-least-one-of': errDefs['400'],
     revwrongpage: errDefs['400'],
+
     /* 401 - unauthorised */
     'cantcreate-anon': errDefs['401'],
     confirmemail: errDefs['401'],
     'noedit-anon': errDefs['401'],
     'noimageredirect-anon': errDefs['401'],
+    notloggedin: errDefs['401'],
     protectedpage: errDefs['401'],
     readapidenied: errDefs['401'],
     /* 403 - access denied */
@@ -86,7 +112,7 @@ const errCodes = {
 function apiError(apiErr) {
     apiErr = apiErr || {};
     const  ret = {
-        message: `MW API call error ${apiErr.code}`,
+        msg: `MW API call error ${apiErr.code}`,
         status: errDefs['500'].status,
         body: {
             type: errDefs['500'].type,
@@ -101,14 +127,20 @@ function apiError(apiErr) {
     return new HTTPError(ret);
 }
 
-function buildQueryResponse(apiReq, res) {
+function checkQueryResponse(apiReq, res) {
     if (res.status !== 200) {
         throw apiError({
             info: `Unexpected response status (${res.status}) from the PHP action API.`
         });
     } else if (!res.body || res.body.error) {
         throw apiError((res.body || {}).error);
-    } else if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
+    }
+    return res;
+}
+
+function buildQueryResponse(apiReq, res) {
+    checkQueryResponse(apiReq, res);
+    if (!res.body.query || (!res.body.query.pages && !res.body.query.userinfo)) {
         throw new HTTPError({
             status: 404,
             body: {
@@ -123,7 +155,7 @@ function buildQueryResponse(apiReq, res) {
         // Rewrite res.body
         // XXX: Rethink!
         const pages = res.body.query.pages;
-        const newBody = Object.keys(pages).map(key => pages[key]);
+        const newBody = Object.keys(pages).map((key) => pages[key]);
 
         // XXX: Clean this up!
         res.body = {
@@ -155,7 +187,7 @@ function buildEditResponse(apiReq, res) {
 }
 
 function findSharedRepoDomain(siteInfoRes) {
-    const sharedRepo = (siteInfoRes.body.query.repos || []).find(repo => repo.name === 'shared');
+    const sharedRepo = (siteInfoRes.body.query.repos || []).find((repo) => repo.name === 'shared');
     if (sharedRepo) {
         const domainMatch = /^((:?https?:)?\/\/[^/]+)/.exec(sharedRepo.descBaseUrl);
         if (domainMatch) {
@@ -164,16 +196,24 @@ function findSharedRepoDomain(siteInfoRes) {
     }
 }
 
+function logError(hyper, err) {
+    if (err.status >= 400 && err.status !== 404 && err.status < 500) {
+        hyper.logger.log('debug/api_error', err);
+    }
+}
+
 /**
  * Action module code
  */
 class ActionService {
     constructor(options) {
-        if (!options) { throw new Error("No options supplied for action module"); }
+        if (!options) {
+            throw new Error('No options supplied for action module');
+        }
         if (!options.apiUriTemplate || !options.baseUriTemplate) {
-            const e = new Error('Missing parameter in action module:\n'
-                    + '- baseUriTemplate string parameter, or\n'
-                    + '- apiUriTemplate string parameter.');
+            const e = new Error('Missing parameter in action module:\n' +
+                    '- baseUriTemplate string parameter, or\n' +
+                    '- apiUriTemplate string parameter.');
             e.options = options;
             throw e;
         }
@@ -184,7 +224,7 @@ class ActionService {
             headers: {
                 host: '{{request.params.domain}}'
             },
-            body: '{{request.body}}',
+            body: '{{request.body}}'
         });
         this.baseUriTemplate = new Template({
             uri: options.baseUriTemplate
@@ -205,7 +245,8 @@ class ActionService {
         if (!{}.hasOwnProperty.call(apiRequest.body, 'continue') && apiRequest.action === 'query') {
             apiRequest.body.continue = '';
         }
-        return hyper.request(apiRequest).then(cont.bind(null, apiRequest));
+        return hyper.request(apiRequest)
+        .then(cont.bind(null, apiRequest));
     }
 
     _getBaseUri(req) {
@@ -216,7 +257,16 @@ class ActionService {
         return this._doRequest(hyper, req, {
             action: 'query',
             format: 'json'
-        }, buildQueryResponse);
+        }, buildQueryResponse)
+        .tapCatch(logError.bind(null, hyper));
+    }
+
+    rawQuery(hyper, req) {
+        return this._doRequest(hyper, req, {
+            format: 'json',
+            formatversion: 2
+        }, checkQueryResponse)
+        .tapCatch(logError.bind(null, hyper));
     }
 
     edit(hyper, req) {
@@ -224,7 +274,8 @@ class ActionService {
             action: 'edit',
             format: 'json',
             formatversion: 2
-        }, buildEditResponse);
+        }, buildEditResponse)
+        .tapCatch(logError.bind(null, hyper));
     }
 
     /**
@@ -232,6 +283,9 @@ class ActionService {
      *
      * Expects the project domain to be passed in req.params.domain. Fetching
      * siteinfo for other projects / domains is not supported.
+     * @param  {Object}  hyper   Hyperswitch instance
+     * @param  {Object}  req     request object
+     * @return {Object}          site info
      */
     siteinfo(hyper, req) {
         const rp = req.params;
@@ -243,12 +297,32 @@ class ActionService {
                 body: {
                     action: 'query',
                     meta: 'siteinfo|filerepoinfo',
-                    siprop: 'general|namespaces|namespacealiases|specialpagealiases',
+                    siprop: 'general' +
+                        '|namespaces' +
+                        '|namespacealiases' +
+                        '|specialpagealiases' +
+                        '|languagevariants',
                     format: 'json'
                 }
             }, {}, (apiReq, res) => {
                 if (!res || !res.body || !res.body.query || !res.body.query.general) {
                     throw new Error(`SiteInfo is unavailable for ${rp.domain}`);
+                }
+                // Transform from original response format to
+                // {
+                //   'lang' => ['variant1', 'variant2' ... ]
+                // }
+                // for ease of use.
+                const origVariants = res.body.query.languagevariants;
+                const variants = {};
+                if (origVariants) {
+                    Object.keys(origVariants).forEach((lang) => {
+                        variants[lang.toLowerCase()] =
+                            Object.keys(origVariants[lang])
+                        // Filter out non-specific variants like `en`, `zh` etc.
+                        .filter((variant) => /-/.test(variant))
+                        .map((variant) => variant.toLowerCase());
+                    });
                 }
                 return {
                     status: 200,
@@ -262,13 +336,14 @@ class ActionService {
                         namespaces: res.body.query.namespaces,
                         namespacealiases: res.body.query.namespacealiases,
                         specialpagealiases: res.body.query.specialpagealiases,
+                        languagevariants: variants,
                         sharedRepoRootURI: findSharedRepoDomain(res),
                         baseUri: this._getBaseUri(req)
                     }
                 };
             })
             .catch((e) => {
-                hyper.log('error/site_info', e);
+                hyper.logger.log('error/site_info', e);
                 delete this._siteInfoCache[rp.domain];
                 // The project domain is always expected to exist, so consider
                 // any error an internal error.
@@ -296,6 +371,11 @@ module.exports = (options) => {
                         operationId: 'mwApiQuery'
                     }
                 },
+                '/rawquery': {
+                    all: {
+                        operationId: 'mwRawApiQuery'
+                    }
+                },
                 '/siteinfo': {
                     all: {
                         operationId: 'mwApiSiteInfo'
@@ -310,6 +390,7 @@ module.exports = (options) => {
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
+            mwRawApiQuery: actionService.rawQuery.bind(actionService),
             mwApiEdit: actionService.edit.bind(actionService),
             mwApiSiteInfo: actionService.siteinfo.bind(actionService)
         }

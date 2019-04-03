@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * Key-value bucket handler
@@ -7,7 +7,7 @@
 const uuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
-const stringify = require('json-stable-stringify');
+const stringify = require('fast-json-stable-stringify');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 
@@ -20,8 +20,7 @@ function returnRevision(req) {
         if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
             const row = dbResult.body.items[0];
             let headers = {
-                etag: row.headers.etag || mwUtil.makeETag('0', row.tid),
-                'content-type': row['content-type']
+                etag: row.headers.etag || mwUtil.makeETag('0', row.tid)
             };
             if (row.headers) {
                 headers = Object.assign(headers, row.headers);
@@ -73,32 +72,19 @@ class KVBucket {
                 ],
                 updates: opts.updates || {
                     pattern: 'timeseries'
-                },
-            },
-            revisionRetentionPolicy: opts.retention_policy || {
-                type: 'latest',
-                count: 1,
-                grace_ttl: 86400
+                }
             },
             attributes: {
                 key: opts.keyType || 'string',
                 tid: 'timeuuid',
-                latestTid: 'timeuuid',
-                value: opts.valueType || 'blob',
-                'content-type': 'string',
-                'content-sha256': 'blob',
-                // Redirect
-                'content-location': 'string',
-                tags: 'set<string>',
-                headers: 'json'
+                headers: 'json',
+                value: opts.valueType || 'blob'
             },
             index: [
-                { attribute: 'key', type: 'hash' },
-                { attribute: 'tid', type: 'range', order: 'desc' }
+                { attribute: 'key', type: 'hash' }
             ]
         };
     }
-
 
     getRevision(hyper, req) {
         if (mwUtil.isNoCacheRequest(req)) {
@@ -116,12 +102,8 @@ class KVBucket {
                 limit: 1
             }
         };
-        if (rp.tid) {
-            storeReq.body.attributes.tid = mwUtil.coerceTid(rp.tid, 'key_value');
-        }
         return hyper.get(storeReq).then(returnRevision(req));
     }
-
 
     listRevisions(hyper, req) {
         const rp = req.params;
@@ -137,28 +119,33 @@ class KVBucket {
             }
         };
         return hyper.get(storeRequest)
-        .then(res => ({
+        .then((res) => ({
             status: 200,
-
             headers: {
                 'content-type': 'application/json'
             },
-
             body: {
-                items: res.body.items.map(row => row.tid)
+                items: res.body.items.map((row) => row.tid)
             }
         }));
     }
 
-
     putRevision(hyper, req) {
-        // TODO: support other formats! See cassandra backend getRevision impl.
         const rp = req.params;
         let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value');
 
         if (!tid) {
             tid = (mwUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
             tid = tid || uuid.now().toString();
+        }
+
+        if (mwUtil.isNoStoreRequest(req)) {
+            return {
+                status: 202,
+                headers: {
+                    etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
+                }
+            };
         }
 
         const doPut = () => hyper.put({
@@ -169,9 +156,7 @@ class KVBucket {
                     key: rp.key,
                     tid,
                     value: req.body,
-                    headers: req.headers,
-                    'content-type': req.headers && req.headers['content-type']
-                    // TODO: include other data!
+                    headers: req.headers
                 }
             }
         })
@@ -183,7 +168,7 @@ class KVBucket {
                         etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
                     },
                     body: {
-                        message: "Created.",
+                        message: 'Created.',
                         tid
                     }
                 };
@@ -192,7 +177,7 @@ class KVBucket {
             }
         })
         .catch((error) => {
-            hyper.log('error/kv/putRevision', error);
+            hyper.logger.log('error/kv/putRevision', error);
             return { status: 400 };
         });
 
@@ -203,8 +188,8 @@ class KVBucket {
             })
             .then((oldContent) => {
                 if (stringify(req.body) === stringify(oldContent.body) &&
-                        (!req.headers['content-type']
-                        || req.headers['content-type'] === oldContent.headers['content-type'])) {
+                        (!req.headers['content-type'] ||
+                        req.headers['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
                     return {
                         status: 412,
