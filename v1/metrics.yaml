@@ -1482,7 +1482,7 @@ paths:
         You can choose between daily and monthly granularity as well.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-        - Rate limit: 25 req/s
+        - Rate limit: 5 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
       produces:
