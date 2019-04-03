@@ -1,11 +1,12 @@
 'use strict';
 
-const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const mwUtils = require('../lib/mwUtil');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/mobileapps.yaml`);
+
+const BUCKET_NAME = 'mobile-sections';
 
 class MobileApps {
     constructor(options) {
@@ -18,56 +19,28 @@ class MobileApps {
         }
 
         const rp = req.params;
-        const fetchPaths = {
-            lead: [rp.domain, 'sys', 'mobile_bucket', 'lead', rp.title],
-            remaining: [rp.domain, 'sys', 'mobile_bucket', 'remaining', rp.title]
-        };
-        if (rp.revision) {
-            fetchPaths.lead.push(rp.revision);
-            fetchPaths.remaining.push(rp.revision);
-        }
-        return P.join(
-            hyper.get({
-                uri: new URI(fetchPaths.lead)
-            }),
-            hyper.get({
-                uri: new URI(fetchPaths.remaining)
-            })
-        ).spread((lead, remaining) => ({
-            status: 200,
-            headers: lead.headers,
-            body: {
-                lead: lead.body,
-                remaining: remaining.body
+        return hyper.get({
+            uri: new URI([rp.domain, 'sys', 'key_value', BUCKET_NAME, rp.title])
+        })
+        .then((res) => {
+            if (!rp.revision ||
+                    `${mwUtils.parseETag(res.headers.etag).rev}` === `${rp.revision}`) {
+                return res;
             }
-        }))
+            return this._fetchFromMCS(hyper, req);
+        })
         .catch({ status: 404 }, () => this._fetchFromMCSAndStore(hyper, req));
     }
 
     getPart(part, hyper, req) {
-        const rp = req.params;
-        const fetchAndReturnPart = () => this._fetchFromMCSAndStore(hyper, req)
+        return this.getSections(hyper, req)
         .then((res) => {
             return {
-                status: 200,
+                status: res.status,
                 headers: res.headers,
                 body: res.body[part]
             };
         });
-
-        if (mwUtils.isNoCacheRequest(req)) {
-            return fetchAndReturnPart();
-        }
-
-        const fetchPath = [rp.domain, 'sys', 'mobile_bucket', part, rp.title];
-        if (rp.revision) {
-            fetchPath.push(rp.revision);
-        }
-
-        return hyper.get({
-            uri: new URI(fetchPath)
-        })
-        .catch({ status: 404 }, fetchAndReturnPart);
     }
 
     _purgeURIs(hyper, req, revision, purgeLatest) {
@@ -101,7 +74,7 @@ class MobileApps {
         });
     }
 
-    _fetchFromMCSAndStore(hyper, req) {
+    _fetchFromMCS(hyper, req) {
         const rp = req.params;
         let serviceURI = `${this._options.host}/${rp.domain}/v1/page/mobile-sections`;
         serviceURI += `/${encodeURIComponent(rp.title)}`;
@@ -114,33 +87,23 @@ class MobileApps {
             headers: {
                 'accept-language': req.headers['accept-language']
             }
-        })
+        });
+    }
+
+    _fetchFromMCSAndStore(hyper, req) {
+        const rp = req.params;
+
+        return this._fetchFromMCS(hyper, req)
         .then((res) => {
             if (mwUtils.isNoStoreRequest(req)) {
                 return res;
             }
             return hyper.put({
-                uri: new URI([rp.domain, 'sys', 'mobile_bucket', 'all', rp.title,
-                    res.body.lead.revision,
-                    mwUtils.parseETag(res.headers.etag).tid]),
-                body: {
-                    lead: {
-                        headers: res.headers,
-                        body: res.body.lead
-                    },
-                    remaining: {
-                        headers: res.headers,
-                        body: res.body.remaining
-                    }
-                }
+                uri: new URI([rp.domain, 'sys', 'key_value', BUCKET_NAME, rp.title]),
+                headers: res.headers,
+                body: res.body
             })
-            .tap(() =>
-                this._purgeURIs(hyper, req, res.body.lead.revision, true))
-            // TODO: This means we never store older revisions for mobile!
-            // Need to add the fallback when mobile-references get implemented!
-            .catch({ status: 412 }, () =>
-                // 412 means that it's an older revision
-                this._purgeURIs(hyper, req, res.body.lead.revision, false))
+            .tap(() => this._purgeURIs(hyper, req, res.body.lead.revision, true))
             .thenReturn(res);
         });
     }
@@ -158,7 +121,10 @@ module.exports = (options) => {
         },
         resources: [
             {
-                uri: '/{domain}/sys/mobile_bucket/'
+                uri: `/{domain}/sys/key_value/${BUCKET_NAME}`,
+                body: {
+                    valueType: 'json'
+                }
             }
         ]
     };

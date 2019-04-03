@@ -51,6 +51,6 @@ describe('handler template', function() {
             // Check that there were no remote requests
             assert.remoteRequests(false);
             hasTextContentType(res);
-        }).tapCatch(console.log);
+        });
     });
 });

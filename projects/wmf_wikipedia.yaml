@@ -18,12 +18,12 @@ paths:
                   allows us to contact you quickly. Email addresses or URLs
                   of contact pages work well.
 
-                By using this API, you agree to Wikimedia's 
+                By using this API, you agree to Wikimedia's
                 [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
                 [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy).
                 Unless otherwise specified in the endpoint documentation
                 below, content accessed via this API is licensed under the
-                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
+                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
                 and [GFDL](https://www.gnu.org/copyleft/fdl.html) licenses,
                 and you irrevocably agree to release modifications or
                 additions made through this API under these licenses.
@@ -242,19 +242,6 @@ paths:
                 - path: sys/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
-            /mobile_bucket:
-              x-modules:
-                - path: sys/multi_content_bucket.js
-                  options:
-                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
-                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
-                    table_name_prefix: mobile_ng
-                    main_content_type:
-                      name: lead
-                      value_type: json
-                    dependent_content_types:
-                      - name: remaining
-                        value_type: json
             /events:
               x-modules:
                 - path: sys/events.js
