@@ -86,7 +86,7 @@ describe('Key value buckets', () => {
             const tids = [ uuid.now().toString(),
                 uuid.now().toString(),
                 uuid.now().toString() ];
-            return P.each(tids, (tid) => {
+            return P.each(tids, () => {
                 return preq.put({
                     uri: `${bucketBaseURI}/List_Test_1`,
                     body: new Buffer(testData),
@@ -94,7 +94,7 @@ describe('Key value buckets', () => {
                         'if-none-hash-match': '*'
                     }
                 })
-                .catch(() => {});
+                .catch({ status: 412 }, () => {});
             })
             .then(() => {
                 return preq.get({
