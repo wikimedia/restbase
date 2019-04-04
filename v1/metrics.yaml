@@ -1548,8 +1548,8 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 25
-              external: 25
+              internal: 5
+              external: 5
       x-request-handler:
         - get_from_backend:
             request:
