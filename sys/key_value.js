@@ -4,37 +4,15 @@
  * Key-value bucket handler
  */
 
+const crypto = require('crypto');
+const stringify = require('fast-json-stable-stringify');
+const TimeUUID = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
-const stringify = require('fast-json-stable-stringify');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value.yaml`);
-
-// Format a revision response. Shared between different ways to retrieve a
-// revision (latest & with explicit revision).
-function returnRevision(req) {
-    return (dbResult) => {
-        if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
-            const row = dbResult.body.items[0];
-            return {
-                status: 200,
-                headers: row.headers,
-                body: row.value
-            };
-        } else {
-            throw new HTTPError({
-                status: 404,
-                body: {
-                    type: 'not_found',
-                    uri: req.uri,
-                    method: req.method
-                }
-            });
-        }
-    };
-}
 
 class KVBucket {
     createBucket(hyper, req) {
@@ -56,19 +34,13 @@ class KVBucket {
             // combined schema version. By multiplying the bucket version by 1000,
             // we increase the chance of catching a reset in the option version.
             version: schemaVersionMajor * 1000 + (opts.version || 0),
-            options: {
-                compression: opts.compression || [
-                    {
-                        algorithm: 'deflate',
-                        block_size: 256
-                    }
-                ],
-                updates: opts.updates || {
-                    pattern: 'timeseries'
-                }
-            },
             attributes: {
                 key: opts.keyType || 'string',
+                // Both TID and ETAG are added in case we ever want to support
+                // CAS using lightweight transactions to support proper
+                // conditional HTTP requests with `if-modified-since` or `if-match`
+                tid: 'timeuuid',
+                etag: 'string',
                 headers: 'json',
                 value: opts.valueType || 'blob'
             },
@@ -99,7 +71,25 @@ class KVBucket {
                 }
             }
         };
-        return hyper.get(storeReq).then(returnRevision(req));
+        return hyper.get(storeReq).then((dbResult) => {
+            if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
+                const row = dbResult.body.items[0];
+                return {
+                    status: 200,
+                    headers: row.headers,
+                    body: row.value
+                };
+            } else {
+                throw new HTTPError({
+                    status: 404,
+                    body: {
+                        type: 'not_found',
+                        uri: req.uri,
+                        method: req.method
+                    }
+                });
+            }
+        });
     }
 
     listRevisions(hyper, req) {
@@ -127,9 +117,21 @@ class KVBucket {
     }
 
     putRevision(hyper, req) {
-        const rp = req.params;
         if (mwUtil.isNoStoreRequest(req)) {
             return { status: 202 };
+        }
+
+        const rp = req.params;
+        req.headers = req.headers || {};
+
+        const tid = TimeUUID.now().toString();
+        if (!req.headers.etag) {
+            hyper.logger.log('fatal/kv/putRevision', {
+                msg: 'No etag header provided to key-value bucket'
+            });
+            req.headers.etag = crypto.createHash('sha256')
+                .update(stringify(req.body))
+                .digest('hex');
         }
 
         const doPut = () => hyper.put({
@@ -138,6 +140,8 @@ class KVBucket {
                 table: rp.bucket,
                 attributes: {
                     key: rp.key,
+                    tid,
+                    etag: req.headers.etag,
                     value: req.body,
                     headers: req.headers
                 }
@@ -157,6 +161,8 @@ class KVBucket {
         })
         .tapCatch((error) => hyper.logger.log('error/kv/putRevision', error));
 
+        // TODO: Respect the stored ETag and allow matching on etag - either one provided
+        // by the client or auto-generated one.
         if (req.headers['if-none-hash-match']) {
             delete req.headers['if-none-hash-match'];
             return hyper.get({
