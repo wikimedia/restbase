@@ -10,7 +10,7 @@ paths:
             title: Wikimedia testing APIs
             x-is-api-root: true
           paths:
-            /service/test/{title}{/revision}:
+            /service/test/{title}: &service_test_title
               get:
                 x-setup-handler:
                   - init_storage:
@@ -45,6 +45,9 @@ paths:
                         body: '{{get_from_api.body}}'
 
                 x-monitor: false
+
+            /service/test/{title}/{revision}:
+              <<: *service_test_title
 
             /service/test_parallel/{key1}/{key2}:
               get:

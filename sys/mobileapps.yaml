@@ -1,15 +1,24 @@
 info:
   title: Mobileapps sys API module
 paths:
-  /mobile-sections/{title}{/revision}:
+  /mobile-sections/{title}: &mobile-sections_title
     get:
       operationId: getSections
 
-  /mobile-sections-lead/{title}{/revision}:
+  /mobile-sections/{title}/{revision}:
+    <<: *mobile-sections_title
+
+  /mobile-sections-lead/{title}: &mobile-sections-lead_title
     get:
       operationId: getSectionsLead
 
-  /mobile-sections-remaining/{title}{/revision}:
+  /mobile-sections-lead/{title}/{revision}:
+    <<: *mobile-sections-lead_title
+
+  /mobile-sections-remaining/{title}: &mobile-sections-remaining_title
     get:
       operationId: getSectionsRemaining
+
+  /mobile-sections-remaining/{title}/{revision}:
+    <<: *mobile-sections-remaining_title
 

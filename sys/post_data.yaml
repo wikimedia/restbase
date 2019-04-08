@@ -12,9 +12,11 @@ paths:
     put:
       operationId: putRevision
 
-  /{bucket}/{key}{/tid}:
+  /{bucket}/{key}: &bucket_key
     get:
       operationId: getRevision
+  /{bucket}/{key}/{tid}:
+    <<: *bucket_key
 
   /{bucket}/hash:
     post:

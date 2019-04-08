@@ -7,12 +7,23 @@ paths:
   /:
     put:
       operationId: createBucket
+  /{content}/{key}: &content_key
+    get:
+      operationId: getRevision
+
   /{content}/{key}/:
     get:
       operationId: listRevisions
-  /{content}/{key}{/revision}{/tid}:
-    get:
-      operationId: getRevision
-  /all/{key}/{revision}{/tid}:
+
+  /{content}/{key}/{revision}:
+    <<: *content_key
+
+  /{content}/{key}/{revision}/{tid}:
+    <<: *content_key
+
+  /all/{key}/{revision}: &all_key_revision
     put:
       operationId: putRevision
+
+  /all/{key}/{revision}/{tid}:
+    <<: *all_key_revision
