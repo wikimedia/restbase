@@ -93,7 +93,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/transform/html/to/wikitext{/title}{/revision}
+              uri: /{domain}/sys/parsoid/transform/html/to/wikitext
               headers:
                 if-match: '{{if-match}}'
               body:
@@ -128,6 +128,15 @@ paths:
             Required if both `title` and `revision` parameters are present.
           type: string
           required: false
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/html/to/wikitext/{title}
+              headers:
+                if-match: '{{if-match}}'
+              body:
+                html: '{{html}}'
+                scrub_wikitext: '{{scrub_wikitext}}'
 
   /html/to/wikitext/{title}/{revision}:
     post:
@@ -161,6 +170,15 @@ paths:
             Required if both `title` and `revision` parameters are present.
           type: string
           required: false
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/html/to/wikitext/{title}/{revision}
+              headers:
+                if-match: '{{if-match}}'
+              body:
+                html: '{{html}}'
+                scrub_wikitext: '{{scrub_wikitext}}'
 
   /wikitext/to/html:
     post: &wikitext_to_html_post_spec
@@ -232,7 +250,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/transform/wikitext/to/html{/title}{/revision}
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/html
               body:
                 wikitext: '{{wikitext}}'
                 body_only: '{{body_only}}'
@@ -264,6 +282,14 @@ paths:
           description: Whether to temporarily stash the result of the transformation
           type: boolean
           required: false
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/html/{title}
+              body:
+                wikitext: '{{wikitext}}'
+                body_only: '{{body_only}}'
+                stash: '{{stash}}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -310,6 +336,14 @@ paths:
           description: Whether to temporarily stash the result of the transformation
           type: boolean
           required: false
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/html/{title}/{revision}
+              body:
+                wikitext: '{{wikitext}}'
+                body_only: '{{body_only}}'
+                stash: '{{stash}}'
 
   /wikitext/to/lint:
     post: &wikitext_to_lint_post_spec
@@ -367,7 +401,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint{/title}{/revision}
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint
               body:
                 wikitext: '{{wikitext}}'
       x-monitor: false
@@ -387,6 +421,12 @@ paths:
           type: string
           required: true
           x-textarea: true
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint/{title}
+              body:
+                wikitext: '{{wikitext}}'
 
   /wikitext/to/lint/{title}/{revision}:
     post:
@@ -408,6 +448,12 @@ paths:
           type: string
           required: true
           x-textarea: true
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/transform/wikitext/to/lint/{title}/{revision}
+              body:
+                wikitext: '{{wikitext}}'
 
 # Keeping this in, as we'll re-introduce a html2html end point later.
 #  /html/to/html{/title}{/revision}:

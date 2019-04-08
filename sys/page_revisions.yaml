@@ -10,6 +10,11 @@ paths:
           type: string
           required: false
 
+  /page/{title}: &page_title
+    get:
+      summary: Get the revision metadata for a specific revision
+      operationId: getTitleRevision
+
   /page/{title}/:
     get:
       summary: List revisions for a title (page history)
@@ -21,8 +26,5 @@ paths:
           type: string
           required: false
 
-  /page/{title}{/revision}:
-    get:
-      summary: Get the revision metadata for a specific revision
-      operationId: getTitleRevision
-
+  /page/{title}/{revision}:
+    <<: *page_title

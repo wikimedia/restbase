@@ -84,7 +84,7 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections/{title}{/revision}
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}
               headers:
                 cache-control: '{{default(options.cache-control, cache-control)}}'
                 accept-language: '{{accept-language}}'
@@ -142,6 +142,19 @@ paths:
             Example: `sr-el` for Latin transcription of the Serbian language.
           required: false
           type: string
+      x-request-handler:
+        - from_backend:
+            request:
+              method: get
+              uri: /{domain}/sys/mobileapps/mobile-sections/{title}/{revision}
+              headers:
+                cache-control: '{{default(options.cache-control, cache-control)}}'
+                accept-language: '{{accept-language}}'
+            return:
+              status: '{{from_backend.status}}'
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                            from_backend.headers) }}'
+              body: '{{from_backend.body}}'
       x-monitor: false
 
   /mobile-sections-lead/{title}:
@@ -224,7 +237,7 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}{/revision}
+              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}
               headers:
                 cache-control: '{{default(options.cache-control, cache-control)}}'
                 accept-language: '{{accept-language}}'
@@ -269,6 +282,19 @@ paths:
             Example: `sr-el` for Latin transcription of the Serbian language.
           required: false
           type: string
+      x-request-handler:
+        - from_backend:
+            request:
+              method: get
+              uri: /{domain}/sys/mobileapps/mobile-sections-lead/{title}/{revision}
+              headers:
+                cache-control: '{{default(options.cache-control, cache-control)}}'
+                accept-language: '{{accept-language}}'
+            return:
+              status: '{{from_backend.status}}'
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                            from_backend.headers) }}'
+              body: '{{from_backend.body}}'
 
   /mobile-sections-remaining/{title}:
     x-route-filters:  &mobile-sections-remaining_title_filters
@@ -351,7 +377,7 @@ paths:
         - from_backend:
             request:
               method: get
-              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}{/revision}
+              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}
               headers:
                 cache-control: '{{default(options.cache-control, cache-control)}}'
                 accept-language: '{{accept-language}}'
@@ -396,3 +422,16 @@ paths:
             Example: `sr-el` for Latin transcription of the Serbian language.
           required: false
           type: string
+      x-request-handler:
+        - from_backend:
+            request:
+              method: get
+              uri: /{domain}/sys/mobileapps/mobile-sections-remaining/{title}/{revision}
+              headers:
+                cache-control: '{{default(options.cache-control, cache-control)}}'
+                accept-language: '{{accept-language}}'
+            return:
+              status: '{{from_backend.status}}'
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+                            from_backend.headers) }}'
+              body: '{{from_backend.body}}'

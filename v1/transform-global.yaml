@@ -226,7 +226,7 @@ paths:
       x-request-handler:
         - get_from_cx:
             request:
-              uri: '{{options.cx_host}}/v1/list/{tool}{/from}{/to}'
+              uri: '{{options.cx_host}}/v1/list/{tool}'
 
   /list/tool/{tool}/{from}/{to}:
     get:
@@ -250,6 +250,10 @@ paths:
           description: The target language code
           type: string
           required: true
+      x-request-handler:
+        - get_from_cx:
+            request:
+              uri: '{{options.cx_host}}/v1/list/{tool}/{from}/{to}'
 
   /list/languagepairs/:
     get:

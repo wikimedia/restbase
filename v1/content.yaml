@@ -87,7 +87,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/page_revisions/page/{title}{/revision}
+              uri: /{domain}/sys/page_revisions/page/{title}
               headers:
                 # FIXME: Temporary work-around (see T120212).
                 cache-control: 'no-cache'
@@ -126,6 +126,14 @@ paths:
           description: The revision id
           type: integer
           required: true
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/page_revisions/page/{title}/{revision}
+              headers:
+                # FIXME: Temporary work-around (see T120212).
+                cache-control: 'no-cache'
+                if-unmodified-since: '{{if-unmodified-since}}'
       x-monitor: false
 
   /html/{title}:
@@ -527,7 +535,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/html/{title}/{revision}{/tid}
+              uri: /{domain}/sys/parsoid/html/{title}/{revision}
               headers:
                 cache-control: '{{cache-control}}'
                 if-unmodified-since: '{{if-unmodified-since}}'
@@ -579,6 +587,17 @@ paths:
             Example: `sr-el` for Latin transcription of the Serbian language.
           required: false
           type: string
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/html/{title}/{revision}/{tid}
+              headers:
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
+              query:
+                sections: '{{sections}}'
 
   /data-parsoid/{title}/{revision}/{tid}:
     x-route-filters:
@@ -674,7 +693,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}{/tid}
+              uri: /{domain}/sys/parsoid/data-parsoid/{title}/{revision}/{tid}
               headers:
                 cache-control: '{{cache-control}}'
                 if-unmodified-since: '{{if-unmodified-since}}'
@@ -745,7 +764,7 @@ paths:
       x-request-handler:
         - get_from_backend:
             request:
-              uri: /{domain}/sys/parsoid/lint/{title}{/revision}
+              uri: /{domain}/sys/parsoid/lint/{title}
       x-monitor: false
 
   /lint/{title}/{revision}:
@@ -764,6 +783,10 @@ paths:
           description: The revision
           type: integer
           required: true
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: /{domain}/sys/parsoid/lint/{title}/{revision}
 
   /wikitext/{title}:
     post:
