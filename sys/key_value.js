@@ -5,7 +5,6 @@
  */
 
 const crypto = require('crypto');
-const stringify = require('fast-json-stable-stringify');
 const TimeUUID = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
@@ -35,14 +34,14 @@ class KVBucket {
             // we increase the chance of catching a reset in the option version.
             version: schemaVersionMajor * 1000 + (opts.version || 0),
             attributes: {
-                key: opts.keyType || 'string',
+                key: 'string',
                 // Both TID and ETAG are added in case we ever want to support
                 // CAS using lightweight transactions to support proper
                 // conditional HTTP requests with `if-modified-since` or `if-match`
                 tid: 'timeuuid',
                 etag: 'string',
                 headers: 'json',
-                value: opts.valueType || 'blob'
+                value: 'blob'
             },
             index: [
                 { attribute: 'key', type: 'hash' }
@@ -124,15 +123,35 @@ class KVBucket {
         const rp = req.params;
         req.headers = req.headers || {};
 
+        if (req.headers['content-type'] !== 'application/octet-stream' ||
+                !Buffer.isBuffer(req.body)) {
+            throw new HTTPError({
+                status: 400,
+                body: {
+                    type: 'bad_request',
+                    description: `Got ${req.headers['content-type']}, not octet-stream`,
+                    uri: req.uri,
+                    method: req.method
+                }
+            });
+        }
+
         const tid = TimeUUID.now().toString();
         if (!req.headers.etag) {
             hyper.logger.log('fatal/kv/putRevision', {
                 msg: 'No etag header provided to key-value bucket'
             });
             req.headers.etag = crypto.createHash('sha256')
-                .update(stringify(req.body))
+                .update(req.body)
                 .digest('hex');
         }
+
+        const headersToStore = {};
+        Object.keys(req.headers).filter((name) => name.startsWith('x-store-'))
+        .forEach((name) => {
+            const realName = name.replace('x-store-', '');
+            headersToStore[realName] = req.headers[name];
+        });
 
         const doPut = () => hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -142,8 +161,8 @@ class KVBucket {
                     key: rp.key,
                     tid,
                     etag: req.headers.etag,
-                    value: req.body,
-                    headers: req.headers
+                    headers: headersToStore,
+                    value: req.body
                 }
             }
         })
@@ -169,9 +188,9 @@ class KVBucket {
                 uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, rp.key])
             })
             .then((oldContent) => {
-                if (stringify(req.body) === stringify(oldContent.body) &&
-                        (!req.headers['content-type'] ||
-                        req.headers['content-type'] === oldContent.headers['content-type'])) {
+                if (req.headers.etag === oldContent.headers.etag &&
+                        (!headersToStore['content-type'] ||
+                        headersToStore['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
                     throw new HTTPError({
                         status: 412,
