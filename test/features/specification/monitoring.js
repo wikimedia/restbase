@@ -1,6 +1,6 @@
 'use strict';
 
-const parallel = require('mocha.parallel');
+const parallel = describe;//require('mocha.parallel');
 const preq     = require('preq');
 const assert   = require('../../utils/assert.js');
 const Server   = require('../../utils/server.js');
