@@ -490,8 +490,7 @@ module.exports = (options) => {
         operations: {
             createBucket: mkBucket.createBucket.bind(mkBucket),
             getRevision: mkBucket.getRevision.bind(mkBucket),
-            putRevision: mkBucket.putRevision.bind(mkBucket),
-            listRevisions: mkBucket.listRevisions.bind(mkBucket)
+            putRevision: mkBucket.putRevision.bind(mkBucket)
         }
     };
 };

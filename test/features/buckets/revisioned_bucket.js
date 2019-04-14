@@ -126,29 +126,6 @@ describe('Revisioned buckets', () => {
                 });
             });
 
-            it('lists revisions', () => {
-                const testData = randomString(100);
-                return P.each([1, 2, 3], (revNumber) => {
-                    return preq.put({
-                        uri: `${bucketBaseURI}/Test5/${revNumber}`,
-                        body: new Buffer(testData)
-                    });
-                })
-                .then(() => {
-                    return preq.get({
-                        uri: `${bucketBaseURI}/Test5/`,
-                        query: {
-                            limit: 10
-                        }
-                    });
-                })
-                .then((res) => {
-                    assert.deepEqual(res.status, 200);
-                    assert.deepEqual(res.body.items.length, 3);
-                    assert.deepEqual(res.body.items.map((r) => { return r.revision; }), [3, 2, 1]);
-                });
-            });
-
             it('throws error on invalid revision', () => {
                 const testData = randomString(100);
                 return preq.put({

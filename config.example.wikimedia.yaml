@@ -16,9 +16,11 @@ default_project: &default_project
           storage_groups:
             - name: default.group.local
               domains: /./
+          # ignored in cassandra, but useful in SQLite testing. only used in tests.
+          dbname: test.db.sqlite3
         parsoid:
           host: https://parsoid-beta.wmflabs.org
-          grace_ttl: 1
+          grace_ttl: 1000000
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"

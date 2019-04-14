@@ -14,10 +14,6 @@ paths:
     put:
       operationId: putRevision
 
-  /{bucket}/{key}/:
-    get:
-      operationId: listRevisions
-
   /{bucket}/{key}/{revision}:
     <<: *bucket_key
 

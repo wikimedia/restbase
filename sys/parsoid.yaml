@@ -26,17 +26,6 @@ paths:
       summary: Retrieve the wikitext for a title and revision.
       operationId: getWikitext
 
-  /wikitext/{title}/:
-    get:
-      summary: List Wikitext revisions.
-      operationId: listWikitextRevisions
-      parameters:
-        - name: page
-          in: query
-          description: The next page token
-          type: string
-          required: false
-
   /wikitext/{title}/{revision}:
     <<: *wikitext_title
 
@@ -48,17 +37,6 @@ paths:
       summary: Retrieve the HTML for title and revision.
       operationId: getHtml
 
-  /html/{title}/:
-    get:
-      summary: List HTML revisions.
-      operationId: listHtmlRevisions
-      parameters:
-        - name: page
-          in: query
-          description: The next page token
-          type: string
-          required: false
-
   /html/{title}/{revision}:
     <<: *html_title
 
@@ -69,17 +47,6 @@ paths:
     get:
       summary: Retrieve the data-parsoid JSON for title & revision.
       operationId: getDataParsoid
-
-  /data-parsoid/{title}/:
-    get:
-      summary: List data-parsoid revisions.
-      operationId: listDataParsoidRevisions
-      parameters:
-        - name: page
-          in: query
-          description: The next page token
-          type: string
-          required: false
 
   /data-parsoid/{title}/{revision}:
     <<: *data-parsoid_title

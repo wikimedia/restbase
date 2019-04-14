@@ -375,51 +375,6 @@ paths:
               body: '{{request.body}}'
       x-monitor: false
 
-  /html/{title}/:
-    get:
-      tags:
-        - Page content
-      summary: List HTML revisions for a title.
-      description: |
-        This currently only lists revisions that are already stored in RESTBase.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json
-        - application/problem+json
-      parameters:
-        - name: title
-          in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
-          required: true
-        - name: page
-          in: query
-          description: The next page token, provided by _links.next.href property.
-          type: string
-          required: false
-      responses:
-        '200':
-          description: A list of revisions for the given title.
-          schema:
-            $ref: '#/definitions/revisions'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      x-request-handler:
-        - get_from_backend:
-            request:
-              uri: /{domain}/sys/parsoid/html/{title}/
-              headers:
-                cache-control: '{{cache-control}}'
-                if-unmodified-since: '{{if-unmodified-since}}'
-                x-restbase-mode: '{{x-restbase-mode}}'
-                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-              query:
-                page: '{{page}}'
-      x-monitor: false
-
   /html/{title}/{revision}:
     x-route-filters: &html_title_revision_filters
       - path: ./lib/access_check_filter.js
