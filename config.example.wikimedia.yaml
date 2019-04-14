@@ -14,7 +14,7 @@ default_project: &default_project
           password: cassandra
           defaultConsistency: one # or 'localQuorum' for production
           storage_groups:
-            - name: default.group.local
+            - name: test.group.local
               domains: /./
           # ignored in cassandra, but useful in SQLite testing. only used in tests.
           dbname: test.db.sqlite3

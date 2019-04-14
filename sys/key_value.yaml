@@ -2,7 +2,11 @@ swagger: '2.0'
 info:
   version: '1.0.0'
   title: RESTBase key-value module
-  description: Revisioned blob storage with HTTP interface, backed by table storage
+  description: >
+    Blob storage with HTTP interface, backed by table storage.
+
+    All headers prepended with `x-store-` are saved on write and returned
+    with the content upon retrieval. All the not prepended headers not stored.
 paths:
   /{bucket}:
     put:

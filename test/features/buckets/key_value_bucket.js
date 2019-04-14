@@ -29,39 +29,20 @@ describe('Key value buckets', () => {
         after(() => server.stop());
 
         it('stores a content in a bucket and gets it back', () => {
-            const testData = randomString(60000);
+            const testData = randomString(100);
             return preq.put({
-                uri: `${bucketBaseURI}/Test1`,
+                uri: `${bucketBaseURI}/${testData}`,
                 body: new Buffer(testData)
             })
             .then((res) => {
                 assert.deepEqual(res.status, 201);
                 return preq.get({
-                    uri: `${bucketBaseURI}/Test1`
+                    uri: `${bucketBaseURI}/${testData}`
                 });
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, new Buffer(testData));
-            });
-        });
-
-        it('assigns etag to a value', () => {
-            const testData = randomString(100);
-            return preq.put({
-                uri: `${bucketBaseURI}/Test3`,
-                body: new Buffer(testData)
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 201);
-                return preq.get({
-                    uri: `${bucketBaseURI}/Test3`
-                });
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 200);
-                assert.ok(res.headers.etag);
-                assert.ok(new RegExp('^"0\/').test(res.headers.etag), true);
             });
         });
 
@@ -76,6 +57,29 @@ describe('Key value buckets', () => {
             });
         });
 
+        it('Preserves x-store headers and removes others', () => {
+            const testData = randomString(100);
+            return preq.put({
+                uri: `${bucketBaseURI}/${testData}`,
+                headers: {
+                    'x-store-preserved': 'this_will_be_stored',
+                    'non-preserved': 'this_will_not_be_stored'
+                },
+                body: new Buffer(testData)
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 201);
+                return preq.get({
+                    uri: `${bucketBaseURI}/${testData}`
+                });
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.headers['preserved'], 'this_will_be_stored');
+                assert.deepEqual(res.headers['non-preserved'], undefined);
+            });
+        });
+
         it('key_value should not overwrite same content with ignore_duplicates', () => {
             const testData = randomString(100);
             const originalEtag = uuid.now().toString();
@@ -87,7 +91,7 @@ describe('Key value buckets', () => {
                     body: new Buffer(testData),
                     headers: {
                         'if-none-hash-match': '*',
-                        etag
+                        'x-store-etag': etag
                     }
                 })
                 .catch(() => {

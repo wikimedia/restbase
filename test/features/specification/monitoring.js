@@ -180,7 +180,7 @@ describe('Monitoring tests', function() {
                 return res.body;
             })
             .then((spec) => {
-                parallel(`Monitoring routes, ${options.domain} domain`, () => {
+                const defineTests = () => {
                     constructTests(spec, options, server).forEach((testCase) => {
                         it(testCase.title, () => {
                             const missingParam = /\/{(.+)}/.exec(testCase.request.uri);
@@ -197,7 +197,9 @@ describe('Monitoring tests', function() {
                             });
                         });
                     });
-                });
+                };
+                parallel(`Monitoring routes, ${options.domain} domain, new content`, defineTests);
+                parallel(`Monitoring routes, ${options.domain} domain, from storage`, defineTests);
                 after(() => server.stop());
             });
         });

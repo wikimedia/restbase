@@ -13,36 +13,6 @@ const URI = HyperSwitch.URI;
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value.yaml`);
 
-// Format a revision response. Shared between different ways to retrieve a
-// revision (latest & with explicit revision).
-function returnRevision(req) {
-    return (dbResult) => {
-        if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
-            const row = dbResult.body.items[0];
-            let headers = {
-                etag: row.headers.etag || mwUtil.makeETag('0', row.tid)
-            };
-            if (row.headers) {
-                headers = Object.assign(headers, row.headers);
-            }
-            return {
-                status: 200,
-                headers,
-                body: row.value
-            };
-        } else {
-            throw new HTTPError({
-                status: 404,
-                body: {
-                    type: 'not_found',
-                    uri: req.uri,
-                    method: req.method
-                }
-            });
-        }
-    };
-}
-
 class KVBucket {
     createBucket(hyper, req) {
         const schema = this.makeSchema(req.body || {});
@@ -102,26 +72,51 @@ class KVBucket {
                 limit: 1
             }
         };
-        return hyper.get(storeReq).then(returnRevision(req));
+        return hyper.get(storeReq).then((dbResult) => {
+            if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
+                const row = dbResult.body.items[0];
+                return {
+                    status: 200,
+                    headers: row.headers,
+                    body: row.value
+                };
+            } else {
+                throw new HTTPError({
+                    status: 404,
+                    body: {
+                        type: 'not_found',
+                        uri: req.uri,
+                        method: req.method
+                    }
+                });
+            }
+        });
     }
 
     putRevision(hyper, req) {
-        const rp = req.params;
-        let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value');
-
-        if (!tid) {
-            tid = (mwUtil.parseETag(req.headers && req.headers.etag) || {}).tid;
-            tid = tid || uuid.now().toString();
-        }
-
         if (mwUtil.isNoStoreRequest(req)) {
-            return {
-                status: 202,
-                headers: {
-                    etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
-                }
-            };
+            return { status: 202 };
         }
+
+        const rp = req.params;
+        const tid = uuid.now().toString();
+
+        // In case specific content-type to store is not provided,
+        // default to the request content type. Ideally this should not happen.
+        if (req.headers &&
+                req.headers['content-type'] &&
+                !req.headers['x-store-content-type']) {
+            hyper.logger.log('warn/kv', {
+                msg: 'No x-store-content-type provided. Defaulting to plain content-type'
+            });
+            req.headers['x-store-content-type'] = req.headers['content-type'];
+        }
+        const headersToStore = {};
+        Object.keys(req.headers)
+        .filter((headerName) => headerName.startsWith('x-store-'))
+        .forEach((headerName) => {
+            headersToStore[headerName.replace(/^x-store-/, '')] = req.headers[headerName];
+        });
 
         const doPut = () => hyper.put({
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
@@ -130,30 +125,10 @@ class KVBucket {
                 attributes: {
                     key: rp.key,
                     tid,
-                    value: req.body,
-                    headers: req.headers
+                    headers: headersToStore,
+                    value: req.body
                 }
             }
-        })
-        .then((res) => {
-            if (res.status === 201) {
-                return {
-                    status: 201,
-                    headers: {
-                        etag: req.headers && req.headers.etag || mwUtil.makeETag('0', tid)
-                    },
-                    body: {
-                        message: 'Created.',
-                        tid
-                    }
-                };
-            } else {
-                throw res;
-            }
-        })
-        .catch((error) => {
-            hyper.logger.log('error/kv/putRevision', error);
-            return { status: 400 };
         });
 
         if (req.headers['if-none-hash-match']) {
@@ -162,15 +137,14 @@ class KVBucket {
                 uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, rp.key])
             })
             .then((oldContent) => {
+                // TODO: proper etag-based compare.
                 if (stringify(req.body) === stringify(oldContent.body) &&
-                        (!req.headers['content-type'] ||
-                        req.headers['content-type'] === oldContent.headers['content-type'])) {
+                        (!headersToStore['content-type'] ||
+                        headersToStore['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
                     return {
                         status: 412,
-                        headers: {
-                            etag: oldContent.headers.etag
-                        }
+                        headers: oldContent.headers
                     };
                 }
                 throw new HTTPError({ status: 404 });
