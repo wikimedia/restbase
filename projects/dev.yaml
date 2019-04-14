@@ -118,18 +118,5 @@ paths:
                 - path: sys/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
-            /mobile_bucket:
-              x-modules:
-                - path: sys/multi_content_bucket.js
-                  options:
-                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
-                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
-                    table_name_prefix: mobile
-                    main_content_type:
-                      name: lead
-                      value_type: json
-                    dependent_content_types:
-                      - name: remaining
-                        value_type: json
         options: '{{options}}'
 
