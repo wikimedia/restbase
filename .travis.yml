@@ -29,4 +29,4 @@ before_install:
   - sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
 
-script: sh test/utils/run_tests.sh coverage ${TEST_TARGET} && (npm run-script coveralls || exit 0)
+script: npm run lint && npm run coverage -- ${TEST_TARGET} && (npm run-script coveralls || exit 0)

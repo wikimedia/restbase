@@ -67,9 +67,6 @@ class PostDataBucket {
     getRevision(hyper, req) {
         const rp = req.params;
         const path = [rp.domain, 'sys', 'key_value', rp.bucket, rp.key];
-        if (rp.tid) {
-            path.push(rp.tid);
-        }
         return hyper.get({
             uri: new URI(path),
             headers: {

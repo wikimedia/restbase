@@ -135,7 +135,13 @@ paths:
             request:
               method: put
               uri: /{domain}/sys/key_value/page_summary/{request.params.title}
-              headers: '{{merge({"if-none-hash-match": "*", "cache-control": request.headers.cache-control}, extract.headers)}}'
+              headers:
+                if-none-hash-match": '*'
+                cache-control: '{{request.headers.cache-control}}'
+                x-store-etag: '{{extract.headers.etag}}'
+                x-store-content-language: '{{extract.headers.content-language}}'
+                x-store-content-type: '{{extract.headers.content-type}}'
+                x-store-vary: '{{extract.headers.vary}}'
               body: '{{extract.body}}'
             # With the if-none-hash-match header the storage will return 412
             # if the content is not changed. In that case, return from the
@@ -148,10 +154,10 @@ paths:
             return:
               status: 200
               headers:
-                content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
                 content-language: '{{extract.headers.content-language}}'
+                content-type: '{{extract.headers.content-type}}'
                 vary: '{{extract.headers.vary}}'
               body: '{{extract.body}}'
         - emit_change_event:
@@ -164,10 +170,10 @@ paths:
             return:
               status: 200
               headers:
-                content-type: '{{extract.headers.content-type}}'
-                etag: '{{store_and_return.headers.etag}}'
+                etag: '{{extract.headers.etag}}'
                 cache-control: '{{options.response_cache_control}}'
                 content-language: '{{extract.headers.content-language}}'
+                content-type: '{{extract.headers.content-type}}'
                 vary: '{{extract.headers.vary}}'
               body: '{{extract.body}}'
 

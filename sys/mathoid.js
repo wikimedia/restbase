@@ -4,8 +4,17 @@ const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
+const mwUtil = require('../lib/mwUtil');
 
 const FORMATS = ['mml', 'svg', 'png'];
+
+function prefixHeaders(headers, prefix = 'x-store-') {
+    const prefixedHeaders = {};
+    Object.keys(headers).forEach((header) => {
+        prefixedHeaders[`${prefix}${header}`] = headers[header];
+    });
+    return prefixedHeaders;
+}
 
 class MathoidService {
     constructor(options) {
@@ -25,7 +34,7 @@ class MathoidService {
         }).then((res) => {
             hash = origHash = res.body;
             // short-circuit if it's a no-cache request
-            if (req.headers && /no-cache/.test(req.headers['cache-control'])) {
+            if (mwUtil.isNoCacheRequest(req)) {
                 return P.reject(new HTTPError({ status: 404 }));
             }
             // check the post storage
@@ -70,7 +79,7 @@ class MathoidService {
                     indirectionP = hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.hash_table',
                             origHash]),
-                        headers: { 'content-type': 'text/plain' },
+                        headers: { 'x-store-content-type': 'text/plain' },
                         body: hash
                     });
                 }
@@ -83,7 +92,7 @@ class MathoidService {
                 return P.join(
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.check', hash]),
-                        headers: checkRes.headers,
+                        headers: prefixHeaders(checkRes.headers),
                         body: checkRes.body
                     }),
                     indirectionP,
@@ -114,10 +123,12 @@ class MathoidService {
                 }));
             }
             // construct the request object that will be emitted
+            Object.assign(completeBody[format].headers, {
+                'x-resource-location': hash
+            });
             const reqObj = {
                 uri: new URI([domain, 'sys', 'key_value', `mathoid_ng.${format}`, hash]),
-                headers: Object.assign(
-                    completeBody[format].headers, { 'x-resource-location': hash }),
+                headers: prefixHeaders(completeBody[format].headers),
                 body: completeBody[format].body
             };
             if (format === 'png' && reqObj.body && reqObj.body.type === 'Buffer') {
