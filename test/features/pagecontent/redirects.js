@@ -47,18 +47,6 @@ describe('redirects', () => {
             });
         });
 
-        it('should preserve parameters while redirecting to a normalized version of a title, #2', () => {
-            return preq.get({
-                uri: `${server.config.bucketURL()}/html/Main%20Page/`,
-                followRedirect: false
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 301);
-                assert.deepEqual(res.headers.location, '../Main_Page/');
-                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-            });
-        });
-
         it('should not redirect to a normalized version of a title, no-cache', () => {
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main%20Page?test=mwAQ`,

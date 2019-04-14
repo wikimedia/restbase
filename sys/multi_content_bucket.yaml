@@ -11,10 +11,6 @@ paths:
     get:
       operationId: getRevision
 
-  /{content}/{key}/:
-    get:
-      operationId: listRevisions
-
   /{content}/{key}/{revision}:
     <<: *content_key
 

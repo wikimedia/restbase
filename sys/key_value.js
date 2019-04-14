@@ -105,31 +105,6 @@ class KVBucket {
         return hyper.get(storeReq).then(returnRevision(req));
     }
 
-    listRevisions(hyper, req) {
-        const rp = req.params;
-        const storeRequest = {
-            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
-            body: {
-                table: req.params.bucket,
-                attributes: {
-                    key: req.params.key
-                },
-                proj: ['tid'],
-                limit: 1000
-            }
-        };
-        return hyper.get(storeRequest)
-        .then((res) => ({
-            status: 200,
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: {
-                items: res.body.items.map((row) => row.tid)
-            }
-        }));
-    }
-
     putRevision(hyper, req) {
         const rp = req.params;
         let tid = rp.tid && mwUtil.coerceTid(rp.tid, 'key_value');
@@ -213,7 +188,6 @@ module.exports = (options) => {
         spec, // Re-export from spec module
         operations: {
             createBucket: kvBucket.createBucket.bind(kvBucket),
-            listRevisions: kvBucket.listRevisions.bind(kvBucket),
             getRevision: kvBucket.getRevision.bind(kvBucket),
             putRevision: kvBucket.putRevision.bind(kvBucket)
         }

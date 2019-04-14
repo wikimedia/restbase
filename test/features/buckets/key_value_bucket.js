@@ -78,30 +78,29 @@ describe('Key value buckets', () => {
 
         it('key_value should not overwrite same content with ignore_duplicates', () => {
             const testData = randomString(100);
-            const tids = [ uuid.now().toString(),
+            const originalEtag = uuid.now().toString();
+            const etags = [ originalEtag,
                 uuid.now().toString(),
                 uuid.now().toString() ];
-            return P.each(tids, (tid) => {
-                return preq.put({
+            return P.each(etags, (etag) => preq.put({
                     uri: `${bucketBaseURI}/List_Test_1`,
                     body: new Buffer(testData),
                     headers: {
-                        'if-none-hash-match': '*'
+                        'if-none-hash-match': '*',
+                        etag
                     }
                 })
-                .catch(() => {});
-            })
+                .catch(() => {
+                })
+            )
             .then(() => {
                 return preq.get({
-                    uri: `${bucketBaseURI}/List_Test_1/`,
-                    query: {
-                        limit: 10
-                    }
+                    uri: `${bucketBaseURI}/List_Test_1`
                 });
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body.items.length, 1);
+                assert.deepEqual(res.headers.etag, originalEtag);
             });
         });
     }

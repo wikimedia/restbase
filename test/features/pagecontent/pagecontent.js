@@ -61,13 +61,12 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page/`
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
             });
         })
         .then((res) => {
-            if (res.body.items.length !== 1) {
-                throw new Error('Expected a single revision for Main_Page');
-            }
+            assert.deepEqual(res.status, 200);
+            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
     it('should transparently create a new HTML revision with id 252937', () => {

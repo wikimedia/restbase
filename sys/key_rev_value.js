@@ -106,36 +106,6 @@ class KRVBucket {
         return hyper.get(storeReq).then(returnRevision(req));
     }
 
-    listRevisions(hyper, req) {
-        const rp = req.params;
-        return hyper.get({
-            uri: new URI([rp.domain, 'sys', 'table', rp.bucket, '']),
-            body: {
-                table: req.params.bucket,
-                attributes: {
-                    key: req.params.key
-                },
-                proj: ['rev', 'tid'],
-                limit: mwUtil.getLimit(hyper, req)
-            }
-        })
-        .then((res) => ({
-            status: 200,
-
-            headers: {
-                'content-type': 'application/json'
-            },
-
-            body: {
-                items: res.body.items.map((row) => ({
-                    revision: row.rev,
-                    tid: row.tid
-                })),
-                next: res.body.next
-            }
-        }));
-    }
-
     putRevision(hyper, req) {
         const rp = req.params;
         const rev = mwUtil.parseRevision(rp.revision, 'key_rev_value');
@@ -185,7 +155,6 @@ module.exports = (options) => {
         spec, // Re-export from spec module
         operations: {
             createBucket: krvBucket.createBucket.bind(krvBucket),
-            listRevisions: krvBucket.listRevisions.bind(krvBucket),
             getRevision: krvBucket.getRevision.bind(krvBucket),
             putRevision: krvBucket.putRevision.bind(krvBucket)
         }

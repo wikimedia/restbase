@@ -7,13 +7,9 @@ paths:
   /{bucket}:
     put:
       operationId: createBucket
-
   /{bucket}/{key}:
     get:
       operationId: getRevision
     put:
       operationId: putRevision
 
-  /{bucket}/{key}/:
-    get:
-      operationId: listRevisions

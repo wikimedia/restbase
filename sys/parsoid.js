@@ -192,10 +192,6 @@ class ParsoidService {
             getHtml: this.getFormat.bind(this, 'html'),
             getDataParsoid: this.getFormat.bind(this, 'data-parsoid'),
             getLintErrors: this.getLintErrors.bind(this),
-            // Listings
-            listWikitextRevisions: this.listRevisions.bind(this, 'wikitext'),
-            listHtmlRevisions: this.listRevisions.bind(this, 'html'),
-            listDataParsoidRevisions: this.listRevisions.bind(this, 'data-parsoid'),
             // Transforms
             transformHtmlToHtml: this.makeTransform('html', 'html'),
             transformHtmlToWikitext: this.makeTransform('html', 'wikitext'),
@@ -510,32 +506,6 @@ class ParsoidService {
                 });
             }
 
-            return res;
-        });
-    }
-
-    listRevisions(format, hyper, req) {
-        const rp = req.params;
-        const revReq = {
-            uri: new URI([rp.domain, 'sys', 'parsoid_bucket', format, rp.title, '']),
-            body: {
-                limit: hyper.config.default_page_size
-            }
-        };
-
-        if (req.query.page) {
-            revReq.body.next = mwUtil.decodePagingToken(hyper, req.query.page);
-        }
-
-        return hyper.get(revReq)
-        .then((res) => {
-            if (res.body.next) {
-                res.body._links = {
-                    next: {
-                        href: `?page=${mwUtil.encodePagingToken(hyper, res.body.next)}`
-                    }
-                };
-            }
             return res;
         });
     }
