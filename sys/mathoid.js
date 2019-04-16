@@ -65,7 +65,10 @@ class MathoidService {
                 // store the normalised version
                 return hyper.put({
                     uri: new URI([rp.domain, 'sys', 'post_data', 'mathoid_ng.input', '']),
-                    headers: { 'content-type': 'application/json' },
+                    headers: {
+                        'content-type': 'application/json',
+                        'x-store-content-type': 'application/json'
+                    },
                     body: {
                         q: res.body.checked,
                         type: rp.type
