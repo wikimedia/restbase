@@ -89,8 +89,6 @@ paths:
         Recommends articles similar to the seed article but are missing
         from the domain language Wikipedia.
 
-        Currently, this end point works only on eswiki, fawiki, and uzwiki.
-
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       produces:
         - application/json
