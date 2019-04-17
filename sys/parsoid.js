@@ -201,7 +201,7 @@ class ParsoidService {
         };
     }
 
-    getStashBucketURI(rp, format, tid) {
+    getOldStashBucketURI(rp, format, tid) {
         const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}-ng`, rp.title];
         if (rp.revision) {
             path.push(rp.revision);
@@ -210,6 +210,12 @@ class ParsoidService {
             }
         }
         return new URI(path);
+    }
+
+    getStashBucketURI(domain, title, revision, tid) {
+        return new URI([
+            domain, 'sys', 'key_value', 'parsoid-stash', `${title}:${revision}:${tid}`
+        ]);
     }
 
     getNGBucketURI(rp, format, tid) {
@@ -224,7 +230,7 @@ class ParsoidService {
     }
 
     getFallbackBucketURI(rp, format, tid) {
-        return this.getStashBucketURI(rp, format, tid);
+        return this.getOldStashBucketURI(rp, format, tid);
     }
 
     _getContentWithFallback(hyper, rp, format, tid) {
@@ -283,23 +289,24 @@ class ParsoidService {
         const rp = req.params;
         // Helper for retrieving original content from storage & posting it to
         // the Parsoid pagebundle end point
+
         /* const getOrigAndPostToParsoid = (pageBundleUri, revision, contentName, updateMode) => {
-            return this._getOriginalContent(hyper, req, revision)
-            .then((res) => {
-                const body = {
-                    update: updateMode
-                };
-                body[contentName] = res;
-                return hyper.post({
-                    uri: pageBundleUri,
-                    headers: {
-                        'content-type': 'application/json',
-                        'user-agent': req.headers['user-agent'],
-                    },
-                    body
-                });
-            }, () => hyper.get({ uri: pageBundleUri })); // Fall back to plain GET
-        }; */
+             return this._getOriginalContent(hyper, req, revision)
+             .then((res) => {
+                 const body = {
+                     update: updateMode
+                 };
+                 body[contentName] = res;
+                 return hyper.post({
+                     uri: pageBundleUri,
+                     headers: {
+                         'content-type': 'application/json',
+                         'user-agent': req.headers['user-agent'],
+                     },
+                     body
+                 });
+             }, () => hyper.get({ uri: pageBundleUri })); // Fall back to plain GET
+         }; */
 
         return this.getRevisionInfo(hyper, req)
         .then((revInfo) => {
@@ -510,23 +517,33 @@ class ParsoidService {
         });
     }
 
-    _getStashedContent(hyper, req, etag) {
+    _getStashedContent(hyper, req, tid) {
         const rp = req.params;
-        const getStash = (format) => hyper.get({
-            uri: this.getStashBucketURI(rp, format, etag.tid)
-        })
-        .then(mwUtil.decodeBody);
-
-        return P.props({
-            html: getStash('html'),
-            'data-parsoid': getStash('data-parsoid'),
-            wikitext: getStash('wikitext')
+        return hyper.get({
+            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid)
         })
         .then((res) => {
+            res = JSON.parse(res.body.toString('utf8'));
             res.revid = rp.revision;
             return res;
-        });
+        })
+        // TODO: This is a temporary fallback for deployment.
+        .catch({ status: 404 }, () => {
+            const getStash = (format) => hyper.get({
+                uri: this.getOldStashBucketURI(rp, format, tid)
+            })
+            .then(mwUtil.decodeBody);
 
+            return P.props({
+                html: getStash('html'),
+                'data-parsoid': getStash('data-parsoid'),
+                wikitext: getStash('wikitext')
+            })
+            .then((res) => {
+                res.revid = rp.revision;
+                return res;
+            });
+        });
     }
 
     transformRevision(hyper, req, from, to) {
@@ -565,7 +582,7 @@ class ParsoidService {
 
         let contentPromise;
         if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
-            contentPromise = this._getStashedContent(hyper, req, etag);
+            contentPromise = this._getStashedContent(hyper, req, tid);
         } else {
             contentPromise = this._getOriginalContent(hyper, req, rp.revision, tid);
         }
@@ -630,29 +647,18 @@ class ParsoidService {
         const rp = req.params;
         const tid = uuid.now().toString();
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        return transformPromise.then((original) =>
-            // Save the returned data-parsoid for the transform and the wikitext sent by the client
-            P.all([
-                hyper.put({
-                    uri: this.getStashBucketURI(rp, 'data-parsoid', tid),
-                    headers: original.body['data-parsoid'].headers,
-                    body: original.body['data-parsoid'].body
-                }),
-                hyper.put({
-                    uri: this.getStashBucketURI(rp, 'wikitext', tid),
+        return transformPromise.then((original) => hyper.put({
+            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
+            body: Buffer.from(JSON.stringify({
+                'data-parsoid': original.body['data-parsoid'],
+                wikitext: {
                     headers: { 'content-type': wtType },
                     body: req.body.wikitext
-                })
-            ])
-        // Save HTML last, so that any error in metadata storage suppresses
-        // HTML.
-        .then(() => hyper.put({
-            uri: this.getStashBucketURI(rp, 'html', tid),
-            headers: original.body.html.headers,
-            body: original.body.html.body
-        }))
-        // Add the ETag to the original response so it can be propagated
-        // back to the client
+                },
+                html: original.body.html
+            }))
+        })
+        // Add the ETag to the original response so it can be propagated back to the client
         .then(() => {
             original.body.html.headers.etag = mwUtil.makeETag(rp.revision, tid, 'stash');
             return original;
@@ -872,6 +878,19 @@ module.exports = (options) => {
             },
             {
                 uri: '/{domain}/sys/parsoid_bucket/'
+            },
+            {
+                uri: '/{domain}/sys/key_value/parsoid',
+                body: {
+                    valueType: 'blob'
+                }
+            },
+            {
+                uri: '/{domain}/sys/key_value/parsoid-stash',
+                body: {
+                    valueType: 'blob',
+                    default_time_to_live: options.grace_ttl
+                }
             }
         ]
     };

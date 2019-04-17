@@ -12,7 +12,7 @@ const testPage = {
     // html is fetched dynamically
 };
 
-parallel('transform api', function() {
+describe('transform api', function() {
     this.timeout(20000);
     let contentTypes;
     const server = new Server();
