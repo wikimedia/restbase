@@ -19,44 +19,42 @@ paths:
         native mobile applications. Note that the output is split by sections.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1"
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
         - name: Accept-Language
           in: header
-          description: >
-            The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for Latin transcription of the Serbian language.
-          required: false
-          type: string
-      responses:
-        '200':
-          description: JSON containing HTML sections and metadata for the given page title.
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
           schema:
-            type: object
-            # FIXME!
+            type: string
+      responses:
+        200:
+          description: JSON containing HTML sections and metadata for the given page
+            title.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1":
+              schema:
+                type: object
+                # FIXME!
           headers:
             ETag:
-              type: string
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-        '301':
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+        301:
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
             To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
@@ -64,7 +62,7 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '302':
+        302:
           description: |
             The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
             The `location` header points to the redirect target.
@@ -72,14 +70,18 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '404':
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - from_backend:
             request:
@@ -91,7 +93,7 @@ paths:
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                            from_backend.headers) }}'
+              from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: true
       x-amples:
@@ -116,32 +118,30 @@ paths:
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: revision
           in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
           required: true
+          schema:
+            type: integer
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
         - name: Accept-Language
           in: header
-          description: >
-            The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for Latin transcription of the Serbian language.
-          required: false
-          type: string
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
+          schema:
+            type: string
       x-request-handler:
         - from_backend:
             request:
@@ -153,7 +153,7 @@ paths:
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                            from_backend.headers) }}'
+              from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
@@ -172,44 +172,41 @@ paths:
         for viewing with native mobile applications.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1"
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
         - name: Accept-Language
           in: header
-          description: >
-            The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for Latin transcription of the Serbian language.
-          required: false
-          type: string
-      responses:
-        '200':
-          description: The HTML for the given page title.
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
           schema:
-            type: object
-            # FIXME!
+            type: string
+      responses:
+        200:
+          description: The HTML for the given page title.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1":
+              schema:
+                type: object
+                # FIXME!
           headers:
             ETag:
-              type: string
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-        '301':
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+        301:
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
             To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
@@ -217,7 +214,7 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '302':
+        302:
           description: |
             The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
             The `location` header points to the redirect target.
@@ -225,14 +222,18 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '404':
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - from_backend:
             request:
@@ -244,7 +245,7 @@ paths:
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                            from_backend.headers) }}'
+              from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
@@ -256,32 +257,30 @@ paths:
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: revision
           in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
           required: true
+          schema:
+            type: integer
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
         - name: Accept-Language
           in: header
-          description: >
-            The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for Latin transcription of the Serbian language.
-          required: false
-          type: string
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
+          schema:
+            type: string
       x-request-handler:
         - from_backend:
             request:
@@ -293,7 +292,7 @@ paths:
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                            from_backend.headers) }}'
+              from_backend.headers) }}'
               body: '{{from_backend.body}}'
 
   /mobile-sections-remaining/{title}:
@@ -312,44 +311,41 @@ paths:
         provided as a JSON object containing the sections.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1"
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
         - name: Accept-Language
           in: header
-          description: >
-            The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for Latin transcription of the Serbian language.
-          required: false
-          type: string
-      responses:
-        '200':
-          description: JSON wrapping HTML sections for the given page title.
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
           schema:
-            type: object
-            # FIXME!
+            type: string
+      responses:
+        200:
+          description: JSON wrapping HTML sections for the given page title.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/mobile-sections/0.14.1":
+              schema:
+                type: object
+                # FIXME!
           headers:
             ETag:
-              type: string
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-        '301':
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+        301:
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
             To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
@@ -357,7 +353,7 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '302':
+        302:
           description: |
             The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
             The `location` header points to the redirect target.
@@ -365,14 +361,18 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '404':
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - from_backend:
             request:
@@ -384,7 +384,7 @@ paths:
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                            from_backend.headers) }}'
+              from_backend.headers) }}'
               body: '{{from_backend.body}}'
       x-monitor: false
 
@@ -396,32 +396,30 @@ paths:
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: revision
           in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
           required: true
+          schema:
+            type: integer
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
         - name: Accept-Language
           in: header
-          description: >
-            The desired language variant code for wikis where LanguageConverter is enabled.
-            Example: `sr-el` for Latin transcription of the Serbian language.
-          required: false
-          type: string
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
+          schema:
+            type: string
       x-request-handler:
         - from_backend:
             request:
@@ -433,5 +431,5 @@ paths:
             return:
               status: '{{from_backend.status}}'
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                            from_backend.headers) }}'
+              from_backend.headers) }}'
               body: '{{from_backend.body}}'

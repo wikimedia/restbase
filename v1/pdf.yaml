@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: MediaWiki PDF API
   description: Page PDF Render API
   termsOfService: https://github.com/wikimedia/restbase#restbase
@@ -25,35 +25,39 @@ paths:
         Renders the page content as PDF.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/pdf
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
-      responses:
-        '200':
-          description: The PDF render of an article
           schema:
-            type: file
+            type: string
+      responses:
+        200:
+          description: The PDF render of an article
           headers:
             ETag:
-              type: string
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-        '404':
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
-      operationId: 'generatePDF'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      operationId: generatePDF
 #      x-request-handler:
 #        - get_latest_revision:
 #            request:

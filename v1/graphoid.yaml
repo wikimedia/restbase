@@ -11,48 +11,56 @@ paths:
         for details.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - image/png
-        - application/problem+json
       parameters:
         - name: title
           in: path
           description: The page title
-          type: string
           required: true
+          schema:
+            type: string
         - name: revision
           in: path
           description: The page revision, or 0 for the latest
-          type: integer
           required: true
+          schema:
+            type: integer
         - name: graph_id
           in: path
           description: The graph ID, consisting of a hash and the suffix `.png`.
-          type: string
           required: true
-      responses:
-        '200':
-          description: The PNG render of the requested graph.
           schema:
-            type: file
+            type: string
+      responses:
+        200:
+          description: The PNG render of the requested graph.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
           # FIXME: Actually return a decent ETag from graphoid & document it here!
           # See https://phabricator.wikimedia.org/T125924
           #headers:
           #  ETag:
           #    type: string
-        '403':
+        403:
           description: access to the specific revision is restricted
-          schema:
-            $ref: '#/definitions/problem'
-        '404':
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        404:
           description: Unknown page title or revision
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
-
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_graphoid:
             request:

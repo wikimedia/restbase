@@ -1,5 +1,6 @@
+openapi: 3.0.1
 info:
-  version: '1.0.0'
+  version: 1.0.0
   title: Global Transform API
   description: Global Transform API
   termsOfService: https://github.com/wikimedia/restbase
@@ -9,44 +10,52 @@ info:
 paths:
   /html/from/{from_lang}/to/{to_lang}:
     post: &html_from_lang_to_lang_post_spec
-      tags: ['Transform']
+      tags: 
+        - Transform
       summary: Machine-translate content
       description: |
         Fetches the machine translation for the posted content from the source
         to the destination language.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: from_lang
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: to_lang
           in: path
           description: The target language code
-          type: string
           required: true
-        - name: html
-          in: formData
-          description: The HTML content to translate
-          type: string
-          required: true
-          x-textarea: true
-      responses:
-        '200':
-          description: The translated content
           schema:
-            $ref: '#/definitions/cx_mt'
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - html
+              properties:
+                html:
+                  type: string
+                  description: The HTML content to translate
+                  x-textarea: true
+        required: true
+      responses:
+        200:
+          description: The translated content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_mt'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       x-request-handler:
         - get_from_cx:
@@ -63,66 +72,80 @@ paths:
         - name: from_lang
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: to_lang
           in: path
           description: The target language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: provider
           in: path
           description: The machine translation provider id
-          type: string
           required: true
-          enum:
-            - Apertium
-            - Yandex
-            - Youdao
-        - name: html
-          in: formData
-          description: The HTML content to translate
-          type: string
-          required: true
-          x-textarea: true
+          schema:
+            type: string
+            enum:
+              - Apertium
+              - Yandex
+              - Youdao
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - html
+              properties:
+                html:
+                  type: string
+                  description: The HTML content to translate
+                  x-textarea: true
+        required: true
 
   /word/from/{from_lang}/to/{to_lang}/{word}:
     get: &word_from_lang_to_lang_word_get_spec
-      tags: ['Transform']
+      tags: 
+        - Transform
       summary: Fetch the dictionary meaning of a word
       description: |
         Fetches the dictionary meaning of a word from a language and displays
         it in the target language.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: from_lang
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: to_lang
           in: path
           description: The target language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: word
           in: path
           description: The word to lookup
-          type: string
           required: true
-      responses:
-        '200':
-          description: the dictionary translation for the given word
           schema:
-            $ref: '#/definitions/cx_dict'
+            type: string
+      responses:
+        200:
+          description: the dictionary translation for the given word
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_dict'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       x-request-handler:
         - get_from_cx:
@@ -136,58 +159,66 @@ paths:
         - name: from_lang
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: to_lang
           in: path
           description: The target language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: word
           in: path
           description: The word to lookup
-          type: string
           required: true
+          schema:
+            type: string
         - name: provider
           in: path
           description: The dictionary provider id
-          type: string
           required: true
-          enum:
-            - JsonDict
-            - Dictd
+          schema:
+            type: string
+            enum:
+              - JsonDict
+              - Dictd
 
   /list/pair/{from}/{to}/:
     get:
-      tags: ['Transform']
+      tags:
+        - Transform
       summary: Lists the tools available for a language pair
       description: |
         Fetches the list of tools that are available for the given pair of languages.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: from
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: to
           in: path
           description: The target language code
-          type: string
           required: true
-      responses:
-        '200':
-          description: the list of tools available for the language pair
           schema:
-            $ref: '#/definitions/cx_list_tools'
+            type: string
+      responses:
+        200:
+          description: the list of tools available for the language pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_list_tools'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       x-request-handler:
         - get_from_cx:
@@ -195,33 +226,37 @@ paths:
               uri: '{{options.cx_host}}/v1/list/pair/{from}/{to}'
   /list/tool/{tool}:
     get: &list_tool_tool_get_spec
-      tags: ['Transform']
+      tags:
+        - Transform
       summary: Lists the tools and language pairs available for the given tool category
       description: |
         Fetches the list of tools and all of the language pairs it can translate
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: tool
           in: path
           description: The tool category to list tools and language pairs for
-          type: string
           required: true
-          enum:
-            - mt
-            - dictionary
-      responses:
-        '200':
-          description: the list of language pairs available for a given translation tool
           schema:
-            $ref: '#/definitions/cx_list_pairs_for_tool'
+            type: string
+            enum:
+              - mt
+              - dictionary
+      responses:
+        200:
+          description: the list of language pairs available for a given translation
+            tool
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_list_pairs_for_tool'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       x-request-handler:
         - get_from_cx:
@@ -235,21 +270,24 @@ paths:
         - name: tool
           in: path
           description: The tool category to list tools and language pairs for
-          type: string
           required: true
-          enum:
-            - mt
-            - dictionary
+          schema:
+            type: string
+            enum:
+              - mt
+              - dictionary
         - name: from
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: to
           in: path
           description: The target language code
-          type: string
           required: true
+          schema:
+            type: string
       x-request-handler:
         - get_from_cx:
             request:
@@ -257,49 +295,51 @@ paths:
 
   /list/languagepairs/:
     get:
-      tags: ['Transform']
+      tags:
+        - Transform
       summary: Lists the language pairs supported by the back-end
       description: |
         Fetches the list of language pairs the back-end service can translate
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
       responses:
-        '200':
+        200:
           description: the list of source and target languages supported by the API
-          schema:
-            $ref: '#/definitions/cx_languagepairs'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_languagepairs'
       x-monitor: false
       x-request-handler:
         - get_from_cx:
             request:
               uri: '{{options.cx_host}}/v1/list/languagepairs'
 
-definitions:
-  cx_list_tools:
-    type: object
-    properties:
-      tools:
-        type: array
-        description: the list of tools available for the given language pair
-        items:
-          type: string
-          description: the tool available
-  cx_list_pairs_for_tool:
-    type: object
-  cx_languagepairs:
-    type: object
-    properties:
-      source:
-        type: array
-        description: the list of available source languages
-        items:
-          type: string
-          description: one source language
-      target:
-        type: array
-        description: the list of available destination languages
-        items:
-          type: string
-          description: one destination language
+components:
+  schemas:
+    cx_list_tools:
+      type: object
+      properties:
+        tools:
+          type: array
+          description: the list of tools available for the given language pair
+          items:
+            type: string
+            description: the tool available
+    cx_list_pairs_for_tool:
+      type: object
+    cx_languagepairs:
+      type: object
+      properties:
+        source:
+          type: array
+          description: the list of available source languages
+          items:
+            type: string
+            description: one source language
+        target:
+          type: array
+          description: the list of available destination languages
+          items:
+            type: string
+            description: one destination language

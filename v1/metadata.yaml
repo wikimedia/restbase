@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: MediaWiki page metadata API
   description: API for retrieving additional metadata of a given page
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
@@ -25,36 +25,34 @@ paths:
         Gets metadata of a page that's not already covered by the summary endpoint.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Metadata/1.2.0"
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
-      responses:
-        '200':
-          description: JSON containing additional metadata of the given page.
           schema:
-            $ref: '#/definitions/metadata'
+            type: boolean
+      responses:
+        200:
+          description: JSON containing additional metadata of the given page.
           headers:
             ETag:
-              type: string
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-        '301':
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Metadata/1.2.0":
+              schema:
+                $ref: '#/components/schemas/metadata'
+        301:
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
             To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
@@ -62,7 +60,7 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '302':
+        302:
           description: |
             The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
             The `location` header points to the redirect target.
@@ -70,14 +68,18 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '404':
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_pcs:
             request:
@@ -88,7 +90,7 @@ paths:
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                                 get_from_pcs.headers) }}'
+              get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
       x-monitor: false
 
@@ -100,188 +102,205 @@ paths:
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: revision
           in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
           required: true
+          schema:
+            type: integer
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
-
-# copied from MCS spec.yaml
-definitions:
-
-  metadata:
-    type: object
-    properties:
-      revision:
-        type: string
-        description: revision ID for the page
-      tid:
-        type: string
-        description: time UUID for the page/revision
-      hatnotes:
-        type: array
-        description: the hatnotes on the page, with html and plaintext representations provided for each
-        items:
-          $ref: '#/definitions/hatnote_or_page_issue'
-      issues:
-        type: array
-        description: the page issues on the page, with html and plaintext representations provided for each
-        items:
-          $ref: '#/definitions/hatnote_or_page_issue'
-      toc:
-        type: object
-        description: a table of contents for the page, in structured form
-        properties:
-          title:
-            type: string
-            description: the TOC title string for the wiki as reported by siteinfo
-          entries:
-            type: array
-            description: section info for the TOC in structured form
-            items:
-              $ref: '#/definitions/toc_entry'
-        required: [ title, entries ]
-        additionalProperties: false
-      language_links:
-        type: array
-        description: list of titles and language codes for the article topic on other language Wikipedias
-        items:
+          schema:
+            type: boolean
+components:
+  schemas:
+    metadata:
+      type: object
+      properties:
+        revision:
+          type: string
+          description: revision ID for the page
+        tid:
+          type: string
+          description: time UUID for the page/revision
+        hatnotes:
+          type: array
+          description: the hatnotes on the page, with html and plaintext representations
+            provided for each
+          items:
+            $ref: '#/components/schemas/hatnote_or_page_issue'
+        issues:
+          type: array
+          description: the page issues on the page, with html and plaintext representations
+            provided for each
+          items:
+            $ref: '#/components/schemas/hatnote_or_page_issue'
+        toc:
           type: object
-          description: titles and language codes for the article topic on another language Wikipedia
+          description: a table of contents for the page, in structured form
           properties:
-            lang:
+            title:
               type: string
-              description: language code
-            titles:
-              type: object
-              description: titles dictionary
-              properties:
-                canonical:
-                  type: string
-                  description: canonical title
-                normalized:
-                  type: string
-                  description: normalized title
-              required:
-                - canonical
-                - normalized
-            summary_url:
-              type: string
-              description: link to REST API summary
+              description: the TOC title string for the wiki as reported by siteinfo
+            entries:
+              type: array
+              description: section info for the TOC in structured form
+              items:
+                $ref: '#/components/schemas/toc_entry'
           required:
-            - lang
-            - titles
-            - summary_url
-      categories:
-        type: array
-        description: categories the page belongs to
-        items:
-          $ref: '#/definitions/category'
-      protection:
-        type: object
-        description: info on page edit and move rights
-        items:
-          $ref: '#/definitions/protection'
-      description_source:
-        type: string
-        enum:
-          - central
-          - local
-        description: Whether the description is defined locally or comes from Wikidata.  May be 'central' or 'local'.
-      variants:
-        type: object
-    required: [ revision, tid, protection ]
-    additionalProperties: false
-
-  hatnote_or_page_issue:
-    type: object
-    properties:
-      section:
-        type: integer
-        description: section ID containing the hatnote or page issue
-      html:
-        type: string
-        description: the hatnote or page issue HTML
-    required: [ section, html ]
-    additionalProperties: false
-
-  toc_entry:
-    type: object
-    properties:
-      level:
-        type: integer
-        description: the depth of the heading in the TOC hierarchy
-      section:
-        type: integer
-        description: the position of the section in the order of appearance of all sections on the page
-      number:
-        type: string
-        description: a numeric representation of the section's position in the page hierarhcy (e.g., '1', '1.3', '1.3.2')
-      anchor:
-        type: string
-        description: the heading text to be used in constracting a page anchor for linking
-      html:
-        type: string
-        description: the heading display text (may contain HTML markup)
-    required: [ level, section, number, anchor, html ]
-    additionalProperties: false
-
-  category:
-    type: object
-    properties:
-      titles:
-        type: object
-        description: titles dictionary
-        properties:
-          canonical:
-            type: string
-            description: canonical title
-          normalized:
-            type: string
-            description: normalized title
-          display:
-            type: string
-            description: display title (omitting the "Category:" namespace prefix)
-        required:
-          - canonical
-          - normalized
-          - display
-      summary_url:
-        type: string
-        description: link to REST API summary
-      hidden:
-        type: boolean
-        description: whether the category is hidden or not
-      ns:
-        type: integer
-        description: the numeric namespace id for the category page
-    required: [ titles, hidden, summary_url, ns ]
-    additionalProperties: false
-
-  protection:
-    type: object
-    properties:
-      edit:
-        type: array
-        description: list of groups with the 'edit' permission
-        items:
+            - title
+            - entries
+        language_links:
+          type: array
+          description: list of titles and language codes for the article topic on
+            other language Wikipedias
+          items:
+            type: object
+            description: titles and language codes for the article topic on another
+              language Wikipedia
+            properties:
+              lang:
+                type: string
+                description: language code
+              titles:
+                type: object
+                description: titles dictionary
+                properties:
+                  canonical:
+                    type: string
+                    description: canonical title
+                  normalized:
+                    type: string
+                    description: normalized title
+                required:
+                  - canonical
+                  - normalized
+              summary_url:
+                type: string
+                description: link to REST API summary
+            required:
+              - lang
+              - titles
+              - summary_url
+        categories:
+          type: array
+          description: categories the page belongs to
+          items:
+            $ref: '#/components/schemas/category'
+        protection:
+          type: object
+          description: info on page edit and move rights
+          items:
+            $ref: '#/components/schemas/protection'
+        description_source:
           type: string
-      move:
-        type: array
-        description: list of groups with the 'move' permission
-        items:
+          enum:
+            - central
+            - local
+          description: Whether the description is defined locally or comes from Wikidata.  May
+            be 'central' or 'local'.
+        variants:
+          type: object
+          properties: {}
+      required:
+        - protection
+        - revision
+        - tid
+
+    hatnote_or_page_issue:
+      type: object
+      properties:
+        section:
+          type: integer
+          description: section ID containing the hatnote or page issue
+        html:
           type: string
+          description: the hatnote or page issue HTML
+      required:
+        - html
+        - section
+
+    toc_entry:
+      type: object
+      properties:
+        level:
+          type: integer
+          description: the depth of the heading in the TOC hierarchy
+        section:
+          type: integer
+          description: the position of the section in the order of appearance of all
+            sections on the page
+        number:
+          type: string
+          description: a numeric representation of the section's position in the page
+            hierarhcy (e.g., '1', '1.3', '1.3.2')
+        anchor:
+          type: string
+          description: the heading text to be used in constracting a page anchor for
+            linking
+        html:
+          type: string
+          description: the heading display text (may contain HTML markup)
+      required:
+        - anchor
+        - html
+        - level
+        - number
+        - section
+
+    category:
+      type: object
+      properties:
+        titles:
+          type: object
+          description: titles dictionary
+          properties:
+            canonical:
+              type: string
+              description: canonical title
+            normalized:
+              type: string
+              description: normalized title
+            display:
+              type: string
+              description: display title (omitting the "Category:" namespace prefix)
+          required:
+            - canonical
+            - normalized
+            - display
+        summary_url:
+          type: string
+          description: link to REST API summary
+        hidden:
+          type: boolean
+          description: whether the category is hidden or not
+        ns:
+          type: integer
+          description: the numeric namespace id for the category page
+      required:
+        - hidden
+        - ns
+        - summary_url
+        - titles
+
+    protection:
+      type: object
+      properties:
+        edit:
+          type: array
+          description: list of groups with the 'edit' permission
+          items:
+            type: string
+        move:
+          type: array
+          description: list of groups with the 'move' permission
+          items:
+            type: string

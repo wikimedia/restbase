@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '0.1'
+  version: 0.1
   title: MediaWiki Reading Lists API
   description: API for manipulating private [reading lists](https://www.mediawiki.org/wiki/Reading/Reading_Lists)
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
@@ -20,9 +20,10 @@ x-yaml-anchors:
     name: csrf_token
     in: query
     required: true
-    type: string
+    schema:
+      type: string
+      example: "f63c343876da566045e6b59c4532450559c828d3+\\"
     description: "The CRSF edit token provided by the MediaWiki API"
-#    example: "f63c343876da566045e6b59c4532450559c828d3+\\"
   list_common: &list_common
     name:
       type: string
@@ -34,11 +35,11 @@ x-yaml-anchors:
     project: &list_entry_common_project
       type: string
       description: 'Domain of the wiki containing the page.'
-#      example: 'https://en.wikipedia.org'
+      example: 'https://en.wikipedia.org'
     title: &list_entry_common_title
       type: string
       description: 'Title of the page containing the page, in database format.'
-#      example: Barack_Obama
+      example: Barack_Obama
 paths:
   /lists/setup:
     post:
@@ -51,18 +52,21 @@ paths:
         Request must be authenticated with a MediaWiki session cookie.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
         - <<: *csrf_token
       responses:
-        '200':
+        200:
           description: Success.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -87,18 +91,21 @@ paths:
         Request must be authenticated with a MediaWiki session cookie.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
         - <<: *csrf_token
       responses:
-        '200':
+        200:
           description: Success.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -128,44 +135,47 @@ paths:
         - name: next
           in: query
           description: Continuation parameter from previous request
-          type: string
-          required: false
+          schema:
+            type: string
         - name: sort
           in: query
           description: |
             Sort order
             - `name`: by name, ascending;
             - `updated`: by last modification date, descending.
-          type: string
-          default: updated
-          enum: [ name, updated ]
-          required: false
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-        - application/problem+json
-      responses:
-        '200':
-          description: An array of list metadata.
           schema:
-            type: object
-            properties:
-              lists:
-                type: array
-                items:
-                  $ref: '#/definitions/list_read'
-              next:
-                type: string
-                description: Continuation token.
-              continue-from:
-                type: string
-                format: date-time
-                description: |
-                  Timestamp to sync from, to be used with the `GET /lists/changes/since/{date}`
-                  endpoint.
+            type: string
+            default: updated
+            enum:
+              - name
+              - updated
+      responses:
+        200:
+          description: An array of list metadata.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1":
+              schema:
+                type: object
+                properties:
+                  lists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/list_read'
+                  next:
+                    type: string
+                    description: Continuation token.
+                  continue-from:
+                    type: string
+                    format: date-time
+                    description: |
+                      Timestamp to sync from, to be used with the `GET /lists/changes/since/{date}`
+                      endpoint.
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -184,7 +194,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "max-age=0, s-maxage=0"
+                cache-control: max-age=0, s-maxage=0
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
@@ -205,38 +215,40 @@ paths:
         This endpoint is deprecated and might be removed without warning. Use the batch version
         instead.
       x-maxsize: *maxEntriesPerList
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
-        - name: list
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/list_write'
         - <<: *csrf_token
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/list_write'
+        required: true
       responses:
-        '200':
+        200:
           description: The data for the new list.
-          schema:
-            type: object
-            properties:
-              id:
-                type: integer
-                description: |
-                  List ID.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: |
+                      List ID.
 
-                  Deprecated, will be removed. Use the full list object.
-                example: 7
-              list:
-                $ref: '#/definitions/list_read'
-            required:
-              - id
-              - list
+                      Deprecated, will be removed. Use the full list object.
+                    example: 7
+                  list:
+                    $ref: '#/components/schemas/list_read'
+                required:
+                  - id
+                  - list
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -270,39 +282,43 @@ paths:
       parameters:
         - name: id
           in: path
-          type: integer
-#          example: 42
           required: true
-        - name: list
-          in: body
           schema:
-            $ref: '#/definitions/list_write'
+            type: integer
+            example: 42
         - <<: *csrf_token
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/list_write'
+        required: false
       responses:
-        '200':
+        200:
           description: The updated data for the list.
-          schema:
-            type: object
-            properties:
-              id:
-                type: integer
-                description: |
-                  List ID.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: |
+                      List ID.
 
-                  Deprecated, will be removed. Use the full list object.
-                example: 7
-              list:
-                $ref: '#/definitions/list_read'
-            required:
-              - id
-              - list
+                      Deprecated, will be removed. Use the full list object.
+                    example: 7
+                  list:
+                    $ref: '#/components/schemas/list_read'
+                required:
+                  - id
+                  - list
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -333,23 +349,26 @@ paths:
         a MediaWiki session cookie.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
         - name: id
           in: path
-          type: integer
-#          example: 42
           required: true
-        - <<: *csrf_token
+          schema:
+            type: integer
+            example: 42
       responses:
-        '200':
+        200:
           description: Success.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -374,55 +393,59 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       x-maxsize: *maxEntriesPerList
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
-        - name: batch
-          in: body
-          required: true
-          schema:
-            title: batch
-            type: object
-            required: ['batch']
-            properties:
-              batch:
-                type: array
-                maxItems: *maxItemsPerBatch
-                items:
-                  title: list
-                  $ref: '#/definitions/list_write'
         - <<: *csrf_token
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              title: batch
+              required:
+                - batch
+              type: object
+              properties:
+                batch:
+                  maxItems: *maxItemsPerBatch
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/list_write'
+        required: true
       responses:
-        '200':
+        200:
           description: The data for the new lists (in the same order as the inputs).
-          schema:
-            title: list_create_batch
-            type: object
-            properties:
-              batch:
-                type: array
-                description: Deprecated, will be removed. Use the full list objects instead.
-                items:
-                  title: list_id
-                  type: object
-                  required: ['id']
-                  properties:
-                    id:
-                      type: integer
-                      description: List ID
-                      example: 7
-              lists:
-                type: array
-                items:
-                  $ref: '#/definitions/list_read'
-            required:
-              - batch
-              - lists
+          content:
+            application/json; charset=utf-8:
+              schema:
+                title: list_create_batch
+                type: object
+                properties:
+                  batch:
+                    type: array
+                    description: Deprecated, will be removed. Use the full list objects
+                      instead.
+                    items:
+                      title: list_id
+                      type: object
+                      required:
+                        - id
+                      properties:
+                        id:
+                          type: integer
+                          description: List ID
+                          example: 7
+                  lists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/list_read'
+                required:
+                  - batch
+                  - lists
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -458,44 +481,48 @@ paths:
       parameters:
         - name: id
           in: path
-          type: integer
-#          example: 42
           required: true
+          schema:
+            type: integer
+            example: 42
         - name: next
           in: query
           description: Continuation parameter from previous request
-          type: string
-          required: false
+          schema:
+            type: string
         - name: sort
           in: query
           description: |
             Sort order
             - `name`: by page title, ascending;
             - `updated`: by last modification date, descending.
-          type: string
-          default: updated
-          enum: [ name, updated ]
-          required: false
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-        - application/problem+json
-      responses:
-        '200':
-          description: An array of list entries.
           schema:
-            type: object
-            properties:
-              entries:
-                type: array
-                items:
-                  $ref: '#/definitions/list_entry_read'
-              next:
-                type: string
-                description: Continuation token.
+            type: string
+            default: updated
+            enum:
+              - name
+              - updated
+      responses:
+        200:
+          description: An array of list entries.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1":
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/list_entry_read'
+                  next:
+                    type: string
+                    description: Continuation token.
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       operationId: getListEntries
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
@@ -516,43 +543,46 @@ paths:
         This endpoint is deprecated and might be removed without warning. Use the batch version
         instead.
       x-maxsize: *maxListsPerUser
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
         - name: id
           in: path
-          type: integer
-#          example: 42
-          required: true
-        - name: list_entry
-          in: body
           required: true
           schema:
-            $ref: '#/definitions/list_entry_write'
+            type: integer
+            example: 42
         - <<: *csrf_token
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/list_entry_write'
+        required: true
       responses:
-        '200':
+        200:
           description: The data for the new list entry.
-          schema:
-            type: object
-            properties:
-              id:
-                type: integer
-                description: |
-                  List entry ID
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: |
+                      List entry ID
 
-                  Deprecated, will be removed. Use the full entry object instead.
-                example: 13
-              entry:
-                $ref: '#/definitions/list_entry_read'
-            required:
-              - id
-              - entry
+                      Deprecated, will be removed. Use the full entry object instead.
+                    example: 13
+                  entry:
+                    $ref: '#/components/schemas/list_entry_read'
+                required:
+                  - id
+                  - entry
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -589,25 +619,29 @@ paths:
       parameters:
         - name: id
           in: path
-          type: integer
-#          example: 42
           required: true
+          schema:
+            type: integer
+            example: 42
         - name: entry_id
           in: path
-          type: integer
-#          example: 64
           required: true
-        - <<: *csrf_token
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
+          schema:
+            type: integer
+            example: 64
       responses:
-        '200':
+        200:
           description: Success.
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -632,55 +666,60 @@ paths:
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       x-maxsize: *maxListsPerUser
-      produces:
-        - application/json; charset=utf-8
-        - application/problem+json
       parameters:
         - name: id
           in: path
-          type: integer
-#          example: 42
-          required: true
-        - name: batch
-          in: body
           required: true
           schema:
-            type: object
-            required: ['batch']
-            properties:
-              batch:
-                title: list_entries
-                type: array
-                maxItems: *maxItemsPerBatch
-                items:
-                  $ref: '#/definitions/list_entry_write'
+            type: integer
+            example: 42
         - <<: *csrf_token
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: object
+              required:
+                - batch
+              properties:
+                batch:
+                  title: list_entries
+                  type: array
+                  maxItems: *maxItemsPerBatch
+                  items:
+                    $ref: '#/components/schemas/list_entry_write'
+        required: true
       responses:
-        '200':
-          description: The data for the new list entries (in the same order as the inputs).
-          schema:
-            type: object
-            properties:
-              batch:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      description: List entry ID
-                      example: 13
-              entries:
-                type: array
-                items:
-                  $ref: '#/definitions/list_entry_read'
-            required:
-              - entries
-              - batch
+        200:
+          description: The data for the new list entries (in the same order as the
+            inputs).
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                properties:
+                  batch:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: List entry ID
+                          example: 13
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/list_entry_read'
+                required:
+                  - entries
+                  - batch
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -713,37 +752,40 @@ paths:
       parameters:
         - name: project
           in: path
-          <<: *list_entry_common_project
+          schema:
+            <<: *list_entry_common_project
           required: true
         - name: title
           in: path
-          <<: *list_entry_common_title
+          schema:
+            <<: *list_entry_common_title
           required: true
         - name: next
           in: query
           description: Continuation parameter from previous request
-          type: string
-          required: false
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-        - application/problem+json
-      responses:
-        '200':
-          description: An array of list metadata.
           schema:
-            type: object
-            properties:
-              lists:
-                type: array
-                items:
-                  $ref: '#/definitions/list_read'
-              next:
-                type: string
-                description: Continuation token.
+            type: string
+      responses:
+        200:
+          description: An array of list metadata.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1":
+              schema:
+                type: object
+                properties:
+                  lists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/list_read'
+                  next:
+                    type: string
+                    description: Continuation token.
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -762,7 +804,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "max-age=0, s-maxage=0"
+                cache-control: max-age=0, s-maxage=0
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 next: '{{flattenContinuation(forward_to_mw.body.continue)}}'
@@ -790,40 +832,42 @@ paths:
           description: |
             Cutoff date (in ISO 8601). To ensure reliable synchronization, the API
             might return changes which are slightly older than the cutoff date.
-          type: string
-          format: date-time
+          schema:
+            type: string
+            format: date-time
           required: true
         - name: next
           in: query
           description: Continuation parameter from previous request
-          type: string
-          required: false
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-        - application/problem+json
-      responses:
-        '200':
-          description: An array of list and entry metadata.
           schema:
-            type: object
-            properties:
-              lists:
-                type: array
-                items:
-                  $ref: '#/definitions/list_read'
-              next:
-                type: string
-                description: Continuation token.
-              continue-from:
-                type: string
-                format: date-time
-                description: |
-                  Timestamp to sync from, to be used with the `GET /lists/changes/since/{date}`
-                  endpoint.
+            type: string
+      responses:
+        200:
+          description: An array of list and entry metadata.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1":
+              schema:
+                type: object
+                properties:
+                  lists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/list_read'
+                  next:
+                    type: string
+                    description: Continuation token.
+                  continue-from:
+                    type: string
+                    format: date-time
+                    description: |
+                      Timestamp to sync from, to be used with the `GET /lists/changes/since/{date}`
+                      endpoint.
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
       x-request-handler:
@@ -849,7 +893,7 @@ paths:
               status: 200
               headers:
                 content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Lists/0.1"
-                cache-control: "max-age=0, s-maxage=0"
+                cache-control: max-age=0, s-maxage=0
               body:
                 lists: '{{forward_to_mw.body.query.readinglists}}'
                 entries: '{{forward_to_mw.body.query.readinglistentries}}'
@@ -862,55 +906,56 @@ tags:
     externalDocs:
       description: Project documentation
       url: https://www.mediawiki.org/wiki/Reading/Reading_Lists
-definitions:
-  list_read:
-    title: list
-    type: object
-    properties:
-      id:
-        type: integer
-        example: 42
-      <<: *list_common
-      created:
-        type: string
-        format: date-time
-        description: "Creation date (in ISO 8601)"
-      updated:
-        type: string
-        format: date-time
-        description: "Last modification date (in ISO 8601)"
-    required:
-      - id
-      - name
-      - created
-      - updated
-  list_write:
-    title: list
-    type: object
-    properties:
-      <<: *list_common
-    required:
-      - name
-  list_entry_read:
-    title: list_entry
-    type: object
-    properties:
-      id:
-        type: integer
-        example: 64
-      <<: *list_entry_common
-      created:
-        type: string
-        format: date-time
-        description: "Creation date (in ISO 8601)"
-      updated:
-        type: string
-        format: date-time
-        description: "Last modification date (in ISO 8601)"
-  list_entry_write:
-    type: object
-    properties:
-      <<: *list_entry_common
-    required:
-      - project
-      - title
+components:
+  schemas:
+    list_read:
+      title: list
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        <<: *list_common
+        created:
+          type: string
+          format: date-time
+          description: "Creation date (in ISO 8601)"
+        updated:
+          type: string
+          format: date-time
+          description: "Last modification date (in ISO 8601)"
+      required:
+        - id
+        - name
+        - created
+        - updated
+    list_write:
+      title: list
+      type: object
+      properties:
+        <<: *list_common
+      required:
+        - name
+    list_entry_read:
+      title: list_entry
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 64
+        <<: *list_entry_common
+        created:
+          type: string
+          format: date-time
+          description: "Creation date (in ISO 8601)"
+        updated:
+          type: string
+          format: date-time
+          description: "Last modification date (in ISO 8601)"
+    list_entry_write:
+      type: object
+      properties:
+        <<: *list_entry_common
+      required:
+        - project
+        - title

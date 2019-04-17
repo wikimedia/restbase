@@ -1,8 +1,9 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.1-beta'
+  version: 1.0.1-beta
   title: MediaWiki featured feed content availability API
-  description: API for determining availbility of various featured feed content items by wiki language
+  description: API for determining availbility of various featured feed content items
+    by wiki language
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
   contact:
     name: Reading Infrastructure
@@ -20,18 +21,20 @@ paths:
         Gets availability of featured feed content for the apps by wiki domain.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.1"
-        - application/problem+json
       responses:
-        '200':
-          description: JSON containing lists of wiki domains for which feed content is available.
-          schema:
-            $ref: '#/definitions/availability'
+        200:
+          description: JSON containing lists of wiki domains for which feed content
+            is available.
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Availability/1.0.1":
+              schema:
+                $ref: '#/components/schemas/availability'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_feed_content_availability:
             request:
@@ -42,53 +45,61 @@ paths:
               headers: '{{get_feed_content_availability.headers}}'
               body: '{{get_feed_content_availability.body}}'
       x-monitor: false
-
-# copied from MCS spec.yaml
-definitions:
-  availability:
-    type: object
-    properties:
-      todays_featured_article:
-        type: array
-        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
-        items:
+components:
+  schemas:
+    availability:
+      type: object
+      properties:
+        todays_featured_article:
+          type: array
+          description: domains for wikis with this feature enabled, or [ '*.<project>.org'
+            ] for all wikis in a project
+          items:
+            type: string
+        most_read:
+          type: array
+          description: domains for wikis with this feature enabled, or [ '*.<project>.org'
+            ] for all wikis in a project
+          items:
+            type: string
+        picture_of_the_day:
+          type: array
+          description: domains for wikis with this feature enabled, or [ '*.<project>.org'
+            ] for all wikis in a project
+          items:
+            type: string
+        in_the_news:
+          type: array
+          description: domains for wikis with this feature enabled, or [ '*.<project>.org'
+            ] for all wikis in a project
+          items:
+            type: string
+        on_this_day:
+          type: array
+          description: domains for wikis with this feature enabled, or [ '*.<project>.org'
+            ] for all wikis in a project
+          items:
+            type: string
+      required:
+        - in_the_news
+        - most_read
+        - on_this_day
+        - picture_of_the_day
+        - todays_featured_article
+    problem:
+      required:
+        - type
+      type: object
+      properties:
+        status:
+          type: integer
+        type:
           type: string
-      most_read:
-        type: array
-        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
-        items:
+        title:
           type: string
-      picture_of_the_day:
-        type: array
-        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
-        items:
+        detail:
           type: string
-      in_the_news:
-        type: array
-        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
-        items:
+        method:
           type: string
-      on_this_day:
-        type: array
-        description: domains for wikis with this feature enabled, or [ '*.<project>.org' ] for all wikis in a project
-        items:
+        uri:
           type: string
-    required: [ todays_featured_article, most_read, picture_of_the_day, in_the_news, on_this_day ]
-    additionalProperties: false
-
-  problem:
-    required:
-      - type
-    properties:
-      status:
-        type: integer
-      type:
-        type: string
-      title:
-        type: string
-      detail:
-        type: string
-      method:
-        type: string
-      uri:
-        type: string

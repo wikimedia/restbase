@@ -7,7 +7,8 @@ paths:
         - name: page
           in: query
           description: The next page token
-          type: string
+          schema:
+            type: string
           required: false
 
   /page/{title}: &page_title
@@ -23,7 +24,8 @@ paths:
         - name: page
           in: query
           description: The next page token
-          type: string
+          schema:
+            type: string
           required: false
 
   /page/{title}/{revision}:
