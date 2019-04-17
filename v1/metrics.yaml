@@ -1,5 +1,6 @@
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: Analytics Metrics API
   description: Analytics Metrics API
   termsOfService: https://github.com/wikimedia/restbase#restbase
@@ -28,69 +29,89 @@ paths:
         - Rate limit: 100 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
           description: |
             If you want to filter by project, use the domain of any Wikimedia project,
             for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'.
-          type: string
           required: true
+          schema:
+            type: string
         - name: access
           in: path
           description: |
             If you want to filter by access method, use one of desktop, mobile-app
             or mobile-web. If you are interested in pageviews regardless of access method,
             use all-access.
-          type: string
-          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-access
+              - desktop
+              - mobile-app
+              - mobile-web
         - name: agent
           in: path
           description: |
             If you want to filter by agent type, use one of user, bot or spider. If you are
             interested in pageviews regardless of agent type, use all-agents.
-          type: string
-          enum: ['all-agents', 'user', 'spider', 'bot']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-agents
+              - user
+              - spider
+              - bot
         - name: article
           in: path
           description: |
             'The title of any article in the specified project. Any spaces should be replaced
             with underscores. It also should be URI-encoded, so that non-URI-safe characters like
             %, / or ? are accepted. Example: Are_You_the_One%3F'.
-          type: string
           required: true
+          schema:
+            type: string
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, the only supported granularity for
             this endpoint is daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
-          description: The date of the first day to include, in YYYYMMDD or YYYYMMDDHH format
-          type: string
+          description: The date of the first day to include, in YYYYMMDD or YYYYMMDDHH
+            format
           required: true
+          schema:
+            type: string
         - name: end
           in: path
-          description: The date of the last day to include, in YYYYMMDD or YYYYMMDDHH format
-          type: string
+          description: The date of the last day to include, in YYYYMMDD or YYYYMMDDHH
+            format
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/pageview-article'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pageview-article'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -122,9 +143,6 @@ paths:
         - Rate limit: 100 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -132,51 +150,73 @@ paths:
             If you want to filter by project, use the domain of any Wikimedia project,
             for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'.
             If you are interested in all pageviews regardless of project, use all-projects.
-          type: string
           required: true
+          schema:
+            type: string
         - name: access
           in: path
           description: |
             If you want to filter by access method, use one of desktop, mobile-app or mobile-web.
             If you are interested in pageviews regardless of access method, use all-access.
-          type: string
-          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-access
+              - desktop
+              - mobile-app
+              - mobile-web
         - name: agent
           in: path
           description: |
             If you want to filter by agent type, use one of user or spider. If you are interested
             in pageviews regardless of agent type, use all-agents.
-          type: string
-          enum: ['all-agents', 'user', 'spider']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-agents
+              - user
+              - spider
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, the supported granularities for this
             endpoint are hourly, daily, and monthly.
-          type: string
-          enum: ['hourly', 'daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - hourly
+              - daily
+              - monthly
         - name: start
           in: path
-          description: The timestamp of the first hour/day/month to include, in YYYYMMDDHH format
-          type: string
+          description: The timestamp of the first hour/day/month to include, in YYYYMMDDHH
+            format
           required: true
+          schema:
+            type: string
         - name: end
           in: path
-          description: The timestamp of the last hour/day/month to include, in YYYYMMDDHH format
-          type: string
+          description: The timestamp of the last hour/day/month to include, in YYYYMMDDHH
+            format
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/pageview-project'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pageview-project'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -230,51 +270,63 @@ paths:
         - Rate limit: 100 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
           description: |
             If you want to filter by project, use the domain of any Wikimedia project,
             for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'.
-          type: string
           required: true
+          schema:
+            type: string
         - name: access
           in: path
           description: |
             If you want to filter by access method, use one of desktop, mobile-app or mobile-web.
             If you are interested in pageviews regardless of access method, use all-access.
-          type: string
-          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-access
+              - desktop
+              - mobile-app
+              - mobile-web
         - name: year
           in: path
-          description: The year of the date for which to retrieve top articles, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top articles, in YYYY
+            format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
           description: |
             The month of the date for which to retrieve top articles, in MM format. If you want
             to get the top articles of a whole month, the day parameter should be all-days.
-          type: string
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top articles, in DD format.
-          type: string
+          description: The day of the date for which to retrieve top articles, in DD
+            format.
           required: true
-      responses:
-        '200':
-          description: The list of top articles in the project
           schema:
-            $ref: '#/definitions/pageview-tops'
+            type: string
+      responses:
+        200:
+          description: The list of top articles in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pageview-tops'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -305,45 +357,55 @@ paths:
         - Rate limit: 100 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
           description: |
             If you want to filter by project, use the domain of any Wikimedia project,
             for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'.
-          type: string
           required: true
+          schema:
+            type: string
         - name: access
           in: path
           description: |
             If you want to filter by access method, use one of desktop, mobile-app or mobile-web.
             If you are interested in pageviews regardless of access method, use all-access.
-          type: string
-          enum: ['all-access', 'desktop', 'mobile-app', 'mobile-web']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-access
+              - desktop
+              - mobile-app
+              - mobile-web
         - name: year
           in: path
-          description: The year of the date for which to retrieve top countries, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top countries, in
+            YYYY format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
           description: |
             The month of the date for which to retrieve top countries, in MM format.
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of top countries by pageviews in the project
           schema:
-            $ref: '#/definitions/by-country'
+            type: string
+      responses:
+        200:
+          description: The list of top countries by pageviews in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/by-country'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -378,52 +440,64 @@ paths:
         - Rate limit: 100 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
           description: |
             If you want to filter by project, use the domain of any Wikimedia project,
             for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'.
-          type: string
           required: true
+          schema:
+            type: string
         - name: access-site
           in: path
           description: |
             If you want to filter by accessed site, use one of desktop-site or mobile-site.
             If you are interested in unique devices regardless of accessed site, use or all-sites.
-          type: string
-          enum: ['all-sites', 'desktop-site', 'mobile-site']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-sites
+              - desktop-site
+              - mobile-site
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, the supported granularities
             for this endpoint are daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
-          description: The timestamp of the first day/month to include, in YYYYMMDD format
-          type: string
+          description: The timestamp of the first day/month to include, in YYYYMMDD
+            format
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The timestamp of the last day/month to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/unique-devices'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unique-devices'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -457,9 +531,6 @@ paths:
         - Rate limit: 100 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -467,46 +538,62 @@ paths:
             The name of any Wikimedia project formatted like {language code}.{project name},
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia.
-          type: string
           required: true
+          schema:
+            type: string
         - name: access-site
           in: path
-          description:
-            If you want to filter by access site, use one of desktop-site or mobile-site.
-            If you are interested in pagecounts regardless of access site use all-sites.
-          type: string
-          enum: ['all-sites', 'desktop-site', 'mobile-site']
+          description: If you want to filter by access site, use one of desktop-site
+            or mobile-site. If you are interested in pagecounts regardless of access
+            site use all-sites.
           required: true
+          schema:
+            type: string
+            enum:
+              - all-sites
+              - desktop-site
+              - mobile-site
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, the supported granularities for
             this endpoint are hourly, daily and monthly.
-          type: string
-          enum: ['hourly', 'daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - hourly
+              - daily
+              - monthly
         - name: start
           in: path
-          description: The timestamp of the first hour/day/month to include, in YYYYMMDDHH format.
-          type: string
+          description: The timestamp of the first hour/day/month to include, in YYYYMMDDHH
+            format.
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: |
             The timestamp of the last hour/day/month to include, in YYYYMMDDHH format.
             In hourly and daily granularities this value is inclusive, in the monthly granularity
             this value is exclusive.
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/pagecounts-project'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pagecounts-project'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -542,9 +629,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -555,8 +639,9 @@ paths:
             For projects like www.mediawiki.org, you can use that full string, or just use
             mediawiki or mediawiki.org. If you're interested in the aggregation of all
             projects, use all-projects.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -565,45 +650,64 @@ paths:
             to the bot group but having bot-like names) or user (registered account not in bot
             group nor having bot-like name). If you are interested in edits regardless of
             their editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (new pages in content
             namespaces) or non-content (new pages in non-content namespaces). If you are
             interested in new-articles regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, supported values are
             daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/new-pages'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/new-pages'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -637,9 +741,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -649,8 +750,9 @@ paths:
             off.  For projects like commons without language codes, use commons.wikimedia.
             For projects like www.mediawiki.org, you can use that full string, or just use
             mediawiki or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -659,54 +761,79 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edited-pages in content
             namespaces) or non-content (edited-pages in non-content namespaces). If you are
             interested in edited-pages regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: activity-level
           in: path
           description: |
             If you want to filter by activity-level, use one of 1..4-edits, 5..24-edits,
             25..99-edits or 100..-edits. If you are interested in edited-pages regardless
             of their activity level, use all-activity-levels.
-          type: string
-          enum: ['all-activity-levels', '1..4-edits', '5..24-edits', '25..99-edits', '100..-edits']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-activity-levels
+              - 1..4-edits
+              - 5..24-edits
+              - 25..99-edits
+              - 100..-edits
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, supported values are
             daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/edited-pages'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/edited-pages'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -739,9 +866,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -751,8 +875,9 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -761,42 +886,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: year
           in: path
-          description: The year of the date for which to retrieve top edited-pages, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top edited-pages,
+            in YYYY format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
-          description: The month of the date for which to retrieve top edited-pages, in MM format. If you want to get the top edited-pages of a whole month, the day parameter should be all-days.
-          type: string
+          description: The month of the date for which to retrieve top edited-pages,
+            in MM format. If you want to get the top edited-pages of a whole month,
+            the day parameter should be all-days.
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top edited-pages, in DD format, or all-days for a monthly value.
-          type: string
+          description: The day of the date for which to retrieve top edited-pages, in
+            DD format, or all-days for a monthly value.
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/top-edited-pages-by-edits'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/top-edited-pages-by-edits'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -828,9 +974,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -840,8 +983,9 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -850,42 +994,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: year
           in: path
-          description: The year of the date for which to retrieve top edited-pages, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top edited-pages,
+            in YYYY format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
-          description: The month of the date for which to retrieve top edited-pages, in MM format. If you want to get the top edited-pages of a whole month, the day parameter should be all-days.
-          type: string
+          description: The month of the date for which to retrieve top edited-pages,
+            in MM format. If you want to get the top edited-pages of a whole month,
+            the day parameter should be all-days.
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top edited-pages, in DD format, or all-days for a monthly value.
-          type: string
+          description: The day of the date for which to retrieve top edited-pages, in
+            DD format, or all-days for a monthly value.
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/top-edited-pages-by-net-bytes-diff'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/top-edited-pages-by-net-bytes-diff'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -917,9 +1082,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -929,8 +1091,9 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -939,42 +1102,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: year
           in: path
-          description: The year of the date for which to retrieve top edited-pages, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top edited-pages,
+            in YYYY format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
-          description: The month of the date for which to retrieve top edited-pages, in MM format. If you want to get the top edited-pages of a whole month, the day parameter should be all-days.
-          type: string
+          description: The month of the date for which to retrieve top edited-pages,
+            in MM format. If you want to get the top edited-pages of a whole month,
+            the day parameter should be all-days.
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top edited-pages, in DD format, or all-days for a monthly value.
-          type: string
+          description: The day of the date for which to retrieve top edited-pages, in
+            DD format, or all-days for a monthly value.
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/top-edited-pages-by-abs-bytes-diff'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/top-edited-pages-by-abs-bytes-diff'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1012,9 +1196,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1024,8 +1205,9 @@ paths:
             off.  For projects like commons without language codes, use commons.wikimedia.
             For projects like www.mediawiki.org, you can use that full string, or just use
             mediawiki or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1034,54 +1216,79 @@ paths:
             to the bot group but having bot-like names) or user (registered account not in bot
             group nor having bot-like name). If you are interested in edits regardless
             of their editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits made in content
             namespaces) or non-content (edits made in non-content namespaces). If you are
             interested in editors regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: activity-level
           in: path
           description: |
             If you want to filter by activity-level, use one of 1..4-edits, 5..24-edits,
             25..99-edits or 100..-edits. If you are interested in editors regardless
             of their activity-level, use all-activity-levels.
-          type: string
-          enum: ['all-activity-levels', '1..4-edits', '5..24-edits', '25..99-edits', '100..-edits']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-activity-levels
+              - 1..4-edits
+              - 5..24-edits
+              - 25..99-edits
+              - 100..-edits
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, supported values are
             daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/editors'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/editors'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1115,9 +1322,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1127,8 +1331,9 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1137,42 +1342,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: year
           in: path
-          description: The year of the date for which to retrieve top editors, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top editors, in YYYY
+            format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
-          description: The month of the date for which to retrieve top editors, in MM format. If you want to get the top editors of a whole month, the day parameter should be all-days.
-          type: string
+          description: The month of the date for which to retrieve top editors, in MM
+            format. If you want to get the top editors of a whole month, the day parameter
+            should be all-days.
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top editors, in DD format, or all-days for a monthly value.
-          type: string
+          description: The day of the date for which to retrieve top editors, in DD
+            format, or all-days for a monthly value.
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/top-editors-by-edits'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/top-editors-by-edits'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1206,9 +1432,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1218,8 +1441,9 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1228,42 +1452,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: year
           in: path
-          description: The year of the date for which to retrieve top editors, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top editors, in YYYY
+            format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
-          description: The month of the date for which to retrieve top editors, in MM format. If you want to get the top editors of a whole month, the day parameter should be all-days.
-          type: string
+          description: The month of the date for which to retrieve top editors, in MM
+            format. If you want to get the top editors of a whole month, the day parameter
+            should be all-days.
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top editors, in DD format, or all-days for a monthly value.
-          type: string
+          description: The day of the date for which to retrieve top editors, in DD
+            format, or all-days for a monthly value.
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/top-editors-by-net-bytes-diff'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/top-editors-by-net-bytes-diff'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1297,9 +1542,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1309,8 +1551,9 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1319,42 +1562,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: year
           in: path
-          description: The year of the date for which to retrieve top editors, in YYYY format.
-          type: string
+          description: The year of the date for which to retrieve top editors, in YYYY
+            format.
           required: true
+          schema:
+            type: string
         - name: month
           in: path
-          description: The month of the date for which to retrieve top editors, in MM format. If you want to get the top editors of a whole month, the day parameter should be all-days.
-          type: string
+          description: The month of the date for which to retrieve top editors, in MM
+            format. If you want to get the top editors of a whole month, the day parameter
+            should be all-days.
           required: true
+          schema:
+            type: string
         - name: day
           in: path
-          description: The day of the date for which to retrieve top editors, in DD format, or all-days for a monthly value.
-          type: string
+          description: The day of the date for which to retrieve top editors, in DD
+            format, or all-days for a monthly value.
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/top-editors-by-abs-bytes-diff'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/top-editors-by-abs-bytes-diff'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1391,9 +1655,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1404,8 +1665,9 @@ paths:
             For projects like www.mediawiki.org, you can use that full string, or just use
             mediawiki or mediawiki.org. If you're interested in the aggregation of
             all projects, use all-projects.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1414,45 +1676,64 @@ paths:
             to the bot group but having bot-like names) or user (registered account not in bot
             group nor having bot-like name). If you are interested in edits regardless
             of their editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, supported values are
             daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/edits'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/edits'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1488,9 +1769,6 @@ paths:
         - Rate limit: 5 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1500,15 +1778,17 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: page-title
           in: path
           description: |
             The page-title to request edits for. It should be prefixed with canonical namespace.
             Spaces will be converted to underscores.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1517,35 +1797,50 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: granularity
           in: path
           description: |
             Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/edits-per-page'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/edits-per-page'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1674,9 +1969,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1687,35 +1979,45 @@ paths:
             For projects like www.mediawiki.org, you can use that full string, or just use
             mediawiki or mediawiki.org. If you're interested in the aggregation of
             all projects, use all.
-          type: string
           required: true
+          schema:
+            type: string
         - name: granularity
           in: path
           description: |
             The time unit for the response data. As of today, supported values are
             daily and monthly.
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/new-registered-users'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/new-registered-users'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1741,7 +2043,8 @@ paths:
     get:
       tags:
         - Bytes difference data
-      summary: Get the sum of net text bytes difference between current edit and previous one.
+      summary: Get the sum of net text bytes difference between current edit and previous
+        one.
       description: |
         Given a Mediawiki project and a date range, returns a timeseries of bytes difference net
         sums. You can filter by editors-type (all-editor-types, anonymous, group-bot, name-bot,
@@ -1752,9 +2055,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1765,8 +2065,9 @@ paths:
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org. If you're interested in the aggregation of all projects, use
             all-projects.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1775,44 +2076,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: granularity
           in: path
           description: |
             Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/net-bytes-difference'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/net-bytes-difference'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -1848,9 +2168,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -1860,15 +2177,17 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: page-title
           in: path
           description: |
             The page-title to request net bytes-difference for. Should be prefixed with the
             page canonical namespace.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -1877,35 +2196,50 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: granularity
           in: path
           description: |
             Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/net-bytes-difference-per-page'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/net-bytes-difference-per-page'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -2036,9 +2370,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -2049,8 +2380,9 @@ paths:
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org. If you're interested in the aggregation of all projects, use
             all-projects.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -2059,44 +2391,63 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: page-type
           in: path
           description: |
             If you want to filter by page-type, use one of content (edits on pages in content
             namespaces) or non-content (edits on pages in non-content namespaces). If you are
             interested in edits regardless of their page-type, use all-page-types.
-          type: string
-          enum: ['all-page-types', 'content', 'non-content']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-page-types
+              - content
+              - non-content
         - name: granularity
           in: path
           description: |
             Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/absolute-bytes-difference'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/absolute-bytes-difference'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -2132,9 +2483,6 @@ paths:
         - Rate limit: 25 req/s
         - License: Data accessible via this endpoint is available under the
           [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: project
           in: path
@@ -2144,15 +2492,17 @@ paths:
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
             or mediawiki.org.
-          type: string
           required: true
+          schema:
+            type: string
         - name: page-title
           in: path
           description: |
             The page-title to request absolute bytes-difference for. Should be prefixed with the
             page canonical namespace.
-          type: string
           required: true
+          schema:
+            type: string
         - name: editor-type
           in: path
           description: |
@@ -2161,35 +2511,50 @@ paths:
             the bot group but having bot-like names) or user (registered account not in bot group
             nor having bot-like name). If you are interested in edits regardless of their
             editor-type, use all-editor-types.
-          type: string
-          enum: ['all-editor-types', 'anonymous', 'group-bot', 'name-bot', 'user']
           required: true
+          schema:
+            type: string
+            enum:
+              - all-editor-types
+              - anonymous
+              - group-bot
+              - name-bot
+              - user
         - name: granularity
           in: path
           description: |
             Time unit for the response data. As of today, supported values are daily and monthly
-          type: string
-          enum: ['daily', 'monthly']
           required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
         - name: start
           in: path
           description: The date of the first day to include, in YYYYMMDD format
-          type: string
           required: true
+          schema:
+            type: string
         - name: end
           in: path
           description: The date of the last day to include, in YYYYMMDD format
-          type: string
           required: true
-      responses:
-        '200':
-          description: The list of values
           schema:
-            $ref: '#/definitions/absolute-bytes-difference-per-page'
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/absolute-bytes-difference-per-page'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -2301,668 +2666,746 @@ paths:
 
 
 ########################################
-# Definitions
+# Components
 ########################################
-definitions:
-  listing:
-    description: The result format for listings
-    required:
-      - items
-    properties:
-      items:
-        type: array
+components:
+  schemas:
+    listing:
+      description: The result format for listings
+      required:
+        - items
+      type: object
+      properties:
         items:
-          type: string
+          type: array
+          items:
+            type: string
 
-  pageview-article:
-    properties:
-      items:
-        type: array
+    pageview-article:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            access:
-              type : string
-            article:
-              type: string
-            agent:
-              type: string
-            granularity:
-              type: string
-            timestamp:
-              # the hourly timestamp will be stored as YYYYMMDDHH
-              type: string
-            views:
-              type: integer
-              format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              access:
+                type: string
+              article:
+                type: string
+              agent:
+                type: string
+              granularity:
+                type: string
+              timestamp:
+                type: string
+              views:
+                type: integer
+                format: int64
 
-  pageview-project:
-    properties:
-      items:
-        type: array
+    pageview-project:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            access:
-              type : string
-            agent:
-              type: string
-            granularity:
-              type: string
-            timestamp:
-              # the hourly timestamp will be stored as YYYYMMDDHH
-              type: string
-            views:
-              type: integer
-              format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              access:
+                type: string
+              agent:
+                type: string
+              granularity:
+                type: string
+              timestamp:
+                # the hourly timestamp will be stored as YYYYMMDDHH
+                type: string
+              views:
+                type: integer
+                format: int64
 
-  pageview-tops:
-    properties:
-      items:
-        type: array
+    pageview-tops:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type: string
-            access:
-              type : string
-            year:
-              type: string
-            month:
-              type: string
-            day:
-              type: string
-            articles:
-              type: array
-              items:
-                properties:
-                  rank:
-                    type: integer
-                    format: int32
-                  article:
-                    type: string
-                  views:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              access:
+                type: string
+              year:
+                type: string
+              month:
+                type: string
+              day:
+                type: string
+              articles:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      format: int32
+                    article:
+                      type: string
+                    views:
+                      type: integer
+                      format: int64
 
+    by-country:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              access:
+                type: string
+              year:
+                type: string
+              month:
+                type: string
+              countries:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      format: int32
+                    country:
+                      type: string
+                    views:
+                      type: integer
+                      format: int64
 
-  by-country:
-    properties:
-      items:
-        type: array
+    unique-devices:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type: string
-            access:
-              type : string
-            year:
-              type: string
-            month:
-              type: string
-            countries:
-              type: array
-              items:
-                properties:
-                  rank:
-                    type: integer
-                    format: int32
-                  country:
-                    type: string
-                  views:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              access-site:
+                type: string
+              granularity:
+                type: string
+              timestamp:
+                # the daily timestamp will be stored as YYYYMMDD
+                type: string
+              devices:
+                type: integer
+                format: int64
 
-  unique-devices:
-    properties:
-      items:
-        type: array
+    pagecounts-project:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            access-site:
-              type : string
-            granularity:
-              type: string
-            timestamp:
-              # the daily timestamp will be stored as YYYYMMDD
-              type: string
-            devices:
-              type: integer
-              format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              access-site:
+                type: string
+              granularity:
+                type: string
+              timestamp:
+                type: string
+              count:
+                type: integer
+                format: int64
 
-  pagecounts-project:
-    properties:
-      items:
-        type: array
+    ## Edited Pages
+    new-pages:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            access-site:
-              type : string
-            granularity:
-              type: string
-            timestamp:
-              type: string
-            count:
-              type: integer
-              format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    new_pages:
+                      type: integer
+                      format: int32
 
-  ## Edited Pages
-  new-pages:
-    properties:
-      items:
-        type: array
+    edited-pages:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  new_pages:
-                    type: integer
-                    format: int32
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              activity-level:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    edited_pages:
+                      type: integer
+                      format: int32
 
-  edited-pages:
-    properties:
-      items:
-        type: array
+    top-edited-pages-by-edits:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            activity-level:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  edited_pages:
-                    type: integer
-                    format: int32
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    top:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                            format: int32
+                          page_title:
+                            type: string
+                          edits:
+                            type: integer
+                            format: int64
 
-  top-edited-pages-by-edits:
-    properties:
-      items:
-        type: array
+    top-edited-pages-by-net-bytes-diff:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  top:
-                    type: array
-                    items:
-                      properties:
-                        rank:
-                          type: integer
-                          format: int32
-                        page_title:
-                          type: string
-                        edits:
-                          type: integer
-                          format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    top:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                            format: int32
+                          page_title:
+                            type: string
+                          net_bytes_diff:
+                            type: integer
+                            format: int64
 
-  top-edited-pages-by-net-bytes-diff:
-    properties:
-      items:
-        type: array
+    top-edited-pages-by-abs-bytes-diff:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  top:
-                    type: array
-                    items:
-                      properties:
-                        rank:
-                          type: integer
-                          format: int32
-                        page_title:
-                          type: string
-                        net_bytes_diff:
-                          type: integer
-                          format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    top:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                            format: int32
+                          page_title:
+                            type: string
+                          abs_bytes_diff:
+                            type: integer
+                            format: int64
 
-  top-edited-pages-by-abs-bytes-diff:
-    properties:
-      items:
-        type: array
+    ## Editors
+    editors:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  top:
-                    type: array
-                    items:
-                      properties:
-                        rank:
-                          type: integer
-                          format: int32
-                        page_title:
-                          type: string
-                        abs_bytes_diff:
-                          type: integer
-                          format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              activity-level:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    editors:
+                      type: integer
+                      format: int32
 
-  ## Editors
-  editors:
-    properties:
-      items:
-        type: array
+    top-editors-by-edits:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            activity-level:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  editors:
-                    type: integer
-                    format: int32
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    top:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                            format: int32
+                          user_text:
+                            type: string
+                          edits:
+                            type: integer
+                            format: int64
 
-  top-editors-by-edits:
-    properties:
-      items:
-        type: array
+    top-editors-by-net-bytes-diff:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  top:
-                    type: array
-                    items:
-                      properties:
-                        rank:
-                          type: integer
-                          format: int32
-                        user_text:
-                          type: string
-                        edits:
-                          type: integer
-                          format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    top:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                            format: int32
+                          user_text:
+                            type: string
+                          net_bytes_diff:
+                            type: integer
+                            format: int64
 
-  top-editors-by-net-bytes-diff:
-    properties:
-      items:
-        type: array
+    top-editors-by-abs-bytes-diff:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  top:
-                    type: array
-                    items:
-                      properties:
-                        rank:
-                          type: integer
-                          format: int32
-                        user_text:
-                          type: string
-                        net_bytes_diff:
-                          type: integer
-                          format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    top:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                            format: int32
+                          user_text:
+                            type: string
+                          abs_bytes_diff:
+                            type: integer
+                            format: int64
 
-  top-editors-by-abs-bytes-diff:
-    properties:
-      items:
-        type: array
+    ## Edits
+    edits:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  top:
-                    type: array
-                    items:
-                      properties:
-                        rank:
-                          type: integer
-                          format: int32
-                        user_text:
-                          type: string
-                        abs_bytes_diff:
-                          type: integer
-                          format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    edits:
+                      type: integer
+                      format: int64
 
-  ## Edits
-  edits:
-    properties:
-      items:
-        type: array
+    edits-per-page:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type : string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  edits:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              page-title:
+                type: string
+              editor-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    edits:
+                      type: integer
+                      format: int64
 
-  edits-per-page:
-    properties:
-      items:
-        type: array
+    edits-per-editor:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            page-title:
-              type: string
-            editor-type:
-              type : string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  edits:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              user-text:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    edits:
+                      type: integer
+                      format: int64
 
-  edits-per-editor:
-    properties:
-      items:
-        type: array
+    ## New Registered Users
+    new-registered-users:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            user-text:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  edits:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    new_registered_users:
+                      type: integer
+                      format: int32
 
-  ## New Registered Users
-  new-registered-users:
-    properties:
-      items:
-        type: array
+    ## Net Bytes Difference
+    net-bytes-difference:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  new_registered_users:
-                    type: integer
-                    format: int32
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    net_bytes_diff:
+                      type: integer
+                      format: int64
 
-  ## Net Bytes Difference
-  net-bytes-difference:
-    properties:
-      items:
-        type: array
+    net-bytes-difference-per-page:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type : string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  net_bytes_diff:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              page-title:
+                type: string
+              editor-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    net_bytes_diff:
+                      type: integer
+                      format: int64
 
-  net-bytes-difference-per-page:
-    properties:
-      items:
-        type: array
+    net-bytes-difference-per-editor:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            page-title:
-              type: string
-            editor-type:
-              type : string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  net_bytes_diff:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              user-text:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    net_bytes_diff:
+                      type: integer
+                      format: int64
 
-  net-bytes-difference-per-editor:
-    properties:
-      items:
-        type: array
+    ## Net Bytes Difference
+    absolute-bytes-difference:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            user-text:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  net_bytes_diff:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              editor-type:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    abs_bytes_diff:
+                      type: integer
+                      format: int64
 
-  ## Net Bytes Difference
-  absolute-bytes-difference:
-    properties:
-      items:
-        type: array
+    absolute-bytes-difference-per-page:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            editor-type:
-              type : string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  abs_bytes_diff:
-                    type: integer
-                    format: int64
-  absolute-bytes-difference-per-page:
-    properties:
-      items:
-        type: array
-        items:
-          properties:
-            project:
-              type : string
-            page-title:
-              type: string
-            editor-type:
-              type : string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  abs_bytes_diff:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              page-title:
+                type: string
+              editor-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    abs_bytes_diff:
+                      type: integer
+                      format: int64
 
-  absolute-bytes-difference-per-editor:
-    properties:
-      items:
-        type: array
+    absolute-bytes-difference-per-editor:
+      type: object
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            user-text:
-              type: string
-            page-type:
-              type: string
-            granularity:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  timestamp:
-                    type: string
-                  abs_bytes_diff:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            type: object
+            properties:
+              project:
+                type: string
+              user-text:
+                type: string
+              page-type:
+                type: string
+              granularity:
+                type: string
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    abs_bytes_diff:
+                      type: integer
+                      format: int64

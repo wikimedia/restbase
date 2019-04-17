@@ -1,4 +1,4 @@
-swagger: '2.0'
+openapi: 3.0.1
 paths:
   /{api:v1}: &default_project_paths_v1
     x-modules:

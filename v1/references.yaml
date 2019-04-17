@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: MediaWiki page references API
   description: API for retrieving references of a given page
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
@@ -26,36 +26,34 @@ paths:
         and allow some reference lists to be rebuild.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/References/1.0.0"
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
-      responses:
-        '200':
-          description: JSON containing a structure of references on the given page.
           schema:
-            $ref: '#/definitions/references_response'
+            type: boolean
+      responses:
+        200:
+          description: JSON containing a structure of references on the given page.
           headers:
             ETag:
-              type: string
-              description: >
-                Syntax: "{revision}/{tid}".
-                Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-        '301':
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/References/1.0.0":
+              schema:
+                $ref: '#/components/schemas/references_response'
+        301:
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
             To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
@@ -63,7 +61,7 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '302':
+        302:
           description: |
             The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
             The `location` header points to the redirect target.
@@ -71,14 +69,18 @@ paths:
 
             Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
             will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        '404':
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_pcs:
             request:
@@ -89,7 +91,7 @@ paths:
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                                 get_from_pcs.headers) }}'
+              get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
       x-monitor: false
 
@@ -101,134 +103,132 @@ paths:
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
         - name: revision
           in: path
-          description: >
-            Optional page revision. Note that older revisions are not stored, so
-            request latency with the revision would be higher.
-          type: integer
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
           required: true
+          schema:
+            type: integer
         - name: redirect
           in: query
-          description: >
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects)
-            return HTTP 302 with a redirect target in `Location` header and content in the body.
-
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          type: boolean
-          required: false
+          schema:
+            type: boolean
 
 # copied from MCS spec.yaml
-definitions:
-
-  references_response:
-    type: object
-    description: Reference lists and references
-    properties:
-      revision:
-        type: string
-        description: revision ID for the page
-      tid:
-        type: string
-        description: time UUID for the page/revision
-      reference_lists:
-        $ref: '#/definitions/reference_lists'
-      references_by_id:
-        $ref: '#/definitions/references_by_id'
-    additionalProperties: false
-    required:
-      - revision
-      - tid
-      - reference_lists
-      - references_by_id
-
-  reference_lists:
-    type: array
-    description: A list of reference lists
-    items:
-      $ref: '#/definitions/reference_list'
-
-  reference_list:
-    type: object
-    description: A single reference list
-    properties:
-      id:
-        type: ['string', 'null']
-        description: Identifier for the whole reference list. May be null.
-      section_heading:
-        type: object
-        description: |
-          Object containing information about the section heading this reference list
-          is shown in.
-        properties:
-          id:
-            type: string
-            description: Identifier for the section, which can be used to link to it
-          html:
-            type: string
-            description: HTML content of section heading
-      order:
-        type: array
-        description: |
-          List of identifiers for individual references, which can be used to lookup
-          the reference details in references_by_id.
-        items:
+components:
+  schemas:
+    references_response:
+      type: object
+      description: Reference lists and references
+      properties:
+        revision:
           type: string
-    additionalProperties: false
-    required:
-      - id
-      - order
+          description: revision ID for the page
+        tid:
+          type: string
+          description: time UUID for the page/revision
+        reference_lists:
+          $ref: '#/components/schemas/reference_lists'
+        references_by_id:
+          $ref: '#/components/schemas/references_by_id'
+      required:
+        - revision
+        - tid
+        - reference_lists
+        - references_by_id
 
-  references_by_id:
-    type: object
-    description: A map of reference ids to reference details
-    properties:
-      default:
-        $ref: '#/definitions/reference_detail_item'
+    reference_lists:
+      type: array
+      description: A list of reference lists
+      items:
+        $ref: '#/components/schemas/reference_list'
 
-  reference_detail_item:
-    type: object
-    description: Information about one reference
-    properties:
-      back_links:
-        type: array
-        description: A list of back links, can be empty in rare cases
-        items:
-          $ref: '#/definitions/reference_detail_item_back_link'
-      content:
-        type: object
-        properties:
-          html:
+    reference_list:
+      type: object
+      description: A single reference list
+      properties:
+        id:
+          type: string
+          nullable: true
+          description: Identifier for the whole reference list. May be null.
+        section_heading:
+          type: object
+          description: |
+            Object containing information about the section heading this reference list
+            is shown in.
+          properties:
+            id:
+              type: string
+              description: Identifier for the section, which can be used to link to
+                it
+            html:
+              type: string
+              description: HTML content of section heading
+        order:
+          type: array
+          description: |
+            List of identifiers for individual references, which can be used to lookup
+            the reference details in references_by_id.
+          items:
             type: string
-            description: HTML representation of the reference content
-          type:
-            type: string
-            enum:
-              - generic
-              - book
-              - journal
-              - news
-              - web
-            description: Known citation type if there is exactly one cite tag, else 'generic'
-    additionalProperties: false
+      required:
+        - id
+        - order
 
-  reference_detail_item_back_link:
-    type: object
-    description: Information about one link back to where on the page a given reference was used
-    properties:
-      href:
-        type: string
-        description: Relative URL pointing to anchor on same page
-      text:
-        type: string
-        description: |
-          Either an arrow for a single back link or another (usually single) chararacter
-          to distinguish multiple back links.
-    additionalProperties: false
-    required:
-      - href
-      - text
+    references_by_id:
+      type: object
+      description: A map of reference ids to reference details
+      properties:
+        default:
+          $ref: '#/components/schemas/reference_detail_item'
 
+    reference_detail_item:
+      type: object
+      description: Information about one reference
+      properties:
+        back_links:
+          type: array
+          description: A list of back links, can be empty in rare cases
+          items:
+            $ref: '#/components/schemas/reference_detail_item_back_link'
+        content:
+          type: object
+          properties:
+            html:
+              type: string
+              description: HTML representation of the reference content
+            type:
+              type: string
+              enum:
+                - generic
+                - book
+                - journal
+                - news
+                - web
+              description: Known citation type if there is exactly one cite tag, else
+                'generic'
+
+    reference_detail_item_back_link:
+      type: object
+      description: Information about one link back to where on the page a given reference
+        was used 
+      properties:
+        href:
+          type: string
+          description: Relative URL pointing to anchor on same page
+        text:
+          type: string
+          description: |
+            Either an arrow for a single back link or another (usually single) chararacter
+            to distinguish multiple back links.
+      required:
+        - href
+        - text

@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: MediaWiki Related Pages API
   description: Related pages API
   termsOfService: https://github.com/wikimedia/restbase#restbase
@@ -23,36 +23,41 @@ paths:
         and a thumbnail.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: title
           in: path
-          description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
-          type: string
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
           required: true
+          schema:
+            type: string
       responses:
-        '200':
+        200:
           description: The related pages
-          schema:
-            $ref: '#/definitions/related'
-        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/related'
+        404:
           description: Unknown page title
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       operationId: getRelatedPages
       x-monitor: false
 
-definitions:
-  related:
-    type: object
-    properties:
-      pages:
-        type: array
-        items:
-          $ref: '#/definitions/summary'
+components:
+  schemas:
+    related:
+      type: object
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/summary'

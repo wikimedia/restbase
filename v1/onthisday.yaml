@@ -17,49 +17,57 @@ paths:
          - Events: a list of significant events which happened on the provided day and month and which are not covered by the other types yet
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/onthisday/0.3.3"
-        - application/problem+json
       parameters:
         - name: type
           in: path
-          description: 'Type of events'
-          type: string
+          description: Type of events
           required: true
-          enum:
-            - all
-            - selected
-            - births
-            - deaths
-            - events
-            - holidays
+          schema:
+            type: string
+            enum:
+              - all
+              - selected
+              - births
+              - deaths
+              - events
+              - holidays
         - name: mm
           in: path
-          description: 'Month events are requested for, 0-padded'
-          type: string
+          description: Month events are requested for, 0-padded
           required: true
+          schema:
+            type: string
         - name: dd
           in: path
-          description: 'Day of the month events are requested for, 0-padded'
-          type: string
+          description: Day of the month events are requested for, 0-padded
           required: true
+          schema:
+            type: string
       responses:
-        '200':
+        200:
           description: JSON containing all of the featured content
-          schema:
-            $ref: '#/definitions/onthisdayResponse'
-        '404':
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/onthisday/0.3.3":
+              schema:
+                $ref: '#/components/schemas/onthisdayResponse'
+        404:
           description: No data found for the requested date
-          schema:
-            $ref: '#/definitions/problem'
-        '501':
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        501:
           description: Unsupported language
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       operationId: onThisDay
       x-monitor: false
 #      TODO: the check has been disabled due to RB deployment
@@ -103,38 +111,33 @@ paths:
 #                  pages:
 #                    - title: /.+/
 
-definitions:
-  onthisday:
-    type: array
-    items:
-      type: object
-      properties:
-        text:
-          type: string
-          description: Short description of the event
-        pages:
-          type: array
-          description: List of pages related to the event
-          items:
-            $ref: '#/definitions/summary'
+components:
+  schemas:
+    onthisday:
+      type: array
+      items:
+        type: object
+        properties:
+          text:
+            type: string
+            description: Short description of the event
+          pages:
+            type: array
+            description: List of pages related to the event
+            items:
+              $ref: '#/components/schemas/summary'
 
-  onthisdayResponse:
-    type: object
-    description: Lists of events which happened on the provided day and month
-    properties:
-      births:
-        description: A list of birthdays which happened on the provided day and month
-        $ref: '#/definitions/onthisday'
-      deaths:
-        description: A list of deaths which happened on the provided day and month
-        $ref: '#/definitions/onthisday'
-      events:
-        description: A list of significant events which happened on the provided day and month and which are not covered by the other types yet
-        $ref: '#/definitions/onthisday'
-      holidays:
-        description: A list of fixed holidays celebrated on the provided day and month
-        $ref: '#/definitions/onthisday'
-      selected:
-        description: A list of a few selected anniversaries which occur on the provided day and month; often the entries are curated for the current year
-        $ref: '#/definitions/onthisday'
-    additionalProperties: false
+    onthisdayResponse:
+      type: object
+      description: Lists of events which happened on the provided day and month
+      properties:
+        births:
+          $ref: '#/components/schemas/onthisday'
+        deaths:
+          $ref: '#/components/schemas/onthisday'
+        events:
+          $ref: '#/components/schemas/onthisday'
+        holidays:
+          $ref: '#/components/schemas/onthisday'
+        selected:
+          $ref: '#/components/schemas/onthisday'

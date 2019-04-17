@@ -1,5 +1,6 @@
+openapi: 3.0.1
 info:
-  version: '1.0.0'
+  version: 1.0.0
   title: Transform API
   description: Transform API
   termsOfService: https://github.com/wikimedia/restbase
@@ -9,39 +10,46 @@ info:
 paths:
   /html/from/{from}:
     post: &html_from_from_post_spec
-      tags: ['Transforms']
+      tags: 
+        - Transforms
       summary: Machine-translate content
       description: |
         Fetches the machine translation for the posted content from the source
         to the language of this wiki.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: from
           in: path
           description: The source language code
-          type: string
           required: true
-        - name: html
-          in: formData
-          description: The HTML content to translate
-          type: string
-          required: true
-          x-textarea: true
-      responses:
-        '200':
-          description: The translated content
           schema:
-            $ref: '#/definitions/cx_mt'
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - html
+              properties:
+                html:
+                  type: string
+                  description: The HTML content to translate
+                  x-textarea: true
+        required: true
+      responses:
+        200:
+          description: The translated content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_mt'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       operationId: doMT
 
@@ -53,59 +61,71 @@ paths:
         - name: from
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: provider
           in: path
           description: The machine translation provider id
-          type: string
           required: true
-          enum:
-            - Apertium
-            - Yandex
-            - Youdao
-        - name: html
-          in: formData
-          description: The HTML content to translate
-          type: string
-          required: true
-          x-textarea: true
-      
+          schema:
+            type: string
+            enum:
+              - Apertium
+              - Yandex
+              - Youdao
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - html
+              properties:
+                html:
+                  type: string
+                  description: The HTML content to translate
+                  x-textarea: true
+        required: true
+
   /word/from/{from}/{word}:
     get: &word_from_from_word_get_spec
-      tags: ['Transforms']
+      tags: 
+        - Transforms
       summary: Fetch the dictionary meaning of a word
       description: |
         Fetches the dictionary meaning of a word from a language and displays
         it in the target language.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: from
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: word
           in: path
           description: The word to lookup
-          type: string
           required: true
-      responses:
-        '200':
-          description: the dictionary translation for the given word
           schema:
-            $ref: '#/definitions/cx_dict'
+            type: string
+      responses:
+        200:
+          description: the dictionary translation for the given word
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cx_dict'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       operationId: doDict
-      
+
   /word/from/{from}/{word}/{provider}:
     get:
       <<: *word_from_from_word_get_spec
@@ -114,18 +134,21 @@ paths:
         - name: from
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: word
           in: path
           description: The word to lookup
-          type: string
           required: true
+          schema:
+            type: string
         - name: provider
           in: path
           description: The dictionary provider id
-          type: string
           required: true
-          enum:
-            - JsonDict
-            - Dictd
+          schema:
+            type: string
+            enum:
+              - JsonDict
+              - Dictd

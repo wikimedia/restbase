@@ -15,34 +15,38 @@ paths:
         content and the featured image and video of the day.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: yyyy
           in: path
-          description: 'Year the aggregated content is requested for'
-          type: string
+          description: Year the aggregated content is requested for
           required: true
+          schema:
+            type: string
         - name: mm
           in: path
-          description: 'Month the aggregated content is requested for, 0-padded'
-          type: string
+          description: Month the aggregated content is requested for, 0-padded
           required: true
+          schema:
+            type: string
         - name: dd
           in: path
-          description: 'Day of the month the aggregated content is requested for, 0-padded'
-          type: string
+          description: Day of the month the aggregated content is requested for, 0-padded
           required: true
-      responses:
-        '200':
-          description: JSON containing all of the featured content
           schema:
-            $ref: '#/definitions/feed'
+            type: string
+      responses:
+        200:
+          description: JSON containing all of the featured content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/feed'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       operationId: aggregatedFeed
       x-monitor: true
       x-amples:
@@ -50,9 +54,9 @@ paths:
           request:
             params:
               domain: en.wikipedia.org
-              yyyy: '2016'
-              mm: '04'
-              dd: '29'
+              yyyy: "2016"
+              mm: "04"
+              dd: "29"
           response:
             status: 200
             headers:
@@ -87,136 +91,127 @@ paths:
                   source: /.+/
                   width: /.+/
                   height: /.+/
+components:
+  schemas:
+    mostread_article:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Article title in a form of DB key
+        normalizedtitle:
+          type: string
+          description: Article title as it should be presented to the user
+        views:
+          type: integer
+          description: Number of views on the requested day
+        rank:
+          type: integer
+          description: Position in the list of most viewed articles
+        thumbnail:
+          $ref: '#/components/schemas/thumbnail'
+        description:
+          type: string
+          description: Wikidata description of the article
+        extract:
+          type: string
+          description: First several sentences of an article in plain text
+      required:
+        - title
+        - normalizedtitle
+        - views
+        - rank
 
-definitions:
-  mostread_article:
-    type: object
-    properties:
-      title:
-        type: string
-        description: Article title in a form of DB key
-      normalizedtitle:
-        type: string
-        description: Article title as it should be presented to the user
-      views:
-        type: integer
-        description: Number of views on the requested day
-      rank:
-        type: integer
-        description: Position in the list of most viewed articles
-      thumbnail:
-        description: Lead image for the article
-        $ref: '#/definitions/thumbnail'
-      description:
-        type: string
-        description: Wikidata description of the article
-      extract:
-        type: string
-        description: First several sentences of an article in plain text
-    required:
-      - title
-      - normalizedtitle
-      - views
-      - rank
+    mostread:
+      type: object
+      properties:
+        date:
+          type: string
+          description: The date which the data correspond to
+        articles:
+          type: array
+          description: Array of most popular articles
+          items:
+            $ref: '#/components/schemas/mostread_article'
+      required:
+        - date
+        - articles
 
-  mostread:
-    type: object
-    properties:
-      date:
-        type: string
-        description: The date which the data correspond to
-      articles:
-        type: array
-        description: Array of most popular articles
-        items:
-          $ref: '#/definitions/mostread_article'
-    required:
-      - date
-      - articles
+    news_item:
+      type: object
+      properties:
+        story:
+          type: string
+          description: A cover story for the news item
+        links:
+          type: array
+          description: A collection of articles related to the news item
+          items:
+            $ref: '#/components/schemas/summary'
+      required:
+        - story
+        - links
 
-  news_item:
-    type: object
-    properties:
-      story:
-        type: string
-        description: A cover story for the news item
-      links:
-        type: array
-        description: A collection of articles related to the news item
-        items:
-          $ref: '#/definitions/summary'
-    required:
-      - story
-      - links
+    news:
+      type: array
+      items:
+        $ref: '#/components/schemas/news_item'
 
-  news:
-    type: array
-    items:
-      $ref: '#/definitions/news_item'
-
-  image_description:
-    properties:
-      text:
-        type: string
-        description: Text of the description
-      lang:
-        type: string
-        description: Language code of the description
-    required:
-      - text
-      - lang
-
-  image:
-    type: object
-    properties:
-      title:
-        type: string
-        description: Image title
-      thumbnail:
-        description: Image thumbnail
-        $ref: '#/definitions/thumbnail'
-      image:
-        description: Full-size image
-        $ref: '#/definitions/thumbnail'
-      description:
-        description: Description of an image
-        $ref: '#/definitions/image_description'
-    required:
-      - title
-      - thumbnail
-      - image
-
-  onthisday:
-    type: array
-    items:
+    image_description:
       type: object
       properties:
         text:
           type: string
-          description: Short description of the event
-        pages:
-          type: array
-          description: List of pages related to the event
-          items:
-            $ref: '#/definitions/summary'
+          description: Text of the description
+        lang:
+          type: string
+          description: Language code of the description
+      required:
+        - text
+        - lang
 
-  feed:
-    type: object
-    description: Aggregated feed content for a given date
-    properties:
-      tfa:
-        description: Data about the featured article of the day
-        $ref: '#/definitions/summary'
-      mostread:
-        description: Data about most viewed articles
-        $ref: '#/definitions/mostread'
-      news:
-        description: Data about in the news section
-        $ref: '#/definitions/news'
-      image:
-        description: Featured image for a given date
-        $ref: '#/definitions/image'
-      onthisday:
-        description: List of featured events that happend on this day
-        $ref: '#/definitions/onthisday'
-    additionalProperties: false
+    image:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Image title
+        thumbnail:
+          $ref: '#/components/schemas/thumbnail'
+        image:
+          $ref: '#/components/schemas/thumbnail'
+        description:
+          $ref: '#/components/schemas/image_description'
+      required:
+        - title
+        - thumbnail
+        - image
+
+    onthisday:
+      type: array
+      items:
+        type: object
+        properties:
+          text:
+            type: string
+            description: Short description of the event
+          pages:
+            type: array
+            description: List of pages related to the event
+            items:
+              $ref: '#/components/schemas/summary'
+
+    feed:
+      type: object
+      description: Aggregated feed content for a given date
+      properties:
+        tfa:
+          $ref: '#/components/schemas/summary'
+        mostread:
+          $ref: '#/components/schemas/mostread'
+        news:
+          $ref: '#/components/schemas/news'
+        image:
+          $ref: '#/components/schemas/image'
+        onthisday:
+          $ref: '#/components/schemas/onthisday'

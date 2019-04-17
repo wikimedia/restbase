@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: CSS for mobile apps
   description: API for retrieving CSS for mobile apps
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
@@ -29,30 +29,35 @@ paths:
         For these we suggest meta.wikimedia.org.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0"
-        - application/problem+json
       parameters:
         - name: type
           in: path
           description: The desired CSS bundle
-          type: string
-          enum:
-            - base
-            - pagelib
-            - site
+          schema:
+            type: string
+            enum:
+              - base
+              - pagelib
+              - site
           required: true
       responses:
-        '200':
+        200:
           description: Success
           headers:
             ETag:
-              type: string
               description: Different values indicate that the content has changed
+              schema:
+                type: string
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/CSS/1.0.0":
+              schema:
+                type: object
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_pcs:
             request:
@@ -61,6 +66,6 @@ paths:
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
-                                 get_from_pcs.headers) }}'
+              get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
       x-monitor: false

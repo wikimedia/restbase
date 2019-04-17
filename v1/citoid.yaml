@@ -1,6 +1,6 @@
-swagger: '2.0'
+openapi: 3.0.1
 info:
-  version: '1.0.0-beta'
+  version: 1.0.0-beta
   title: MediaWiki Citation API
   description: Citation API based on the Citoid services
   termsOfService: https://github.com/wikimedia/restbase#restbase
@@ -34,46 +34,47 @@ paths:
             See [bibtex.org](http://www.bibtex.org/).
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json; charset=utf-8;
-        - application/x-bibtex; charset=utf-8
-        - application/problem+json
       parameters:
         - name: format
           in: path
-          description: "The format to use for the resulting citation data"
-          type: string
-          enum:
-            - mediawiki
-            - mediawiki-basefields
-            - zotero
-            - bibtex
+          description: The format to use for the resulting citation data
+          schema:
+            type: string
+            enum:
+              - mediawiki
+              - mediawiki-basefields
+              - zotero
+              - bibtex
           required: true
         - name: query
           in: path
-          description: >
-            URL of an article, DOI, ISBN, PMCID or PMID in the URL-encoded format.
-            Note that on the Swagger-UI doc page you don't need to URI-encode the
-            parameter manually, it will be done by the docs engine.
-          type: string
+          description: |
+            URL of an article, DOI, ISBN, PMCID or PMID in the URL-encoded format. Note that on the Swagger-UI doc page you don't need to URI-encode the parameter manually, it will be done by the docs engine.
           required: true
+          schema:
+            type: string
         - name: Accept-Language
           in: header
-          type: string
-          required: false
-          description: >
-            For some articles the result depends on the `Accept-Language` header, so
-            provide it if localized content is required.
+          description: |
+            For some articles the result depends on the `Accept-Language` header, so provide it if localized content is required.
+          schema:
+            type: string
       responses:
-        '200':
+        200:
           description: The citation data in the requested format
-          schema:
-            $ref: '#/definitions/result'
-        '404':
+          content:
+            application/json; charset=utf-8;:
+              schema:
+                $ref: '#/components/schemas/result'
+            application/x-bibtex; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/result'
+        404:
           description: Citation data was not found.
-          schema:
-            $ref: '#/definitions/problem'
-
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       operationId: getCitation
       # TEMP TEMP TEMP
       # Citoid monitoring temporarily disabled due to T211411
@@ -93,16 +94,18 @@ paths:
 #              - title: /.+/
 #                itemType: /.+/
 
-definitions:
-  result:
-    required:
-      - title
-      - url
-      - itemType
-    properties:
-      itemType:
-        type: string
-      title:
-        type: string
-      url:
-        type: string
+components:
+  schemas:
+    result:
+      required:
+        - title
+        - url
+        - itemType
+      type: object
+      properties:
+        itemType:
+          type: string
+        title:
+          type: string
+        url:
+          type: string

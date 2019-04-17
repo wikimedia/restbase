@@ -5,7 +5,8 @@ tags:
 paths:
   /math/check/{type}:
     post:
-      tags: ['Math']
+      tags:
+        - Math
       summary: Check and normalize a TeX formula.
       description: |
         Checks the supplied TeX formula for correctness and returns the
@@ -17,35 +18,47 @@ paths:
         and perform a GET request against that URL.
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: type
           in: path
           description: The input type of the given formula; can be tex or inline-tex
-          type: string
           required: true
-          enum:
-            - tex
-            - inline-tex
-            - chem
-        - name: q
-          in: formData
-          description: The formula to check
-          type: string
-          required: true
-      responses:
-        '200':
-          description: Information about the checked formula
-        '400':
-          description: Invalid type
           schema:
-            $ref: '#/definitions/problem'
+            type: string
+            enum:
+              - tex
+              - inline-tex
+              - chem
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - q
+              properties:
+                q:
+                  type: string
+                  description: The formula to check
+        required: true
+      responses:
+        200:
+          description: Information about the checked formula
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid type
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: true
       x-amples:
         - title: Mathoid - check test formula
@@ -60,7 +73,7 @@ paths:
             headers:
               content-type: /^application\/json/
               x-resource-location: /.+/
-              cache-control: 'no-cache'
+              cache-control: no-cache
             body:
               success: true
               checked: /.+/
@@ -74,34 +87,41 @@ paths:
 
   /math/formula/{hash}:
     get:
-      tags: ['Math']
+      tags:
+        - Math
       summary: Get a previously-stored formula
       description: |
         Returns the previously-stored formula via `/media/math/check/{type}` for
         the given hash.
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: hash
           in: path
           description: The hash string of the previous POST data
-          type: string
           required: true
-          minLength: 1
-      responses:
-        '200':
-          description: Information about the checked formula
-        '404':
-          description: Data for the given hash cannot be found
           schema:
-            $ref: '#/definitions/problem'
+            minLength: 1
+            type: string
+      responses:
+        200:
+          description: Information about the checked formula
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Data for the given hash cannot be found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       x-request-handler:
         - get_from_sys:
@@ -112,7 +132,8 @@ paths:
 
   /math/render/{format}/{hash}:
     get:
-      tags: ['Math']
+      tags:
+        - Math
       summary: Get rendered formula in the given format.
       description: |
         Given a request hash, renders a TeX formula into its mathematic
@@ -122,38 +143,50 @@ paths:
         obtained, this endpoint has to be used to obtain the actual render.
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable).
-      produces:
-        - image/svg+xml
-        - application/mathml+xml
-        - image/png
-        - application/problem+json
       parameters:
         - name: format
           in: path
           description: The output format; can be svg or mml
-          type: string
           required: true
-          enum:
-            - svg
-            - mml
-            - png
+          schema:
+            type: string
+            enum:
+              - svg
+              - mml
+              - png
         - name: hash
           in: path
           description: The hash string of the previous POST data
-          type: string
           required: true
-          minLength: 1
-      responses:
-        '200':
-          description: The rendered formula
-        '404':
-          description: Unknown format or hash ID
           schema:
-            $ref: '#/definitions/problem'
+            minLength: 1
+            type: string
+      responses:
+        200:
+          description: The rendered formula
+          content:
+            image/svg+xml:
+              schema:
+                type: string
+            application/mathml+xml:
+              schema:
+                type: string
+            image/png:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: Unknown format or hash ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-monitor: false
       x-setup-handler:
         - init_svg:
@@ -181,7 +214,7 @@ paths:
             catch:
               status: 404
             return_if:
-              status: '2xx'
+              status: 2xx
             return:
               status: 200
               headers: "{{ merge({ 'cache-control': options.cache-control }, check_storage.headers) }}"

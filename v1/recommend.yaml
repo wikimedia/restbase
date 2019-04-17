@@ -1,5 +1,5 @@
 info:
-  version: '1.0.0'
+  version: 1.0.0
   title: Recommendation API
   description: Recommendation API
   termsOfService: https://github.com/wikimedia/restbase
@@ -22,30 +22,32 @@ paths:
         See more at [Recommendation API documentation](https://meta.wikimedia.org/wiki/Recommendation_API)
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: from_lang
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: count
           in: query
           description: The max number of articles to return
-          type: integer
-          required: false
-          default: 24
-      responses:
-        '200':
-          description: the list of articles recommended for translation
           schema:
-            $ref: '#/definitions/recommendation_result'
+            type: integer
+            default: 24
+      responses:
+        200:
+          description: the list of articles recommended for translation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recommendation_result'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_backend:
             request:
@@ -59,19 +61,21 @@ paths:
         - name: from_lang
           in: path
           description: The source language code
-          type: string
           required: true
+          schema:
+            type: string
         - name: seed_article
           in: path
           description: The article to use as a search seed
-          type: string
           required: true
+          schema:
+            type: string
         - name: count
           in: query
           description: The max number of articles to return
-          type: integer
-          required: false
-          default: 24
+          schema:
+            type: integer
+            default: 24
 
   /recommendation/article/creation/morelike/{seed_article}:
     x-route-filters:
@@ -90,60 +94,67 @@ paths:
         from the domain language Wikipedia.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
-      produces:
-        - application/json
-        - application/problem+json
       parameters:
         - name: seed_article
           in: path
           description: The article title used to search similar but missing articles
-          type: string
           required: true
-      responses:
-        '200':
-          description: the prioritized list of Wikidata IDs recommended for creation as Wikipedia articles
           schema:
-            $ref: '#/definitions/morelike_result'
+            type: string
+      responses:
+        200:
+          description: the prioritized list of Wikidata IDs recommended for creation
+            as Wikipedia articles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/morelike_result'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_backend:
             request:
               uri: '{{options.host}}/{{domain}}/v1/article/creation/morelike/{seed_article}'
       x-monitor: false
-definitions:
-  recommendation_result:
-    type: object
-    properties:
-      count:
-        type: integer
-        description: the number of recommendations returned
-      items:
-        type: array
-        description: the list of articles recommended for translation
-        items:
-          type: object
-          properties:
-            wikidata_id:
-              type: string
-              description: wikidata id for the item
-            title:
-              type: string
-              description: title of the article in the source language
-            sitelink_count:
-              type: integer
-              description: count of sites the wikidata item is linked to
-  morelike_result:
-    type: array
-    description: the prioritized list of Wikidata IDs recommended for creation as Wikipedia articles
-    items:
+
+components:
+  schemas:
+    recommendation_result:
       type: object
       properties:
-        wikidata_id:
-          type: string
-          description: Wikidata ID for the item
-        score:
-          type: number
-          description: Score of the recommendation. The higher the score, the more important the recommendation is.
+        count:
+          type: integer
+          description: the number of recommendations returned
+        items:
+          type: array
+          description: the list of articles recommended for translation
+          items:
+            type: object
+            properties:
+              wikidata_id:
+                type: string
+                description: wikidata id for the item
+              title:
+                type: string
+                description: title of the article in the source language
+              sitelink_count:
+                type: integer
+                description: count of sites the wikidata item is linked to
+    morelike_result:
+      type: array
+      description: the prioritized list of Wikidata IDs recommended for creation as
+        Wikipedia articles
+      items:
+        type: object
+        properties:
+          wikidata_id:
+            type: string
+            description: Wikidata ID for the item
+          score:
+            type: number
+            description: Score of the recommendation. The higher the score, the more
+              important the recommendation is.

@@ -1,6 +1,6 @@
 # Simple test spec
 
-swagger: 2.0
+openapi: 3.0.1
 paths:
   /{api:v1}:
     x-modules:

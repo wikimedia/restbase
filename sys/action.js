@@ -250,7 +250,7 @@ class ActionService {
     }
 
     _getBaseUri(req) {
-        return this.baseUriTemplate.expand({ request: req }).uri;
+        return this.baseUriTemplate.expand({ request: req }).uri.toString();
     }
 
     query(hyper, req) {
