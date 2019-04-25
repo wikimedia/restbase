@@ -390,6 +390,7 @@ class ParsoidService {
     }
 
     getSections(hyper, req) {
+        hyper.logger.log('warn/parsoid/sections', 'getSections() called');
         const rp = req.params;
         const sections = req.query.sections.split(',').map((id) => id.trim());
         delete req.query.sections;
@@ -604,6 +605,7 @@ class ParsoidService {
                 original
             };
             if (from === 'changes') {
+                hyper.logger.log('warn/parsoid/sections', 'transformChangesToWikitext called');
                 body2.html = replaceSections(original, req.body.changes);
                 from = 'html';
             } else {
