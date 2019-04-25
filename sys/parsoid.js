@@ -201,6 +201,7 @@ class ParsoidService {
         };
     }
 
+    // TODO: refactor so that we stop using the old stashing buckets
     getOldStashBucketURI(rp, format, tid) {
         const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}-ng`, rp.title];
         if (rp.revision) {
@@ -527,23 +528,6 @@ class ParsoidService {
             res = JSON.parse(res.body.toString('utf8'));
             res.revid = rp.revision;
             return res;
-        })
-        // TODO: This is a temporary fallback for deployment.
-        .catch({ status: 404 }, () => {
-            const getStash = (format) => hyper.get({
-                uri: this.getOldStashBucketURI(rp, format, tid)
-            })
-            .then(mwUtil.decodeBody);
-
-            return P.props({
-                html: getStash('html'),
-                'data-parsoid': getStash('data-parsoid'),
-                wikitext: getStash('wikitext')
-            })
-            .then((res) => {
-                res.revid = rp.revision;
-                return res;
-            });
         });
     }
 
