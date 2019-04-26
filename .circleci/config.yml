@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:6.11.1
+    steps:
+      - checkout
+      - run:
+          name: install-node-modules
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: test
+          command: npm run lint && npm run coverage -- sqlite  && (npm run-script coveralls || exit 0)
