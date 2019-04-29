@@ -219,7 +219,7 @@ class ParsoidService {
         ]);
     }
 
-    getNGBucketURI(rp, format, tid) {
+    getOldLatestBucketURI(rp, format, tid) {
         const path = [rp.domain, 'sys', 'parsoid_bucket', format, rp.title];
         if (rp.revision) {
             path.push(rp.revision);
@@ -230,18 +230,28 @@ class ParsoidService {
         return new URI(path);
     }
 
-    getFallbackBucketURI(rp, format, tid) {
-        return this.getOldStashBucketURI(rp, format, tid);
-    }
-
     _getContentWithFallback(hyper, rp, format, tid) {
         return hyper.get({
-            uri: this.getNGBucketURI(rp, format, tid)
+            uri: this.getOldLatestBucketURI(rp, format, tid)
         })
+        .catch({ status: 404 }, (e) => {
+            if (rp.revision && tid) {
+                return hyper.get({
+                    uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid)
+                })
+                .then((res) => Object.assign(
+                    { status: 200 },
+                    JSON.parse(res.body.toString('utf8'))[format])
+                );
+            } else {
+                throw e;
+            }
+        })
+        // TEMP: we need to allow ongoing edits to older revisions to finish.
         .catch({ status: 404 }, (e) => {
             if (rp.revision) {
                 return hyper.get({
-                    uri: this.getFallbackBucketURI(rp, format, tid)
+                    uri: this.getOldStashBucketURI(rp, format, tid)
                 });
             } else {
                 throw e;
@@ -263,7 +273,7 @@ class ParsoidService {
     saveParsoidResultToLatest(hyper, req, tid, parsoidResp) {
         const rp = req.params;
         return hyper.put({
-            uri: this.getNGBucketURI(rp, 'all', tid),
+            uri: this.getOldLatestBucketURI(rp, 'all', tid),
             body: {
                 html: parsoidResp.body.html,
                 'data-parsoid': parsoidResp.body['data-parsoid']
@@ -273,16 +283,23 @@ class ParsoidService {
 
     saveParsoidResultToFallback(hyper, req, tid, parsoidResp) {
         const rp = req.params;
+        const dataParsoidResponse = parsoidResp.body['data-parsoid'];
+        const htmlResponse = parsoidResp.body.html;
         return hyper.put({
-            uri: this.getFallbackBucketURI(rp, 'data-parsoid', tid),
-            headers: parsoidResp.body['data-parsoid'].headers,
-            body: parsoidResp.body['data-parsoid'].body
-        })
-        .then(() => hyper.put({
-            uri: this.getFallbackBucketURI(rp, 'html', tid),
-            headers: parsoidResp.body.html.headers,
-            body: parsoidResp.body.html.body
-        }));
+            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
+            // Note. The headers we are storing here are for the whole pagebundle response.
+            // The individual components of the pagebundle contain their own headers that
+            // which are used to generate actual responses.
+            headers: {
+                etag: htmlResponse.headers.etag,
+                'content-type': 'application/octet-stream',
+                'x-store-content-type': 'application/json'
+            },
+            body: Buffer.from(JSON.stringify({
+                'data-parsoid': dataParsoidResponse,
+                html: htmlResponse
+            }))
+        });
     }
 
     generateAndSave(hyper, req, format, currentContentRes) {
@@ -361,6 +378,8 @@ class ParsoidService {
                     return this.saveParsoidResultToLatest(hyper, req, tid, res)
                     .catch({ status: 412 }, () => {
                         newContent = false;
+                        // TODO: This will only need to be happening
+                        //  if we're requested by VE with a special flag
                         return this.saveParsoidResultToFallback(hyper, req, tid, res);
                     })
                     .then(() => {
@@ -632,9 +651,15 @@ class ParsoidService {
         // cf https://phabricator.wikimedia.org/T114548
         const rp = req.params;
         const tid = uuid.now().toString();
+        const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
         return transformPromise.then((original) => hyper.put({
             uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
+            headers: {
+                etag,
+                'content-type': 'application/octet-stream',
+                'x-store-content-type': 'application/json'
+            },
             body: Buffer.from(JSON.stringify({
                 'data-parsoid': original.body['data-parsoid'],
                 wikitext: {
@@ -646,7 +671,7 @@ class ParsoidService {
         })
         // Add the ETag to the original response so it can be propagated back to the client
         .then(() => {
-            original.body.html.headers.etag = mwUtil.makeETag(rp.revision, tid, 'stash');
+            original.body.html.headers.etag = etag;
             return original;
         }));
     }
