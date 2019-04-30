@@ -26,23 +26,6 @@ function sameHtml(a, b) {
 }
 
 /**
- * Cheap body.innerHTML extraction.
- *
- * This is safe as we know that the HTML we are receiving from Parsoid is
- * serialized as XML.
- * @param  {string} html entire page content
- * @return {string}      body tag innertext
- */
-function cheapBodyInnerHTML(html) {
-    const match = /<body[^>]*>([\s\S]*)<\/body>/.exec(html);
-    if (!match) {
-        throw new Error('No HTML body found!');
-    } else {
-        return match[1];
-    }
-}
-
-/**
  * Makes sure we have a meta tag for the tid in our output
  * @param  {string} html original HTML content
  * @param  {string} tid  the tid to insert
@@ -82,65 +65,6 @@ function isModifiedSince(req, res) {
         // Ignore errors from date parsing
     }
     return false;
-}
-
-/**
- * Replaces sections in original content with sections provided in sectionsJson
- * @param {Object} original     content instance
- * @param {Object} sectionsJson new content
- * @return {string}             new body content
- */
-function replaceSections(original, sectionsJson) {
-    const sectionOffsets = original['data-parsoid'].body.sectionOffsets;
-    const originalBody = cheapBodyInnerHTML(original.html.body);
-    let newBody = originalBody;
-
-    const sectionIds = Object.keys(sectionsJson);
-    const illegalId = sectionIds.some((id) => !sectionOffsets[id]);
-    if (illegalId) {
-        throw new HTTPError({
-            status: 400,
-            body: {
-                type: 'bad_request',
-                description: 'Invalid section ids'
-            }
-        });
-    }
-
-    function getSectionHTML(id) {
-        const htmlOffset = sectionOffsets[id].html;
-        return originalBody.substring(htmlOffset[0], htmlOffset[1]);
-    }
-
-    function replaceSection(id, replacement) {
-        const htmlOffset = sectionOffsets[id].html;
-        return newBody.substring(0, htmlOffset[0]) + replacement +
-            newBody.substring(htmlOffset[1], newBody.length);
-    }
-
-    sectionIds.sort((id1, id2) => sectionOffsets[id2].html[0] - sectionOffsets[id1].html[0])
-    .forEach((id) => {
-        const sectionReplacement = sectionsJson[id];
-        const replacement = sectionReplacement.map((replacePart) => {
-            if (replacePart.html) {
-                return replacePart.html;
-            } else {
-                if (!replacePart.id || !sectionOffsets[replacePart.id]) {
-                    throw new HTTPError({
-                        status: 400,
-                        body: {
-                            type: 'bad_request',
-                            description: 'Invalid section ids',
-                            id: replacePart.id
-                        }
-                    });
-                }
-                return getSectionHTML(replacePart.id);
-            }
-        }).join('');
-        newBody = replaceSection(id, replacement);
-    });
-    return `<body>${newBody}</body>`;
 }
 
 /** HTML resource_change event emission
@@ -387,51 +311,6 @@ class ParsoidService {
         });
     }
 
-    getSections(hyper, req) {
-        hyper.logger.log('warn/parsoid/sections', 'getSections() called');
-        const rp = req.params;
-        const sections = req.query.sections.split(',').map((id) => id.trim());
-        delete req.query.sections;
-
-        return this.getFormat('html', hyper, req)
-        .then((htmlRes) => {
-            const etagInfo = mwUtil.parseETag(htmlRes.headers.etag);
-            const sectionsRP = Object.assign({}, rp, {
-                revision: etagInfo.rev,
-                tid: etagInfo.tid
-            });
-            return this._getContentWithFallback(hyper, sectionsRP,
-                'data-parsoid', sectionsRP.tid)
-            .then((dataParsoid) => mwUtil.decodeBody(htmlRes).then((content) => {
-                const body = cheapBodyInnerHTML(content.body);
-                const chunks = sections.reduce((result, id) => {
-                    const offsets = dataParsoid.body.sectionOffsets[id];
-                    if (!offsets) {
-                        throw new HTTPError({
-                            status: 400,
-                            body: {
-                                type: 'bad_request',
-                                detail: `Unknown section id: ${id}`
-                            }
-                        });
-                    }
-                    // Offsets as returned by Parsoid are relative to body.innerHTML
-                    result[id] = body.substring(offsets.html[0], offsets.html[1]);
-                    return result;
-                }, {});
-                return {
-                    status: 200,
-                    headers: {
-                        etag: htmlRes.headers.etag,
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json'
-                    },
-                    body: chunks
-                };
-            }));
-        });
-    }
-
     /**
      * Internal check to see if it's okay to re-render a particular title in
      * response to a no-cache request.
@@ -460,10 +339,6 @@ class ParsoidService {
                 throw storageRes;
             }
         };
-
-        if (format === 'html' && req.query.sections) {
-            return this.getSections(hyper, req);
-        }
 
         if (!this._okayToRerender(req)) {
             // Still update the revision metadata.
@@ -583,19 +458,11 @@ class ParsoidService {
             }
 
             const body2 = {
-                original
+                original,
+                [from]: req.body[from],
+                scrub_wikitext: req.body.scrub_wikitext,
+                body_only: req.body.body_only
             };
-            if (from === 'changes') {
-                hyper.logger.log('warn/parsoid/sections', 'transformChangesToWikitext called');
-                body2.html = replaceSections(original, req.body.changes);
-                from = 'html';
-            } else {
-                body2[from] = req.body[from];
-            }
-
-            body2.scrub_wikitext = req.body.scrub_wikitext;
-            body2.body_only = req.body.body_only;
-
             // Let the stash flag through as well
             if (req.body.stash) {
                 body2.stash = true;
@@ -631,7 +498,6 @@ class ParsoidService {
         const tid = uuid.now().toString();
         const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
         return transformPromise.then((original) => hyper.put({
             uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
             headers: {
