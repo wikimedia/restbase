@@ -201,18 +201,6 @@ class ParsoidService {
         };
     }
 
-    // TODO: refactor so that we stop using the old stashing buckets
-    getOldStashBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'key_rev_value', `parsoid.stash.${format}-ng`, rp.title];
-        if (rp.revision) {
-            path.push(rp.revision);
-            if (tid) {
-                path.push(tid);
-            }
-        }
-        return new URI(path);
-    }
-
     getStashBucketURI(domain, title, revision, tid) {
         return new URI([
             domain, 'sys', 'key_value', 'parsoid-stash', `${title}:${revision}:${tid}`
@@ -243,16 +231,6 @@ class ParsoidService {
                     { status: 200 },
                     JSON.parse(res.body.toString('utf8'))[format])
                 );
-            } else {
-                throw e;
-            }
-        })
-        // TEMP: we need to allow ongoing edits to older revisions to finish.
-        .catch({ status: 404 }, (e) => {
-            if (rp.revision) {
-                return hyper.get({
-                    uri: this.getOldStashBucketURI(rp, format, tid)
-                });
             } else {
                 throw e;
             }
@@ -858,35 +836,6 @@ module.exports = (options) => {
         operations: ps.operations,
         // Dynamic resource dependencies, specific to implementation
         resources: [
-            // stashing resources for HTML, wikitext and data-parsoid
-            {
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.html-ng',
-                body: {
-                    valueType: 'blob',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
-                }
-            },
-            {
-                // TODO: the `-ng` is only here because we have just one cass cluster
-                // in dev. Remove before deploying to production
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.wikitext-ng',
-                body: {
-                    valueType: 'blob',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
-                }
-            },
-            {
-                // TODO: the `-ng` is only here because we have just one cass cluster
-                // in dev. Remove before deploying to production
-                uri: '/{domain}/sys/key_rev_value/parsoid.stash.data-parsoid-ng',
-                body: {
-                    valueType: 'json',
-                    version: 3,
-                    default_time_to_live: options.grace_ttl
-                }
-            },
             {
                 uri: '/{domain}/sys/parsoid_bucket/'
             },
