@@ -190,34 +190,4 @@ describe('on-demand generation of html and data-parsoid', function() {
             assert.deepEqual(/Second Revision/.test(res.body), true);
         });
     });
-
-    it('should honor no-cache on /html/{title} endpoint with sections', () => {
-        const testPage = "User:Pchelolo%2fRev_Section_Test";
-        const firstRev = 275848;
-        // 1. Pull in a non-final revision of a title
-        return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${testPage}/${firstRev}`
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(/First Revision/.test(res.body), true);
-            return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/${testPage}/${firstRev}/${mwUtil.parseETag(res.headers.etag).tid}`
-            });
-        })
-        .then((res) => {
-            const sections = Object.keys(res.body.sectionOffsets).join(',');
-            return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${testPage}?sections=${sections}`,
-                headers: {
-                    'cache-control': 'no-cache'
-                }
-            });
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-            assert.deepEqual(/Second Revision/.test(res.body.mwAQ), true);
-        });
-    });
 });

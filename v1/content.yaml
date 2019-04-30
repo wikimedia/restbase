@@ -161,10 +161,6 @@ paths:
           description: "Page title. Use underscores instead of spaces. Example: `Main_Page`."
           type: string
           required: true
-        - name: sections
-          in: query
-          description: Comma-separated list of section IDs.
-          type: string
         - name: redirect
           in: query
           description: >
@@ -251,8 +247,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-              query:
-                sections: '{{sections}}'
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
@@ -417,10 +411,6 @@ paths:
           description: The revision
           type: integer
           required: true
-        - name: sections
-          in: query
-          description: Comma-separated list of section IDs
-          type: string
         - name: redirect
           in: query
           description: >
@@ -510,8 +500,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-              query:
-                sections: '{{sections}}'
       x-monitor: false
 
   /html/{title}/{revision}/{tid}:
@@ -536,10 +524,6 @@ paths:
           description: The revision's time ID
           type: string
           required: true
-        - name: sections
-          in: query
-          description: Comma-separated list of section IDs
-          type: string
         - name: redirect
           in: query
           description: >
@@ -572,8 +556,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-              query:
-                sections: '{{sections}}'
 
   /data-parsoid/{title}/{revision}/{tid}:
     x-route-filters:
