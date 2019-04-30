@@ -14,7 +14,7 @@ notifications:
 addons:
   apt:
     packages:
-    - oracle-java8-set-default
+    - openjdk-8-jre-headless
 
 env:
   - CASSANDRA_VERSION=3.11.2 TEST_TARGET=all
