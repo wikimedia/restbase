@@ -631,6 +631,7 @@ class ParsoidService {
         const tid = uuid.now().toString();
         const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
+        const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
         return transformPromise.then((original) => hyper.put({
             uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
             headers: {
