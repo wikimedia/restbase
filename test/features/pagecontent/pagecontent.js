@@ -109,9 +109,9 @@ describe('item requests', function() {
     });
 
     let rev2Etag;
-    it('should transparently create data-parsoid with id 241155, rev 2', () => {
+    it('should transparently create data-parsoid with id 252937, rev 2', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/252937?stash=true`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -120,9 +120,19 @@ describe('item requests', function() {
         });
     });
 
+    it('should return data-parsoid just created with revision 252937, rev 2', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${rev2Etag}`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, contentTypes['data-parsoid']);
+        });
+    });
+
     it('should return HTML and data-parsoid just created by revision 241155', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155?stash=true`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -132,16 +142,6 @@ describe('item requests', function() {
                 uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${
                     res.headers.etag.replace(/^"(.*)"$/, '$1')}`
             });
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes['data-parsoid']);
-        });
-    });
-
-    it('should return data-parsoid just created with revision 252937, rev 2', () => {
-        return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${rev2Etag}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);

@@ -28,7 +28,7 @@ describe('page re-rendering', function() {
         let r1etag1;
         let r1etag2;
         let r2etag1;
-        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`})
+        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}?stash=true`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
             r1etag1 = res.headers.etag;
@@ -38,7 +38,7 @@ describe('page re-rendering', function() {
             return P.delay(1500)
             .then(() => {
                 return preq.get({
-                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}?stash=true`,
                     headers: { 'cache-control': 'no-cache' }
                 });
             });
@@ -68,7 +68,7 @@ describe('page re-rendering', function() {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`});
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}?stash=true`});
         })
         .then((res) => {
             r2etag1 = res.headers.etag;
@@ -80,18 +80,12 @@ describe('page re-rendering', function() {
         .then((res) => {
             assert.deepEqual(res.headers.etag, r2etag1);
             hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`});
-        })
-        .then((res) => {
-            assert.deepEqual(res.headers.etag, r1etag2);
-            hasTextContentType(res);
         });
     });
 
     it('should render & re-render independent revisions, if-unmodified-since support', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`,
             headers: {
                 'cache-control': 'no-cache',
                 'if-unmodified-since': 'Wed, 11 Dec 2013 16:00:00 GMT',
@@ -114,14 +108,14 @@ describe('page re-rendering', function() {
         let r1etag2;
         let r2etag1;
         let tid;
-        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`})
+        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}?stash=true`})
         .then((res) => {
             assert.deepEqual(res.status, 200);
             r1etag1 = res.headers.etag;
             hasTextContentType(res);
 
             return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}?stash=true`,
                 headers: { 'cache-control': 'no-cache' }
             });
         })
@@ -151,7 +145,7 @@ describe('page re-rendering', function() {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
 
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static2}`});
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static2}?stash=true`});
         })
         .then((res) => {
             r2etag1 = res.headers.etag;
@@ -162,12 +156,6 @@ describe('page re-rendering', function() {
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r2etag1);
-            hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`});
-        })
-        .then((res) => {
-            assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
         });
     });

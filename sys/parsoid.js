@@ -125,16 +125,38 @@ class ParsoidService {
         };
     }
 
+    /**
+     * Get the URI of a bucket for the latest Parsoid content.
+     * @param {string} domain the domain name.
+     * @param {string} title the article title.
+     * @return {HyperSwitch.URI}
+     */
+    getLatestBucketURI(domain, title) {
+        return new URI([
+            domain, 'sys', 'key_value', 'parsoid', title
+        ]);
+    }
+
+    /**
+     * Get the URI of a bucket for stashing Parsoid content. Used both for stashing
+     * original HTML/Data-Parsoid for normal edits as well as for stashing transforms.
+     *
+     * @param {string} domain the domain name.
+     * @param {string} title the article title.
+     * @param {number} revision the revision of the article.
+     * @param {string} tid the TID of the content.
+     * @return {HyperSwitch.URI}
+     */
     getStashBucketURI(domain, title, revision, tid) {
         return new URI([
             domain, 'sys', 'key_value', 'parsoid-stash', `${title}:${revision}:${tid}`
         ]);
     }
 
-    getOldLatestBucketURI(rp, format, tid) {
-        const path = [rp.domain, 'sys', 'parsoid_bucket', format, rp.title];
-        if (rp.revision) {
-            path.push(rp.revision);
+    getOldLatestBucketURI(domain, format, title, revision, tid) {
+        const path = [domain, 'sys', 'parsoid_bucket', format, title];
+        if (revision) {
+            path.push(revision);
             if (tid) {
                 path.push(tid);
             }
@@ -142,23 +164,210 @@ class ParsoidService {
         return new URI(path);
     }
 
-    _getContentWithFallback(hyper, rp, format, tid) {
+    /**
+     * Get full content from the stash bucket.
+     * @param {HyperSwitch} hyper the hyper object to route requests
+     * @param {string} domain the domain name
+     * @param {string} title the article title
+     * @param {number} revision the article revision
+     * @param {string} tid the render TID
+     * @return {Promise<Object>} the promise resolving to full stashed Parsoid
+     * response or a stashed transform
+     * @private
+     */
+    _getStashedContent(hyper, domain, title, revision, tid) {
         return hyper.get({
-            uri: this.getOldLatestBucketURI(rp, format, tid)
+            uri: this.getStashBucketURI(domain, title, revision, tid)
         })
-        .catch({ status: 404 }, (e) => {
-            if (rp.revision && tid) {
-                return hyper.get({
-                    uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid)
-                })
-                .then((res) => Object.assign(
-                    { status: 200 },
-                    JSON.parse(res.body.toString('utf8'))[format])
-                );
-            } else {
-                throw e;
-            }
+        .then((res) => {
+            res = JSON.parse(res.body.toString('utf8'));
+            res.revid = revision;
+            return res;
         });
+    }
+
+    _saveParsoidResultToFallback(hyper, req, parsoidResp) {
+        const rp = req.params;
+        const dataParsoidResponse = parsoidResp.body['data-parsoid'];
+        const htmlResponse = parsoidResp.body.html;
+        const tid = mwUtil.parseETag(htmlResponse.headers.etag).tid;
+        return hyper.put({
+            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
+            // Note. The headers we are storing here are for the whole pagebundle response.
+            // The individual components of the pagebundle contain their own headers that
+            // which are used to generate actual responses.
+            headers: {
+                'x-store-etag': htmlResponse.headers.etag,
+                'content-type': 'application/octet-stream',
+                'x-store-content-type': 'application/json'
+            },
+            body: Buffer.from(JSON.stringify({
+                'data-parsoid': dataParsoidResponse,
+                html: htmlResponse
+            }))
+        });
+    }
+
+    /**
+     * Saves the Parsoid pagebundle result to the latest bucket.
+     * // TODO: Optimization opportunity. We look what's in the
+     * // latest bucket yet again and make the store request a no-op if
+     * // it's not really the latest content, but we have already looked into
+     * // the latest bucket, thus we can somehow pass the data over here
+     * // so that we don't do several checks.
+     * @param {HyperSwitch} hyper the hyper object for request routing
+     * @param {string} domain the domain name
+     * @param {string} title the page title
+     * @param {Object} parsoidResp the response received from Parsoid.
+     * @return {Promise<Object>}
+     */
+    saveParsoidResultToLatest(hyper, domain, title, parsoidResp) {
+        const dataParsoidResponse = parsoidResp.body['data-parsoid'];
+        const htmlResponse = parsoidResp.body.html;
+        return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
+        .then((existingRes) => {
+            // TODO: This is a race condition and we're doing a write after read
+            // in a distributed concurrent environment. For revisions this should
+            // not be a big problem, but once(if) we start supporting lightweight transactions
+            // in the storage component, we might want to rethink this.
+            const existingRev = mwUtil.parseETag(existingRes.headers.etag).rev;
+            const newRev = mwUtil.parseETag(parsoidResp.headers.etag).rev;
+            if (Number.parseInt(newRev, 10) >= Number.parseInt(existingRev, 10)) {
+                throw new HTTPError({ status: 412 });
+            }
+            return existingRes;
+        })
+        .catch({ status: 404 }, { status: 412 }, () => hyper.put({
+            uri: this.getLatestBucketURI(domain, title),
+            // Note. The headers we are storing here are for the whole pagebundle response.
+            // The individual components of the pagebundle contain their own headers that
+            // which are used to generate actual responses.
+            headers: {
+                'x-store-etag': htmlResponse.headers.etag,
+                'content-type': 'application/octet-stream',
+                'x-store-content-type': 'application/json'
+            },
+            body: Buffer.from(JSON.stringify({
+                'data-parsoid': dataParsoidResponse,
+                html: htmlResponse
+            }))
+        }));
+    }
+
+    stashTransform(hyper, req, transformPromise) {
+        // A stash has been requested. We need to store the wikitext sent by
+        // the client together with the page bundle returned by Parsoid, so it
+        // can be later reused when transforming back from HTML to wikitext
+        // cf https://phabricator.wikimedia.org/T114548
+        const rp = req.params;
+        const tid = uuid.now().toString();
+        const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
+        const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
+        return transformPromise.then((original) => hyper.put({
+            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
+            headers: {
+                'x-store-etag': etag,
+                'content-type': 'application/octet-stream',
+                'x-store-content-type': 'application/json'
+            },
+            body: Buffer.from(JSON.stringify({
+                'data-parsoid': original.body['data-parsoid'],
+                wikitext: {
+                    headers: { 'content-type': wtType },
+                    body: req.body.wikitext
+                },
+                html: original.body.html
+            }))
+        })
+        // Add the ETag to the original response so it can be propagated back to the client
+        .then(() => {
+            original.body.html.headers.etag = etag;
+            return original;
+        }));
+    }
+
+    /**
+     * Returns the content with fallback to the stash. Revision and TID are optional.
+     * If only 'title' is provided, only 'latest' bucket is checked.
+     * If 'title' and 'revision' are provided, first the 'latest' bucket is checked.
+     *  Then, the stored revision is compared, if they do not equal, 404 is returned
+     *  as we can not check the stash with no tid provided.
+     *  If all the 'title', 'revision' and 'tid' are provided,
+     *  we check the latest bucket first, and then the stash bucket.
+     * @param {HyperSwitch} hyper the hyper object to rout requests
+     * @param {string} domain the domain name
+     * @param {string} title the article title
+     * @param {number} [revision] the article revision
+     * @param {string} [tid] the render TID
+     * @return {Promise<Object>} the promise that resolves to full stashed Parsoid response
+     * @private
+     */
+    _getContentWithFallback(hyper, domain, title, revision, tid) {
+        // TODO: This is temporary until we finish up the switch.
+        // The new buckets store both data-parsoid and html together,
+        // while the old buckets were storing them separately. To simplify
+        // the rest of the code and make switching the fallback easier,
+        // we make 2 requests here and emulate the new behaviour.
+        const grabContentFromOldLatestBucket = () =>
+            P.props({
+                html: hyper.get({
+                    uri: this.getOldLatestBucketURI(domain, 'html', title, revision, tid)
+                }),
+                'data-parsoid': hyper.get({
+                    uri: this.getOldLatestBucketURI(domain, 'data-parsoid', title, revision, tid)
+                })
+            })
+            .then((res) => {
+                return {
+                    status: 200,
+                    headers: res.html.headers,
+                    body: {
+                        html: res.html.body,
+                        'data-parsoid': res['data-parsoid'].body,
+                        revid: mwUtil.parseETag(res.html.headers.etag).rev
+                    }
+                };
+            });
+
+        if (!revision && !tid) {
+            return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
+            .then((res) => {
+                res.body = JSON.parse(res.body.toString('utf8'));
+                return res;
+            })
+            .catch({ status: 404 }, grabContentFromOldLatestBucket);
+        } else if (!tid) {
+            return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
+            .then((res) => {
+                const resEtag = mwUtil.parseETag(res.headers.etag);
+                if (revision !== resEtag.rev) {
+                    throw new HTTPError({ status: 404 });
+                }
+                res.body = JSON.parse(res.body.toString('utf8'));
+                return res;
+            })
+            .catch({ status: 404 }, grabContentFromOldLatestBucket);
+        } else {
+            return hyper.get({
+                uri: this.getStashBucketURI(domain, title, revision, tid)
+            })
+            .then((res) => {
+                res.body = JSON.parse(res.body.toString('utf8'));
+                return res;
+            })
+            .catch({ status: 404 }, () =>
+                hyper.get({ uri: this.getLatestBucketURI(domain, title) })
+                .then((res) => {
+                    const resEtag = mwUtil.parseETag(res.headers.etag);
+                    if (revision !== resEtag.rev || tid !== resEtag.tid) {
+                        throw new HTTPError({ status: 404 });
+                    }
+                    res.body = JSON.parse(res.body.toString('utf8'));
+                    return res;
+                })
+            )
+            .catch({ status: 404 }, grabContentFromOldLatestBucket);
+        }
     }
 
     pagebundle(hyper, req) {
@@ -172,62 +381,17 @@ class ParsoidService {
         return hyper.request(newReq);
     }
 
-    saveParsoidResultToLatest(hyper, req, tid, parsoidResp) {
-        const rp = req.params;
-        return hyper.put({
-            uri: this.getOldLatestBucketURI(rp, 'all', tid),
-            body: {
-                html: parsoidResp.body.html,
-                'data-parsoid': parsoidResp.body['data-parsoid']
-            }
-        });
-    }
-
-    saveParsoidResultToFallback(hyper, req, tid, parsoidResp) {
-        const rp = req.params;
-        const dataParsoidResponse = parsoidResp.body['data-parsoid'];
-        const htmlResponse = parsoidResp.body.html;
-        return hyper.put({
-            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
-            // Note. The headers we are storing here are for the whole pagebundle response.
-            // The individual components of the pagebundle contain their own headers that
-            // which are used to generate actual responses.
-            headers: {
-                etag: htmlResponse.headers.etag,
-                'content-type': 'application/octet-stream',
-                'x-store-content-type': 'application/json'
-            },
-            body: Buffer.from(JSON.stringify({
-                'data-parsoid': dataParsoidResponse,
-                html: htmlResponse
-            }))
-        });
-    }
-
-    generateAndSave(hyper, req, format, currentContentRes) {
+    /**
+     * Generate content and store it in the latest bucket if the content is indeed
+     * newer then the original content we have fetched.
+     * @param {HyperSwitch} hyper the hyper object for request routing
+     * @param {Object} req the original request
+     * @param {Object} currentContentRes the pagebundle received from latest or fallback bucket.
+     * @return {Promise<Object>}
+     */
+    generateAndSave(hyper, req, currentContentRes) {
         // Try to generate HTML on the fly by calling Parsoid
         const rp = req.params;
-        // Helper for retrieving original content from storage & posting it to
-        // the Parsoid pagebundle end point
-
-        /* const getOrigAndPostToParsoid = (pageBundleUri, revision, contentName, updateMode) => {
-             return this._getOriginalContent(hyper, req, revision)
-             .then((res) => {
-                 const body = {
-                     update: updateMode
-                 };
-                 body[contentName] = res;
-                 return hyper.post({
-                     uri: pageBundleUri,
-                     headers: {
-                         'content-type': 'application/json',
-                         'user-agent': req.headers['user-agent'],
-                     },
-                     body
-                 });
-             }, () => hyper.get({ uri: pageBundleUri })); // Fall back to plain GET
-         }; */
-
         return this.getRevisionInfo(hyper, req)
         .then((revInfo) => {
             rp.revision = revInfo.rev;
@@ -236,62 +400,37 @@ class ParsoidService {
             const pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
                 rp.title, rp.revision]);
 
-            // const parentRev = parseInt(req.headers['x-restbase-parentrevision'], 10);
-            // const updateMode = req.headers['x-restbase-mode'];
             const parsoidReq =  hyper.get({ uri: pageBundleUri });
-            /* Switched off for the transition period to the new storage model. See T170997.
-
-            if (parentRev) {
-                // OnEdit job update: pass along the predecessor version
-                parsoidReq = getOrigAndPostToParsoid(pageBundleUri, `${parentRev}`, 'previous');
-            } else if (updateMode) {
-                // Template or image updates. Similar to html2wt, pass:
-                // - current data-parsoid and html
-                // - the edit mode
-                parsoidReq = getOrigAndPostToParsoid(pageBundleUri, rp.revision,
-                        'original', updateMode);
-            } else {
-                // Plain render
-                parsoidReq = hyper.get({ uri: pageBundleUri });
-            } */
 
             return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
             .spread((res, currentContentRes) => {
                 const tid  = uuid.now().toString();
+                const etag = mwUtil.makeETag(rp.revision, tid);
                 res.body.html.body = insertTidMeta(res.body.html.body, tid);
+                res.body.html.headers.etag = res.headers.etag = etag;
 
-                if (format === 'html' &&
-                        currentContentRes &&
+                if (currentContentRes &&
                         currentContentRes.status === 200 &&
-                        sameHtml(res.body.html.body, currentContentRes.body) &&
-                        currentContentRes.headers['content-type'] ===
+                        sameHtml(res.body.html.body, currentContentRes.body.html.body) &&
+                        currentContentRes.body.html.headers['content-type'] ===
                                 res.body.html.headers['content-type']) {
                     // New render is the same as the previous one, no need to store it.
                     hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
                     return currentContentRes;
                 } else if (res.status === 200) {
-                    const resp = {
-                        status: res.status,
-                        headers: res.body[format].headers,
-                        body: res.body[format].body
-                    };
-                    resp.headers.etag = mwUtil.makeETag(rp.revision, tid);
-                    let newContent = true;
-                    return this.saveParsoidResultToLatest(hyper, req, tid, res)
-                    .catch({ status: 412 }, () => {
-                        newContent = false;
-                        // TODO: This will only need to be happening
-                        //  if we're requested by VE with a special flag
-                        return this.saveParsoidResultToFallback(hyper, req, tid, res);
-                    })
-                    .then(() => {
+                    let newContent = false;
+                    return this.saveParsoidResultToLatest(hyper, rp.domain, rp.title, res)
+                    .then((saveRes) => {
+                        if (saveRes.status === 201) {
+                            newContent = true;
+                        }
                         // Extract redirect target, if any
                         const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
                         if (redirectTarget) {
                             // This revision is actually a redirect. Pass redirect target
                             // to caller, and let it rewrite the location header.
-                            resp.status = 302;
-                            resp.headers.location = encodeURIComponent(redirectTarget)
+                            res.status = 302;
+                            res.headers.location = encodeURIComponent(redirectTarget)
                                 .replace(/%23/, '#');
                         }
                     })
@@ -299,9 +438,9 @@ class ParsoidService {
                         const dependencyUpdate = _dependenciesUpdate(hyper, req, newContent);
                         if (mwUtil.isNoCacheRequest(req)) {
                             // Finish background updates before returning
-                            return dependencyUpdate.thenReturn(resp);
+                            return dependencyUpdate.thenReturn(res);
                         } else {
-                            return resp;
+                            return res;
                         }
                     });
                 } else {
@@ -333,7 +472,7 @@ class ParsoidService {
         const rp = req.params;
         const generateContent = (storageRes) => {
             if (!rp.tid && (storageRes.status === 404 || storageRes.status === 200)) {
-                return this.generateAndSave(hyper, req, format, storageRes);
+                return this.generateAndSave(hyper, req, storageRes);
             } else {
                 // Don't generate content if there's some other error.
                 throw storageRes;
@@ -354,19 +493,20 @@ class ParsoidService {
             });
         }
 
-        let contentReq = this._getContentWithFallback(hyper, rp, format, rp.tid);
+        let contentReq =
+            this._getContentWithFallback(hyper, rp.domain, rp.title, rp.revision, rp.tid);
 
         if (mwUtil.isNoCacheRequest(req)) {
             // Check content generation either way
             contentReq = contentReq.then((res) => {
                 if (isModifiedSince(req, res)) { // Already up to date, nothing to do.
-                    return {
+                    throw new HTTPError({
                         status: 412,
                         body: {
                             type: 'precondition_failed',
                             detail: 'The precondition failed'
                         }
-                    };
+                    });
                 }
                 return generateContent(res);
             }, generateContent);
@@ -376,6 +516,17 @@ class ParsoidService {
         }
         return contentReq
         .then((res) => {
+            if (req.query.stash) {
+                return this._saveParsoidResultToFallback(hyper, req, res)
+                .thenReturn(res);
+            }
+            return res;
+        })
+        .then((res) => {
+            const etag = res.headers.etag;
+            // Chop off the correct format to return.
+            res = Object.assign({ status: res.status }, res.body[format]);
+            res.headers.etag = etag;
             mwUtil.normalizeContentType(res);
             res.headers = res.headers || {};
             if (req.query.stash) {
@@ -393,18 +544,6 @@ class ParsoidService {
                 });
             }
 
-            return res;
-        });
-    }
-
-    _getStashedContent(hyper, req, tid) {
-        const rp = req.params;
-        return hyper.get({
-            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid)
-        })
-        .then((res) => {
-            res = JSON.parse(res.body.toString('utf8'));
-            res.revid = rp.revision;
             return res;
         });
     }
@@ -445,7 +584,7 @@ class ParsoidService {
 
         let contentPromise;
         if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
-            contentPromise = this._getStashedContent(hyper, req, tid);
+            contentPromise = this._getStashedContent(hyper, rp.domain, rp.title, rp.revision, tid);
         } else {
             contentPromise = this._getOriginalContent(hyper, req, rp.revision, tid);
         }
@@ -493,38 +632,6 @@ class ParsoidService {
             return this.callParsoidTransform(hyper, newReq, from, to);
         });
 
-    }
-
-    stashTransform(hyper, req, transformPromise) {
-        // A stash has been requested. We need to store the wikitext sent by
-        // the client together with the page bundle returned by Parsoid, so it
-        // can be later reused when transforming back from HTML to wikitext
-        // cf https://phabricator.wikimedia.org/T114548
-        const rp = req.params;
-        const tid = uuid.now().toString();
-        const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
-        const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        return transformPromise.then((original) => hyper.put({
-            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
-            headers: {
-                etag,
-                'content-type': 'application/octet-stream',
-                'x-store-content-type': 'application/json'
-            },
-            body: Buffer.from(JSON.stringify({
-                'data-parsoid': original.body['data-parsoid'],
-                wikitext: {
-                    headers: { 'content-type': wtType },
-                    body: req.body.wikitext
-                },
-                html: original.body.html
-            }))
-        })
-        // Add the ETag to the original response so it can be propagated back to the client
-        .then(() => {
-            original.body.html.headers.etag = etag;
-            return original;
-        }));
     }
 
     callParsoidTransform(hyper, req, from, to) {
@@ -681,19 +788,9 @@ class ParsoidService {
 
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
-        const get = (format) => {
-            const path = [rp.domain, 'sys', 'parsoid', format, rp.title, revision];
-            if (tid) {
-                path.push(tid);
-            }
-            return hyper.get({ uri: new URI(path) }).then(mwUtil.decodeBody);
-        };
-
-        return P.props({
-            html: get('html'),
-            'data-parsoid': get('data-parsoid')
-        })
+        return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
         .then((res) => {
+            res = res.body;
             res.revid = revision;
             return res;
         });
