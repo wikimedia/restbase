@@ -168,7 +168,7 @@ services:
 
 logging:
   name: restbase-test
-  level: fatal
+  level: error
   streams:
     - type: stdout
 

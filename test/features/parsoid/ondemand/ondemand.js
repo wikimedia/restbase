@@ -16,6 +16,7 @@ const title = 'User:Pchelolo%2fOnDemand_Test';
 describe('on-demand generation of html and data-parsoid', function() {
     this.timeout(20000);
     let contentTypes;
+    let revBETag;
     const server = new Server();
     before(() => server.start()
     .then(() => {
@@ -48,7 +49,6 @@ describe('on-demand generation of html and data-parsoid', function() {
         });
     });
 
-    let revBETag;
     it('should retrieve html revision B from storage', () => {
         assert.recordRequests();
         return preq.get({

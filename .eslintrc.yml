@@ -1,4 +1,4 @@
-extends: 
+extends:
   - 'wikimedia/server'
 
 plugins:
@@ -14,7 +14,7 @@ rules:
   computed-property-spacing:
     - error
     - never
-  indent: 
+  indent:
     - error
     - 4
     - SwitchCase: 1
@@ -23,7 +23,7 @@ rules:
     - off
   # defined in eslint-config-wikimedia to avoid breaking IE. Not needed here
   no-restricted-syntax:
-    - off    
+    - off
   no-underscore-dangle:
     - off
   no-unused-vars:
