@@ -83,6 +83,10 @@ paths:
     x-modules:
       - spec:
           paths:
+            /proxy:
+              x-modules:
+                - path: sys/backend_proxy.js
+                  options: '{{options.proxy}}'
             /mathoid:
               x-modules:
                 - path: sys/mathoid.js

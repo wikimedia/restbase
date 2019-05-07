@@ -6,6 +6,31 @@ default_project: &default_project
   x-modules:
     - spec:
         paths:
+          /{api:v1}:
+            x-modules:
+              - spec:
+                  paths:
+                    /parsoid_bucket:
+                      x-modules:
+                        - path: sys/multi_content_bucket.js
+                          options:
+                            grace_ttl: 1
+                            index_ttl: 864000
+                            renew_expiring: true
+                            delete_probability: 1
+                            table_name_prefix: parsoid_ng
+                            main_content_type:
+                              name: html
+                              value_type: blob
+                            dependent_content_types:
+                              - name: data-parsoid
+                                value_type: json
+                    /key_value:
+                      x-modules:
+                        - path: sys/key_value.js
+                    /key_rev_value:
+                      x-modules:
+                        - path: sys/key_rev_value.js
           /{api:sys}:
             x-modules:
               - spec:
@@ -24,82 +49,17 @@ default_project: &default_project
                               storage_groups:
                                 - name: default.group.local
                                   domains: /./
-                    /parsoid_bucket:
-                      x-modules:
-                        - path: sys/multi_content_bucket.js
-                          options:
-                            grace_ttl: 1
-                            index_ttl: 864000
-                            renew_expiring: true
-                            delete_probability: 1
-                            table_name_prefix: parsoid_ng
-                            main_content_type:
-                              name: html
-                              value_type: blob
-                            dependent_content_types:
-                              - name: data-parsoid
-                                value_type: json
-                    /mobile_bucket:
-                      x-modules:
-                        - path: sys/multi_content_bucket.js
-                          options:
-                            grace_ttl: 1
-                            delete_probability: 1
-                            table_name_prefix: mobile_ng
-                            main_content_type:
-                              name: lead
-                              value_type: json
-                            dependent_content_types:
-                              - name: remaining
-                                value_type: json
-                    /key_value: &sys_key_value
-                      x-modules:
-                        - path: sys/key_value.js
-                    /key_rev_value:
-                      x-modules:
-                        - path: sys/key_rev_value.js
-                    /page_revisions:
-                      x-modules:
-                        - path: sys/page_revisions.js
+                              dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+
 
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.
 spec_root: &spec_root
-  title: "The RESTBase root"
+  title: "The RESTBase Storage Service"
   x-request-filters:
     - path: lib/security_response_header_filter.js
-    - path: lib/normalize_headers_filter.js
-  x-sub-request-filters:
-    - type: default
-      name: http
-      options:
-        allow:
-          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
-            forward_headers: true
-          - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
-            forward_headers: true
-          - pattern: /^https?:\/\//
   paths:
-    /{domain:en.wikipedia.org}: *default_project
-    /{domain:ru.wikipedia.org}: *default_project
-    /{domain:de.wikipedia.org}: *default_project
-    /{domain:es.wikipedia.org}: *default_project
-    /{domain:it.wikipedia.org}: *default_project
-    /{domain:da.wikipedia.org}: *default_project
-    /{domain:sv.wikipedia.org}: *default_project
-
-    # Example for wiktionary
-    /{domain:en.wiktionary.org}: *default_project
-
-    # global domain
-    /{domain:wikimedia.org}: *default_project
-
-    # special case for wikidata
-    /{domain:www.wikidata.org}: *default_project
-
-    # example for non-wikipedia
-    /{domain:en.wikivoyage.beta.wmflabs.org}: *default_project
-
+    /{domain}: *default_project
     # A robots.txt to make sure that the content isn't indexed.
     /robots.txt:
       get:
@@ -133,7 +93,7 @@ services:
 
 logging:
   name: restbase
-  level: warn
+  level: error
   streams:
     - type: stdout
 

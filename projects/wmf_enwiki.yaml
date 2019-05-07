@@ -134,7 +134,11 @@ paths:
     x-modules:
       - spec:
           paths:
-            /table: &sys_table
+            /proxy:
+              x-modules:
+                - path: sys/backend_proxy.js
+                  options: '{{options.proxy}}'
+            /table:
               x-modules:
                 - path: sys/table.js
                   options:
