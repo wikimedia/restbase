@@ -78,6 +78,15 @@ describe('item requests', function() {
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
+    it('should not allow to frontend cache HTML if requested a stash', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar?stash=true`,
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['cache-control'], 'no-cache');
+        });
+    });
 
     it('should request page lints. no revision', () => {
         return preq.get({

@@ -378,7 +378,13 @@ class ParsoidService {
         .then((res) => {
             mwUtil.normalizeContentType(res);
             res.headers = res.headers || {};
-            if (this.options.response_cache_control) {
+            if (req.query.stash) {
+                // The stash is used by clients that want further support
+                // for transforming the content. If the content is stored in caches,
+                // subsequent requests might not even reach RESTBase and the stash
+                // will expire, thus no-cache.
+                res.headers['cache-control'] = 'no-cache';
+            } else if (this.options.response_cache_control) {
                 res.headers['cache-control'] = this.options.response_cache_control;
             }
             if (/^null$/.test(res.headers.etag)) {
