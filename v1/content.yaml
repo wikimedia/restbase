@@ -247,6 +247,8 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
+              query:
+                stash: '{{stash}}'
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
@@ -500,6 +502,8 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
+              query:
+                stash: '{{stash}}'
       x-monitor: false
 
   /html/{title}/{revision}/{tid}:
@@ -556,6 +560,8 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
+              query:
+                stash: '{{stash}}'
 
   /data-parsoid/{title}/{revision}/{tid}:
     x-route-filters:
