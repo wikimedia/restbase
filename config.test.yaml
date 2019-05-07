@@ -7,6 +7,9 @@ default_project: &default_project
     - path: test/test_module.yaml
     - path: projects/wmf_default.yaml
       options: &default_options
+        proxy:
+          #backend_host_template: "{{'/{domain}/sys'}}"
+          backend_host_template: "{{'http://localhost:7232/{domain}/v1'}}"
         table:
           backend: '{env(RB_TEST_BACKEND, sqlite)}'
           hosts: [localhost]

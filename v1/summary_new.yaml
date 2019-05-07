@@ -93,8 +93,10 @@ paths:
       x-setup-handler:
         # Set up a simple key-value bucket.
         - init:
-            method: put
-            uri: /{domain}/sys/key_value/page_summary
+            method: 'put'
+            uri: /{domain}/sys/proxy/key_value/page_summary
+            headers:
+              content-type: application/json
             body:
               valueType: json
       x-request-handler:
@@ -103,7 +105,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/page_summary/{request.params.title}
+              uri: /{domain}/sys/proxy/key_value/page_summary/{request.params.title}
             catch:
               status: 404
             return_if:
@@ -133,9 +135,10 @@ paths:
         - store_and_return:
             request:
               method: put
-              uri: /{domain}/sys/key_value/page_summary/{request.params.title}
+              uri: /{domain}/sys/proxy/key_value/page_summary/{request.params.title}
               headers:
-                if-none-hash-match": '*'
+                if-none-hash-match: '*'
+                content-type: 'application/json'
                 cache-control: '{{request.headers.cache-control}}'
                 x-store-etag: '{{extract.headers.etag}}'
                 x-store-content-language: '{{extract.headers.content-language}}'
