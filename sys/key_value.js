@@ -133,9 +133,7 @@ class KVBucket {
 
         if (req.headers['if-none-hash-match']) {
             delete req.headers['if-none-hash-match'];
-            return hyper.get({
-                uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, rp.key])
-            })
+            return this.getRevision(hyper, req)
             .then((oldContent) => {
                 // TODO: proper etag-based compare.
                 if (stringify(req.body) === stringify(oldContent.body) &&

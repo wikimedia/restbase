@@ -22,9 +22,7 @@ describe('Key value buckets', () => {
         let bucketBaseURI;
         before(() => server.start()
         .then(() => {
-            bucketBaseURI =
-                `${server.config.sysURL()}/${bucketName}/${bucketName}TestingBucket`;
-            console.log(bucketBaseURI);
+            bucketBaseURI = `${server.config.baseURL()}/${bucketName}/${bucketName}TestingBucket`;
             return preq.put({ uri: bucketBaseURI} );
         }));
         after(() => server.stop());

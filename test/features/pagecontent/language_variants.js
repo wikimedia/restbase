@@ -1,5 +1,6 @@
 'use strict';
 
+const P = require('bluebird');
 const assert = require('../../utils/assert.js');
 const preq = require('preq');
 const Server = require('../../utils/server.js');
@@ -8,9 +9,10 @@ const variantsPageTitle = 'RESTBase_Testing_Page';
 describe('Language variants', function() {
     this.timeout(20000);
     const server = new Server();
+    const backendServer = new Server(`${__dirname}/../../../config.example.storage.wikimedia.yaml`);
 
-    before(() => server.start());
-    after(() => server.stop());
+    before(() => P.join(server.start(), backendServer.start()));
+    after(() => P.join(server.stop(), backendServer.stop()));
 
     it('should request html with impossible variants', () => {
         return preq.get({ uri: `${server.config.bucketURL()}/html/Main_Page`})
