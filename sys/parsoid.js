@@ -312,7 +312,8 @@ class ParsoidService {
             P.props({
                 html: hyper.get({
                     uri: this.getOldLatestBucketURI(domain, 'html', title, revision, tid)
-                }),
+                })
+                .then(mwUtil.decodeBody),
                 'data-parsoid': hyper.get({
                     uri: this.getOldLatestBucketURI(domain, 'data-parsoid', title, revision, tid)
                 })
@@ -322,8 +323,8 @@ class ParsoidService {
                     status: 200,
                     headers: res.html.headers,
                     body: {
-                        html: res.html.body,
-                        'data-parsoid': res['data-parsoid'].body,
+                        html: res.html,
+                        'data-parsoid': res['data-parsoid'],
                         revid: mwUtil.parseETag(res.html.headers.etag).rev
                     }
                 };
