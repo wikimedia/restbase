@@ -3,7 +3,6 @@
 const assert = require('../../utils/assert.js');
 const Server = require('../../utils/server.js');
 const preq   = require('preq');
-const parallel = require('mocha.parallel');
 
 const testPage = {
     title: 'User:Pchelolo%2fRestbase_Test',
@@ -32,7 +31,7 @@ describe('transform api', function() {
 
     it('wt2html', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}`,
             body: {
                 wikitext: '== Heading =='
             }
@@ -42,15 +41,31 @@ describe('transform api', function() {
             assert.contentType(res, contentTypes.html);
             const pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.body)) {
-                throw new Error(`Expected pattern in response: ${pattern
-                }\nSaw: ${res.body}`);
+                throw new Error(`Expected pattern in response: ${pattern}\nSaw: ${res.body}`);
+            }
+        });
+    });
+
+    it('wt2html, title-recision for a new page', () => {
+        return preq.post({
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/User:Pchelolo%2FRESTBaseTestPage_transform/393301`,
+            body: {
+                wikitext: '== Heading =='
+            }
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, contentTypes.html);
+            const pattern = /<h2.*>Heading<\/h2>/;
+            if (!pattern.test(res.body)) {
+                throw new Error(`Expected pattern in response: ${pattern}\nSaw: ${res.body}`);
             }
         });
     });
 
     it('wt2html with body_only', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/User:GWicke%2F_restbase_test`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}`,
             body: {
                 wikitext: '== Heading ==',
                 body_only: true
@@ -94,7 +109,7 @@ describe('transform api', function() {
 
     it('html2wt, no-selser', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/User:GWicke%2F_restbase_test`,
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}`,
             body: {
                 html: '<body>The modified HTML</body>'
             }
