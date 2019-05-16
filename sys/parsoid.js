@@ -584,36 +584,37 @@ class ParsoidService {
         }
 
         let contentPromise;
-        if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
-            contentPromise = this._getStashedContent(hyper, rp.domain, rp.title, rp.revision, tid);
+        if (from === 'wikitext') {
+            // For transforming from wikitext Parsoid currently doesn't use the original
+            // content. It could be used for optimizing the template expansions. See T98995
+            // Note: when resurrecting sending the original content to Parsoid we should
+            // account for the possibility that it's not in storage, so contentPromise might
+            // reject with 404. In this case we would just not provide it.
+            contentPromise = P.resolve(undefined);
         } else {
-            contentPromise = this._getOriginalContent(hyper, req, rp.revision, tid);
-        }
-        return contentPromise.then((original) => {
-            // Check if parsoid metadata is present as it's required by parsoid.
-            if (!original['data-parsoid'].body ||
+            if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
+                contentPromise = this._getStashedContent(hyper, rp.domain,
+                    rp.title, rp.revision, tid);
+            } else {
+                contentPromise = this._getOriginalContent(hyper, req, rp.revision, tid);
+            }
+            contentPromise = contentPromise
+            .tap((original) => {
+                // Check if parsoid metadata is present as it's required by parsoid.
+                if (!original['data-parsoid'].body ||
                     original['data-parsoid'].body.constructor !== Object ||
                     !original['data-parsoid'].body.ids) {
-                throw new HTTPError({
-                    status: 400,
-                    body: {
-                        type: 'bad_request',
-                        description: 'The page/revision has no associated Parsoid data'
-                    }
-                });
-            }
-
-            const body2 = {
-                original,
-                [from]: req.body[from],
-                scrub_wikitext: req.body.scrub_wikitext,
-                body_only: req.body.body_only
-            };
-            // Let the stash flag through as well
-            if (req.body.stash) {
-                body2.stash = true;
-            }
-
+                    throw new HTTPError({
+                        status: 400,
+                        body: {
+                            type: 'bad_request',
+                            description: 'The page/revision has no associated Parsoid data'
+                        }
+                    });
+                }
+            });
+        }
+        return contentPromise.then((original) => {
             const path = [rp.domain, 'sys', 'parsoid', 'transform', from, 'to', to];
             if (rp.title) {
                 path.push(rp.title);
@@ -628,7 +629,13 @@ class ParsoidService {
                     'content-type': 'application/json',
                     'user-agent': req['user-agent']
                 },
-                body: body2
+                body: {
+                    original,
+                    [from]: req.body[from],
+                    scrub_wikitext: req.body.scrub_wikitext,
+                    body_only: req.body.body_only,
+                    stash: req.body.stash
+                }
             };
             return this.callParsoidTransform(hyper, newReq, from, to);
         });
