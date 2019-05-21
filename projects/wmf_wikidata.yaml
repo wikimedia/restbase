@@ -18,12 +18,12 @@ paths:
                   allows us to contact you quickly. Email addresses or URLs
                   of contact pages work well.
 
-                By using this API, you agree to Wikimedia's 
+                By using this API, you agree to Wikimedia's
                 [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
                 [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy).
                 Unless otherwise specified in the endpoint documentation
                 below, content accessed via this API is licensed under the
-                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
+                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
                 and [GFDL](https://www.gnu.org/copyleft/fdl.html) licenses,
                 and you irrevocably agree to release modifications or
                 additions made through this API under these licenses.
@@ -94,27 +94,9 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
-            /parsoid_bucket:
-              x-modules:
-                - path: sys/multi_content_bucket.js
-                  options:
-                    table_name_prefix: parsoid_ng
-                    renew_expiring: true
-                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
-                    index_ttl: '{{default(options.parsoid.index_ttl, 864000)}}'
-                    delete_probability: '{{default(options.parsoid.delete_probability, 1)}}'
-                    main_content_type:
-                      name: html
-                      value_type: blob
-                    dependent_content_types:
-                      - name: data-parsoid
-                        value_type: json
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
-            /key_rev_value:
-              x-modules:
-                - path: sys/key_rev_value.js
             /page_revisions:
               x-modules:
                 - path: sys/page_revisions.js

@@ -5,7 +5,6 @@
  */
 
 const P = require('bluebird');
-const extend = require('extend');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
@@ -154,17 +153,6 @@ class ParsoidService {
         ]);
     }
 
-    getOldLatestBucketURI(domain, format, title, revision, tid) {
-        const path = [domain, 'sys', 'parsoid_bucket', format, title];
-        if (revision) {
-            path.push(revision);
-            if (tid) {
-                path.push(tid);
-            }
-        }
-        return new URI(path);
-    }
-
     /**
      * Get full content from the stash bucket.
      * @param {HyperSwitch} hyper the hyper object to route requests
@@ -304,54 +292,12 @@ class ParsoidService {
      * @private
      */
     _getContentWithFallback(hyper, domain, title, revision, tid) {
-        // TODO: This is temporary until we finish up the switch.
-        // The new buckets store both data-parsoid and html together,
-        // while the old buckets were storing them separately. To simplify
-        // the rest of the code and make switching the fallback easier,
-        // we make 2 requests here and emulate the new behaviour.
-        const grabContentFromOldLatestBucket = () =>
-            P.props({
-                html: hyper.get({
-                    uri: this.getOldLatestBucketURI(domain, 'html', title, revision, tid)
-                })
-                .then(mwUtil.decodeBody),
-                'data-parsoid': hyper.get({
-                    uri: this.getOldLatestBucketURI(domain, 'data-parsoid', title, revision, tid)
-                })
-            })
-            .then((res) => {
-                return {
-                    status: 200,
-                    headers: res.html.headers,
-                    body: {
-                        html: res.html,
-                        'data-parsoid': res['data-parsoid'],
-                        revid: mwUtil.parseETag(res.html.headers.etag).rev
-                    }
-                };
-            });
-
         if (!revision && !tid) {
             return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
             .then((res) => {
                 res.body = JSON.parse(res.body.toString('utf8'));
                 return res;
-            })
-            .catch({ status: 404 }, () =>
-                grabContentFromOldLatestBucket()
-                .tap((res) => {
-                    // Since we're saving the result completely asyncronously without
-                    // returning a promise, we need to clone the response object.
-                    // By the time we get to storing the result, it was already
-                    // returned to the client and all the response headers
-                    // were set, thus the `.html` part contains full set of response headers.
-                    const resToSave = extend(true, {}, res);
-                    this.saveParsoidResultToLatest(hyper, domain, title, resToSave)
-                    .catch((e) => hyper.logger.log('parsoid/copyover', {
-                        msg: 'Failed to copy latest Parsoid data',
-                        e
-                    }));
-                }));
+            });
         } else if (!tid) {
             return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
             .then((res) => {
@@ -361,8 +307,7 @@ class ParsoidService {
                 }
                 res.body = JSON.parse(res.body.toString('utf8'));
                 return res;
-            })
-            .catch({ status: 404 }, grabContentFromOldLatestBucket);
+            });
         } else {
             return hyper.get({
                 uri: this.getStashBucketURI(domain, title, revision, tid)
@@ -381,8 +326,7 @@ class ParsoidService {
                     res.body = JSON.parse(res.body.toString('utf8'));
                     return res;
                 })
-            )
-            .catch({ status: 404 }, grabContentFromOldLatestBucket);
+            );
         }
     }
 
@@ -829,9 +773,6 @@ module.exports = (options) => {
         operations: ps.operations,
         // Dynamic resource dependencies, specific to implementation
         resources: [
-            {
-                uri: '/{domain}/sys/parsoid_bucket/'
-            },
             {
                 uri: '/{domain}/sys/key_value/parsoid',
                 body: {
