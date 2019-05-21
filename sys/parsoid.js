@@ -336,7 +336,15 @@ class ParsoidService {
                 res.body = JSON.parse(res.body.toString('utf8'));
                 return res;
             })
-            .catch({ status: 404 }, grabContentFromOldLatestBucket);
+            .catch({ status: 404 }, () =>
+                grabContentFromOldLatestBucket()
+                .tap((res) => {
+                    this.saveParsoidResultToLatest(hyper, domain, title, res)
+                    .catch((e) => hyper.logger.log('parsoid/copyover', {
+                        msg: 'Failed to copy latest Parsoid data',
+                        e
+                    }));
+                }));
         } else if (!tid) {
             return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
             .then((res) => {
