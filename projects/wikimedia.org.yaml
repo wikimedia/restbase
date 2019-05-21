@@ -18,19 +18,19 @@ paths:
                   allows us to contact you quickly. Email addresses or URLs
                   of contact pages work well.
 
-                By using this API, you agree to Wikimedia's 
+                By using this API, you agree to Wikimedia's
                 [Terms of Use](https://wikimediafoundation.org/wiki/Terms_of_Use) and
                 [Privacy Policy](https://wikimediafoundation.org/wiki/Privacy_policy).
                 Unless otherwise specified in the endpoint documentation
                 below, content accessed via this API is licensed under the
-                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 
+                [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
                 and [GFDL](https://www.gnu.org/copyleft/fdl.html) licenses,
                 and you irrevocably agree to release modifications or
-                additions made through this API under these licenses. 
+                additions made through this API under these licenses.
                 See https://www.mediawiki.org/wiki/REST_API for background and details.
 
                 ### Endpoint documentation
-                
+
                 Please consult each endpoint's documentation for details on:
 
                 - Licensing information for the specific type of content
@@ -95,9 +95,6 @@ paths:
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
-            /key_rev_value:
-              x-modules:
-                - path: sys/key_rev_value.js
             /post_data: &sys_post_data
               x-modules:
                 - path: sys/post_data.js

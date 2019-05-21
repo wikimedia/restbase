@@ -16,8 +16,7 @@ lib/
 config.yaml
 specs/
     restbase/
-        sys/
-            key_rev_value.yaml
+        sys/           
             key_rev_service.yaml
             table.yaml # defining operationIds, which map to module exports
     mediawiki/
