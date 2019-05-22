@@ -5,6 +5,7 @@
  */
 
 const P = require('bluebird');
+const extend = require('extend');
 const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
@@ -339,7 +340,13 @@ class ParsoidService {
             .catch({ status: 404 }, () =>
                 grabContentFromOldLatestBucket()
                 .tap((res) => {
-                    this.saveParsoidResultToLatest(hyper, domain, title, res)
+                    // Since we're saving the result completely asyncronously without
+                    // returning a promise, we need to clone the response object.
+                    // By the time we get to storing the result, it was already
+                    // returned to the client and all the response headers
+                    // were set, thus the `.html` part contains full set of response headers.
+                    const resToSave = extend(true, {}, res);
+                    this.saveParsoidResultToLatest(hyper, domain, title, resToSave)
                     .catch((e) => hyper.logger.log('parsoid/copyover', {
                         msg: 'Failed to copy latest Parsoid data',
                         e
