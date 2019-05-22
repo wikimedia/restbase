@@ -45,7 +45,8 @@
     "mediawiki-title": "^0.6.5",
     "restbase-mod-table-cassandra": "^1.1.3",
     "semver": "latest",
-    "service-runner": "^2.6.17"
+    "service-runner": "^2.6.17",
+    "extend": "^3.0.2"
   },
   "devDependencies": {
     "ajv": "^6.10.0",
