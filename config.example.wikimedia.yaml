@@ -6,6 +6,8 @@ default_project: &default_project
   x-modules:
     - path: projects/wmf_default.yaml
       options: &default_options
+        proxy:
+          backend_host_template: '{env(RB_TEST_BACKEND_HOST_TEMPLATE, {{"/{domain}/sys/legacy"}})}'
         table:
           backend: '{env(RB_TEST_BACKEND, sqlite)}'
           hosts: [localhost]
@@ -109,6 +111,9 @@ spec_root: &spec_root
           - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
             forward_headers: true
           - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
+            forward_headers: true
+          # Need to forward cookie to backend RESTBase
+          - pattern: /^https?:\/\/localhost:7232.+/
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:

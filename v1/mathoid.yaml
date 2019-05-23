@@ -191,16 +191,22 @@ paths:
       x-setup-handler:
         - init_svg:
             uri: /wikimedia.org/sys/key_value/mathoid_ng.svg
+            headers:
+              content-type: 'application/json'
             body:
               keyType: string
               valueType: string
         - init_mml:
             uri: /wikimedia.org/sys/key_value/mathoid_ng.mml
+            headers:
+              content-type: 'application/json'
             body:
               keyType: string
               valueType: string
         - init_png:
             uri: /wikimedia.org/sys/key_value/mathoid_ng.png
+            headers:
+              content-type: 'application/json'
             body:
               keyType: string
               valueType: blob
@@ -208,7 +214,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /wikimedia.org/sys/key_value/mathoid_ng.{$.request.params.format}/{$.request.params.hash}
+              uri: /wikimedia.org/sys/key_value/mathoid_ng.{format}/{hash}
               headers:
                 cache-control: '{{ cache-control }}'
             catch:

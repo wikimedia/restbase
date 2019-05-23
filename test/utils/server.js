@@ -1,11 +1,18 @@
 'use strict';
 
+const P = require('bluebird');
 const TestRunner = require('service-runner/test/TestServer');
 const DEFAULT_DOMAIN = 'en.wikipedia.org';
 
 class TestRestbase extends TestRunner {
-    constructor(configPath = `${__dirname}/../../config.test.yaml`) {
+    constructor(configPath = `${__dirname}/../../config.test.yaml`, forseSkipBackend) {
         super(configPath);
+        this._spinBackend = !forseSkipBackend && !!process.env.RB_TEST_BACKEND_HOST_TEMPLATE;
+        if (this._spinBackend) {
+            this._backendServer = new TestRestbase(
+                `${__dirname}/../../config.example.storage.wikimedia.yaml`,
+                true);
+        }
     }
 
     get config() {
@@ -30,6 +37,16 @@ class TestRestbase extends TestRunner {
             parsoidURI: 'https://parsoid-beta.wmflabs.org',
             conf
         }
+    }
+
+    start() {
+        const startPromise = this._spinBackend ? this._backendServer.start() : P.resolve();
+        return startPromise.then(() => super.start());
+    }
+
+    stop() {
+        const stopPromise = this._spinBackend ? this._backendServer.stop() : P.resolve();
+        return stopPromise.then(() => super.stop());
     }
 }
 

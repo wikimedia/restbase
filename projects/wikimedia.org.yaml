@@ -83,10 +83,6 @@ paths:
     x-modules:
       - spec:
           paths:
-            /proxy:
-              x-modules:
-                - path: sys/backend_proxy.js
-                  options: '{{options.proxy}}'
             /mathoid:
               x-modules:
                 - path: sys/mathoid.js
@@ -96,7 +92,11 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
-            /key_value: &sys_key_value
+            /key_value:
+              x-modules:
+                - path: sys/backend_proxy.js
+                  options: '{{options.proxy}}'
+            /legacy/key_value:
               x-modules:
                 - path: sys/key_value.js
             /post_data: &sys_post_data
