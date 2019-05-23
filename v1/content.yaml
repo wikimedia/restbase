@@ -174,7 +174,8 @@ paths:
           in: query
           description: >
             Whether to temporary stash data-parsoid in order to support transforming the
-            modified content later.
+            modified content later. If this parameter is set, requests are rate-limited on
+            a per-client basis (max 5 requests per second per client)
           type: boolean
           required: false
         - name: Accept-Language
@@ -426,7 +427,8 @@ paths:
           in: query
           description: >
             Whether to temporary stash data-parsoid in order to support transforming the
-            modified content later.
+            modified content later. If this parameter is set, requests are rate-limited on
+            a per-client basis (max 5 requests per second per client)
           type: boolean
           required: false
         - name: Accept-Language
@@ -541,7 +543,8 @@ paths:
           in: query
           description: >
             Whether to temporary stash data-parsoid in order to support transforming the
-            modified content later.
+            modified content later. If this parameter is set, requests are rate-limited on
+            a per-client basis (max 5 requests per second per client)
           type: boolean
           required: false
         - name: Accept-Language
