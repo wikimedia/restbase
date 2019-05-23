@@ -190,7 +190,7 @@ paths:
         also need to supply the title.
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
-        - Rate limit: 25 req/s
+        - Rate limit: 25 req/s (5 req/s when `stash: true`)
       consumes:
         - multipart/form-data
       produces:

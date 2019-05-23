@@ -21,6 +21,7 @@ default_project: &default_project
         parsoid:
           host: https://parsoid-beta.wmflabs.org
           grace_ttl: 1000000
+          stash_ratelimit: 5
         action:
           apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
           baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"

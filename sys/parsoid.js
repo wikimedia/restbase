@@ -103,10 +103,7 @@ function compileReRenderBlacklist(blacklist) {
 
 class ParsoidService {
     constructor(options) {
-        this.options = options = options || {};
-        this.parsoidHost = options.parsoidHost;
-
-        this._blacklist = compileReRenderBlacklist(options.rerenderBlacklist);
+        this._initOpts(options);
 
         // Set up operations
         this.operations = {
@@ -123,6 +120,46 @@ class ParsoidService {
             transformWikitextToLint: this.makeTransform('wikitext', 'lint'),
             transformChangesToWikitext: this.makeTransform('changes', 'wikitext')
         };
+    }
+
+    _initOpts(opts = {}) {
+        this.options = opts;
+        this.parsoidHost = opts.parsoidHost;
+        this.options.stash_ratelimit = opts.stash_ratelimit || 5;
+        this.options.grace_ttl = opts.grace_ttl || 86400;
+        this._blacklist = compileReRenderBlacklist(opts.rerenderBlacklist);
+        if (!opts.parsoidHost) {
+            throw new Error('Parsoid module: the option parsoidHost must be provided!');
+        }
+    }
+
+    _checkStashRate(hyper, req) {
+        if (!hyper.ratelimiter) {
+            return;
+        }
+        if (hyper._rootReq.headers['x-request-class'] !== 'external') {
+            return;
+        }
+        if (!((req.query && req.query.stash) || (req.body && req.body.stash))) {
+            return;
+        }
+        const key = `${hyper.config.service_name}.parsoid_stash|` +
+            `${hyper._rootReq.headers['x-client-ip']}`;
+        if (hyper.ratelimiter.isAboveLimit(key, this.options.stash_ratelimit)) {
+            hyper.logger.log('warn/parsoid/stashlimit', {
+                key,
+                rate_limit_per_second: this.options.stash_ratelimit,
+                message: 'Stashing rate limit exceeded'
+            });
+            throw new HTTPError({
+                status: 429,
+                body: {
+                    type: 'request_rate_exceeded',
+                    title: 'Stashing rate limit exceeded',
+                    rate_limit_per_second: this.options.stash_ratelimit
+                }
+            });
+        }
     }
 
     /**
@@ -453,6 +490,9 @@ class ParsoidService {
             });
         }
 
+        // check the rate limit for stashing requests
+        this._checkStashRate(hyper, req);
+
         let contentReq =
             this._getContentWithFallback(hyper, rp.domain, rp.title, rp.revision, rp.tid);
 
@@ -690,6 +730,8 @@ class ParsoidService {
                 if (!rp.revision) {
                     rp.revision = '0';
                 }
+                // check the rate limit for stashing requests
+                this._checkStashRate(hyper, req);
             }
 
             let transform;
