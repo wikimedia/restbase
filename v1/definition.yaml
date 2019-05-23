@@ -91,6 +91,8 @@ paths:
         - init:
             method: put
             uri: /{domain}/sys/key_value/term.definition-ng
+            headers:
+              content-type: application/json
             body:
               valueType: json
       x-request-handler:
@@ -124,7 +126,8 @@ paths:
               method: put
               uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
               headers:
-                if-none-hash-match": '*'
+                content-type: 'application/json'
+                if-none-hash-match: '*'
                 cache-control: '{{request.headers.cache-control}}'
                 x-store-etag: '{{extract.headers.etag}}'
                 x-store-content-language: '{{extract.headers.content-language}}'

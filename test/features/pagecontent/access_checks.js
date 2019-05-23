@@ -53,8 +53,18 @@ describe('Access checks', () => {
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
         .then(() => P.join(
-            preq.get({ uri: `${server.config.bucketURL()}/html/Main_Page` }),
-            preq.get({ uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page` })
+            preq.get({
+                uri: `${server.config.bucketURL()}/html/Main_Page`,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            }),
+            preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
+                headers: {
+                    'cache-control': 'no-cache'
+                }
+            })
         ))
         // Load in the revisions
         .then(() => {

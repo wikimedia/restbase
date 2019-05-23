@@ -57,6 +57,9 @@ class PostDataBucket {
         const rp = req.params;
         return hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket]),
+            headers: {
+                'content-type': 'application/json'
+            },
             body: {
                 keyType: 'string',
                 valueType: 'json'
