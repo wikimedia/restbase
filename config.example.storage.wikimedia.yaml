@@ -1,7 +1,4 @@
 # RESTBase wikimedia example config
-
-# Load some project templates. These are referenced / shared between domains
-# in the root_spec further down.
 default_project: &default_project
   x-modules:
     - spec:
@@ -10,32 +7,20 @@ default_project: &default_project
             x-modules:
               - spec:
                   paths:
-                    /parsoid_bucket:
-                      x-modules:
-                        - path: sys/multi_content_bucket.js
-                          options:
-                            grace_ttl: 1
-                            index_ttl: 864000
-                            renew_expiring: true
-                            delete_probability: 1
-                            table_name_prefix: parsoid_ng
-                            main_content_type:
-                              name: html
-                              value_type: blob
-                            dependent_content_types:
-                              - name: data-parsoid
-                                value_type: json
                     /key_value:
                       x-modules:
                         - path: sys/key_value.js
-                    /key_rev_value:
+                    /page_revisions:
+                      # We need to forward cookie to the API
+                      x-route-filters:
+                        - path: ./lib/mediawiki_auth_filter.js
                       x-modules:
-                        - path: sys/key_rev_value.js
+                        - path: sys/page_revisions.js
           /{api:sys}:
             x-modules:
               - spec:
                   paths:
-                    /table: &sys_table
+                    /table:
                       x-modules:
                         - path: sys/table.js
                           options:
@@ -47,32 +32,30 @@ default_project: &default_project
                               password: cassandra
                               defaultConsistency: one # or 'localQuorum' for production
                               storage_groups:
-                                - name: default.group.local
+                                - name: test.group.local
                                   domains: /./
                               dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+                    /action:
+                      x-modules:
+                        - path: sys/action.js
+                          options:
+                            apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+                            baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
 
 
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.
 spec_root: &spec_root
   title: "The RESTBase Storage Service"
-  x-request-filters:
-    - path: lib/security_response_header_filter.js
+  x-sub-request-filters:
+    - type: default
+      name: http
+      options:
+        allow:
+          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+            forward_headers: true
   paths:
     /{domain}: *default_project
-    # A robots.txt to make sure that the content isn't indexed.
-    /robots.txt:
-      get:
-        x-request-handler:
-          - static:
-              return:
-                status: 200
-                headers:
-                  content-type: text/plain
-                body: |
-                  User-agent: *
-                  Allow: /*/v1/?doc
-                  Disallow: /
 
 # Finally, a standard service-runner config.
 info:
@@ -102,12 +85,5 @@ logging:
 #  host: localhost
 #  port: 8125
 #  batch: true
-
-ratelimiter:
-  type: kademlia
-  # Cluster nodes
-  seeds:
-    # Port 3050 used by default
-    - 127.0.0.1
 
 num_workers: 0

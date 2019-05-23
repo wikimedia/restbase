@@ -192,7 +192,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /wikimedia.org/sys/key_value/mathoid_ng.{$.request.params.format}/{$.request.params.hash}
+              uri: /wikimedia.org/sys/key_value/mathoid_ng.{format}/{hash}
               headers:
                 cache-control: '{{ cache-control }}'
             catch:
