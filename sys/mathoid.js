@@ -82,7 +82,10 @@ class MathoidService {
                     indirectionP = hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.hash_table',
                             origHash]),
-                        headers: { 'x-store-content-type': 'text/plain' },
+                        headers: {
+                            'content-type': 'text/plain',
+                            'x-store-content-type': 'text/plain'
+                        },
                         body: hash
                     });
                 }
@@ -95,7 +98,9 @@ class MathoidService {
                 return P.join(
                     hyper.put({
                         uri: new URI([rp.domain, 'sys', 'key_value', 'mathoid_ng.check', hash]),
-                        headers: prefixHeaders(checkRes.headers),
+                        headers: Object.assign({
+                            'content-type': 'application/json'
+                        }, prefixHeaders(checkRes.headers)),
                         body: checkRes.body
                     }),
                     indirectionP,
@@ -131,7 +136,9 @@ class MathoidService {
             });
             const reqObj = {
                 uri: new URI([domain, 'sys', 'key_value', `mathoid_ng.${format}`, hash]),
-                headers: prefixHeaders(completeBody[format].headers),
+                headers: Object.assign({
+                    'content-type': completeBody[format].headers['content-type']
+                }, prefixHeaders(completeBody[format].headers)),
                 body: completeBody[format].body
             };
             if (format === 'png' && reqObj.body && reqObj.body.type === 'Buffer') {
@@ -251,11 +258,19 @@ module.exports = (options) => {
         resources: [
             {
                 uri: '/{domain}/sys/post_data/mathoid_ng.input'
-            }, {
+            },
+            {
                 uri: '/{domain}/sys/key_value/mathoid_ng.hash_table',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: { valueType: 'string' }
-            }, {
+            },
+            {
                 uri: '/{domain}/sys/key_value/mathoid_ng.check',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: { valueType: 'json' }
             }
         ]

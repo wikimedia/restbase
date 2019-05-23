@@ -18,16 +18,30 @@ describe('Key value buckets', () => {
     }
 
     function runTests(bucketName) {
-        const server = new Server(`${__dirname}/../../../config.example.storage.wikimedia.yaml`);
+        const server = new Server(`${__dirname}/../../../config.example.storage.wikimedia.yaml`, true);
         let bucketBaseURI;
+        let stringBaseURI;
         before(() => server.start()
         .then(() => {
             bucketBaseURI = `${server.config.baseURL()}/${bucketName}/${bucketName}TestingBucket`;
-            return preq.put({ uri: bucketBaseURI} );
+            return preq.put({uri: bucketBaseURI});
+        })
+        .then(() => {
+            stringBaseURI = `${server.config.baseURL()}/${bucketName}/${bucketName}StringBucket`;
+            return preq.put({
+                uri: stringBaseURI,
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: {
+                    valueType: 'string'
+                }
+            });
         }));
         after(() => server.stop());
 
         it('stores a content in a bucket and gets it back', () => {
+            console.log(bucketBaseURI);
             const testData = randomString(100);
             return preq.put({
                 uri: `${bucketBaseURI}/${testData}`,
@@ -42,6 +56,28 @@ describe('Key value buckets', () => {
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(res.body, new Buffer(testData));
+            });
+        });
+        it('Supports text/plain', () => {
+            const testData = randomString(100);
+            return preq.put({
+                uri: `${stringBaseURI}/${testData}`,
+                headers: {
+                    'content-type': 'text/plain',
+                    'x-store-content-type': 'text/plain'
+                },
+                body: testData
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 201);
+                return preq.get({
+                    uri: `${stringBaseURI}/${testData}`
+                });
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body, testData);
+                assert.deepEqual(res.headers['content-type'], 'text/plain');
             });
         });
 

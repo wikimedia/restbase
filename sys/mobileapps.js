@@ -23,7 +23,6 @@ class MobileApps {
             uri: new URI([rp.domain, 'sys', 'key_value', BUCKET_NAME, rp.title])
         })
         .then((res) => {
-            res.body = JSON.parse(res.body.toString('utf8'));
             if (!rp.revision ||
                 `${mwUtils.parseETag(res.headers.etag).rev}` === `${rp.revision}`) {
                 return res;

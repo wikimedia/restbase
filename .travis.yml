@@ -17,7 +17,10 @@ addons:
     - openjdk-8-jre-headless
 
 env:
-  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=all
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=single_process
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=single_process
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=multi_process
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=multi_process
 
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
@@ -29,4 +32,4 @@ before_install:
   - sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
 
-script: npm run lint && npm run coverage -- ${TEST_TARGET} && (npm run-script coveralls || exit 0)
+script: npm run lint && npm run coverage -- ${TEST_TARGET} ${TEST_MODE} && (npm run-script coveralls || exit 0)

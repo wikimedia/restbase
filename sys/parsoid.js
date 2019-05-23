@@ -204,7 +204,7 @@ class ParsoidService {
             uri: this.getStashBucketURI(domain, title, revision, tid)
         })
         .then((res) => {
-            res = JSON.parse(res.body.toString('utf8'));
+            res = res.body;
             res.revid = revision;
             return res;
         });
@@ -328,11 +328,7 @@ class ParsoidService {
      */
     _getContentWithFallback(hyper, domain, title, revision, tid) {
         if (!revision && !tid) {
-            return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
-            .then((res) => {
-                res.body = JSON.parse(res.body.toString('utf8'));
-                return res;
-            });
+            return hyper.get({ uri: this.getLatestBucketURI(domain, title) });
         } else if (!tid) {
             return hyper.get({ uri: this.getLatestBucketURI(domain, title) })
             .then((res) => {
@@ -340,16 +336,11 @@ class ParsoidService {
                 if (revision !== resEtag.rev) {
                     throw new HTTPError({ status: 404 });
                 }
-                res.body = JSON.parse(res.body.toString('utf8'));
                 return res;
             });
         } else {
             return hyper.get({
                 uri: this.getStashBucketURI(domain, title, revision, tid)
-            })
-            .then((res) => {
-                res.body = JSON.parse(res.body.toString('utf8'));
-                return res;
             })
             .catch({ status: 404 }, () =>
                 hyper.get({ uri: this.getLatestBucketURI(domain, title) })
@@ -358,7 +349,6 @@ class ParsoidService {
                     if (revision !== resEtag.rev || tid !== resEtag.tid) {
                         throw new HTTPError({ status: 404 });
                     }
-                    res.body = JSON.parse(res.body.toString('utf8'));
                     return res;
                 })
             );
@@ -809,12 +799,18 @@ module.exports = (options) => {
         resources: [
             {
                 uri: '/{domain}/sys/key_value/parsoid',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: {
                     valueType: 'blob'
                 }
             },
             {
                 uri: '/{domain}/sys/key_value/parsoid-stash',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: {
                     valueType: 'blob',
                     default_time_to_live: options.grace_ttl
