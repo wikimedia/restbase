@@ -1,0 +1,29 @@
+version: v3
+base: docker-registry.wikimedia.org/nodejs10-slim
+lives:
+  in: /srv/service
+runs:
+  environment: { APP_BASE_PATH: /srv/service }
+
+variants:
+  build:
+    base: docker-registry.wikimedia.org/nodejs10-devel
+    apt: { packages: [git, build-essential, python-pkgconfig] }
+    node: { requirements: [package.json] }
+    runs: { environment: { LINK: g++ } }
+  development:
+    includes: [build]
+    apt: { packages: [libsqlite3-0, ca-certificates] }
+    entrypoint: [node, server.js]
+  test:
+    includes: [build]
+    apt: { packages: [libsqlite3-0, ca-certificates] }
+    entrypoint: [npm, test]
+    runs: { environment: { TEST_TARGET: sqlite, TEST_MODE: fefs } }
+  prep:
+    includes: [build]
+    node: { env: production }
+  production:
+    copies: prep
+    node: { env: production }
+    entrypoint: [node, server.js]
