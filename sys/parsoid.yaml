@@ -6,32 +6,6 @@ info:
     Transparently generates missing content and interfaces with the MediaWiki
     API through the `action` module.
 paths:
-
-  /pagebundle/{title}: &pagebundle_title
-    get:
-      summary: Retrieve a JSON bundle containing html and data-parsoid
-      operationId: getPageBundle
-    post:
-      summary: Retrieve a JSON bundle containing html and data-parsoid
-      operationId: getPageBundle
-
-  /pagebundle/{title}/{revision}:
-    <<: *pagebundle_title
-
-  /pagebundle/{title}/{revision}/{tid}:
-    <<: *pagebundle_title
-
-  /wikitext/{title}: &wikitext_title
-    get:
-      summary: Retrieve the wikitext for a title and revision.
-      operationId: getWikitext
-
-  /wikitext/{title}/{revision}:
-    <<: *wikitext_title
-
-  /wikitext/{title}/{revision}/{tid}:
-    <<: *wikitext_title
-
   /html/{title}: &html_title
     get:
       summary: Retrieve the HTML for title and revision.

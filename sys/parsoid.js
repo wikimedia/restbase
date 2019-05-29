@@ -107,9 +107,7 @@ class ParsoidService {
 
         // Set up operations
         this.operations = {
-            getPageBundle: this.pagebundle.bind(this),
             // Revision retrieval per format
-            getWikitext: this.getFormat.bind(this, 'wikitext'),
             getHtml: this.getFormat.bind(this, 'html'),
             getDataParsoid: this.getFormat.bind(this, 'data-parsoid'),
             getLintErrors: this.getLintErrors.bind(this),
@@ -367,15 +365,14 @@ class ParsoidService {
         }
     }
 
-    pagebundle(hyper, req) {
+    _getPageBundleFromParsoid(hyper, req) {
         const rp = req.params;
-        const domain = rp.domain;
-        const newReq = Object.assign({}, req);
-        newReq.method = newReq.method || 'get';
-        const path = (newReq.method === 'get') ? 'page' : 'transform/wikitext/to';
-        newReq.uri = `${this.parsoidHost}/${domain}/v3/${path}/pagebundle/` +
+        const parsoidURI = `${this.parsoidHost}/${rp.domain}/v3/page/pagebundle/` +
             `${encodeURIComponent(rp.title)}/${rp.revision}`;
-        return hyper.request(newReq);
+        return hyper.get({
+            uri: new URI(parsoidURI),
+            headers: req.headers
+        });
     }
 
     /**
@@ -393,58 +390,53 @@ class ParsoidService {
         .then((revInfo) => {
             rp.revision = revInfo.rev;
         })
-        .then(() => {
-            const pageBundleUri = new URI([rp.domain, 'sys', 'parsoid', 'pagebundle',
-                rp.title, rp.revision]);
+        .then(() => P.join(
+            this._getPageBundleFromParsoid(hyper, req),
+            mwUtil.decodeBody(currentContentRes))
+        .spread((res, currentContentRes) => {
+            const tid  = uuid.now().toString();
+            const etag = mwUtil.makeETag(rp.revision, tid);
+            res.body.html.body = insertTidMeta(res.body.html.body, tid);
+            res.body.html.headers.etag = res.headers.etag = etag;
 
-            const parsoidReq =  hyper.get({ uri: pageBundleUri });
-
-            return P.join(parsoidReq, mwUtil.decodeBody(currentContentRes))
-            .spread((res, currentContentRes) => {
-                const tid  = uuid.now().toString();
-                const etag = mwUtil.makeETag(rp.revision, tid);
-                res.body.html.body = insertTidMeta(res.body.html.body, tid);
-                res.body.html.headers.etag = res.headers.etag = etag;
-
-                if (currentContentRes &&
-                        currentContentRes.status === 200 &&
-                        sameHtml(res.body.html.body, currentContentRes.body.html.body) &&
-                        currentContentRes.body.html.headers['content-type'] ===
-                                res.body.html.headers['content-type']) {
-                    // New render is the same as the previous one, no need to store it.
-                    hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
-                    return currentContentRes;
-                } else if (res.status === 200) {
-                    let newContent = false;
-                    return this.saveParsoidResultToLatest(hyper, rp.domain, rp.title, res)
-                    .then((saveRes) => {
-                        if (saveRes.status === 201) {
-                            newContent = true;
-                        }
-                        // Extract redirect target, if any
-                        const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
-                        if (redirectTarget) {
-                            // This revision is actually a redirect. Pass redirect target
-                            // to caller, and let it rewrite the location header.
-                            res.status = 302;
-                            res.headers.location = encodeURIComponent(redirectTarget)
-                                .replace(/%23/, '#');
-                        }
-                    })
-                    .then(() => {
-                        const dependencyUpdate = _dependenciesUpdate(hyper, req, newContent);
-                        if (mwUtil.isNoCacheRequest(req)) {
-                            // Finish background updates before returning
-                            return dependencyUpdate.thenReturn(res);
-                        } else {
-                            return res;
-                        }
-                    });
-                } else {
-                    return res;
-                }
-            });
-        });
+            if (currentContentRes &&
+                    currentContentRes.status === 200 &&
+                    sameHtml(res.body.html.body, currentContentRes.body.html.body) &&
+                    currentContentRes.body.html.headers['content-type'] ===
+                            res.body.html.headers['content-type']) {
+                // New render is the same as the previous one, no need to store it.
+                hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
+                return currentContentRes;
+            } else if (res.status === 200) {
+                let newContent = false;
+                return this.saveParsoidResultToLatest(hyper, rp.domain, rp.title, res)
+                .then((saveRes) => {
+                    if (saveRes.status === 201) {
+                        newContent = true;
+                    }
+                    // Extract redirect target, if any
+                    const redirectTarget = mwUtil.extractRedirect(res.body.html.body);
+                    if (redirectTarget) {
+                        // This revision is actually a redirect. Pass redirect target
+                        // to caller, and let it rewrite the location header.
+                        res.status = 302;
+                        res.headers.location = encodeURIComponent(redirectTarget)
+                            .replace(/%23/, '#');
+                    }
+                })
+                .then(() => {
+                    const dependencyUpdate = _dependenciesUpdate(hyper, req, newContent);
+                    if (mwUtil.isNoCacheRequest(req)) {
+                        // Finish background updates before returning
+                        return dependencyUpdate.thenReturn(res);
+                    } else {
+                        return res;
+                    }
+                });
+            } else {
+                return res;
+            }
+        }));
     }
 
     /**
