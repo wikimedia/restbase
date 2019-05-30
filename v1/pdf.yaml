@@ -17,6 +17,12 @@ paths:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.cache_control}}'
+      - type: default
+        name: ratelimit_route
+        options:
+          limits:
+            internal: 10
+            external: 5
     get:
       tags:
         - Page content
