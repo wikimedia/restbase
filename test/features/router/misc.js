@@ -12,7 +12,7 @@ function getHeader(res, name) {
 }
 
 describe('router - misc', function() {
-    this.timeout(20000);
+    this.timeout(100000);
     const server = new Server();
     before(() => server.start());
     after(() => server.stop());

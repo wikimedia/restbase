@@ -3,10 +3,14 @@ coverage
 config.yaml
 node_modules
 npm-debug.log
+package-lock.json
 
 # WebStorm IDE files
 .idea/*
 *.iml
+
+#VS Code
+.vscode
 
 # vim temp files
 *swp

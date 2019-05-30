@@ -9,10 +9,9 @@ describe('PDF Service', () => {
     before(() => server.start());
     after(() => server.stop());
 
-    // TODO: PDF tests a very unreliable, so skip them until T181084 is resolved
-    it.skip('Should get PDF for a page', () => {
+    it('Should get PDF for a page', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('ru.wikipedia.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -22,13 +21,12 @@ describe('PDF Service', () => {
             assert.deepEqual(res.headers['content-type'], 'application/pdf');
             assert.ok(/"\d+\/[\d\w-]+"/.test(res.headers.etag));
             assert.ok(res.body.length !== 0);
-        });
+        }).timeout(100000);
     });
 
-    // TODO: PDF tests a very unreliable, so skip them until T181084 is resolved
-    it.skip('Should get PDF for a page containing a quote in its title', () => {
+    it('Should get PDF for a page containing a quote in its title', () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/pdf/"...And_Ladies_of_the_Club"`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/"...And_Ladies_of_the_Club"`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -38,6 +36,6 @@ describe('PDF Service', () => {
             assert.deepEqual(res.headers['content-type'], 'application/pdf');
             assert.ok(/"\d+\/[\d\w-]+"/.test(res.headers.etag));
             assert.ok(res.body.length !== 0);
-        });
+        }).timeout(100000);
     });
 });
