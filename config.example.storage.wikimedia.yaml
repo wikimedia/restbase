@@ -18,29 +18,23 @@ default_project: &default_project
                         - path: sys/page_revisions.js
           /{api:sys}:
             x-modules:
-              - spec:
-                  paths:
-                    /table:
-                      x-modules:
-                        - path: sys/table.js
-                          options:
-                            conf:
-                              backend: '{env(RB_TEST_BACKEND, sqlite)}'
-                              hosts: [localhost]
-                              keyspace: system
-                              username: cassandra
-                              password: cassandra
-                              defaultConsistency: one # or 'localQuorum' for production
-                              storage_groups:
-                                - name: test.group.local
-                                  domains: /./
-                              dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
-                    /action:
-                      x-modules:
-                        - path: sys/action.js
-                          options:
-                            apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
-                            baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
+              - path: projects/sys/backend.js
+                options:
+                  service_type: backend
+                  table:
+                    backend: '{env(RB_TEST_BACKEND, sqlite)}'
+                    hosts: [localhost]
+                    keyspace: system
+                    username: cassandra
+                    password: cassandra
+                    defaultConsistency: one # or 'localQuorum' for production
+                    storage_groups:
+                      - name: group.local
+                        domains: /./
+                    dbname: db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+                  action:
+                    apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+                    baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
 
 
 # The root of the spec tree. Domains tend to share specs by referencing them

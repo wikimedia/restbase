@@ -121,51 +121,7 @@ paths:
 
   /{api:sys}:
     x-modules:
-      - spec:
-          paths:
-            /table: &sys_table
-              x-modules:
-                - path: sys/table.js
-                  options:
-                    conf: '{{options.table}}'
-            /key_value:
-              x-modules:
-                - path: sys/backend_proxy.js
-                  options: '{{options.proxy}}'
-            /legacy/key_value:
-              x-modules:
-                - path: sys/key_value.js
-            /page_revisions:
-              x-modules:
-                - path: sys/backend_proxy.js
-                  options: '{{options.proxy}}'
-            /legacy/page_revisions:
-              x-modules:
-                - path: sys/page_revisions.js
-            /post_data: &sys_post_data
-              x-modules:
-                - path: sys/post_data.js
-            /action:
-              x-modules:
-                - path: sys/action.js
-                  options: "{{options.action}}"
-            /page_save:
-              x-modules:
-                - path: sys/page_save.js
-            /parsoid:
-              x-modules:
-                - path: sys/parsoid.js
-                  options: &parsoid_options
-                    parsoidHost: '{{options.parsoid.host}}'
-                    response_cache_control: '{{options.purged_cache_control}}'
-                    grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
-            /mobileapps:
-              x-modules:
-                - path: sys/mobileapps.js
-                  options: '{{merge({"response_cache_control": options.purged_cache_control},
-                                options.mobileapps)}}'
-            /events:
-              x-modules:
-                - path: sys/events.js
-                  options: '{{merge({"skip_updates": options.skip_updates}, options.events)}}'
+      - path: projects/sys/business.js
         options: '{{options}}'
+      - path: projects/sys/backend.js
+        options: '{{merge(options, {"exclude": "action"})}}'

@@ -7,8 +7,9 @@ default_project: &default_project
     - path: test/test_module.yaml
     - path: projects/wmf_default.yaml
       options: &default_options
+        service_type: '{env(RB_SERVICE_TYPE, fullstack)}'
         proxy:
-          backend_host_template: '{env(RB_TEST_BACKEND_HOST_TEMPLATE, {{"/{domain}/sys/legacy"}})}'
+          backend_host_template: '{env(RB_TEST_BACKEND_HOST_TEMPLATE, {{"/{domain}/sys"}})}'
         table:
           backend: '{env(RB_TEST_BACKEND, sqlite)}'
           hosts: [localhost]
