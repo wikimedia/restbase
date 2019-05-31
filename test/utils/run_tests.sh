@@ -44,11 +44,5 @@ else
     exit 1
 fi
 
-if [ "$1" = "test" ]; then
-    "${mocha}"
-elif [ "$1" = "coverage" ]; then
-    "${nyc}" --reporter=lcov node_modules/.bin/_mocha
-else
-    echo "Invalid test command ${1}. Must be 'test' or 'coverage'"
-    exit 1
-fi
+${test_command};
+exit $?;
