@@ -21,8 +21,8 @@ paths:
         name: ratelimit_route
         options:
           limits:
-            internal: 10
-            external: 5
+            internal: 5
+            external: 1
     get:
       tags:
         - Page content
