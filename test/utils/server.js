@@ -5,9 +5,9 @@ const TestRunner = require('service-runner/test/TestServer');
 const DEFAULT_DOMAIN = 'en.wikipedia.org';
 
 class TestRestbase extends TestRunner {
-    constructor(configPath = `${__dirname}/../../config.test.yaml`, forseSkipBackend) {
+    constructor(configPath = `${__dirname}/../../config.test.yaml`, forceSkipBackend) {
         super(configPath);
-        this._spinBackend = !forseSkipBackend && !!process.env.RB_TEST_BACKEND_HOST_TEMPLATE;
+        this._spinBackend = !forceSkipBackend && !!process.env.RB_TEST_BACKEND_HOST_TEMPLATE;
         if (this._spinBackend) {
             this._backendServer = new TestRestbase(
                 `${__dirname}/../../config.example.storage.wikimedia.yaml`,

@@ -3,7 +3,8 @@
 const Template = require('hyperswitch').Template;
 
 module.exports = (options) => {
-    options.backend_host_template = options.backend_host_template || '/{domain}/sys/legacy';
+    options = options || {};
+    options.backend_host_template = options.backend_host_template || '/{domain}/sys';
     const backendURITemplate = new Template({
         uri: `${options.backend_host_template}/{{path}}`
     });
