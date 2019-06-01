@@ -129,6 +129,8 @@ paths:
                   options:
                     host: '{{options.mobileapps.host}}'
         options: '{{options}}'
+      - path: v1/proxy.js
+        options: '{{options}}'
 
   /{api:sys}:
     x-modules:

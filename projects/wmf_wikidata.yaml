@@ -84,6 +84,8 @@ paths:
                 - path: v1/lists.js
                   options: '{{options.lists}}'
         options: '{{options}}'
+      - path: v1/proxy.js
+        options: '{{options}}'
 
   /{api:sys}:
     x-modules:
