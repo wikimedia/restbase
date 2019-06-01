@@ -1,40 +1,23 @@
 # RESTBase wikimedia example config
 default_project: &default_project
   x-modules:
-    - spec:
-        paths:
-          /{api:v1}:
-            x-modules:
-              - spec:
-                  paths:
-                    /key_value:
-                      x-modules:
-                        - path: sys/key_value.js
-                    /page_revisions:
-                      # We need to forward cookie to the API
-                      x-route-filters:
-                        - path: ./lib/mediawiki_auth_filter.js
-                      x-modules:
-                        - path: sys/page_revisions.js
-          /{api:sys}:
-            x-modules:
-              - path: projects/sys/backend.js
-                options:
-                  service_type: backend
-                  table:
-                    backend: '{env(RB_TEST_BACKEND, sqlite)}'
-                    hosts: [localhost]
-                    keyspace: system
-                    username: cassandra
-                    password: cassandra
-                    defaultConsistency: one # or 'localQuorum' for production
-                    storage_groups:
-                      - name: group.local
-                        domains: /./
-                    dbname: db.sqlite3 # ignored in cassandra, but useful in SQLite testing
-                  action:
-                    apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
-                    baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
+    - path: projects/backend.yaml
+      options:
+        service_type: backend
+        table:
+          backend: '{env(RB_TEST_BACKEND, sqlite)}'
+          hosts: [localhost]
+          keyspace: system
+          username: cassandra
+          password: cassandra
+          defaultConsistency: one # or 'localQuorum' for production
+          storage_groups:
+            - name: group.local
+              domains: /./
+          dbname: db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+        action:
+          apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+          baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
 
 
 # The root of the spec tree. Domains tend to share specs by referencing them
