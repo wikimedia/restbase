@@ -78,6 +78,8 @@ paths:
                 - path: v1/availability.yaml
                   options: '{{options.mobileapps}}'
         options: '{{options}}'
+      - path: v1/proxy.js
+        options: '{{options}}'
 
   /{api:sys}:
     x-modules:

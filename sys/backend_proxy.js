@@ -1,32 +1,58 @@
 'use strict';
 
-const Template = require('hyperswitch').Template;
+const P = require('bluebird');
+const HyperSwitch = require('hyperswitch');
+
+const Template = HyperSwitch.Template;
+const HTTPError = HyperSwitch.HTTPError;
 
 module.exports = (options) => {
     options = options || {};
     options.backend_host_template = options.backend_host_template || '/{domain}/sys';
+    if (!Object.prototype.hasOwnProperty.call(options, 'use_path_segment')) {
+        options.use_path_segment = true;
+    }
+    if (!Object.prototype.hasOwnProperty.call(options, 'block_external_reqs')) {
+        options.block_external_reqs = true;
+    }
     const backendURITemplate = new Template({
         uri: `${options.backend_host_template}/{{path}}`
     });
+    const usePathSegment = options.use_path_segment;
+    const blockExternalReqs = options.block_external_reqs;
     return {
         spec: {
             paths: {
                 '/{+path}': {
                     all: {
-                        operationId: 'proxy'
+                        operationId: 'proxy',
+                        'x-monitor': false
                     }
                 }
             }
         },
         operations: {
             proxy: (hyper, req) => {
-                // Add the proxied module name to the path.
-                // The proxy is mounted at paths like `/sys/key_value`. Here
-                // out of a request path we want to find out the name of the module
-                // that is being proxied (key_value) from the example and add it
-                // to the proxy target path.
-                const modName = req.uri.path[req.uri.path.indexOf('sys') + 1];
-                req.params.path = `${modName}/${req.params.path}`;
+                if (blockExternalReqs && !hyper._isSysRequest(req) &&
+                        req.headers['x-request-class'] === 'external') {
+                    return P.reject(new HTTPError({
+                        status: 403,
+                        body: {
+                            type: 'forbidden',
+                            title: 'Forbidden',
+                            description: 'You are not allowed to access this URI'
+                        }
+                    }));
+                }
+                if (usePathSegment) {
+                    // if usePathSegment is set (true by default), then the proxy module
+                    // will include the path segment preceding the specified path to
+                    // construct the full request URI
+                    const uri = req.uri.toString();
+                    const uriPrefix = uri.substring(0, uri.indexOf(`/${req.params.path}`));
+                    const segment = uriPrefix.split('/').pop();
+                    req.params.path = `${segment}/${req.params.path}`;
+                }
                 return hyper.request({
                     method: req.method,
                     uri: backendURITemplate.expand({ request: req }).uri,
