@@ -95,6 +95,8 @@ paths:
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
+                  options:
+                    groups: '{{options.table.storage_groups}}'
             /post_data: &sys_post_data
               x-modules:
                 - path: sys/post_data.js

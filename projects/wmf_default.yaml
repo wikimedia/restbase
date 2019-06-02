@@ -115,6 +115,8 @@ paths:
             /key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
+                  options:
+                    groups: '{{options.table.storage_groups}}'
             /page_revisions:
               x-modules:
                 - path: sys/page_revisions.js

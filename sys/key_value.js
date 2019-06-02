@@ -4,6 +4,7 @@
  * Key-value bucket handler
  */
 
+const P = require('bluebird');
 const uuid = require('cassandra-uuid').TimeUuid;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
@@ -14,15 +15,50 @@ const URI = HyperSwitch.URI;
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/key_value.yaml`);
 
 class KVBucket {
+
+    constructor(options) {
+        options = options || {};
+        options.groups = options.groups || [];
+        // ensure the default grouping exists
+        if (!options.groups.some((x) => x.domains === '/./')) {
+            options.groups.push({ name: 'default', domains: '/./' });
+        }
+        this._groups = [];
+        options.groups.forEach((g) => {
+            let pattern = g.domains;
+            if (pattern[0] === '/' && pattern[pattern.length - 1] === '/') {
+                pattern = pattern.slice(1, -1);
+            } else {
+                pattern = `^${pattern}$`;
+            }
+            this._groups.push({
+                name: g.name,
+                domains: new RegExp(pattern)
+            });
+        });
+        this._cache = {};
+    }
+
+    _getGroup(domain) {
+        return this._groups.find((g) => g.domains.test(domain)).name;
+    }
+
     createBucket(hyper, req) {
+        const rp = req.params;
+        const cacheKey = `${this._getGroup(rp.domain)}/${rp.bucket}`;
+        if (this._cache[cacheKey]) {
+            return P.resolve(this._cache[cacheKey]);
+        }
         const schema = this.makeSchema(req.body || {});
         schema.table = req.params.bucket;
-        const rp = req.params;
         const storeRequest = {
             uri: new URI([rp.domain, 'sys', 'table', rp.bucket]),
             body: schema
         };
-        return hyper.put(storeRequest);
+        return hyper.put(storeRequest).then((res) => {
+            this._cache[cacheKey] = { status: res.status };
+            return res;
+        });
     }
 
     makeSchema(opts) {
