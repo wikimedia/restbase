@@ -154,7 +154,10 @@ components:
           wikidata_id:
             type: string
             description: Wikidata ID for the item
-          score:
+          normalized_rank:
             type: number
-            description: Score of the recommendation. The higher the score, the more
-              important the recommendation is.
+            description: Normalized rank of the recommendation. The
+              higher the rank, the more important the recommendation is.
+          source_language:
+            type: string
+            description: Source language of the article

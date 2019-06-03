@@ -108,5 +108,38 @@ parallel('Responses should conform to the provided JSON schema of the response',
             }
         });
     });
+
+    it('/data/recommendation/article/creation/translation/{from_lang} should conform to schema', () => {
+        return preq.get({ uri: `${server.config.baseURL()}/data/recommendation/article/creation/translation/uz?count=5` })
+        .then((res) => {
+            if (!ajv.validate('#/components/schemas/recommendation_result', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
+
+    it('/data/recommendation/article/creation/translation/{from_lang}/{seed_article} should conform to schema', () => {
+        return preq.get({ uri: `${server.config.baseURL()}/data/recommendation/article/creation/translation/uz/Kitob?count=5` })
+        .then((res) => {
+            if (!ajv.validate('#/components/schemas/recommendation_result', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
+
+    it('/data/recommendation/article/creation/morelike/{seed_article} should conform to schema', () => {
+        return preq.get({ uri: `${server.config.baseURL()}/data/recommendation/article/creation/morelike/Book` })
+        .then((res) => {
+            if (!ajv.validate('#/components/schemas/morelike_result', res.body)) {
+                throw new assert.AssertionError({
+                    message: ajv.errorsText()
+                });
+            }
+        });
+    });
 });
 
