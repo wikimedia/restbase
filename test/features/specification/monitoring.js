@@ -157,6 +157,7 @@ describe('Monitoring tests', function() {
     this.timeout(20000);
     const server = new Server();
     before(() => server.start());
+    after(() => server.stop());
 
     it('should get the spec', () => {
         return P.each([{
@@ -181,6 +182,8 @@ describe('Monitoring tests', function() {
             })
             .then((spec) => {
                 const defineTests = () => {
+                    before(() => server.start());
+                    after(() => server.stop());
                     constructTests(spec, options, server).forEach((testCase) => {
                         it(testCase.title, () => {
                             const missingParam = /\/{(.+)}/.exec(testCase.request.uri);
@@ -200,7 +203,6 @@ describe('Monitoring tests', function() {
                 };
                 parallel(`Monitoring routes, ${options.domain} domain, new content`, defineTests);
                 parallel(`Monitoring routes, ${options.domain} domain, from storage`, defineTests);
-                after(() => server.stop());
             });
         });
     });
