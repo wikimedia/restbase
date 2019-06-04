@@ -1,0 +1,89 @@
+# RESTBase wikimedia example config
+default_project: &default_project
+  x-modules:
+    - spec:
+        paths:
+          /{api:v1}:
+            x-modules:
+              - spec:
+                  paths:
+                    /key_value:
+                      x-modules:
+                        - path: sys/key_value.js
+                    /page_revisions:
+                      # We need to forward cookie to the API
+                      x-route-filters:
+                        - path: ./lib/mediawiki_auth_filter.js
+                      x-modules:
+                        - path: sys/page_revisions.js
+          /{api:sys}:
+            x-modules:
+              - spec:
+                  paths:
+                    /table:
+                      x-modules:
+                        - path: sys/table.js
+                          options:
+                            conf:
+                              backend: '{env(RB_TEST_BACKEND, sqlite)}'
+                              hosts: [localhost]
+                              keyspace: system
+                              username: cassandra
+                              password: cassandra
+                              defaultConsistency: one # or 'localQuorum' for production
+                              storage_groups:
+                                - name: test.group.local
+                                  domains: /./
+                              dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+                    /action:
+                      x-modules:
+                        - path: sys/action.js
+                          options:
+                            apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
+                            baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
+
+
+# The root of the spec tree. Domains tend to share specs by referencing them
+# using YAML references.
+spec_root: &spec_root
+  title: "The RESTBase Storage Service"
+  x-sub-request-filters:
+    - type: default
+      name: http
+      options:
+        allow:
+          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
+            forward_headers: true
+  paths:
+    /{domain}: *default_project
+
+# Finally, a standard service-runner config.
+info:
+  name: restbase
+
+services:
+  - name: restbase
+    module: hyperswitch
+    conf:
+      port: 7231
+      spec: *spec_root
+      salt: secret
+      default_page_size: 125
+      user_agent: RESTBase
+      ui_name: RESTBase
+      ui_url: https://www.mediawiki.org/wiki/RESTBase
+      ui_title: RESTBase docs
+
+logging:
+  name: restbase
+  level: error
+  streams:
+    - type: stdout
+
+#metrics:
+#  type: statsd
+#  host: localhost
+#  port: 8125
+#  batch: true
+
+num_workers: 0

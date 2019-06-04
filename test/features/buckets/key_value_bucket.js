@@ -8,7 +8,6 @@ const P = require('bluebird');
 const parallel = require('mocha.parallel');
 
 describe('Key value buckets', () => {
-
     function randomString(length) {
         let result = '';
         for (let i = 0; i < length / 10; i++) {
@@ -18,16 +17,16 @@ describe('Key value buckets', () => {
     }
 
     function runTests(bucketName) {
-        const server = new Server(`${__dirname}/../../../config.example.storage.wikimedia.yaml`, true);
+        const server = new Server();
         let bucketBaseURI;
         let stringBaseURI;
         before(() => server.start()
         .then(() => {
-            bucketBaseURI = `${server.config.baseURL()}/${bucketName}/${bucketName}TestingBucket`;
+            bucketBaseURI = `${server.config.backendURL()}/${bucketName}/${bucketName}TestingBucket`;
             return preq.put({uri: bucketBaseURI});
         })
         .then(() => {
-            stringBaseURI = `${server.config.baseURL()}/${bucketName}/${bucketName}StringBucket`;
+            stringBaseURI = `${server.config.backendURL()}/${bucketName}/${bucketName}StringBucket`;
             return preq.put({
                 uri: stringBaseURI,
                 headers: {
@@ -41,7 +40,6 @@ describe('Key value buckets', () => {
         after(() => server.stop());
 
         it('stores a content in a bucket and gets it back', () => {
-            console.log(bucketBaseURI);
             const testData = randomString(100);
             return preq.put({
                 uri: `${bucketBaseURI}/${testData}`,

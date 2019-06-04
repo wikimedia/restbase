@@ -13,7 +13,7 @@ const validator = new OpenAPISchemaValidator({ version: 3 });
 
 parallel('Responses should conform to the provided JSON schema of the response', () => {
     const ajv = new Ajv({});
-    const server = new Server(`${__dirname}/../../config.example.wikimedia.yaml`);
+    const server = new Server();
     function getToday() {
         function zeroPad(num) {
             if (num < 10) {
