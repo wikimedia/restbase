@@ -4,7 +4,11 @@ mod_dir=$( cd "$( dirname "$0" )"/../.. && pwd )/node_modules
 mocha="${mod_dir}"/mocha/bin/mocha
 nyc="${mod_dir}"/.bin/nyc
 test_target=${TEST_TARGET:-$2}
-test_mode=${TEST_MODE:=$3}
+test_mode=${TEST_MODE:-$3}
+if [ "x$test_mode" = "x" ]; then
+    test_mode="fs"
+fi
+export TEST_MODE=${test_mode}
 
 if [ "$1" = "test" ]; then
     test_command="${mocha}"
@@ -30,10 +34,10 @@ elif [ "$test_target" = "cassandra" ]; then
     export RB_TEST_BACKEND=cassandra
     sh ./test/utils/cleandb.sh local_group_test
 else
-    echo "Invalid TEST_TARGET ${test_target}. Must me 'sqlite' or 'cassandra' if specified"
+    echo "Invalid TEST_TARGET $test_target. Must me 'sqlite' or 'cassandra' if specified"
     exit 1
 fi
 
-echo "Running ${test_mode} mode"
+echo "Running $test_mode mode"
 ${test_command};
 exit $?;

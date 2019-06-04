@@ -1,59 +1,42 @@
 'use strict';
 
-const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
-
 const Template = HyperSwitch.Template;
-const HTTPError = HyperSwitch.HTTPError;
 
 module.exports = (options) => {
     options = options || {};
-    options.backend_host_template = options.backend_host_template || '/{domain}/sys';
-    if (!Object.prototype.hasOwnProperty.call(options, 'use_path_segment')) {
-        options.use_path_segment = true;
-    }
-    if (!Object.prototype.hasOwnProperty.call(options, 'block_external_reqs')) {
-        options.block_external_reqs = true;
-    }
+    options.backend_host_template = options.backend_host_template || '/{domain}/sys/legacy';
     const backendURITemplate = new Template({
         uri: `${options.backend_host_template}/{{path}}`
     });
-    const usePathSegment = options.use_path_segment;
-    const blockExternalReqs = options.block_external_reqs;
     return {
         spec: {
             paths: {
                 '/{+path}': {
-                    'x-hidden': true,
+                    'x-route-filters': options.block_external_reqs ?
+                        [{
+                            type: 'default',
+                            name: 'header_match',
+                            options: {
+                                whitelist: {
+                                    'x-client-ip': ['/^(?:::1)|(?:::ffff:)?(?:10|127)\\./']
+                                }
+                            }
+                        }] : [],
                     all: {
                         operationId: 'proxy',
-                        'x-monitor': false
+                        'x-monitor': false,
+                        'x-hidden': true
                     }
                 }
             }
         },
         operations: {
             proxy: (hyper, req) => {
-                if (blockExternalReqs && !hyper._isSysRequest(req) &&
-                        req.headers['x-request-class'] === 'external') {
-                    return P.reject(new HTTPError({
-                        status: 403,
-                        body: {
-                            type: 'forbidden',
-                            title: 'Forbidden',
-                            description: 'You are not allowed to access this URI'
-                        }
-                    }));
-                }
-                if (usePathSegment) {
-                    // if usePathSegment is set (true by default), then the proxy module
-                    // will include the path segment preceding the specified path to
-                    // construct the full request URI
-                    const uri = req.uri.toString();
-                    const uriPrefix = uri.substring(0, uri.indexOf(`/${req.params.path}`));
-                    const segment = uriPrefix.split('/').pop();
-                    req.params.path = `${segment}/${req.params.path}`;
-                }
+                const uri = req.uri.toString();
+                const uriPrefix = uri.substring(0, uri.indexOf(`/${req.params.path}`));
+                const segment = uriPrefix.split('/').pop();
+                req.params.path = `${segment}/${req.params.path}`;
                 return hyper.request({
                     method: req.method,
                     uri: backendURITemplate.expand({ request: req }).uri,

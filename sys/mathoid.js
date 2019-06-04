@@ -274,18 +274,27 @@ module.exports = (options) => {
                 body: { valueType: 'json' }
             }, {
                 uri: '/{domain}/sys/key_value/mathoid_ng.svg',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: {
                     keyType: 'string',
                     valueType: 'string'
                 }
             }, {
                 uri: '/{domain}/sys/key_value/mathoid_ng.mml',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: {
                     keyType: 'string',
                     valueType: 'string'
                 }
             }, {
                 uri: '/{domain}/sys/key_value/mathoid_ng.png',
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: {
                     keyType: 'string',
                     valueType: 'blob'

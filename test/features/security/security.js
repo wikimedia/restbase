@@ -59,6 +59,9 @@ describe('router - security', function() {
         .post('', (body) => { return body && body.generator === 'allpages'; })
         .reply(200, sampleApiResponse)
         .post('', (body) => { return body && body.meta === 'userinfo'; })
+        .reply(200, sampleRightsResponse)
+        .post('', (body) => { return body && body.meta === 'userinfo'; })
+        .optionally()
         .reply(200, sampleRightsResponse);
 
         return preq.get({
