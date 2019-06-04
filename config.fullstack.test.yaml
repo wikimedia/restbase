@@ -53,7 +53,6 @@ default_project: &default_project
               - path: projects/proxy.yaml
                 options:
                   backend_host_template: '{{"/{domain}/sys/legacy"}}'
-                  block_external_reqs: false
               - spec:
                   paths:
                     /legacy/key_value:
@@ -98,7 +97,6 @@ wikimedia_project: &wikimedia_project
               - path: projects/proxy.yaml
                 options:
                   backend_host_template: '{{"/{domain}/sys/legacy"}}'
-                  block_external_reqs: false
               - spec:
                   paths:
                     /legacy/key_value:
@@ -142,7 +140,7 @@ enwiki_project: &enwiki_project
         paths:
           /{api:v1}:
             x-modules:
-              - path: projects/v1/enwiki.wmf.yaml
+              - path: projects/v1/wikipedia.wmf.yaml
                 options: *default_options
               - path: projects/proxy.yaml
                 options:
@@ -179,7 +177,6 @@ spec_root: &spec_root
   # Some more general RESTBase info
   x-request-filters:
     - path: lib/security_response_header_filter.js
-    - path: lib/normalize_headers_filter.js
 
   x-sub-request-filters:
     - type: default
@@ -189,9 +186,6 @@ spec_root: &spec_root
           - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
             forward_headers: true
           - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
-            forward_headers: true
-          # Need to forward cookie to backend RESTBase
-          - pattern: /^https?:\/\/localhost:7232.+/
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
@@ -244,7 +238,7 @@ services:
 
 logging:
   name: restbase-test
-  level: info
+  level: warn
   streams:
     - type: stdout
 

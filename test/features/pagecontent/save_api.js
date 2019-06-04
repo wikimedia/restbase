@@ -376,7 +376,7 @@ describe('page save api', function() {
         }
     });
 
-    it('save HTML', () => {
+        it('save HTML', () => {
         const test = () => {
             return preq.get({
                 uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${pageTitle}/${lastRev}`
@@ -385,7 +385,6 @@ describe('page save api', function() {
                 return preq.post({
                     uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${pageTitle}`,
                     headers: {
-                        'x-client-ip': '123.123.123.123',
                         cookie: 'test'
                     },
                     body: {
@@ -403,7 +402,6 @@ describe('page save api', function() {
         if (NOCK_TESTS) {
             const api = nock(server.config.apiURL('en.wikipedia.beta.wmflabs.org'), {
                 reqheaders: {
-                    'x-client-ip': '123.123.123.123',
                     'x-forwarded-for'(headerValue) {
                         return headerValue.indexOf('127.0.0.1') >= 0;
                     },

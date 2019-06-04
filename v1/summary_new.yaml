@@ -93,7 +93,7 @@ paths:
       x-setup-handler:
         # Set up a simple key-value bucket.
         - init:
-            method: 'put'
+            method: put
             uri: /{domain}/sys/key_value/page_summary
             headers:
               content-type: application/json

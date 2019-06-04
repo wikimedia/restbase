@@ -76,7 +76,7 @@ services:
 
 logging:
   name: restbase
-  level: error
+  level: warn
   streams:
     - type: stdout
 

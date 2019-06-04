@@ -12,11 +12,11 @@ class TestRestbase {
                 this._frontendServer = new TestRunner(`${__dirname}/../../config.fullstack.test.yaml`);
                 this._backendServer = undefined;
                 break;
-            case 'ftfs':
+            case 'fefs':
                 this._frontendServer = new TestRunner(`${__dirname}/../../config.frontend.test.yaml`);
                 this._backendServer = new TestRunner(`${__dirname}/../../config.fullstack.test.yaml`);
                 break;
-            case 'ftbe':
+            case 'febe':
                 this._frontendServer = new TestRunner(`${__dirname}/../../config.frontend.test.yaml`);
                 this._backendServer = new TestRunner(`${__dirname}/../../config.storage.test.yaml`);
                 break;

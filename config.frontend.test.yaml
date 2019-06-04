@@ -100,7 +100,7 @@ enwiki_project: &enwiki_project
         paths:
           /{api:v1}:
             x-modules:
-              - path: projects/v1/enwiki.wmf.yaml
+              - path: projects/v1/wikipedia.wmf.yaml
                 options: *default_options
           /{api:sys}: *default_sys
 
@@ -178,24 +178,24 @@ spec_root: &spec_root
 
 # Finally, a standard service-runner config.
 info:
-  name: restbase
+  name: restrouter
 
 services:
-  - name: restbase
+  - name: restrouter
     module: hyperswitch
     conf:
-      port: 7232
+      port: 7233
       spec: *spec_root
       salt: secret
       default_page_size: 1
-      user_agent: RESTBase-testsuite
-      ui_name: RESTBase
+      user_agent: RESTRouer-testsuite
+      ui_name: RESTRouter
       ui_url: https://www.mediawiki.org/wiki/RESTBase
-      ui_title: RESTBase docs
+      ui_title: REST API docs
 
 logging:
-  name: restbase-test
-  level: info
+  name: restrouter
+  level: warn
   streams:
     - type: stdout
 
