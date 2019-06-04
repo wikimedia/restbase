@@ -17,10 +17,12 @@ addons:
     - openjdk-8-jre-headless
 
 env:
-  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=single_process
-  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=single_process
-  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=multi_process
-  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=multi_process
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=fs
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=fs
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=ftfs
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=ftfs
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=sqlite TEST_MODE=ftbe
+  - CASSANDRA_VERSION=3.11.2 TEST_TARGET=cassandra TEST_MODE=ftbe
 
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../

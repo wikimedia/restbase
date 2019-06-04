@@ -2,9 +2,8 @@ paths:
   /key_value:
     x-modules:
       - path: sys/backend_proxy.js
-        options: '{{options.proxy}}'
+        options: '{{options}}'
   /page_revisions:
     x-modules:
       - path: sys/backend_proxy.js
-        options: '{{options.proxy}}'
-
+        options: '{{options}}'

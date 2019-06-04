@@ -1,9 +1,0 @@
-paths:
-  /{api:v1}:
-    x-modules:
-      - path: v1/proxy.js
-        options: '{{options}}'
-  /{api:sys}:
-    x-modules:
-      - path: projects/sys/backend.js
-        options: '{{options}}'

@@ -24,6 +24,7 @@ module.exports = (options) => {
         spec: {
             paths: {
                 '/{+path}': {
+                    'x-hidden': true,
                     all: {
                         operationId: 'proxy',
                         'x-monitor': false
