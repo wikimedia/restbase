@@ -390,9 +390,7 @@ class ParsoidService {
         .then((revInfo) => {
             rp.revision = revInfo.rev;
         })
-        .then(() => P.join(
-            this._getPageBundleFromParsoid(hyper, req),
-            mwUtil.decodeBody(currentContentRes))
+        .then(() => P.join(this._getPageBundleFromParsoid(hyper, req), currentContentRes)
         .spread((res, currentContentRes) => {
             const tid  = uuid.now().toString();
             const etag = mwUtil.makeETag(rp.revision, tid);
