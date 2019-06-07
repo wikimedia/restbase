@@ -188,22 +188,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/problem'
       x-monitor: false
-      x-setup-handler:
-        - init_svg:
-            uri: /wikimedia.org/sys/key_value/mathoid_ng.svg
-            body:
-              keyType: string
-              valueType: string
-        - init_mml:
-            uri: /wikimedia.org/sys/key_value/mathoid_ng.mml
-            body:
-              keyType: string
-              valueType: string
-        - init_png:
-            uri: /wikimedia.org/sys/key_value/mathoid_ng.png
-            body:
-              keyType: string
-              valueType: blob
       x-request-handler:
         - check_storage:
             request:
