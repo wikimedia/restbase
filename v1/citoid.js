@@ -19,14 +19,9 @@ class Citoid {
             acceptLanguagePromise = mwUtil.getSiteInfo(hyper, req).get('general').get('lang');
         }
         return acceptLanguagePromise.then((acceptLanguage) => {
-            let reqURI;
-            if (rp.format === 'mediawiki-basefields') {
-                reqURI = `${this._options.host}/api?format=mediawiki&` +
-                    `search=${encodeURIComponent(rp.query)}&basefields=true`;
-            } else {
-                reqURI = `${this._options.host}/api?format=${rp.format}&` +
-                    `search=${encodeURIComponent(rp.query)}`;
-            }
+            let reqURI = `${this._options.host}/api?format=${rp.format}&` +
+                `search=${encodeURIComponent(rp.query)}`;
+
             return hyper.get({
                 uri: reqURI,
                 headers: {
