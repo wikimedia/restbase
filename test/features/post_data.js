@@ -14,7 +14,7 @@ describe('post_data', function() {
 
     it('should store post request by hash', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/post_data/`,
+            uri: `${server.config.baseURL('fake.wikipedia.org')}/post_data/`,
             body: {
                 key: 'value'
             }
@@ -24,7 +24,7 @@ describe('post_data', function() {
             assert.deepEqual(res.status, 201);
             assert.deepEqual(hash, '228458095a9502070fc113d99504226a6ff90a9a');
             return preq.get({
-                uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/post_data/${res.body}`
+                uri: `${server.config.baseURL('fake.wikipedia.org')}/post_data/${res.body}`
             });
         })
         .then((res) => {
@@ -35,7 +35,7 @@ describe('post_data', function() {
 
     it('should not explode on empty body', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/post_data/`
+            uri: `${server.config.baseURL('fake.wikipedia.org')}/post_data/`
         })
         .then((res) => {
             assert.deepEqual(res.status, 201);
@@ -44,7 +44,7 @@ describe('post_data', function() {
 
     it('should not store identical request', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/post_data/`,
+            uri: `${server.config.baseURL('fake.wikipedia.org')}/post_data/`,
             body: {
                 key: 'value'
             }
@@ -57,7 +57,7 @@ describe('post_data', function() {
 
     it('should allow read on remote request', () => {
         return preq.get({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/post_data/${hash}`
+            uri: `${server.config.baseURL('fake.wikipedia.org')}/post_data/${hash}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -67,7 +67,7 @@ describe('post_data', function() {
 
     it('should deny write on remote requests', () => {
         return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/post_data/`,
+            uri: `${server.config.baseURL('fake.wikipedia.org')}/post_data/`,
             headers: {
                 'x-client-ip': '123.123.123.123'
             },

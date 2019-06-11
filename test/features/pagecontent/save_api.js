@@ -376,7 +376,7 @@ describe('page save api', function() {
         }
     });
 
-        it('save HTML', () => {
+    it('save HTML', () => {
         const test = () => {
             return preq.get({
                 uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${pageTitle}/${lastRev}`

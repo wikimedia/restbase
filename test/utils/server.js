@@ -18,7 +18,7 @@ class TestRestbase {
                 break;
             case 'febe':
                 this._frontendServer = new TestRunner(`${__dirname}/../../config.frontend.test.yaml`);
-                this._backendServer = new TestRunner(`${__dirname}/../../config.storage.test.yaml`);
+                this._backendServer = new TestRunner(`${__dirname}/../../config.backend.test.yaml`);
                 break;
             default:
                 throw new Error(`Invalid test mode ${testMode}`);

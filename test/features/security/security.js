@@ -130,7 +130,7 @@ describe('router - security', function() {
         .reply(200);
 
         return preq.get({
-            uri: `${server.config.baseURL('fr.wikipedia.org')}/http/${encodeURIComponent(externalURI)}`,
+            uri: `${server.config.baseURL('fake.wikipedia.org')}/http/${encodeURIComponent(externalURI)}`,
             headers: {
                 'cookie': 'test=test_cookie'
             }

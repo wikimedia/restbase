@@ -44,7 +44,7 @@ default_project: &default_project
               - path: projects/sys/default.wmf.yaml
                 options: *default_options
               - path: projects/proxy.yaml
-                options:
+                options: &proxy_options
                   backend_host_template: '{{"http://localhost:7231/{domain}/v1"}}'
                   block_external_reqs: false
 
@@ -62,9 +62,7 @@ wikimedia_project: &wikimedia_project
           /{api:sys}:
             x-modules:
               - path: projects/proxy.yaml
-                options:
-                  backend_host_template: '{{"http://localhost:7231/{domain}/v1"}}'
-                  block_external_reqs: false
+                options: *proxy_options
               - spec:
                   paths:
                     /mathoid:
@@ -77,24 +75,9 @@ wikimedia_project: &wikimedia_project
                     /events:
                       x-modules:
                         - path: sys/events.js
+                          # No options provided deliberately to avoid log noise upon testing
 
 wikipedia_project: &wikipedia_project
-  x-modules:
-    - spec:
-        paths:
-          /{api:v1}:
-            x-modules:
-              - path: projects/v1/wikipedia.wmf.yaml
-                options: *default_options
-              - path: test/test_module.yaml
-                options:
-                  events:
-                    uri: http://127.0.0.1:8085/v1/events
-                    topic: resource_change
-                    transcludes_topic: change-prop.transcludes.resource-change
-          /{api:sys}: *default_sys
-
-enwiki_project: &enwiki_project
   x-modules:
     - spec:
         paths:
@@ -113,6 +96,20 @@ wiktionary_project: &wiktionary_project
               - path: test/test_module.yaml
               - path: projects/v1/wiktionary.wmf.yaml
                 options: *default_options
+          /{api:sys}: *default_sys
+
+testing_project: &testing_project
+  x-modules:
+    - spec:
+        paths:
+          /{api:v1}:
+            x-modules:
+              - path: test/test_module.yaml
+                options:
+                  events:
+                    uri: http://127.0.0.1:8085/v1/events
+                    topic: resource_change
+                    transcludes_topic: change-prop.transcludes.resource-change
           /{api:sys}: *default_sys
 
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
@@ -149,7 +146,7 @@ spec_root: &spec_root
     /{domain:test.wikipedia.org}: *wikipedia_project
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
-    /{domain:en.wikipedia.org}: *enwiki_project
+    /{domain:en.wikipedia.org}: *wikipedia_project
     /{domain:ru.wikipedia.org}: *wikipedia_project
     /{domain:de.wikipedia.org}: *wikipedia_project
     /{domain:test2.wikipedia.org}: *wikipedia_project
@@ -174,6 +171,8 @@ spec_root: &spec_root
     # Wiktionary has some specific endpoints
     /{domain:en.wiktionary.org}: *wiktionary_project
 
+    # Fake domain to run tests relying on test_module
+    /{domain:fake.wikipedia.org}: *testing_project
 
 
 # Finally, a standard service-runner config.
@@ -188,8 +187,8 @@ services:
       spec: *spec_root
       salt: secret
       default_page_size: 1
-      user_agent: RESTRouer-testsuite
-      ui_name: RESTRouter
+      user_agent: REST-API-testsuite
+      ui_name: REST API
       ui_url: https://www.mediawiki.org/wiki/RESTBase
       ui_title: REST API docs
 
