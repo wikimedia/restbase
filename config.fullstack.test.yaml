@@ -1,7 +1,3 @@
-# RESTBase test config, used in integration tests.
-
-# Load some project templates. These are referenced / shared between domains
-# in the root_spec further down.
 default_project: &default_project
   x-modules:
     - spec:
@@ -43,7 +39,7 @@ default_project: &default_project
                     cx_host: https://cxserver-beta.wmflabs.org
                   skip_updates: false
               - path: projects/proxy.yaml
-                options:
+                options: &proxy_options
                   backend_host_template: '{{"/{domain}/sys/legacy"}}'
                   block_external_reqs: true
           /{api:sys}: &default_sys
@@ -52,7 +48,8 @@ default_project: &default_project
                 options: *default_options
               - path: projects/proxy.yaml
                 options:
-                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
+                  <<: *proxy_options
+                  block_external_reqs: false
               - spec:
                   paths:
                     /legacy/key_value:
@@ -89,14 +86,13 @@ wikimedia_project: &wikimedia_project
                   pageviews:
                     host: https://wikimedia.org/api/rest_v1/metrics
               - path: projects/proxy.yaml
-                options:
-                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
-                  block_external_reqs: true
+                options: *proxy_options
           /{api:sys}:
             x-modules:
               - path: projects/proxy.yaml
                 options:
-                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
+                  <<: *proxy_options
+                  block_external_reqs: false
               - spec:
                   paths:
                     /legacy/key_value:
@@ -113,6 +109,7 @@ wikimedia_project: &wikimedia_project
                     /events:
                       x-modules:
                         - path: sys/events.js
+                          # No options provided deliberately to avoid log noise upon testing
 
 wikipedia_project: &wikipedia_project
   x-modules:
@@ -122,30 +119,8 @@ wikipedia_project: &wikipedia_project
             x-modules:
               - path: projects/v1/wikipedia.wmf.yaml
                 options: *default_options
-              - path: test/test_module.yaml
-                options:
-                  events:
-                    uri: http://127.0.0.1:8085/v1/events
-                    topic: resource_change
-                    transcludes_topic: change-prop.transcludes.resource-change
               - path: projects/proxy.yaml
-                options:
-                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
-                  block_external_reqs: true
-          /{api:sys}: *default_sys
-
-enwiki_project: &enwiki_project
-  x-modules:
-    - spec:
-        paths:
-          /{api:v1}:
-            x-modules:
-              - path: projects/v1/wikipedia.wmf.yaml
-                options: *default_options
-              - path: projects/proxy.yaml
-                options:
-                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
-                  block_external_reqs: true
+                options: *proxy_options
           /{api:sys}: *default_sys
 
 wiktionary_project: &wiktionary_project
@@ -157,9 +132,23 @@ wiktionary_project: &wiktionary_project
               - path: projects/v1/wiktionary.wmf.yaml
                 options: *default_options
               - path: projects/proxy.yaml
+                options: *proxy_options
+          /{api:sys}: *default_sys
+
+testing_project: &testing_project
+  x-modules:
+    - spec:
+        paths:
+          /{api:v1}:
+            x-modules:
+              - path: test/test_module.yaml
                 options:
-                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
-                  block_external_reqs: true
+                  events:
+                    uri: http://127.0.0.1:8085/v1/events
+                    topic: resource_change
+                    transcludes_topic: change-prop.transcludes.resource-change
+              - path: projects/proxy.yaml
+                options: *proxy_options
           /{api:sys}: *default_sys
 
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
@@ -192,7 +181,7 @@ spec_root: &spec_root
     /{domain:test.wikipedia.org}: *wikipedia_project
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
-    /{domain:en.wikipedia.org}: *enwiki_project
+    /{domain:en.wikipedia.org}: *wikipedia_project
     /{domain:ru.wikipedia.org}: *wikipedia_project
     /{domain:de.wikipedia.org}: *wikipedia_project
     /{domain:test2.wikipedia.org}: *wikipedia_project
@@ -217,7 +206,8 @@ spec_root: &spec_root
     # Wiktionary has some specific endpoints
     /{domain:en.wiktionary.org}: *wiktionary_project
 
-
+    # Fake domain to run tests relying on test_module
+    /{domain:fake.wikipedia.org}: *testing_project
 
 # Finally, a standard service-runner config.
 info:

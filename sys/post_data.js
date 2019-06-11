@@ -30,7 +30,8 @@ class PostDataBucket {
         .catch({ status: 404 }, () => hyper.put({
             uri: new URI([rp.domain, 'sys', 'key_value', rp.bucket, key]),
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-store-content-type': req.headers['x-store-content-type']
             },
             body: storedData
         })
