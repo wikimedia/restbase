@@ -13,7 +13,7 @@
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
-const TimeUuid = require('cassandra-uuid').TimeUuid;
+const uuidv1 = require('uuid/v1');
 const mwUtil = require('../lib/mwUtil');
 const stringify = require('fast-json-stable-stringify');
 
@@ -154,7 +154,7 @@ class PRS {
                 // deletion/ un-deletion events.
                 .then((result) => {
                     result = result.body.items[0];
-                    result.tid = TimeUuid.now().toString();
+                    result.tid = uuidv1();
                     result.page_deleted = result.rev;
                     // TODO: Object.assign here is to avoid a bug in sqlite
                     // backend that modifies original attribute.
@@ -408,7 +408,7 @@ class PRS {
                     title: normTitle,
                     page_id: parseInt(dataResp.pageid, 10),
                     rev: parseInt(apiRev.revid, 10),
-                    tid: TimeUuid.now().toString(),
+                    tid: uuidv1(),
                     namespace: parseInt(dataResp.ns, 10),
                     user_id: restrictions.indexOf('userhidden') < 0 ? apiRev.userid : null,
                     user_text: restrictions.indexOf('userhidden') < 0 ? apiRev.user : null,

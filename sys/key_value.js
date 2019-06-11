@@ -4,7 +4,7 @@
  * Key-value bucket handler
  */
 
-const uuid = require('cassandra-uuid').TimeUuid;
+const uuidv1 = require('uuid/v1');
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
 const stringify = require('fast-json-stable-stringify');
@@ -99,7 +99,7 @@ class KVBucket {
         }
 
         const rp = req.params;
-        const tid = uuid.now().toString();
+        const tid = uuidv1();
 
         // In case specific content-type to store is not provided,
         // default to the request content type. Ideally this should not happen.

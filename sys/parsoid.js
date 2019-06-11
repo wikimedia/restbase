@@ -9,7 +9,9 @@ const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
-const uuid   = require('cassandra-uuid').TimeUuid;
+const uuidv1   = require('uuid/v1');
+const uuidUtils = require('../lib/uuidUtils');
+
 const mwUtil = require('../lib/mwUtil');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
@@ -59,7 +61,7 @@ function isModifiedSince(req, res) {
         if (req.headers['if-unmodified-since']) {
             const jobTime = Date.parse(req.headers['if-unmodified-since']);
             const revInfo = mwUtil.parseETag(res.headers.etag);
-            return revInfo && uuid.fromString(revInfo.tid).getDate() >= jobTime;
+            return revInfo && uuidUtils.getDate(revInfo.tid) >= jobTime;
         }
     } catch (e) {
         // Ignore errors from date parsing
@@ -284,7 +286,7 @@ class ParsoidService {
         // can be later reused when transforming back from HTML to wikitext
         // cf https://phabricator.wikimedia.org/T114548
         const rp = req.params;
-        const tid = uuid.now().toString();
+        const tid = uuidv1();
         const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
         const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
         return transformPromise.then((original) => hyper.put({
@@ -392,7 +394,7 @@ class ParsoidService {
         })
         .then(() => P.join(this._getPageBundleFromParsoid(hyper, req), currentContentRes)
         .spread((res, currentContentRes) => {
-            const tid  = uuid.now().toString();
+            const tid  = uuidv1();
             const etag = mwUtil.makeETag(rp.revision, tid);
             res.body.html.body = insertTidMeta(res.body.html.body, tid);
             res.body.html.headers.etag = res.headers.etag = etag;

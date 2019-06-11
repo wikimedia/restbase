@@ -2,7 +2,7 @@
 
 const preq   = require('preq');
 const http   = require('http');
-const uuid   = require('cassandra-uuid').TimeUuid;
+const uuidUtils   = require('../../../lib/uuidUtils');
 
 const Server = require('../../utils/server.js');
 const assert = require('../../utils/assert.js');
@@ -36,8 +36,8 @@ describe('Change event emitting', () => {
                         const event = events[0];
                         assert.deepEqual(event.meta.domain, 'en.wikipedia.org');
                         assert.deepEqual(!!new Date(event.meta.dt), true);
-                        assert.deepEqual(uuid.test(event.meta.id), true);
-                        assert.deepEqual(!!event.meta.request_id, true);
+                        assert.deepEqual(uuidUtils.test(event.meta.id), true);
+                        assert.deepEqual(uuidUtils.test(event.meta.request_id), true);
                         assert.deepEqual(event.meta.topic, eventOptions.topic);
                         assert.deepEqual(event.meta.uri, eventOptions.uri);
                         assert.deepEqual(event.tags, ['test', 'restbase']);
