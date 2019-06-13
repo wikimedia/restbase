@@ -7,7 +7,7 @@ const assert = require('../../../utils/assert.js');
 const Server = require('../../../utils/server.js');
 const preq   = require('preq');
 const mwUtil = require('../../../../lib/mwUtil');
-const uuid   = require('cassandra-uuid');
+const uuidv1   = require('uuid');
 
 const revB = '275844';
 const revC = '275845';
@@ -40,7 +40,7 @@ describe('on-demand generation of html and data-parsoid', function() {
 
     it('should not transparently create revision B via Parsoid if TID is provided', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${title}/${revB}/${uuid.TimeUuid.now().toString()}`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${title}/${revB}/${uuidv1()}`,
         })
         .then(() => {
             throw new Error('404 should have been thrown');

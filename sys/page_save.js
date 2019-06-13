@@ -11,7 +11,7 @@ const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 const mwUtil = require('../lib/mwUtil');
-const TimeUuid = require('cassandra-uuid').TimeUuid;
+const uuidUtils = require('../lib/uuidUtils');
 
 class PageSave {
     saveWikitext(hyper, req) {
@@ -84,7 +84,7 @@ class PageSave {
             return;
         }
         const etag = mwUtil.parseETag(req.headers['if-match']);
-        if (!etag || !TimeUuid.test(etag.tid) || !/^(?:[0-9]+)$/.test(etag.rev)) {
+        if (!etag || !uuidUtils.test(etag.tid) || !/^(?:[0-9]+)$/.test(etag.rev)) {
             throw new HTTPError({
                 status: 400,
                 body: {
@@ -94,7 +94,7 @@ class PageSave {
                 }
             });
         } else {
-            return TimeUuid.fromString(etag.tid).getDate().toISOString();
+            return uuidUtils.getDate(etag.tid).toISOString();
         }
     }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const P         = require('bluebird');
-const uuid = require('cassandra-uuid').TimeUuid;
+const uuidv1 = require('uuid/v1');
 
 class EventService {
     constructor(options) {
@@ -47,7 +47,7 @@ class EventService {
                 event.meta.uri = `http:${event.meta.uri}`;
                 event.meta.topic = topic;
                 event.meta.request_id = hyper.reqId;
-                event.meta.id = uuid.now().toString();
+                event.meta.id = uuidv1();
                 event.meta.dt = new Date().toISOString();
                 event.meta.domain = req.params.domain;
                 event.tags = event.tags || [];

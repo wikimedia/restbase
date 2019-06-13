@@ -3,7 +3,7 @@
 const preq   = require('preq');
 const assert = require('../../utils/assert.js');
 const Server = require('../../utils/server.js');
-const uuid = require('cassandra-uuid').TimeUuid;
+const uuidv1 = require('uuid');
 const P = require('bluebird');
 const parallel = require('mocha.parallel');
 
@@ -82,10 +82,10 @@ describe('Key value buckets', () => {
 
         it('key_value should not overwrite same content with ignore_duplicates', () => {
             const testData = randomString(100);
-            const originalEtag = uuid.now().toString();
+            const originalEtag = uuidv1();
             const etags = [ originalEtag,
-                uuid.now().toString(),
-                uuid.now().toString() ];
+                uuidv1(),
+                uuidv1() ];
             return P.each(etags, (etag) => preq.put({
                     uri: `${bucketBaseURI}/List_Test_1`,
                     body: new Buffer(testData),
