@@ -8,7 +8,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 tags:
   - name: Recommendation
-    description: article translation recommendations
+    description: contribution recommendations
 paths:
   /recommendation/article/creation/translation/{from_lang}:
     get: &recommendation_article_creation_translation_from-lang_get_spec
