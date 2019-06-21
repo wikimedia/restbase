@@ -83,6 +83,8 @@ paths:
               x-modules:
                 - path: v1/lists.js
                   options: '{{options.lists}}'
+                - path: v1/recommend.yaml
+                  options: '{{options.recommendation}}'
         options: '{{options}}'
 
   /{api:sys}:
