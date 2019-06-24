@@ -203,14 +203,12 @@ paths:
               uri: '{{options.host}}/{domain}/v1/page/media-list/{title}/{revision}'
             return:
               status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
+              headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
               body: '{{get_from_pcs.body}}'
       x-monitor: false
 
   /media-list/{title}/{revision}:
-    x-route-filters:
-      <<: *media_list_title_filters
+    x-route-filters: *media_list_title_filters
     get:
       <<: *media_list_title_get_spec
       parameters:
