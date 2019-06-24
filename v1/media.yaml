@@ -88,7 +88,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media/{title}/{revision}'
+              uri: '{{options.host}}/{domain}/v1/page/media/{title}'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
@@ -122,6 +122,19 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/media/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+              get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: false
 
   /media-list/{title}:
     x-route-filters: &media_list_title_filters
@@ -200,7 +213,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}/{revision}'
+              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
@@ -232,7 +245,18 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: false
 components:
   schemas:
     media_list_with_metadata:
