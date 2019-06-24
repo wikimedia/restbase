@@ -213,7 +213,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}
+              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
