@@ -141,8 +141,10 @@ commons_project: &commons_project
         paths:
           /{api:v1}:
             x-modules:
-              - path: projects/v1/commons.wmf.yaml
+              - path: projects/v1/default.wmf.yaml
                 options: *default_options
+              - path: v1/recommend-caption.yaml
+                options: '{{options.recommendation}}'
               - path: projects/proxy.yaml
                 options: *proxy_options
           /{api:sys}: *default_sys
