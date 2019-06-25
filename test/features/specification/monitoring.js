@@ -171,6 +171,14 @@ describe('Monitoring tests', function() {
         {
             domain: 'en.wiktionary.org',
             specURI: `${server.config.baseURL('en.wiktionary.org')}/?spec`
+        },
+        {
+            domain: 'www.wikidata.org',
+            specURI: `${server.config.baseURL('www.wikidata.org')}/?spec`
+        },
+        {
+            domain: 'commons.wikimedia.org',
+            specURI: `${server.config.baseURL('commons.wikimedia.org')}/?spec`
         }],
         (options) => {
             return preq.get(options.specURI)
