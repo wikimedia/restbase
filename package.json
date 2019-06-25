@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "0.19.4",
+  "version": "1.0.0",
   "description": "REST storage and service dispatcher",
   "main": "index.js",
   "scripts": {
@@ -44,7 +44,7 @@
     "mediawiki-title": "^0.6.5",
     "restbase-mod-table-cassandra": "^1.2.0",
     "semver": "latest",
-    "service-runner": "^2.7.1",
+    "service-runner": "^2.7.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
