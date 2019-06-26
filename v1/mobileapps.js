@@ -13,9 +13,16 @@ class MobileApps {
         this._options = options;
     }
 
+    _injectCacheControl(res) {
+        res.headers = res.headers || {};
+        res.headers['cache-control'] = this._options.response_cache_control;
+        return res;
+    }
+
     getSections(hyper, req) {
         if (mwUtils.isNoCacheRequest(req)) {
-            return this._fetchFromMCSAndStore(hyper, req);
+            return this._fetchFromMCSAndStore(hyper, req)
+            .tap(this._injectCacheControl.bind(this));
         }
 
         const rp = req.params;
@@ -29,7 +36,8 @@ class MobileApps {
             }
             return this._fetchFromMCS(hyper, req);
         })
-        .catch({ status: 404 }, () => this._fetchFromMCSAndStore(hyper, req));
+        .catch({ status: 404 }, () => this._fetchFromMCSAndStore(hyper, req))
+        .tap(this._injectCacheControl.bind(this));
     }
 
     getPart(part, hyper, req) {
@@ -117,13 +125,15 @@ class MobileApps {
 
 module.exports = (options) => {
     const mobileApps = new MobileApps(options);
-
     return {
         spec,
         operations: {
             getSections: mobileApps.getSections.bind(mobileApps),
+            getSectionsWithRevision: mobileApps.getSections.bind(mobileApps),
             getSectionsLead: mobileApps.getPart.bind(mobileApps, 'lead'),
-            getSectionsRemaining: mobileApps.getPart.bind(mobileApps, 'remaining')
+            getSectionsLeadWithRevision: mobileApps.getPart.bind(mobileApps, 'lead'),
+            getSectionsRemaining: mobileApps.getPart.bind(mobileApps, 'remaining'),
+            getSectionsRemainingWithRevision: mobileApps.getPart.bind(mobileApps, 'remaining')
         },
         resources: [
             { uri: `/{domain}/sys/key_value/${BUCKET_NAME}` }

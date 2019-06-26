@@ -65,7 +65,7 @@ paths:
                   options:
                     response_cache_control: '{{options.purged_cache_control}}'
                     cx_host: '{{options.transform.cx_host}}'
-                - path: v1/mobileapps.yaml
+                - path: v1/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                 options.mobileapps)}}'
                 - path: v1/graphoid.yaml
@@ -198,11 +198,6 @@ paths:
                         - 'Wikipedia:WikiProject_Deletion_sorting/United_States_of_America'
                         - 'Wikipedia:Articles_for_creation/Redirects'
                         - 'Wikipedia:Administrators%27_noticeboard/Incidents'
-            /mobileapps:
-              x-modules:
-                - path: sys/mobileapps.js
-                  options: '{{merge({"response_cache_control": options.purged_cache_control},
-                                options.mobileapps)}}'
             /events:
               x-modules:
                 - path: sys/events.js

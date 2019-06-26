@@ -39,7 +39,7 @@
     "content-type": "git+https://github.com/wikimedia/content-type#master",
     "entities": "^1.1.2",
     "fast-json-stable-stringify": "^2.0.0",
-    "hyperswitch": "^0.12.4",
+    "hyperswitch": "^0.12.5",
     "jsonwebtoken": "^8.5.1",
     "mediawiki-title": "^0.6.5",
     "restbase-mod-table-cassandra": "^1.2.0",

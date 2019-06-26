@@ -61,7 +61,7 @@ paths:
         options:
           response_cache_control: '{{options.purged_cache_control}}'
           cx_host: '{{options.transform.cx_host}}'
-      - path: v1/mobileapps.yaml
+      - path: v1/mobileapps.js
         options: '{{merge({"response_cache_control": options.purged_cache_control},
                       options.mobileapps)}}'
       - path: v1/graphoid.yaml

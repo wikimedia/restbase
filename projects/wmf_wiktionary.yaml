@@ -68,7 +68,7 @@ paths:
                   options:
                     response_cache_control: '{{options.purged_cache_control}}'
                     cx_host: '{{options.transform.cx_host}}'
-                - path: v1/mobileapps.yaml
+                - path: v1/mobileapps.js
                   options: '{{merge({"response_cache_control": options.purged_cache_control},
                                     options.mobileapps)}}'
                 - path: v1/media.yaml
@@ -151,11 +151,6 @@ paths:
                     parsoidHost: '{{options.parsoid.host}}'
                     response_cache_control: '{{options.purged_cache_control}}'
                     grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
-            /mobileapps:
-              x-modules:
-                - path: sys/mobileapps.js
-                  options: '{{merge({"response_cache_control": options.purged_cache_control},
-                                options.mobileapps)}}'
             /events:
               x-modules:
                 - path: sys/events.js
