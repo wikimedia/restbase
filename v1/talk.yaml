@@ -1,0 +1,140 @@
+openapi: 3.0.1
+info:
+  version: 0.1.0
+  title: MediaWiki Structured Talk page API
+  description: API for retrieving structured representation of the talk page
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /talk/{title}:
+    get: &talk_title_revision_get_spec
+      tags:
+        - Talk pages
+      summary: Get structured talk page contents
+      description: Gets structured talk page contents for the provided title.
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+        - name: redirect
+          in: query
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: structured talk page JSON.
+          headers:
+            ETag:
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Talk/0.1.0":
+              schema:
+                type: string
+        301:
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        302:
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        404:
+          description: Unknown page title
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: '{{options.host}}/{domain}/v1/page/talk/{title}/{revision}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+              get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-amples:
+        - title: Get structured talk page for enwiki Salt article
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: Salt
+          response:
+            status: 200
+            headers:
+              content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Talk/0.1.0"
+              vary: /.+/
+              etag: /^"[^/"]+/[^/"]+"$/
+              access-control-allow-origin: '*'
+              access-control-allow-headers: accept, x-requested-with, content-type
+              content-security-policy: default-src
+              x-content-security-policy: default-src
+              x-frame-options: SAMEORIGIN
+            body:
+              topics:
+                - id: /.+/
+                  replies:
+                    - sha: /.+/
+                      depth: /.+/
+                      html: /.*/
+                  depth: /.+/
+                  html: /.*/
+                  shas:
+                    html: /.+/
+                    indicator: /.+/
+
+  /talk/{title}/{revision}:
+    get:
+      <<: *talk_title_revision_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+        - name: revision
+          in: path
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
+          required: true
+          schema:
+            type: integer
+        - name: redirect
+          in: query
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          schema:
+            type: boolean
