@@ -116,11 +116,6 @@ paths:
               - '/Commons:Undeletion_requests\//'
               - '/Commons:WikiProject_Aviation\/recent_uploads\//'
               - '/^(?:User|Benutzer):/'
-  /mobileapps:
-    x-modules:
-      - path: sys/mobileapps.js
-        options: '{{merge({"response_cache_control": options.purged_cache_control},
-                       options.mobileapps)}}'
   /events:
     x-modules:
       - path: sys/events.js
