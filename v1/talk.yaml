@@ -97,7 +97,7 @@ paths:
           response:
             status: 200
             headers:
-              content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Talk/0.1.0"
+              content-type: /application\/json; charset=utf-8; profile=".+Talk.+"/
               vary: /.+/
               etag: /^"[^/"]+/[^/"]+"$/
               content-security-policy: default-src
