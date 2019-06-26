@@ -12,6 +12,11 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /talk/{title}:
+    x-route-filters: &talk_title_revision_filter
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: lib/security_response_header_filter.js
     get: &talk_title_revision_get_spec
       tags:
         - Talk pages
@@ -77,12 +82,11 @@ paths:
             request:
               method: get
               headers:
-                cache-control: '{{cache-control}}'
+                accept-language: '{{accept-language}}'
               uri: '{{options.host}}/{domain}/v1/page/talk/{title}/{revision}'
             return:
               status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
+              headers: '{{ get_from_pcs.headers }}'
               body: '{{get_from_pcs.body}}'
       x-amples:
         - title: Get structured talk page for enwiki Salt article
@@ -96,8 +100,6 @@ paths:
               content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Talk/0.1.0"
               vary: /.+/
               etag: /^"[^/"]+/[^/"]+"$/
-              access-control-allow-origin: '*'
-              access-control-allow-headers: accept, x-requested-with, content-type
               content-security-policy: default-src
               x-content-security-policy: default-src
               x-frame-options: SAMEORIGIN
@@ -115,6 +117,8 @@ paths:
                     indicator: /.+/
 
   /talk/{title}/{revision}:
+    x-route-filters: 
+      <<: *talk_title_revision_filter
     get:
       <<: *talk_title_revision_get_spec
       parameters:
