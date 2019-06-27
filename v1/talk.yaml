@@ -99,9 +99,6 @@ paths:
             headers:
               content-type: /application\/json; charset=utf-8; profile=".+Talk.+"/
               etag: /^"[^/"]+/[^/"]+"$/
-              content-security-policy: default-src
-              x-content-security-policy: default-src
-              x-frame-options: SAMEORIGIN
             body:
               topics:
                 - id: /.+/
@@ -116,7 +113,7 @@ paths:
                     indicator: /.+/
 
   /talk/{title}/{revision}:
-    x-route-filters: 
+    x-route-filters:
       <<: *talk_title_revision_filter
     get:
       <<: *talk_title_revision_get_spec
