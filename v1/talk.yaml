@@ -83,7 +83,7 @@ paths:
               method: get
               headers:
                 accept-language: '{{accept-language}}'
-              uri: '{{options.host}}/{domain}/v1/page/talk/{title}/{revision}'
+              uri: '{{options.host}}/{domain}/v1/page/talk/{title}{/revision}'
             return:
               status: 200
               headers: '{{ get_from_pcs.headers }}'
@@ -139,3 +139,4 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
+    x-monitor: false
