@@ -98,7 +98,6 @@ paths:
             status: 200
             headers:
               content-type: /application\/json; charset=utf-8; profile=".+Talk.+"/
-              vary: /.+/
               etag: /^"[^/"]+/[^/"]+"$/
               content-security-policy: default-src
               x-content-security-policy: default-src
