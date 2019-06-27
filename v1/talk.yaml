@@ -88,6 +88,7 @@ paths:
               status: 200
               headers: '{{ get_from_pcs.headers }}'
               body: '{{get_from_pcs.body}}'
+      x-monitor: true
       x-amples:
         - title: Get structured talk page for enwiki Salt article
           request:
