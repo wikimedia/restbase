@@ -139,4 +139,4 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-    x-monitor: false
+      x-monitor: false
