@@ -29,6 +29,8 @@ default_project: &default_project
                     host: https://citoid-beta.wmflabs.org
                   recommendation:
                     host: https://recommendation-api-beta.wmflabs.org
+                  appeditortasks:
+                    host: https://app-editor-tasks.wmflabs.org
                   purged_cache_control: test_purged_cache_control
                   # Cache control for purged endpoints allowing short-term client caching
                   purged_cache_control_client_cache: test_purged_cache_control_with_client_caching
@@ -107,7 +109,7 @@ commons_project: &commons_project
               - path: projects/v1/default.wmf.yaml
                 options: *default_options
               - path: v1/recommend-caption.yaml
-                options: '{{options.recommendation}}'
+                options: '{{options.appeditortasks}}'
               - path: projects/proxy.yaml
                 options: *proxy_options
           /{api:sys}: *default_sys
