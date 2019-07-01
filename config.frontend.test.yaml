@@ -110,6 +110,13 @@ commons_project: &commons_project
                 options: *default_options
               - path: projects/proxy.yaml
                 options: *proxy_options
+              - spec:
+                  paths:
+                    /data:
+                      x-modules:
+                        - path: v1/recommend-caption.yaml
+                          options: '{{options.appeditortasks}}'
+                options: *default_options
           /{api:sys}: *default_sys
 
 wikidata_project: &wikidata_project
