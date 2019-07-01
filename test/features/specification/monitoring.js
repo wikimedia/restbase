@@ -26,13 +26,22 @@ function constructTestCase(title, path, method, request, response) {
     };
 }
 
+function filterPath(paths, pathStr, method) {
+    const p = paths[pathStr][method];
+    if (p['x-amples'] && typeof p['x-monitor'] === 'undefined') {
+        throw new Error (`${'A Method that contains examples should declare x-monitor: true.'
+        + ' Path: '}${pathStr} Method: ${method}`)
+    }
+    return p['x-monitor'];
+}
+
 function constructTests(spec, options, server) {
     const paths = spec.paths;
     const ret = [];
     Object.keys(paths).forEach((pathStr) => {
         if (!pathStr) { return; }
         Object.keys(paths[pathStr]).filter((method) => {
-            return paths[pathStr][method]['x-monitor'];
+            return filterPath(paths, pathStr, method);
         })
         .forEach((method) => {
             const p = paths[pathStr][method];
