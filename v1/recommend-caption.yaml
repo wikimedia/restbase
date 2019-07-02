@@ -39,23 +39,7 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/{{domain}}/v1/caption/addition/{target}'
-      x-amples:
-        - title: Caption addition suggestions
-          request:
-            params:
-              domain: commons.wikimedia.org
-              target: zh
-            response:
-              status: 200
-              headers:
-                content-type: application/json
-              body:
-                - pageid: /.+/
-                  ns: 6
-                  title: /.+/
-                  mime: /image.*/
-                  structured:
-                    captions: /.+/
+      x-monitor: false
 
   /recommendation/caption/translation/from/{source}/to/{target}:
     get:
@@ -92,24 +76,7 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/{{domain}}/v1/caption/translation/from/{source}/to/{target}'
-      x-amples:
-        - title: Caption translation suggestions
-          request:
-            params:
-              domain: commons.wikimedia.org
-              source: en
-              target: zh
-            response:
-              status: 200
-              headers:
-                content-type: application/json
-              body:
-                - pageid: /.+/
-                  ns: 6
-                  title: /.+/
-                  mime: /image.*/
-                  structured:
-                    captions: /.+/
+      x-monitor: false
 
 components:
   schemas:
