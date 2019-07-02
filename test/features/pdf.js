@@ -9,7 +9,37 @@ describe('PDF Service', () => {
     before(() => server.start());
     after(() => server.stop());
 
-    it('Should get PDF for a page', () => {
+    it('Should get PDF for a page with title', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80`,
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-disposition'],
+                'attachment; filename="%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80.pdf";'
+                    + ' filename*=UTF-8\'\'%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80.pdf');
+            assert.deepEqual(res.headers['content-type'], 'application/pdf');
+            assert.ok(/"\d+\/[\d\w-]+"/.test(res.headers.etag));
+            assert.ok(res.body.length !== 0);
+        }).timeout(100000);
+    });
+
+    it('Should get PDF for a page with title/format', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80/a4`,
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-disposition'],
+                'attachment; filename="%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80.pdf";'
+                    + ' filename*=UTF-8\'\'%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80.pdf');
+            assert.deepEqual(res.headers['content-type'], 'application/pdf');
+            assert.ok(/"\d+\/[\d\w-]+"/.test(res.headers.etag));
+            assert.ok(res.body.length !== 0);
+        }).timeout(100000);
+    });
+
+    it('Should get PDF for a page with title/format/type', () => {
         return preq.get({
             uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80/a4/desktop`,
         })
