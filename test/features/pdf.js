@@ -11,7 +11,7 @@ describe('PDF Service', () => {
 
     it('Should get PDF for a page', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/%D0%94%D0%B0%D1%80%D1%82_%D0%92%D0%B5%D0%B9%D0%B4%D0%B5%D1%80/a4/desktop`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -26,7 +26,7 @@ describe('PDF Service', () => {
 
     it('Should get PDF for a page containing a quote in its title', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/"...And_Ladies_of_the_Club"`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/pdf/"...And_Ladies_of_the_Club"/a4/desktop`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);

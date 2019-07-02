@@ -12,7 +12,7 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /pdf/{title}:
+  /pdf/{title}/{format}/{type}:
     x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
@@ -38,6 +38,20 @@ paths:
           required: true
           schema:
             type: string
+        - in: path
+          name: format
+          schema:
+            type: string
+            enum: ['a4', 'letter', 'legal']
+          required: true
+          description: PDF format
+        - in: path
+          name: type
+          schema:
+            type: string
+            enum: ['mobile', 'desktop']
+            default: desktop
+          description: PDF type - `mobile` (optimized for reading on mobile devices) or `desktop` (regular PDF). `desktop` is the default render mode and it will used if param `type` is not passed
       responses:
         200:
           description: The PDF render of an article
@@ -57,6 +71,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
+        503:
+          description: A response is unavailable because service queue is busy or full
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/problem'
         default:
           description: Error
           content:
@@ -74,7 +94,7 @@ paths:
               # Hard-coded output options will be replaced later by extending
               # the RESTBase endpoint with additional paramters. Defaults
               # will be A4 and desktop if no parameters are provided.
-              uri: '{{options.uri}}/{{domain}}/v1/pdf/{title}/a4/desktop'
+              uri: '{{options.uri}}/{{domain}}/v1/pdf/{title}/{format}/{type}'
             return:
               status: 200
               headers:
