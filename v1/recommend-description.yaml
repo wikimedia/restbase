@@ -1,0 +1,157 @@
+info:
+  version: 1.0.0
+  title: Recommendation API
+  description: Recommendation API
+  termsOfService: https://github.com/wikimedia/restbase
+  license:
+    name: Apache license, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Recommendation
+    description: contribution recommendations
+paths:
+  /recommendation/description/addition/{target}:
+    get:
+      tags:
+        - Recommendation
+      summary: Recommend Wikibase items missing a description in the target language
+      parameters:
+        - name: target
+          in: path
+          description: The target wiki language code for suggestions
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: list of candidates for description addition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/description_recommendation_result'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/{{domain}}/v1/description/addition/{target}'
+      x-amples:
+        - title: Description addition suggestions
+          request:
+            params:
+              domain: www.wikidata.org
+              target: zh
+            response:
+              status: 200
+              headers:
+                content-type: application/json
+              body:
+                - pageid: /.+/
+                  ns: 0
+                  title: /.+/
+                  wikibase_item:
+                    type: item
+                    id: /.+/
+                    labels: /.+/
+                    descriptions: /.+/
+                    sitelinks: /.+/
+      x-monitor: true
+
+  /recommendation/description/translation/from/{source}/to/{target}:
+    get:
+      tags:
+        - Recommendation
+      summary: Recommend Wikibase items with a description in the source language but missing one in the target language
+      parameters:
+        - name: source
+          in: path
+          description: The source wiki language code for suggestions
+          required: true
+          schema:
+            type: string
+        - name: target
+          in: path
+          description: The target wiki language code for suggestions
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: list of candidates for description translation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/description_recommendation_result'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/{{domain}}/v1/description/translation/from/{source}/to/{target}'
+      x-amples:
+        - title: Description translation suggestions
+          request:
+            params:
+              domain: www.wikidata.org
+              source: en
+              target: zh
+            response:
+              status: 200
+              headers:
+                content-type: application/json
+              body:
+                - pageid: /.+/
+                  ns: 0
+                  title: /.+/
+                  wikibase_item:
+                    type: item
+                    id: /.+/
+                    labels: /.+/
+                    descriptions: /.+/
+                    sitelinks: /.+/
+      x-monitor: true
+
+components:
+  schemas:
+    description_recommendation_result:
+      type: array
+      description: list of candidates for description addition or translation
+      items:
+        type: object
+        properties:
+          pageid:
+            type: integer
+            description: wiki page id
+          ns:
+            type: integer
+            description: numeric page namespace (should always be 0)
+          title:
+            type: string
+            description: page title
+          wikibase_item:
+            type: object
+            description: info about the corresponding item in Wikidata
+            properties:
+              type:
+                type: string
+                description: entity type (should always be "item")
+              id:
+                type: string
+                description: Wikibase ID (should be Q-prefixed)
+              labels:
+                type: object
+                description: item labels by language
+              descriptions:
+                type: object
+                description: item descriptions by language
+              sitelinks:
+                type: object
+                description: item sitelinks by wiki (e.g., 'dewiki')
