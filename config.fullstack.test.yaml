@@ -221,6 +221,9 @@ spec_root: &spec_root
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *wikipedia_project
+    /{domain:commons.wikimedia.beta.wmflabs.org}: *commons_project
+    /{domain:wikidata.beta.wmflabs.org}: *wikidata_project
+
     # Serbian wiki in beta for language variants tests
     /{domain:sr.wikipedia.beta.wmflabs.org}: *wikipedia_project
 
@@ -232,6 +235,7 @@ spec_root: &spec_root
           options:
             permissions:
               - read
+
     # global domain
     /{domain:wikimedia.org}: *wikimedia_project
 
