@@ -19,7 +19,10 @@ variants:
     includes: [build]
     apt: { packages: [libsqlite3-0, ca-certificates] }
     entrypoint: [npm, test]
-    runs: { environment: { TEST_TARGET: sqlite, TEST_MODE: fefs } }
+    runs:
+      environment:
+        TEST_TARGET: sqlite
+        TEST_MODE: fefs
   prep:
     includes: [build]
     node: { env: production }
