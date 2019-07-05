@@ -79,4 +79,6 @@ paths:
     x-modules:
       - path: v1/lists.js
         options: '{{options.lists}}'
+      - path: v1/recommend-description.yaml
+        options: '{{options.recommendation}}'
 

@@ -98,6 +98,37 @@ wiktionary_project: &wiktionary_project
                 options: *default_options
           /{api:sys}: *default_sys
 
+commons_project: &commons_project
+  x-modules:
+    - spec:
+        paths:
+          /{api:v1}:
+            x-modules:
+              - path: projects/v1/default.wmf.yaml
+                options: *default_options
+              - path: projects/proxy.yaml
+                options: *proxy_options
+              - spec:
+                  paths:
+                    /data:
+                      x-modules:
+                        - path: v1/recommend-caption.yaml
+                          options: '{{options.recommendation}}'
+                options: *default_options
+          /{api:sys}: *default_sys
+
+wikidata_project: &wikidata_project
+  x-modules:
+    - spec:
+        paths:
+          /{api:v1}:
+            x-modules:
+              - path: projects/v1/wikidata.wmf.yaml
+                options: *default_options
+              - path: projects/proxy.yaml
+                options: *proxy_options
+          /{api:sys}: *default_sys
+
 testing_project: &testing_project
   x-modules:
     - spec:
@@ -150,10 +181,14 @@ spec_root: &spec_root
     /{domain:ru.wikipedia.org}: *wikipedia_project
     /{domain:de.wikipedia.org}: *wikipedia_project
     /{domain:test2.wikipedia.org}: *wikipedia_project
-    /{domain:commons.wikimedia.org}: *default_project
+    /{domain:commons.wikimedia.org}: *commons_project
+    /{domain:www.wikidata.org}: *wikidata_project
 
     # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *wikipedia_project
+    /{domain:commons.wikimedia.beta.wmflabs.org}: *commons_project
+    /{domain:wikidata.beta.wmflabs.org}: *wikidata_project
+
     # Serbian wiki in beta for language variants tests
     /{domain:sr.wikipedia.beta.wmflabs.org}: *wikipedia_project
 
@@ -165,6 +200,7 @@ spec_root: &spec_root
           options:
             permissions:
               - read
+
     # global domain
     /{domain:wikimedia.org}: *wikimedia_project
 

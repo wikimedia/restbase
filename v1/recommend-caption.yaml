@@ -1,0 +1,110 @@
+info:
+  version: 1.0.0
+  title: Recommendation API
+  description: Recommendation API
+  termsOfService: https://github.com/wikimedia/restbase
+  license:
+    name: Apache license, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Recommendation
+    description: contribution recommendations
+paths:
+  /recommendation/caption/addition/{target}:
+    get:
+      tags:
+        - Recommendation
+      summary: Recommend files missing a caption (label) in the target language
+      parameters:
+        - name: target
+          in: path
+          description: The target wiki language code for suggestions
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: list of candidates for caption addition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/caption_recommendation_result'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/{{domain}}/v1/caption/addition/{target}'
+      x-monitor: false
+
+  /recommendation/caption/translation/from/{source}/to/{target}:
+    get:
+      tags:
+        - Recommendation
+      summary: Recommend files with a caption (label) in the source language but missing one in the target language
+      parameters:
+        - name: source
+          in: path
+          description: The source wiki language code for suggestions
+          required: true
+          schema:
+            type: string
+        - name: target
+          in: path
+          description: The target wiki language code for suggestions
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: list of candidates for caption translation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/caption_recommendation_result'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/{{domain}}/v1/caption/translation/from/{source}/to/{target}'
+      x-monitor: false
+
+components:
+  schemas:
+    caption_recommendation_result:
+      type: array
+      description: list of candidates for caption addition or translation
+      items:
+        type: object
+        properties:
+          pageid:
+            type: integer
+            description: wiki page id
+          ns:
+            type: integer
+            description: numeric page namespace (should always be 6)
+          title:
+            type: string
+            description: page title (with namespace prefix)
+          mime:
+            type: string
+            description: the MIME type of the file
+          structured:
+            type: object
+            description: structured data from Structured Data on Commons
+            properties:
+              captions:
+                type: object
+                description: captions, by language, from Structured Data on Commons
+          globalusage:
+            type: object
+            description: pages using this image on the source or target wiki, by language
