@@ -21,7 +21,8 @@ fi
 
 if [ "x$test_target" = "x" ] || [ "$test_target" = "sqlite" ]; then
     echo "Running with SQLite backend"
-    rm -f test.db.sqlite3
+    export RB_SQLITE_FILE=`mktemp -t sqlite.XXXXXXXXXX`
+    echo "Saving SQLite DB to ${RB_SQLITE_FILE}"
 elif [ "$test_target" = "cassandra" ]; then
     echo "Running with Cassandra backend"
     if [ `nc -z localhost 9042 < /dev/null; echo $?` != 0 ]; then

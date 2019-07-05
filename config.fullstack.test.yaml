@@ -72,7 +72,8 @@ default_project: &default_project
                               storage_groups:
                                 - name: test.group.local
                                   domains: /./
-                              dbname: test.db.sqlite3 # ignored in cassandra, but useful in SQLite testing
+                              # ignored in cassandra, but useful in SQLite testing
+                              dbname: '{env(RB_SQLITE_FILE, test.db.sqlite3)}'
 
 wikimedia_project: &wikimedia_project
   x-modules:
