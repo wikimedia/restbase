@@ -97,6 +97,7 @@ class KVBucket {
         if (mwUtil.isNoStoreRequest(req)) {
             return { status: 202 };
         }
+        delete req.headers['cache-control'];
 
         const rp = req.params;
         const tid = uuidv1();

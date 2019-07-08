@@ -56,6 +56,27 @@ describe('Key value buckets', () => {
                 assert.deepEqual(res.body, new Buffer(testData));
             });
         });
+        it('stores a content in a bucket and gets it back, no-cache and if-hash-match', () => {
+            const testData = randomString(100);
+            return preq.put({
+                uri: `${bucketBaseURI}/${testData}`,
+                headers: {
+                    'cache-control': 'no-cache',
+                    'if-none-hash-match': '*'
+                },
+                body: new Buffer(testData)
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 201);
+                return preq.get({
+                    uri: `${bucketBaseURI}/${testData}`
+                });
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(res.body, new Buffer(testData));
+            });
+        });
         it('Supports text/plain', () => {
             const testData = randomString(100);
             return preq.put({
