@@ -32,6 +32,7 @@ paths:
           - `zotero`: format used by [Zotero](https://www.zotero.org/).
           - `bibtex`: format used in conjunction with LaTeX documents.
             See [bibtex.org](http://www.bibtex.org/).
+          - `wikibase`: format designed for [Wikibase](https://www.mediawiki.org/wiki/Extension:Wikibase_Repository).
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
@@ -45,6 +46,7 @@ paths:
               - mediawiki-basefields
               - zotero
               - bibtex
+              - wikibase
           required: true
         - name: query
           in: path
