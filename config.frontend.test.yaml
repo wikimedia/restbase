@@ -139,8 +139,8 @@ testing_project: &testing_project
                 options:
                   events:
                     uri: http://127.0.0.1:8085/v1/events
-                    topic: resource_change
-                    transcludes_topic: change-prop.transcludes.resource-change
+                    stream: resource_change
+                    transcludes_stream: change-prop.transcludes.resource-change
           /{api:sys}: *default_sys
 
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?

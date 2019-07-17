@@ -5,21 +5,11 @@ const uuidv1 = require('uuid/v1');
 
 class EventService {
     constructor(options) {
-        if (options && options.eventlogging_service) {
-            // TODO: remove eventually
-            // keep compat with old config
-            options = options.eventlogging_service;
-        }
-        if (options && options.purge) {
-            // TODO: remove eventually
-            // disregard old-config purge stanzas
-            options.purge = undefined;
-        }
         this.options = options;
     }
 
     emitEvent(hyper, req) {
-        if (!(this.options && this.options.uri && this.options.topic)) {
+        if (!(this.options && this.options.uri && this.options.stream)) {
             return { status: 200 };
         }
         return P.try(() => {
@@ -30,10 +20,10 @@ class EventService {
             let triggeredBy = req.headers && req.headers['x-triggered-by'] ||
                 hyper._rootReq && hyper._rootReq.headers &&
                     hyper._rootReq.headers['x-triggered-by'];
-            let topic = this.options.topic;
-            if (triggeredBy && this.options.transcludes_topic &&
+            let stream = this.options.stream;
+            if (triggeredBy && this.options.transcludes_stream &&
                     /transcludes/.test(triggeredBy)) {
-                topic = this.options.transcludes_topic;
+                stream = this.options.transcludes_stream;
             }
 
             let events = req.body.map((event) => {
@@ -44,8 +34,9 @@ class EventService {
                     });
                     return undefined;
                 }
+                event.$schema = '/resource_change/1.0.0';
                 event.meta.uri = `http:${event.meta.uri}`;
-                event.meta.topic = topic;
+                event.meta.stream = stream;
                 event.meta.request_id = hyper.reqId;
                 event.meta.id = uuidv1();
                 event.meta.dt = new Date().toISOString();
@@ -62,7 +53,7 @@ class EventService {
             if (triggeredBy) {
                 triggeredBy = triggeredBy.replace(/https?:/g, '');
                 events = events.filter((event) => {
-                    const eventId = `${event.meta.topic}:${event.meta.uri.replace(/^https?:/, '')}`;
+                    const eventId = `${event.meta.stream}:${event.meta.uri.replace(/^https?:/, '')}`;
                     if (triggeredBy.indexOf(eventId) !== -1) {
                         hyper.logger.log('error/events/rerender_loop', {
                             message: 'Rerender loop detected',
