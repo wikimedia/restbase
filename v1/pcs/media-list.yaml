@@ -1,8 +1,8 @@
 openapi: 3.0.1
 info:
   version: 1.0.0-beta
-  title: MediaWiki page references API
-  description: API for retrieving references of a given page
+  title: MediaWiki page media API
+  description: API for retrieving data about media items appearing on a given page
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
   contact:
     name: Reading Infrastructure
@@ -11,19 +11,19 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /references/{title}:
-    x-route-filters: &references_title_filters
+  /media-list/{title}:
+    x-route-filters: &media_list_title_filters
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
       - path: lib/security_response_header_filter.js
-    get: &references_title_get_spec
+    get: &media_list_title_get_spec
       tags:
         - Page content
-      summary: Get references of a page.
+      summary: Get list of media files used on a page.
       description: |
-        Gets references of a page in a way that makes it easy to look up the details of a reference by id
-        and allow some reference lists to be rebuild.
+        Gets the list of media items (images, audio, and video) in the order in which they appear on a
+        given wiki page.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       parameters:
@@ -42,7 +42,8 @@ paths:
             type: boolean
       responses:
         200:
-          description: JSON containing a structure of references on the given page.
+          description: JSON containing metadata of media items appearing on the given
+            page.
           headers:
             ETag:
               description: |
@@ -50,9 +51,9 @@ paths:
               schema:
                 type: string
           content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/References/1.0.0":
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Media/1.3.1":
               schema:
-                $ref: '#/components/schemas/references_response'
+                $ref: '#/components/schemas/media_list'
         301:
           description: |
             A permanent redirect is returned if the supplied article title was not in the normalized form.
@@ -81,25 +82,13 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/references/{title}/{revision}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
+      operationId: getContent
       x-monitor: false
 
-  /references/{title}/{revision}:
-    x-route-filters: 
-      <<: *references_title_filters
+  /media-list/{title}/{revision}:
+    x-route-filters: *media_list_title_filters
     get:
-      <<: *references_title_get_spec
+      <<: *media_list_title_get_spec
       parameters:
         - name: title
           in: path
@@ -121,114 +110,84 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-
-# copied from MCS spec.yaml
+      operationId: getContentWithRevision
+      x-monitor: false
 components:
   schemas:
-    references_response:
+    titles_set:
       type: object
-      description: Reference lists and references
+      properties:
+        canonical:
+          type: string
+          description: the DB key (non-prefixed)
+        normalized:
+          type: string
+          description: the normalized title (https://www.mediawiki.org/wiki/API:Query#Title_normalization)
+        display:
+          type: string
+          description: the title as it should be displayed to the user
+      required:
+        - canonical
+        - normalized
+        - display
+
+    media_list:
+      type: object
       properties:
         revision:
           type: string
-          description: revision ID for the page
+          description: the revision ID used to create the list
         tid:
           type: string
-          description: time UUID for the page/revision
-        reference_lists:
-          $ref: '#/components/schemas/reference_lists'
-        references_by_id:
-          $ref: '#/components/schemas/references_by_id'
+          description: the time uuid of the page rendering used to create the list
+        items:
+          type: array
+          description: a list of media items
+          items:
+            $ref: '#/components/schemas/media_item'
       required:
+        - items
         - revision
         - tid
-        - reference_lists
-        - references_by_id
 
-    reference_lists:
-      type: array
-      description: A list of reference lists
-      items:
-        $ref: '#/components/schemas/reference_list'
-
-    reference_list:
+    media_item:
       type: object
-      description: A single reference list
       properties:
-        id:
+        title:
           type: string
-          nullable: true
-          description: Identifier for the whole reference list. May be null.
-        section_heading:
-          type: object
-          description: |
-            Object containing information about the section heading this reference list
-            is shown in.
-          properties:
-            id:
-              type: string
-              description: Identifier for the section, which can be used to link to
-                it
-            html:
-              type: string
-              description: HTML content of section heading
-        order:
-          type: array
-          description: |
-            List of identifiers for individual references, which can be used to lookup
-            the reference details in references_by_id.
-          items:
-            type: string
-      required:
-        - id
-        - order
-
-    references_by_id:
-      type: object
-      description: A map of reference ids to reference details
-      properties:
-        default:
-          $ref: '#/components/schemas/reference_detail_item'
-
-    reference_detail_item:
-      type: object
-      description: Information about one reference
-      properties:
-        back_links:
-          type: array
-          description: A list of back links, can be empty in rare cases
-          items:
-            $ref: '#/components/schemas/reference_detail_item_back_link'
-        content:
+          description: The file page title
+        type:
+          type: string
+          enum:
+            - image
+            - video
+            - audio
+        section_id:
+          type: integer
+          description: section ID in which the item is found on the page
+        showInGallery:
+          type: boolean
+          description: whether the client should show the file in an image gallery presentation
+        caption:
           type: object
           properties:
             html:
               type: string
-              description: HTML representation of the reference content
-            type:
+              description: on-wiki caption for the media item, including all HTML markup
+            text:
               type: string
-              enum:
-                - generic
-                - book
-                - journal
-                - news
-                - web
-              description: Known citation type if there is exactly one cite tag, else
-                'generic'
-
-    reference_detail_item_back_link:
-      type: object
-      description: Information about one link back to where on the page a given reference
-        was used 
-      properties:
-        href:
-          type: string
-          description: Relative URL pointing to anchor on same page
-        text:
-          type: string
-          description: |
-            Either an arrow for a single back link or another (usually single) chararacter
-            to distinguish multiple back links.
+              description: plain text of the on-wiki caption for the media item
+        original:
+          type: object
+          description: reference to a Mathoid-rendered math formula image
+          properties:
+            source:
+              type: string
+              description: Mathoid image render URL
+            mime:
+              type: string
+              description: the Mathoid image mime type
       required:
-        - href
-        - text
+        - type
+        - section_id
+        - showInGallery

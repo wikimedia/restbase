@@ -80,22 +80,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/metadata/{title}/{revision}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
+      operationId: getContent
       x-monitor: false
 
   /metadata/{title}/{revision}:
-    x-route-filters: 
+    x-route-filters:
       <<: *metadata_title_filters
     get:
       <<: *metadata_title_get_spec
@@ -120,6 +109,7 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
+      operationId: getContentWithRevision
 components:
   schemas:
     metadata:
