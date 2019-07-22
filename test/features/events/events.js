@@ -38,7 +38,7 @@ describe('Change event emitting', () => {
                         assert.deepEqual(!!new Date(event.meta.dt), true);
                         assert.deepEqual(uuidUtils.test(event.meta.id), true);
                         assert.deepEqual(uuidUtils.test(event.meta.request_id), true);
-                        assert.deepEqual(event.meta.topic, eventOptions.topic);
+                        assert.deepEqual(event.meta.stream, eventOptions.stream);
                         assert.deepEqual(event.meta.uri, eventOptions.uri);
                         assert.deepEqual(event.tags, ['test', 'restbase']);
                         if (eventOptions.trigger) {
@@ -70,7 +70,7 @@ describe('Change event emitting', () => {
         }
 
         eventLogging = createEventLogging(really_done, {
-            topic: 'resource_change',
+            stream: 'resource_change',
             uri: 'http://fake.wikipedia.org/wiki/User:Pchelolo'
         });
 
@@ -109,7 +109,7 @@ describe('Change event emitting', () => {
         }
 
         eventLogging = createEventLogging(really_done, {
-            topic: 'change-prop.transcludes.resource-change',
+            stream: 'change-prop.transcludes.resource-change',
             uri: 'http://fake.wikipedia.org/api/rest_v1/page/html/User:Pchelolo',
             trigger: 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://fake.wikipedia.org/wiki/User:Pchelolo'
         });
@@ -148,7 +148,7 @@ describe('Change event emitting', () => {
         }
 
         eventLogging = createEventLogging(really_done, {
-            topic: 'resource_change',
+            stream: 'resource_change',
             uri: 'http://fake.wikipedia.org/wiki/User:Pchelolo',
             trigger: 'resource_change:https://fake.wikipedia.org/wiki/Prohibited'
         });
