@@ -88,4 +88,28 @@ describe('router - misc', function() {
             assert.deepEqual(res.body, '');
         });
     });
+
+    it('should only use unique operationId', () => {
+        return preq.get({
+            uri: `${server.config.baseURL()}/?spec`
+        })
+        .then((res) => {
+            const spec = res.body;
+            const operations = [];
+            Object.keys(spec.paths).forEach((path) => {
+               const pathSpec = spec.paths[path];
+               Object.keys(pathSpec).forEach((method) => {
+                   const operationId = pathSpec[method].operationId;
+                   if (operationId) {
+                       if (operations.includes(operationId)) {
+                           throw new assert.AssertionError({
+                               message: `Duplicated operationId ${operationId} at path ${path}:${method}`
+                            });
+                       }
+                       operations.push(operationId);
+                   }
+               })
+            });
+        })
+    });
 });

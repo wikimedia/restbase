@@ -82,7 +82,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      operationId: getContent
+      operationId: getContent-media-list
       x-monitor: true
       x-amples:
         - title: Get media-list from storage
@@ -128,7 +128,7 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-      operationId: getContentWithRevision
+      operationId: getContentWithRevision-media-list
       x-monitor: false
 
 components:
