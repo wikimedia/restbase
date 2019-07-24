@@ -27,7 +27,7 @@ env:
 before_install:
   - wget https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -P ../
   - tar -xzf ../apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz -C ../
-  - export JAVA_HOME="/usr/lib/jvm/java-8-oracle" PATH=`pwd`/../apache-cassandra-${CASSANDRA_VERSION}/bin:$PATH
+  - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" PATH=`pwd`/../apache-cassandra-${CASSANDRA_VERSION}/bin:$PATH
   - mkdir -p ../apache-cassandra-${CASSANDRA_VERSION}/logs
   - echo "-Xms256m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - echo "-Xmx512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
