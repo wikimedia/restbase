@@ -81,7 +81,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/problem'
       operationId: getContent
-      x-monitor: false
+      x-monitor: true
+      x-amples:
+        - title: Get metadata from storage
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^application\/json/
+            body:
+              revision: /.+/
+              tid: /.+/
+              hatnotes:
+                - section: /.+/
+                  html: /.+/
+              toc:
+                title: /.+/
+                entries:
+                  - level: /.+/
+                    section: /.+/
+                    number: /.+/
+                    anchor: /.+/
+                    html: /.+/
+              protection:
+                edit: [ /.+/ ]
+                move: [ /.+/ ]
 
   /metadata/{title}/{revision}:
     x-route-filters:
@@ -110,6 +138,8 @@ paths:
           schema:
             type: boolean
       operationId: getContentWithRevision
+      x-monitor: false
+
 components:
   schemas:
     metadata:

@@ -90,6 +90,12 @@ class PCSEndpoint {
                 return res;
             }
             const revision = mwUtils.parseETag(res.headers.etag).rev;
+            let bodyToStore;
+            if (/^application\/json.*/.test(res.headers['content-type'])) {
+                bodyToStore = Buffer.from(JSON.stringify(res.body));
+            } else {
+                bodyToStore = Buffer.from(res.body);
+            }
             return hyper.put({
                 uri: new URI([rp.domain, 'sys', 'key_value', this._options.name, rp.title]),
                 headers: {
@@ -99,7 +105,7 @@ class PCSEndpoint {
                     'x-store-content-type': res.headers['content-type'],
                     'x-store-vary': res.headers.vary
                 },
-                body: Buffer.from(JSON.stringify(res.body))
+                body: bodyToStore
             })
             .tap(() => this._purgeURIs(hyper, req, revision))
             .thenReturn(res);

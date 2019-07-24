@@ -83,7 +83,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/problem'
       operationId: getContent
-      x-monitor: false
+      x-monitor: true
+      x-amples:
+        - title: Get media-list from storage
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^application\/json/
+            body:
+              revision: /\d+/
+              tid: /.+/
+              items:
+                - type: /.+/
+                  section_id: /\d+/
+                  showInGallery: /.+/
 
   /media-list/{title}/{revision}:
     x-route-filters: *media_list_title_filters
@@ -112,6 +130,7 @@ paths:
             type: boolean
       operationId: getContentWithRevision
       x-monitor: false
+
 components:
   schemas:
     titles_set:

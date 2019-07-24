@@ -109,7 +109,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/problem'
       operationId: getContent
-      x-monitor: false
+      x-monitor: true
+      x-amples:
+        - title: Get mobile-html from storage
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^text\/html.+/
+            body: /^<!DOCTYPE html>.*/
 
   /mobile-html/{title}/{revision}:
     x-route-filters:
@@ -138,3 +150,4 @@ paths:
           schema:
             type: boolean
       operationId: getContentWithRevision
+      x-monitor: false
