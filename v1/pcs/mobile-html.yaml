@@ -108,7 +108,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      operationId: getContent
+      operationId: getContent-mobile-html
       x-monitor: true
       x-amples:
         - title: Get mobile-html from storage
@@ -149,5 +149,5 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-      operationId: getContentWithRevision
+      operationId: getContentWithRevision-mobile-html
       x-monitor: false

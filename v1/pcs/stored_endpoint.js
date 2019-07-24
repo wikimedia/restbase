@@ -122,8 +122,8 @@ module.exports = (options) => {
     return {
         spec,
         operations: {
-            getContent: pcs.getContent.bind(pcs),
-            getContentWithRevision: pcs.getContent.bind(pcs)
+            [`getContent-${options.name}`]: pcs.getContent.bind(pcs),
+            [`getContentWithRevision-${options.name}`]: pcs.getContent.bind(pcs)
         },
         resources: [
             { uri: `/{domain}/sys/key_value/${options.name}` }

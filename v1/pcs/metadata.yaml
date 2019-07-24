@@ -80,7 +80,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      operationId: getContent
+      operationId: getContent-metadata
       x-monitor: true
       x-amples:
         - title: Get metadata from storage
@@ -137,7 +137,7 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-      operationId: getContentWithRevision
+      operationId: getContentWithRevision-metadata
       x-monitor: false
 
 components:
