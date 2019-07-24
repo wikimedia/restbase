@@ -81,22 +81,32 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/references/{title}/{revision}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: false
+      operationId: getContent
+      x-monitor: true
+      x-amples:
+        - title: Get references from storage
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^application\/json/
+            body:
+              revision: /.+/
+              tid: /.+/
+              reference_lists:
+                - id: /.*/
+                  section_heading:
+                    id: /.+/
+                    html: /.+/
+                  order: [ /.*/ ]
+              references_by_id: /.+/
 
   /references/{title}/{revision}:
-    x-route-filters: 
+    x-route-filters:
       <<: *references_title_filters
     get:
       <<: *references_title_get_spec
@@ -121,6 +131,8 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
+      operationId: getContentWithRevision
+      x-monitor: false
 
 # copied from MCS spec.yaml
 components:
@@ -219,7 +231,7 @@ components:
     reference_detail_item_back_link:
       type: object
       description: Information about one link back to where on the page a given reference
-        was used 
+        was used
       properties:
         href:
           type: string

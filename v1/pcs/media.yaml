@@ -84,16 +84,15 @@ paths:
                 $ref: '#/components/schemas/problem'
       x-request-handler:
         - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media/{title}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
+           request:
+             method: get
+             headers:
+               cache-control: '{{cache-control}}'
+             uri: '{{options.host}}/{domain}/v1/page/media/{title}'
+           return:
+             status: 200
+             headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
+             body: '{{get_from_pcs.body}}'
       x-monitor: false
 
   /media/{title}/{revision}:
@@ -123,140 +122,16 @@ paths:
           schema:
             type: boolean
       x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media/{title}/{revision}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: false
-
-  /media-list/{title}:
-    x-route-filters: &media_list_title_filters
-      - path: ./lib/access_check_filter.js
-        options:
-          redirect_cache_control: '{{options.response_cache_control}}'
-      - path: lib/security_response_header_filter.js
-    get: &media_list_title_get_spec
-      tags:
-        - Page content
-      summary: Get list of media files used on a page.
-      description: |
-        Gets the list of media items (images, audio, and video) in the order in which they appear on a
-        given wiki page.
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      parameters:
-        - name: title
-          in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
-          required: true
-          schema:
-            type: string
-        - name: redirect
-          in: query
-          description: |
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
-            To get a 200 response instead, supply `false` to the `redirect` parameter.
-          schema:
-            type: boolean
-      responses:
-        200:
-          description: JSON containing metadata of media items appearing on the given
-            page.
-          headers:
-            ETag:
-              description: |
-                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
-              schema:
-                type: string
-          content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Media/1.3.1":
-              schema:
-                $ref: '#/components/schemas/media_list'
-        301:
-          description: |
-            A permanent redirect is returned if the supplied article title was not in the normalized form.
-            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
-            title normalization client-side.
-
-            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
-            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        302:
-          description: |
-            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
-            The `location` header points to the redirect target.
-            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
-
-            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
-            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
-        404:
-          description: Unknown page title
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/problem'
-        default:
-          description: Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: false
-
-  /media-list/{title}/{revision}:
-    x-route-filters: *media_list_title_filters
-    get:
-      <<: *media_list_title_get_spec
-      parameters:
-        - name: title
-          in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
-          required: true
-          schema:
-            type: string
-        - name: revision
-          in: path
-          description: |
-            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
-          required: true
-          schema:
-            type: integer
-        - name: redirect
-          in: query
-          description: |
-            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
-            To get a 200 response instead, supply `false` to the `redirect` parameter.
-          schema:
-            type: boolean
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: '{{options.host}}/{domain}/v1/page/media-list/{title}/{revision}'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: false
+       - get_from_pcs:
+           request:
+             method: get
+             headers:
+               cache-control: '{{cache-control}}'
+             uri: '{{options.host}}/{domain}/v1/page/media/{title}/{revision}'
+           return:
+             status: 200
+             headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
+             body: '{{get_from_pcs.body}}'
 components:
   schemas:
     media_list_with_metadata:
@@ -371,7 +246,7 @@ components:
           required:
             - html
         credit:
-          type: string
+          type: object
           description: source of the media item
         license:
           type: object
@@ -424,64 +299,3 @@ components:
         - canonical
         - normalized
         - display
-
-    media_list:
-      type: object
-      properties:
-        revision:
-          type: string
-          description: the revision ID used to create the list
-        tid:
-          type: string
-          description: the time uuid of the page rendering used to create the list
-        items:
-          type: array
-          description: a list of media items
-          items:
-            $ref: '#/definitions/media_item'
-      required:
-        - items
-        - revision
-        - tid
-
-    media_item:
-      type: object
-      properties:
-        title:
-          type: string
-          description: The file page title
-        type:
-          type: string
-          enum:
-            - image
-            - video
-            - audio
-        section_id:
-          type: integer
-          description: section ID in which the item is found on the page
-        showInGallery:
-          type: boolean
-          description: whether the client should show the file in an image gallery presentation
-        caption:
-          type: object
-          properties:
-            html:
-              type: string
-              description: on-wiki caption for the media item, including all HTML markup
-            text:
-              type: string
-              description: plain text of the on-wiki caption for the media item
-        original:
-          type: object
-          description: reference to a Mathoid-rendered math formula image
-          properties:
-            source:
-              type: string
-              description: Mathoid image render URL
-            mime:
-              type: string
-              description: the Mathoid image mime type
-      required:
-        - type
-        - section_id
-        - showInGallery
