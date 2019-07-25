@@ -3,7 +3,7 @@
 # - sqlite backend
 # - parsoid at http://localhost:8142
 # - wiki at http://localhost/w/api.php
-# 
+#
 # Quick setup:
 # - npm install
 #   If you see errors about sqlite, you might have to `apt-get install
@@ -19,7 +19,7 @@
 services:
   - name: restbase
     module: hyperswitch
-    conf: 
+    conf:
       port: 7231
       salt: secret
       default_page_size: 125
@@ -61,6 +61,9 @@ services:
                     retry_delay: 250
                     retry_limit: 10
                     show_sql: false
+                    storage_groups:
+                      - name: local
+                        domains: /./
                   mobileapps:
                     host: https://appservice.wmflabs.org
                   purged_cache_control: s-maxage=0, max-age=86400
