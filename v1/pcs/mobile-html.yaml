@@ -19,6 +19,7 @@ paths:
       - path: lib/security_response_header_filter.js
         options:
           mobile_html: true
+      - path: ./lib/language_variants_filter.js
     get: &mobile-html_title_revision_get_spec
       tags:
         - Page content
