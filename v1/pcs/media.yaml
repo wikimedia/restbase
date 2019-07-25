@@ -88,6 +88,7 @@ paths:
              method: get
              headers:
                cache-control: '{{cache-control}}'
+               accept-language: '{{accept-language}}'
              uri: '{{options.host}}/{domain}/v1/page/media/{title}'
            return:
              status: 200
