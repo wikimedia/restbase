@@ -25,6 +25,9 @@ paths:
 
   /{api:sys}:
     x-modules:
+      - path: projects/proxy.yaml
+        options:
+          backend_host_template: '{{"/{domain}/sys/legacy"}}'
       - spec:
           paths:
             /table: &sys_table
@@ -32,10 +35,10 @@ paths:
                 - path: sys/table.js
                   options:
                     conf: '{{options.table}}'
-            /key_value: &sys_key_value
+            /legacy/key_value: &sys_key_value
               x-modules:
                 - path: sys/key_value.js
-            /page_revisions:
+            /legacy/page_revisions:
               x-modules:
                 - path: sys/page_revisions.js
             /post_data:
