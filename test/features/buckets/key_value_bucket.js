@@ -43,7 +43,7 @@ describe('Key value buckets', () => {
             const testData = randomString(100);
             return preq.put({
                 uri: `${bucketBaseURI}/${testData}`,
-                body: new Buffer(testData)
+                body: Buffer.from(testData)
             })
             .then((res) => {
                 assert.deepEqual(res.status, 201);
@@ -53,7 +53,7 @@ describe('Key value buckets', () => {
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body, new Buffer(testData));
+                assert.deepEqual(res.body, Buffer.from(testData));
             });
         });
         it('stores a content in a bucket and gets it back, no-cache and if-hash-match', () => {
@@ -64,7 +64,7 @@ describe('Key value buckets', () => {
                     'cache-control': 'no-cache',
                     'if-none-hash-match': '*'
                 },
-                body: new Buffer(testData)
+                body: Buffer.from(testData)
             })
             .then((res) => {
                 assert.deepEqual(res.status, 201);
@@ -74,7 +74,7 @@ describe('Key value buckets', () => {
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.body, new Buffer(testData));
+                assert.deepEqual(res.body, Buffer.from(testData));
             });
         });
         it('Supports text/plain', () => {
@@ -119,7 +119,7 @@ describe('Key value buckets', () => {
                     'x-store-preserved': 'this_will_be_stored',
                     'non-preserved': 'this_will_not_be_stored'
                 },
-                body: new Buffer(testData)
+                body: Buffer.from(testData)
             })
             .then((res) => {
                 assert.deepEqual(res.status, 201);
@@ -142,7 +142,7 @@ describe('Key value buckets', () => {
                 uuidv1() ];
             return P.each(etags, (etag) => preq.put({
                     uri: `${bucketBaseURI}/List_Test_1`,
-                    body: new Buffer(testData),
+                    body: Buffer.from(testData),
                     headers: {
                         'if-none-hash-match': '*',
                         'x-store-etag': etag
