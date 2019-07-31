@@ -144,7 +144,7 @@ class MathoidService {
             if (format === 'png' && reqObj.body && reqObj.body.type === 'Buffer') {
                 // for png, we need to convert the encoded data manually
                 // because we are receiving it wrapped inside a JSON
-                reqObj.body = new Buffer(reqObj.body.data);
+                reqObj.body = Buffer.from(reqObj.body.data);
                 completeBody[format].body = reqObj.body;
             }
             // store the emit Promise
