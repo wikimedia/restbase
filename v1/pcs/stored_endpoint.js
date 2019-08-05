@@ -42,7 +42,7 @@ class PCSEndpoint {
         .then((siteInfo) => {
             const path = `${siteInfo.baseUri}/page/${this._options.name}`.replace(/^https?:/, '');
             const title = encodeURIComponent(rp.title);
-            let purgeEvents = [
+            const purgeEvents = [
                 {
                     meta: {
                         uri: `${path}/${title}/${revision}`
