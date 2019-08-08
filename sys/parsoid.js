@@ -659,7 +659,8 @@ class ParsoidService {
                 'content-type': 'application/json',
                 'user-agent': req['user-agent'],
                 'content-language': req.headers['content-language'],
-                accept: req.headers.accept
+                accept: req.headers.accept,
+                'accept-language': req.headers['accept-language']
             },
             body: req.body
         };

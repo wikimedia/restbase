@@ -1,0 +1,81 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0-beta
+  title: MediaWiki page mobile-html API
+  description: API for retrieving page content for reading purposes
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+tags:
+  - name: Transforms
+    description: convert content between HTML and Wikitext
+paths:
+  /wikitext/to/mobile-html/{title}:
+    post:
+      tags:
+        - Transforms
+      summary: Transform Wikitext to Mobile HTML
+      description: |
+        Transform wikitext to Mobile HTML.
+
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        - Rate limit: 25 req/s (5 req/s when `stash: true`)
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+        - name: Accept-Language
+          in: header
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - wikitext
+              properties:
+                wikitext:
+                  type: string
+                  description: The Wikitext to transform to HTML
+                  x-textarea: true
+        required: true
+      responses:
+        200:
+          description: See wikipage https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec
+          content:
+            text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML/1.0.0":
+              schema:
+                type: string
+        404:
+          description: Unknown page title
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 10
+              external: 25
+      operationId: transformWikitextToMobileHtml
+      x-monitor: false
+
+
