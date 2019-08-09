@@ -19,7 +19,7 @@ class Citoid {
             acceptLanguagePromise = mwUtil.getSiteInfo(hyper, req).get('general').get('lang');
         }
         return acceptLanguagePromise.then((acceptLanguage) => {
-            let reqURI = `${this._options.host}/api?format=${rp.format}&` +
+            const reqURI = `${this._options.host}/api?format=${rp.format}&` +
                 `search=${encodeURIComponent(rp.query)}`;
 
             return hyper.get({
