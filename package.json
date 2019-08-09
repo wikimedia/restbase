@@ -62,7 +62,7 @@
     "nock": "^10.0.6",
     "nyc": "^14.1.1",
     "openapi-schema-validator": "^3.0.3",
-    "preq": "^0.5.9",
+    "preq": "^0.5.11",
     "restbase-mod-table-sqlite": "^1.2.1"
   },
   "engines": {
