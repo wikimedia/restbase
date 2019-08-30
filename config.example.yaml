@@ -42,32 +42,75 @@ services:
                   forward_headers: true
                 - pattern: /^https?:\/\//
         paths:
-          /{domain:localhost}:
+          /{domain:localhost}/{api:v1}:
             x-modules:
-              - path: projects/example.yaml
+              - spec:
+                  info:
+                    version: 1.0.0
+                    title: Wikimedia REST API
+                    description: Welcome to your RESTBase API.
+                  x-route-filters:
+                    - path: ./lib/normalize_title_filter.js
+                      options:
+                        redirect_cache_control: 's-maxage=0, max-age=86400'
+                  paths:
+                    /page:
+                      x-modules:
+                        - path: v1/content.yaml
+                          options:
+                            response_cache_control: 's-maxage=0, max-age=86400'
+                        - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
+                    /transform:
+                      x-modules:
+                        - path: v1/transform.yaml
+
+          /{domain:localhost}/{api:sys}:
+            x-modules:
+              - path: projects/proxy.yaml
                 options:
-                  action:
-                    # XXX Check API URL!
-                    apiUriTemplate: http://localhost/w/api.php
-                    # XXX Check the base RESTBase URI
-                    baseUriTemplate: "{{'http://{domain}:7231/{domain}/v1'}}"
-                  parsoid:
-                    # XXX Check Parsoid URL!
-                    host: http://localhost:8142
-                  table:
-                    backend: sqlite
-                    dbname: db.sqlite3
-                    pool_idle_timeout: 20000
-                    retry_delay: 250
-                    retry_limit: 10
-                    show_sql: false
-                    storage_groups:
-                      - name: local
-                        domains: /./
-                  mobileapps:
-                    host: https://appservice.wmflabs.org
-                  purged_cache_control: s-maxage=0, max-age=86400
-                  purged_cache_control_client_cache: s-maxage=0, max-age=300
+                  backend_host_template: '{{"/{domain}/sys/legacy"}}'
+              - spec:
+                  paths:
+                    /table:
+                      x-modules:
+                        - path: sys/table.js
+                          options:
+                            conf:
+                              backend: sqlite
+                              dbname: db.sqlite3
+                              pool_idle_timeout: 20000
+                              retry_delay: 250
+                              retry_limit: 10
+                              show_sql: false
+                              storage_groups:
+                                - name: local
+                                  domains: /./
+                    /legacy/key_value:
+                      x-modules:
+                        - path: sys/key_value.js
+                    /legacy/page_revisions:
+                      x-modules:
+                        - path: sys/page_revisions.js
+                    /post_data:
+                      x-modules:
+                        - path: sys/post_data.js
+                    /action:
+                      x-modules:
+                        - path: sys/action.js
+                          options:
+                            # XXX Check API URL!
+                            apiUriTemplate: http://localhost/w/api.php
+                            # XXX Check the base RESTBase URI
+                            baseUriTemplate: "{{'http://{domain}:7231/{domain}/v1'}}"
+                    /page_save:
+                      x-modules:
+                        - path: sys/page_save.js
+                    /parsoid:
+                      x-modules:
+                        - path: sys/parsoid.js
+                          options:
+                            parsoidHost: http://localhost:8142
+                            response_cache_control: 's-maxage=0, max-age=86400'
 
 # Finally, a standard service-runner config.
 info:
