@@ -86,61 +86,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      x-setup-handler:
-        # Set up a simple key-value bucket.
-        - init:
-            method: put
-            uri: /{domain}/sys/key_value/term.definition-ng
-            headers:
-              content-type: application/json
-            body:
-              valueType: json
       x-request-handler:
-        - storage:
-            request:
-              method: get
-              headers:
-                cache-control: '{{cache-control}}'
-              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
-            catch:
-              status: 404
-            return_if:
-              # Typical case: Return straight from storage.
-              status: 2xx
-            return:
-              status: 200
-              headers:
-                content-type: '{{storage.headers.content-type}}'
-                etag: '{{storage.headers.etag}}'
-                cache-control: '{{options.response_cache_control}}'
-                content-language: '{{storage.headers.content-language}}'
-                vary: '{{storage.headers.vary}}'
-              body: '{{storage.body}}'
-        # Storage miss. Call mobile content service to get the definition.
         - extract:
             request:
               method: get
               uri: '{{$$.options.host}}/{domain}/v1/page/definition/{term}'
-        - store:
-            request:
-              method: put
-              uri: /{domain}/sys/key_value/term.definition-ng/{request.params.term}
-              headers:
-                content-type: 'application/json'
-                if-none-hash-match: '*'
-                cache-control: '{{request.headers.cache-control}}'
-                x-store-etag: '{{extract.headers.etag}}'
-                x-store-content-language: '{{extract.headers.content-language}}'
-                x-store-content-type: '{{extract.headers.content-type}}'
-                x-store-vary: '{{extract.headers.vary}}'
-              body: '{{extract.body}}'
-            # With the if-none-hash-match header the storage will return 412
-            # if the content is not changed. In that case, return from the
-            # handler completely, and avoid issuing purges.
-            catch:
-              status: 412
-            return_if:
-              status: 412
             return:
               status: 200
               headers:
@@ -150,35 +100,7 @@ paths:
                 content-type: '{{extract.headers.content-type}}'
                 vary: '{{extract.headers.vary}}'
               body: '{{extract.body}}'
-        - emit_change_event:
-            request:
-              method: post
-              uri: /{domain}/sys/events/
-              body:
-                - meta:
-                    uri: //{request.params.domain}/api/rest_v1/page/definition/{request.params.title}
-            return:
-              status: 200
-              headers:
-                etag: '{{extract.headers.etag}}'
-                cache-control: '{{options.response_cache_control}}'
-                content-language: '{{extract.headers.content-language}}'
-                content-type: '{{extract.headers.content-type}}'
-                vary: '{{extract.headers.vary}}'
-              body: '{{extract.body}}'
-
-      x-monitor: true
-      x-amples:
-        - title: Get definition from storage
-          request:
-            params:
-              domain: en.wiktionary.org
-              term: cat
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: /^application\/json/
+      x-monitor: false
 
 components:
   schemas:
