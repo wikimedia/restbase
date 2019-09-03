@@ -8,6 +8,7 @@ default_project: &default_project
                 options: &default_options
                   parsoid:
                     host: https://parsoid-beta.wmflabs.org
+                    host_php: https://parsoid-beta.wmflabs.org
                     grace_ttl: 1000000
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"

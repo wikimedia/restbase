@@ -54,7 +54,7 @@ function extractTidMeta(html) {
  *  in `if-unmodified-since` header of the request
  * @param  {Object} req the request
  * @param  {Object} res the response
- * @return {boolean}    true if content has beed modified
+ * @return {boolean}    true if content has been modified
  */
 function isModifiedSince(req, res) {
     try {
@@ -125,10 +125,11 @@ class ParsoidService {
     _initOpts(opts = {}) {
         this.options = opts;
         this.parsoidHost = opts.parsoidHost;
+        this.bucketName = opts.bucketName || 'parsoid';
         this.options.stash_ratelimit = opts.stash_ratelimit || 5;
         this.options.grace_ttl = opts.grace_ttl || 86400;
         this._blacklist = compileReRenderBlacklist(opts.rerenderBlacklist);
-        if (!opts.parsoidHost) {
+        if (!this.parsoidHost) {
             throw new Error('Parsoid module: the option parsoidHost must be provided!');
         }
     }
@@ -170,7 +171,7 @@ class ParsoidService {
      */
     getLatestBucketURI(domain, title) {
         return new URI([
-            domain, 'sys', 'key_value', 'parsoid', title
+            domain, 'sys', 'key_value', this.bucketName, title
         ]);
     }
 
@@ -186,7 +187,7 @@ class ParsoidService {
      */
     getStashBucketURI(domain, title, revision, tid) {
         return new URI([
-            domain, 'sys', 'key_value', 'parsoid-stash', `${title}:${revision}:${tid}`
+            domain, 'sys', 'key_value', `${this.bucketName}-stash`, `${title}:${revision}:${tid}`
         ]);
     }
 
@@ -799,7 +800,7 @@ module.exports = (options) => {
         // Dynamic resource dependencies, specific to implementation
         resources: [
             {
-                uri: '/{domain}/sys/key_value/parsoid',
+                uri: `/{domain}/sys/key_value/${ps.bucketName}`,
                 headers: {
                     'content-type': 'application/json'
                 },
@@ -808,7 +809,7 @@ module.exports = (options) => {
                 }
             },
             {
-                uri: '/{domain}/sys/key_value/parsoid-stash',
+                uri: `/{domain}/sys/key_value/${ps.bucketName}-stash`,
                 headers: {
                     'content-type': 'application/json'
                 },

@@ -52,8 +52,10 @@ services:
                     # XXX Check the base RESTBase URI
                     baseUriTemplate: "{{'http://{domain}:7231/{domain}/v1'}}"
                   parsoid:
-                    # XXX Check Parsoid URL!
+                    # XXX Check Parsoid/JS URL!
                     host: http://localhost:8142
+                    # XXX Check Parsoid/PHP URL!
+                    host_php: http://localhost:8142
                   table:
                     backend: sqlite
                     dbname: db.sqlite3

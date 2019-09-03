@@ -11,9 +11,13 @@ paths:
       - path: sys/page_save.js
   /parsoid:
     x-modules:
-      - path: sys/parsoid.js
-        options:
+      - path: sys/parsoid_proxy.js
+  /parsoidjs:
+    x-modules:
+      - path: sys/parsoid.js 
+        options: &parsoidopts
           parsoidHost: '{{options.parsoid.host}}'
+          bucketName: 'parsoid'
           response_cache_control: '{{options.purged_cache_control}}'
           grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
           # A list of pages that we don't currently want to re-render on
@@ -116,6 +120,13 @@ paths:
               - '/Commons:Undeletion_requests\//'
               - '/Commons:WikiProject_Aviation\/recent_uploads\//'
               - '/^(?:User|Benutzer):/'
+  /parsoidphp:
+    x-modules:
+      - path: sys/parsoid.js
+        options:
+          <<: *parsoidopts
+          parsoidHost: '{{options.parsoid.host_php}}'
+          bucketName: 'parsoidphp'
   /events:
     x-modules:
       - path: sys/events.js
