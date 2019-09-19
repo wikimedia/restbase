@@ -545,6 +545,14 @@ class ParsoidService {
                     hyper.logger.log('error/parsoid/etag_mismatch', {
                         msg: 'Client-supplied etag did not match mw:TimeUuid!'
                     });
+                } else if (tid && etag.tidSuffix) {
+                    // T230272: the TID has a suffix, just log this
+                    // occurrence and continue with the original value
+                    hyper.logger.log('warn/parsoid/etag_tidsuffix', {
+                        msg: 'Client-supplied etag TID has a suffix',
+                        tid,
+                        suffix: etag.tidSuffix
+                    });
                 } else if (!tid) {
                     tid = htmlTid;
                     hyper.logger.log('warn/parsoid/etag', {
