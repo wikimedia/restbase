@@ -1,8 +1,0 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: restbase
-Source: <https://github.com/gwicke/restbase>
-
-Files: *
-Copyright: 2011- The RESTBase authors, see src/COPYING.
-License: AGPL-3.0+
-
