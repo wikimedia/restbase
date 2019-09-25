@@ -5,7 +5,7 @@ const Server = require('../utils/server.js');
 const preq   = require('preq');
 
 function assertMCSRequest(content, date, expected) {
-    const serviceURI = 'https://wikifeeds.wmflabs.org';
+    const serviceURI = 'https://mobileapps.wmflabs.org';
     let path = `/en.wikipedia.org/v1/${content}`;
     if (date) {
         path += `/${date}`;
