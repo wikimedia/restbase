@@ -2663,7 +2663,7 @@ paths:
 #              agentOptions:
 #                keepAlive: true
 #      x-monitor: false
-  /mediarequests/aggregate/{referer}/{media_type}/{agent_type}/{granularity}/{start}/{end}:
+  /mediarequests/aggregate/{referer}/{media_type}/{agent}/{granularity}/{start}/{end}:
     get:
       tags:
         - Mediarequests data
