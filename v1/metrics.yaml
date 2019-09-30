@@ -2788,7 +2788,7 @@ paths:
                   timestamp: 1970010100
                   requests: 0
 
-  /per-file/{referer}/{agent}/{file_path}/{granularity}/{start}/{end}:
+  /mediarequests/per-file/{referer}/{agent}/{file_path}/{granularity}/{start}/{end}:
     get:
       tags:
         - Mediarequests data
