@@ -1,6 +1,6 @@
 {
   "name": "restbase",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "REST storage and service dispatcher",
   "main": "index.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "content-type": "git+https://github.com/wikimedia/content-type#master",
     "entities": "^2.0.0",
     "fast-json-stable-stringify": "^2.0.0",
-    "hyperswitch": "^0.12.7",
+    "hyperswitch": "^0.13.0",
     "jsonwebtoken": "^8.5.1",
     "mediawiki-title": "^0.7.2",
     "restbase-mod-table-cassandra": "^1.2.1",

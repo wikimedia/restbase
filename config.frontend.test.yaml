@@ -229,6 +229,7 @@ services:
       ui_name: REST API
       ui_url: https://www.mediawiki.org/wiki/RESTBase
       ui_title: REST API docs
+      skip_resources: true
 
 logging:
   name: restrouter
