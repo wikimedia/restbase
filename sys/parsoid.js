@@ -508,9 +508,9 @@ class ParsoidService {
             const etag = res.headers.etag;
             // Chop off the correct format to return.
             res = Object.assign({ status: res.status }, res.body[format]);
+            res.headers = res.headers || {};
             res.headers.etag = etag;
             mwUtil.normalizeContentType(res);
-            res.headers = res.headers || {};
             if (req.query.stash) {
                 // The stash is used by clients that want further support
                 // for transforming the content. If the content is stored in caches,
