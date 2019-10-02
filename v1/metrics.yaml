@@ -2663,6 +2663,228 @@ paths:
 #              agentOptions:
 #                keepAlive: true
 #      x-monitor: false
+  /mediarequests/aggregate/{referer}/{media_type}/{agent}/{granularity}/{start}/{end}:
+    get:
+      tags:
+        - Mediarequests data
+      summary: Get aggregated mediarequest counts per referer.
+      description: |
+        Given a date range, returns a timeseries of mediarequest counts. You can filter by referer, media types and/or agent type. You can choose between daily and monthly granularity.
+        counts. The data can be filtered by agent type.
+        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+      parameters:
+        - name: referer
+          in: path
+          description: |
+            The place that the request was made from. It can be any Wikimedia project (e.g. de.wikipedia),
+            "all-referers", "internal", "external", "search-engine", "unknown" or "none".
+          required: true
+          schema:
+            type: string
+        - name: media_type
+          in: path
+          description: |
+            The media type that each file belongs to. It can be image, audio, video, document, or other. Use 'all-media-types if you want all.'
+          required: true
+          schema:
+            type: string
+            enum:
+              - all-media-types
+              - image
+              - video
+              - audio
+              - document
+              - other
+        - name: agent
+          in: path
+          description: |
+            If you want to filter by agent type, use one of user or spider. If you are interested
+            in mediarequests regardless of agent type, use all-agents.
+          required: true
+          schema:
+            type: string
+            enum:
+              - all-agents
+              - user
+              - spider
+        - name: granularity
+          in: path
+          description: |
+            The time unit for the response data. As of today, the supported granularities for this
+            endpoint are daily and monthly.
+          required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
+        - name: start
+          in: path
+          description: The timestamp of the first hour/day/month to include, in YYYYMMDD
+            format
+          required: true
+          schema:
+            type: string
+        - name: end
+          in: path
+          description: The timestamp of the last hour/day/month to include, in YYYYMMDD
+            format
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mediarequest-referer'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/mediarequests/aggregate/{referer}/{media_type}/{agent}/{granularity}/{start}/{end}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
+      x-monitor: true
+      x-amples:
+        - title: Get aggregate mediarequests
+          request:
+            params:
+              domain: wikimedia.org
+              referer: en.wikipedia
+              media_type: all-media-types
+              agent: all-agents
+              granularity: daily
+              start: 1970010100
+              end: 1970010100
+          response:
+            status: 200
+            headers:
+              content-type: application/json
+            body:
+              items:
+                - referer: en.wikipedia
+                  media_type: all-media-types
+                  agent: all-agents
+                  granularity: daily
+                  timestamp: 1970010100
+                  requests: 0
+
+  /mediarequests/per-file/{referer}/{agent}/{file_path}/{granularity}/{start}/{end}:
+    get:
+      tags:
+        - Mediarequests data
+      summary: Get aggregated mediarequest counts for a media file.
+      description: |
+        Given a file stored in upload.wikimedia.org (the file storage for all media in any wiki) and a date range,
+        returns a daily timeseries of its request counts. The data can be filtered by agent type.
+
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+      parameters:
+        - name: referer
+          in: path
+          description: |
+            The place that the request was made from. It can be any Wikimedia project (e.g. de.wikipedia), "all-referers",
+            "internal", "external", "search-engine", "unknown" or "none".
+          required: true
+          schema:
+            type: string
+        - name: agent
+          in: path
+          description: |
+            If you want to filter by agent type, use one of user or spider. If you are interested
+            in media requests regardless of agent type, use all-agents.
+          required: true
+          schema:
+            type: string
+            enum:
+              - all-agents
+              - user
+              - spider
+        - name: file_path
+          in: path
+          description: |
+            The upload.wikimedia.org (the file storage for all media in any wiki) path to the file. It also should
+            be URI-encoded, so that non-URI-safe characters like %, / or ? are accepted.
+            Example: %2Fwiktionary%2Fte%2F4%2F40%2Fpeacocks.JPG
+          required: true
+          schema:
+            type: string
+        - name: granularity
+          in: path
+          description: |
+            The time unit for the response data. As of today, the only supported granularity for
+            this endpoint is daily and monthly.
+          required: true
+          schema:
+            type: string
+            enum:
+              - daily
+              - monthly
+        - name: start
+          in: path
+          description: The date of the first day to include, in YYYYMMDD or YYYYMMDDHH
+            format
+          required: true
+          schema:
+            type: string
+        - name: end
+          in: path
+          description: The date of the last day to include, in YYYYMMDD or YYYYMMDDHH
+            format
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The list of values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mediarequest-file'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/mediarequests/per-file/{referer}/{agent}/{file_path}/{granularity}/{start}/{end}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
+      x-monitor: false
 
 
 ########################################
@@ -3409,3 +3631,49 @@ components:
                     abs_bytes_diff:
                       type: integer
                       format: int64
+
+# Mediarequests
+    mediarequest-referer:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              referer:
+                type: string
+              media_type:
+                type: string
+              agent:
+                type: string
+              granularity:
+                type: string
+              timestamp:
+                # the hourly timestamp will be stored as YYYYMMDDHH
+                type: string
+              requests:
+                type: integer
+                format: int64
+
+    mediarequest-file:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              referer:
+                type: string
+              file_path:
+                type: string
+              agent:
+                type: string
+              granularity:
+                type: string
+              timestamp:
+                type: string
+              requests:
+                type: integer
+                format: int64
