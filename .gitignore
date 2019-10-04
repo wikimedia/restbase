@@ -1,6 +1,7 @@
 restbase
 coverage
 config.yaml
+!.pipeline/config.yaml
 node_modules
 npm-debug.log
 package-lock.json
