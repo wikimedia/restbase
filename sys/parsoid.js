@@ -16,6 +16,8 @@ const mwUtil = require('../lib/mwUtil');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 
+const veRE = /^VisualEditor-MediaWiki/;
+
 // Temporary work-around for Parsoid issue
 // https://phabricator.wikimedia.org/T93715
 function normalizeHtml(html) {
@@ -110,8 +112,8 @@ class ParsoidService {
         // Set up operations
         this.operations = {
             // Revision retrieval per format
-            getHtml: this.getFormat.bind(this, 'html'),
-            getDataParsoid: this.getFormat.bind(this, 'data-parsoid'),
+            getHtml: this.getFormatAndLog.bind(this, 'html'),
+            getDataParsoid: this.getFormatAndLog.bind(this, 'data-parsoid'),
             getLintErrors: this.getLintErrors.bind(this),
             // Transforms
             transformHtmlToHtml: this.makeTransform('html', 'html'),
@@ -447,6 +449,40 @@ class ParsoidService {
         return true;
     }
 
+    _logVE(hyper, what) {
+        if (!veRE.test(hyper._rootReq.headers['user-agent']) &&
+                !veRE.test(hyper._rootReq.headers['api-user-agent'])) {
+            return;
+        }
+        let log;
+        if (!what) {
+            log = { msg: 'Empty log entry' };
+        } else if (what.constructor === Object) {
+            if (!what.message || !what.msg) {
+                log = {
+                    msg: 'Response object',
+                    response: Object.assign({}, what)
+                };
+                if (log.response.body) {
+                    log.response.body = 'Body truncated';
+                } else {
+                    log.response.body = 'No body returned';
+                }
+            } else {
+                log = what;
+            }
+        } else {
+            log = what;
+        }
+        hyper.logger.log('debug/request/visualeditor', log);
+    }
+
+    getFormatAndLog(format, hyper, req) {
+        return this.getFormat(format, hyper, req)
+        .tapCatch((e) => this._logVE(hyper, e))
+        .tap((res) => this._logVE(hyper, res));
+    }
+
     getFormat(format, hyper, req) {
         const rp = req.params;
         const generateContent = (storageRes) => {
@@ -692,7 +728,7 @@ class ParsoidService {
     }
 
     makeTransform(from, to) {
-        return (hyper, req) => {
+        const func = (hyper, req) => {
             const rp = req.params;
             if ((!req.body && req.body !== '') ||
                     // The html/to/html endpoint is a bit different so the `html`
@@ -765,6 +801,11 @@ class ParsoidService {
                 return res;
             });
         };
+        return (hyper, req) => {
+            return func(hyper, req)
+            .tapCatch((e) => this._logVE(hyper, e))
+            .tap((res) => this._logVE(hyper, res));
+        };
     }
 
     // Get / check the revision metadata for a request
@@ -789,6 +830,18 @@ class ParsoidService {
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
         return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
+        .tapCatch((e) => {
+            this._logVE(hyper, {
+                message: 'Could not find original content',
+                params: {
+                    domain: rp.domain,
+                    title: rp.title,
+                    revision,
+                    tid
+                },
+                error: e
+            });
+        })
         .then((res) => {
             res = res.body;
             res.revid = revision;
