@@ -451,7 +451,7 @@ class ParsoidService {
 
     _logVE(hyper, what) {
         if (!(veRE.test(hyper._rootReq.headers['api-user-agent']) ||
-                veRE.test(hyper._rootReq.headers['user-agent'])) {
+                veRE.test(hyper._rootReq.headers['user-agent']))) {
             return;
         }
         let log;
