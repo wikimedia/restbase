@@ -458,7 +458,7 @@ class ParsoidService {
         if (!what) {
             log = { msg: 'Empty log entry' };
         } else if (what.constructor === Object) {
-            if (!what.message || !what.msg) {
+            if (!what.message && !what.msg) {
                 log = {
                     msg: 'Response object',
                     response: Object.assign({}, what)
