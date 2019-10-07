@@ -450,8 +450,8 @@ class ParsoidService {
     }
 
     _logVE(hyper, what) {
-        if (!veRE.test(hyper._rootReq.headers['user-agent']) &&
-                !veRE.test(hyper._rootReq.headers['api-user-agent'])) {
+        if (!(veRE.test(hyper._rootReq.headers['api-user-agent']) ||
+                veRE.test(hyper._rootReq.headers['user-agent'])) {
             return;
         }
         let log;
@@ -830,18 +830,20 @@ class ParsoidService {
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
         return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
-        .tapCatch((e) => {
-            this._logVE(hyper, {
-                message: 'Could not find original content',
-                params: {
-                    domain: rp.domain,
-                    title: rp.title,
-                    revision,
-                    tid
-                },
-                error: e
-            });
-        })
+        .tapCatch((e) => this._logVE(hyper, {
+            message: 'Could not find original content',
+            params: {
+                domain: rp.domain,
+                title: rp.title,
+                revision,
+                tid
+            },
+            err: {
+                status: e.status,
+                body: e.body || e.message || e.description,
+                stack: e.stack
+            }
+        }))
         .then((res) => {
             res = res.body;
             res.revid = revision;
