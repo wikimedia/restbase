@@ -545,6 +545,15 @@ class ParsoidService {
             // Chop off the correct format to return.
             res = Object.assign({ status: res.status }, res.body[format]);
             res.headers = res.headers || {};
+            if (res.headers.etag !== etag) {
+                this._logVE(hyper, {
+                    message: 'ETags differ!',
+                    response: {
+                        content_etag: etag,
+                        format_etag: res.headers.etag
+                    }
+                });
+            }
             res.headers.etag = etag;
             mwUtil.normalizeContentType(res);
             if (req.query.stash) {
