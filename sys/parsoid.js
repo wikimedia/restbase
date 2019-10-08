@@ -832,16 +832,18 @@ class ParsoidService {
         return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
         .tapCatch((e) => this._logVE(hyper, {
             message: 'Could not find original content',
-            params: {
-                domain: rp.domain,
-                title: rp.title,
-                revision,
-                tid
-            },
-            err: {
-                status: e.status,
-                body: e.body || e.message || e.description,
-                stack: e.stack
+            response: {
+                params: {
+                    domain: rp.domain,
+                    title: rp.title,
+                    revision,
+                    tid
+                },
+                err: {
+                    status: e.status,
+                    body: e.body || e.message || e.description,
+                    stack: e.stack
+                }
             }
         }))
         .then((res) => {
