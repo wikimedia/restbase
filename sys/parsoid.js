@@ -346,6 +346,14 @@ class ParsoidService {
             return hyper.get({
                 uri: this.getStashBucketURI(domain, title, revision, tid)
             })
+            // TEMP TEMP TEMP TEMP
+            // T234928: if we cannot find the stash, use 'undefined' for the rev id
+            // since that's how RB stores it when the client does not provide it.
+            // This should be removed 24h after being deployed
+            .catch({ status: 404 }, () =>
+                hyper.get({ uri: this.getStashBucketURI(domain, title, 'undefined', tid) })
+            )
+            // END TEMP
             .catch({ status: 404 }, () =>
                 hyper.get({ uri: this.getLatestBucketURI(domain, title) })
                 .then((res) => {
