@@ -218,7 +218,7 @@ class ParsoidService {
         const rp = req.params;
         const dataParsoidResponse = parsoidResp.body['data-parsoid'];
         const htmlResponse = parsoidResp.body.html;
-        const tid = mwUtil.parseETag(htmlResponse.headers.etag).tid;
+        const tid = mwUtil.parseETag(parsoidResp.headers.etag).tid;
         return hyper.put({
             uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
             // Note. The headers we are storing here are for the whole pagebundle response.
@@ -534,6 +534,25 @@ class ParsoidService {
         }
         return contentReq
         .then((res) => {
+            res.headers = res.headers || {};
+            if (!res.headers.etag) {
+                res.headers.etag = res.body.html.headers && res.body.html.headers.etag;
+            }
+            if (!res.headers.etag || /^null$/.test(res.headers.etag)) {
+                // if there is no ETag, we *could* create one here, but this
+                // would mean at least cache pollution, and would hide the
+                // fact that we have incomplete data in storage, so error out
+                hyper.logger.log('error/parsoid/response_etag_missing', {
+                    msg: 'Detected a null etag in the response!'
+                });
+                throw new HTTPError({
+                    status: 500,
+                    body: {
+                        title: 'no_etag',
+                        description: 'No ETag fas been provided in the response'
+                    }
+                });
+            }
             if (req.query.stash) {
                 return this._saveParsoidResultToFallback(hyper, req, res)
                 .thenReturn(res);
@@ -545,15 +564,6 @@ class ParsoidService {
             // Chop off the correct format to return.
             res = Object.assign({ status: res.status }, res.body[format]);
             res.headers = res.headers || {};
-            if (res.headers.etag !== etag) {
-                this._logVE(hyper, {
-                    message: 'ETags differ!',
-                    response: {
-                        content_etag: etag,
-                        format_etag: res.headers.etag
-                    }
-                });
-            }
             res.headers.etag = etag;
             mwUtil.normalizeContentType(res);
             if (req.query.stash) {
@@ -564,11 +574,6 @@ class ParsoidService {
                 res.headers['cache-control'] = 'no-cache';
             } else if (this.options.response_cache_control) {
                 res.headers['cache-control'] = this.options.response_cache_control;
-            }
-            if (/^null$/.test(res.headers.etag)) {
-                hyper.logger.log('error/parsoid/response_etag_missing', {
-                    msg: 'Detected a null etag in the response!'
-                });
             }
 
             return res;
