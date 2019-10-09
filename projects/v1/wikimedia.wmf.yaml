@@ -72,4 +72,4 @@ paths:
   /feed:
     x-modules:
       - path: v1/availability.yaml
-        options: '{{options.mobileapps}}'
+        options: '{{options.wikifeeds}}'
