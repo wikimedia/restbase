@@ -218,14 +218,14 @@ class ParsoidService {
         const rp = req.params;
         const dataParsoidResponse = parsoidResp.body['data-parsoid'];
         const htmlResponse = parsoidResp.body.html;
-        const tid = mwUtil.parseETag(parsoidResp.headers.etag).tid;
+        const etag = mwUtil.parseETag(parsoidResp.headers.etag);
         return hyper.put({
-            uri: this.getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
+            uri: this.getStashBucketURI(rp.domain, rp.title, etag.rev, etag.tid),
             // Note. The headers we are storing here are for the whole pagebundle response.
             // The individual components of the pagebundle contain their own headers that
             // which are used to generate actual responses.
             headers: {
-                'x-store-etag': htmlResponse.headers.etag,
+                'x-store-etag': parsoidResp.headers.etag,
                 'content-type': 'application/octet-stream',
                 'x-store-content-type': 'application/json'
             },
@@ -549,7 +549,7 @@ class ParsoidService {
                     status: 500,
                     body: {
                         title: 'no_etag',
-                        description: 'No ETag fas been provided in the response'
+                        description: 'No ETag has been provided in the response'
                     }
                 });
             }
