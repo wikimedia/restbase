@@ -81,36 +81,19 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/problem'
-      operationId: getContent-metadata
-      x-monitor: true
-      x-amples:
-        - title: Get metadata from storage
-          request:
-            params:
-              domain: en.wikipedia.org
-              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
-          response:
-            status: 200
-            headers:
-              etag: /.+/
-              content-type: /^application\/json/
-            body:
-              revision: /.+/
-              tid: /.+/
-              hatnotes:
-                - section: /.+/
-                  html: /.+/
-              toc:
-                title: /.+/
-                entries:
-                  - level: /.+/
-                    section: /.+/
-                    number: /.+/
-                    anchor: /.+/
-                    html: /.+/
-              protection:
-                edit: [ /.+/ ]
-                move: [ /.+/ ]
+      x-monitor: false
+      x-request-handler:
+        - get_from_pcs:
+           request:
+             method: get
+             headers:
+               cache-control: '{{cache-control}}'
+               accept-language: '{{accept-language}}'
+             uri: '{{options.host}}/{domain}/v1/page/metadata/{title}'
+           return:
+             status: 200
+             headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
+             body: '{{get_from_pcs.body}}'
 
   /metadata/{title}/{revision}:
     x-route-filters:
@@ -138,8 +121,18 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-      operationId: getContentWithRevision-metadata
-      x-monitor: false
+      x-request-handler:
+        - get_from_pcs:
+           request:
+             method: get
+             headers:
+               cache-control: '{{cache-control}}'
+               accept-language: '{{accept-language}}'
+             uri: '{{options.host}}/{domain}/v1/page/metadata/{title}/{revision}'
+           return:
+             status: 200
+             headers: '{{ merge({"cache-control": options.response_cache_control}, get_from_pcs.headers) }}'
+             body: '{{get_from_pcs.body}}'
 
 components:
   schemas:
