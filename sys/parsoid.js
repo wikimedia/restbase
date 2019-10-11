@@ -110,8 +110,8 @@ class ParsoidService {
         // Set up operations
         this.operations = {
             // Revision retrieval per format
-            getHtml: this.getFormatAndLog.bind(this, 'html'),
-            getDataParsoid: this.getFormatAndLog.bind(this, 'data-parsoid'),
+            getHtml: this.getFormat.bind(this, 'html'),
+            getDataParsoid: this.getFormat.bind(this, 'data-parsoid'),
             getLintErrors: this.getLintErrors.bind(this),
             // Transforms
             transformHtmlToHtml: this.makeTransform('html', 'html'),
@@ -445,10 +445,6 @@ class ParsoidService {
             return !this._blacklist[req.params.domain].test(req.params.title);
         }
         return true;
-    }
-
-    getFormatAndLog(format, hyper, req) {
-        return this.getFormat(format, hyper, req);
     }
 
     getFormat(format, hyper, req) {
