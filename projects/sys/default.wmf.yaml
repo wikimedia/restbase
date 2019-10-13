@@ -11,11 +11,13 @@ paths:
       - path: sys/page_save.js
   /parsoid:
     x-modules:
-      - path: sys/parsoid-js.js
+      - path: sys/parsoid.js
         options:
           host: '{{options.parsoid.host}}'
+          php_host: '{{options.parsoid.php_host}}'
           response_cache_control: '{{options.purged_cache_control}}'
           grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
+          proxy: '{{options.parsoid.proxy}}'
           # A list of pages that we don't currently want to re-render on
           # each edit. Most of these are huge bot-edited pages, which are
           # rarely viewed in any case.
