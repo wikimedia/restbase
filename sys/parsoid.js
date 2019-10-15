@@ -157,6 +157,22 @@ class ParsoidProxy {
             res.headers = res.headers || {};
             res.headers['x-parsoid-variant'] = variant;
             return P.resolve(res);
+        }).catch({ status: 404 }, (e) => {
+            // if we are in split mode, provide a fallback for
+            // transforms for the non-default variant
+            if (this.mode === 'split' && /transform/.test(operation) &&
+                        variant !== this.default_variant) {
+                if (setHdr) {
+                    req.headers['x-parsoid-variant'] = this.default_variant;
+                }
+                return this.mods[this.default_variant][operation](hyper, req)
+                .then((res) => {
+                    res.headers = res.headers || {};
+                    res.headers['x-parsoid-variant'] = this.default_variant;
+                    return P.resolve(res);
+                });
+            }
+            throw e;
         });
     }
 
