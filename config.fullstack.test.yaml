@@ -214,6 +214,8 @@ spec_root: &spec_root
         allow:
           - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/api\.php/
             forward_headers: true
+          - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/rest\.php.+/
+            forward_headers: true
           - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
             forward_headers: true
           - pattern: /^https?:\/\//
