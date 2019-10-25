@@ -32,6 +32,6 @@ before_install:
   - echo "-Xms256m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - echo "-Xmx512m" >> ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
   - sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${CASSANDRA_VERSION}/conf/jvm.options
-  - bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra
+  - if [[ ${TEST_TARGET} == 'cassandra' ]]; then bash -x ../apache-cassandra-${CASSANDRA_VERSION}/bin/cassandra; else /bin/true; fi
 
 script: npm run lint && npm run coverage -- ${TEST_TARGET} ${TEST_MODE} && (npm run-script coveralls || exit 0)
