@@ -55,6 +55,21 @@ class ParsoidPHP extends Parsoid {
         ]);
     }
 
+    getFormatAndCheck(format, hyper, req) {
+        return this.getFormat(format, hyper, req)
+        .tap((res) => {
+            // TEMP TEMP TEMP: T236382 / T221174 shim content-language and vary if missing
+            if (!res.headers['content-language'] || !res.headers.vary) {
+                hyper.logger.log('warn/parsoidphp/headers', {
+                    msg: 'Missing Content-Language or Vary header in pb.body.html.headers'
+                });
+            }
+            res.headers['content-language'] = res.headers['content-language'] || 'en';
+            res.headers.vary = res.headers.vary || 'Accept';
+            // END TEMP
+        });
+    }
+
 }
 
 module.exports = (options = {}) => {
@@ -63,7 +78,7 @@ module.exports = (options = {}) => {
         spec,
         operations: {
             // Revision retrieval per format
-            getHtml: ps.getFormat.bind(ps, 'html'),
+            getHtml: ps.getFormatAndCheck.bind(ps, 'html'),
             getDataParsoid: ps.getFormat.bind(ps, 'data-parsoid'),
             getLintErrors: ps.getLintErrors.bind(ps),
             // Transforms
