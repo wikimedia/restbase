@@ -21,7 +21,7 @@ class ParsoidPHP extends Parsoid {
     _getParsoidReq(req, path, headers, body) {
         return {
             uri: new URI(`${this.parsoidUri}/${req.params.domain}/v3/${path}`),
-            headers: Object.assign({ host: req.params.domain }, headers || req.headers),
+            headers: Object.assign({ host: req.params.domain }, headers || {}),
             body
         };
     }
