@@ -3,7 +3,7 @@
 
 RESTBase was built to provide a [low-latency & high-throughput API for
 Wikipedia / Wikimedia
-content](http://rest.wikimedia.org/en.wikipedia.org/v1/?doc). It is basically
+content](https://en.wikipedia.org/api/rest_v1/). It is basically
 a storage proxy, which presents a coherent API powered by Swagger specs to the
 outside, and backs up many of these entry points with storage.  The default
 **table storage** backend is based on Cassandra, which helps it to perform
@@ -16,7 +16,7 @@ later retrieval. For high-volume static end points, most requests will be
 satisfied directly from storage.
 
 The *table storage* backends conform to a RESTful [table storage
-API](https://github.com/wikimedia/restbase/blob/master/doc/TableStorageAPI.md)
+API](./doc/TableStorageAPI.md)
 similar to [Amazon DynamoDB](http://aws.amazon.com/documentation/dynamodb/)
 and [Google DataStore](https://developers.google.com/datastore/). The primary
 implementation uses Apache Cassandra. Notable features include automatically
@@ -112,6 +112,6 @@ The coverage report can now be found in *&lt;project&gt;/coverage/lcov-report/in
 
 ## Design docs
 
-- [RESTBase](https://github.com/gwicke/restbase/blob/master/doc/)
-- [RESTBase-cassandra (storage backend)](https://github.com/gwicke/restbase-cassandra/blob/master/doc/)
+- [RESTBase](./doc/)
+- [RESTBase-cassandra (storage backend)](https://github.com/wikimedia/restbase-mod-table-cassandra/tree/master/doc)
 
