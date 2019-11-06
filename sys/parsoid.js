@@ -157,7 +157,11 @@ class ParsoidProxy {
             res.headers = res.headers || {};
             res.headers['x-parsoid-variant'] = variant;
             return P.resolve(res);
-        }).catch({ status: 404 }, (e) => {
+        }).catch({ status: 404 }, { status: 421 }, (e) => {
+            // if we actually get a 421, we might be in trouble, so log it
+            if (e.status === 421) {
+                hyper.logger.log('warn/parsoidproxy/421', e);
+            }
             // if we are in split mode, provide a fallback for
             // transforms for the non-default variant
             if (this.mode === 'split' && /transform/.test(operation) &&
