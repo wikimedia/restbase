@@ -22,8 +22,8 @@ paths:
         Gets common CSS mobile apps need to properly display pages using Page Content Service.
         In most cases all of the types are needed (preferably in this order):
         * base (Common mobile CSS from ResourceLoader)
-        * pagelib (CSS from wikimedia-page-library)
         * site (Site-specific, mobile CSS from ResourceLoader, as defined in MediaWiki\:Mobile.css)
+        * pcs (CSS for the Page Content Service)
 
         The first two are the same regardless of what domain is used.
         For these we suggest meta.wikimedia.org.
@@ -38,6 +38,7 @@ paths:
             enum:
               - base
               - pagelib
+              - pcs
               - site
           required: true
       responses:

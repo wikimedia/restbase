@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   version: 1.0.0-beta
-  title: JavaScript bundle from the wikimedia-page-library
+  title: JavaScript for mobile apps
   description: API for retrieving JavaScript for mobile apps
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
   contact:
@@ -11,22 +11,32 @@ info:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
-  /javascript/mobile/pagelib:
+  /javascript/mobile/{type}:
     x-route-filters:
       - path: lib/security_response_header_filter.js
     get:
       tags:
         - Mobile
-      summary: Get JavaScript bundle from the wikimedia-page-library
+      summary: Get JavaScript for mobileapps
       description: |
-        Gets the javascript bundle from the wikimedia-page-library so that clients can have
-        convenient access to that for consuming the content-html HTML.
+        Gets the JavaScript bundle so that clients can have
+        convenient access to that for consuming the page HTML.
         Amongst other things,
         * it allows to detect the platform and through that enable platform specific CSS rules,
         * has code to lazy load images on the page,
         * code for collapsing and expanding tables.
 
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      parameters:
+        - name: type
+          in: path
+          description: The desired JavaScript bundle
+          schema:
+            type: string
+            enum:
+              - pagelib
+              - pcs
+          required: true
       responses:
         200:
           description: Success
@@ -50,99 +60,6 @@ paths:
             request:
               method: get
               uri: '{{options.host}}/{domain}/v1/data/javascript/mobile/pagelib'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: false
-  /javascript/mobile/pagelib_body_start:
-    x-route-filters:
-      - path: lib/security_response_header_filter.js
-    get:
-      tags:
-        - Mobile
-      summary: |
-        Get the JavaScript to run at the start of the body tag from the wikimedia-page-library
-      description: |
-        Gets the javascript that is intended to be run at the start of the body tag to apply
-        settings with the wikimedia-page-library. It reads an object from document.pcsSetupSettings
-        and utilizes it as the parameter for pagelib.c1.Page.setup(). It applies settings like
-        margins and theming that need to be applied before the page body starts rendering.
-        It also reads a function that takes a single parameter from document.pcsActionHandler and
-        utilizes it to notify the client of page events. Alternatively, clients can set a
-        pcsClient variable that returns a JSON string with settings from
-        pcsClient.getSetupSettings() and receives a JSON string to pcsClient.onReceiveMessage().
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      responses:
-        200:
-          description: Success
-          headers:
-            ETag:
-              description: Different values indicate that the content has changed
-              schema:
-                type: string
-          content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/JavaScript/1.0.0":
-              schema:
-                type: object
-        default:
-          description: Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              uri: '{{options.host}}/{domain}/v1/data/javascript/mobile/pagelib_body_start'
-            return:
-              status: 200
-              headers: '{{ merge({"cache-control": options.response_cache_control},
-              get_from_pcs.headers) }}'
-              body: '{{get_from_pcs.body}}'
-      x-monitor: false
-  /javascript/mobile/pagelib_body_end:
-    x-route-filters:
-      - path: lib/security_response_header_filter.js
-    get:
-      tags:
-        - Mobile
-      summary: Get the JavaScript to run at the end of the body tag from the wikimedia-page-library
-      description: |
-        Gets the javascript that is intended to be run at the end of the body tag to apply
-        settings with the wikimedia-page-library. It reads an object from document.pcsSetupSettings
-        and utilizes it as the parameter for pagelib.c1.Page.setup(). It applies settings that can
-        wait until the document finishes loading to be applied. Alternatively, clients can set a
-        pcsClient variable that returns a JSON string with settings from
-        pcsClient.getSetupSettings().
-
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      responses:
-        200:
-          description: Success
-          headers:
-            ETag:
-              description: Different values indicate that the content has changed
-              schema:
-                type: string
-          content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/JavaScript/1.0.0":
-              schema:
-                type: object
-        default:
-          description: Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/problem'
-      x-request-handler:
-        - get_from_pcs:
-            request:
-              method: get
-              uri: '{{options.host}}/{domain}/v1/data/javascript/mobile/pagelib_body_end'
             return:
               status: 200
               headers: '{{ merge({"cache-control": options.response_cache_control},
