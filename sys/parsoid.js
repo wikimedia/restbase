@@ -190,18 +190,10 @@ class ParsoidProxy {
         // mirror mode works only for getFormat, since for mirroring
         // tranforms we would need to be sure we have the php output
         // stashed
-        if (this.mode === 'mirror' &&
-                !/transform/.test(operation) &&
-                mwUtil.isNoCacheRequest(req)) {
+        if (this.mode === 'mirror' && !/transform/.test(operation)) {
             if (Math.round(Math.random() * 100) <= this.percentage) {
                 // issue an async request to the second variant and
                 // don't wait for the return value
-                req = Object.assign({}, req);
-                req.headers = Object.assign({}, req.headers);
-                // It's already a no-cache request, we've checked.
-                // Don't store the Parsoid-PHP in mirror mode, we're only
-                // doing it for Parsoid load testing.
-                req.headers['cache-control'] = 'no-cache,no-store';
                 this._req(invert(variant), operation, hyper, req, false)
                 .catch((e) => hyper.logger.log(`info/parsoidproxy/${invert(variant)}`, e));
             }
