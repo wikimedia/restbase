@@ -28,6 +28,9 @@ paths:
         The first two are the same regardless of what domain is used.
         For these we suggest meta.wikimedia.org.
 
+        You can still pass pagelib for type, but this is a legacy version of the CSS for 
+        existing app clients.
+
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       parameters:
         - name: type
