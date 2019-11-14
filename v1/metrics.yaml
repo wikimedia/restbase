@@ -2886,91 +2886,91 @@ paths:
                 keepAlive: true
       x-monitor: false
 
-    /mediarequests/top/{referer}/{media_type}/{year}/{month}/{day}:
-      get:
-        tags:
-          - Mediarequests data
-        summary: Get the most requested files for a referer.
-        description: |
-          Lists the 1000 most requested files for a given referer and timespan (month or day). You can filter by access method.
-          - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
-          - Rate limit: 100 req/s
-          - License: Data accessible via this endpoint is available under the
-            [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
-        parameters:
-          - name: referer
-            in: path
-            description: |
-              The place that the request was made from. Non Wikimedia projects appear aggreggated under the classification "external".
-              It can be any Wikimedia project (e.g. de.wikipedia), "all-referers", "internal", "external", "search-engine", "unknown" or "none".
-            required: true
-            schema:
-              type: string
-          - name: media_type
-            in: path
-            description: |
-              The media type that each file belongs to. It can be image, audio, video, document, or other. Use 'all-media-types if you want all.'
-            required: true
-            schema:
-              type: string
-              enum:
-                - all-media-types
-                - image
-                - video
-                - audio
-                - document
-                - other
-          - name: year
-            in: path
-            description: The year of the date for which to retrieve top files, in YYYY
-              format.
-            required: true
-            schema:
-              type: string
-          - name: month
-            in: path
-            description: |
-              The month of the date for which to retrieve top files, in MM format. If you want
-              to get the top files of a whole month, the day parameter should be all-days.
-            required: true
-            schema:
-              type: string
-          - name: day
-            in: path
-            description: The day of the date for which to retrieve top files, in DD
-              format.
-            required: true
-            schema:
-              type: string
-        responses:
-          200:
-            description: The list of top files in the project
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/mediarequest-tops'
-          default:
-            description: Error
-            content:
-              application/problem+json:
-                schema:
-                  $ref: '#/components/schemas/problem'
-        x-route-filters:
-          - type: default
-            name: ratelimit_route
-            options:
-              limits:
-                internal: 100
-                external: 100
-        x-request-handler:
-          - get_from_backend:
-              request:
-                uri: '{{options.host}}/mediarequests/top/{referer}/{media_type}/{year}/{month}/{day}'
-                headers:
-                  x-client-ip: '{{x-client-ip}}'
-                agentOptions:
-                  keepAlive: true
-        x-monitor: false
+  /mediarequests/top/{referer}/{media_type}/{year}/{month}/{day}:
+    get:
+      tags:
+        - Mediarequests data
+      summary: Get the most requested files for a referer.
+      description: |
+        Lists the 1000 most requested files for a given referer and timespan (month or day). You can filter by access method.
+        - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+      parameters:
+        - name: referer
+          in: path
+          description: |
+            The place that the request was made from. Non Wikimedia projects appear aggreggated under the classification "external".
+            It can be any Wikimedia project (e.g. de.wikipedia), "all-referers", "internal", "external", "search-engine", "unknown" or "none".
+          required: true
+          schema:
+            type: string
+        - name: media_type
+          in: path
+          description: |
+            The media type that each file belongs to. It can be image, audio, video, document, or other. Use 'all-media-types if you want all.'
+          required: true
+          schema:
+            type: string
+            enum:
+              - all-media-types
+              - image
+              - video
+              - audio
+              - document
+              - other
+        - name: year
+          in: path
+          description: The year of the date for which to retrieve top files, in YYYY
+            format.
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: |
+            The month of the date for which to retrieve top files, in MM format. If you want
+            to get the top files of a whole month, the day parameter should be all-days.
+          required: true
+          schema:
+            type: string
+        - name: day
+          in: path
+          description: The day of the date for which to retrieve top files, in DD
+            format.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The list of top files in the project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mediarequest-tops'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/mediarequests/top/{referer}/{media_type}/{year}/{month}/{day}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
+      x-monitor: false
 
 
 
