@@ -8,6 +8,8 @@ const Server = require('../../utils/server.js');
 const nock   = require('nock');
 const P      = require('bluebird');
 
+const NOCK_TESTS = false; // because of Parsoid/PHP which uses the same URI structure as the MW API
+
 describe('Access checks', () => {
     const server = new Server();
 
@@ -17,6 +19,9 @@ describe('Access checks', () => {
     const emptyResponse = { 'batchcomplete': '', 'query': { 'badrevids': { '292466': { 'revid': '292466' } } } };
 
     function setUpNockResponse(api, title, revision) {
+        if (!NOCK_TESTS) {
+            return api;
+        }
         return api.post('')
         .reply(200, {
             'batchcomplete': '',

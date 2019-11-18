@@ -66,6 +66,9 @@ class ParsoidProxy {
         } else if (this.mode !== 'split') {
             this.splitRegex = /^$/;
         }
+        if (this.mode === 'split') {
+            this.percentage = 100;
+        }
         this.resources = [];
         delete retOpts.parsoidHost;
         delete retOpts.proxy;
@@ -147,7 +150,7 @@ class ParsoidProxy {
         return variant;
     }
 
-    _req(variant, operation, hyper, req, setHdr = true) {
+    _req(variant, operation, hyper, req, setHdr = true, sticky = false) {
         if (setHdr) {
             req.headers = req.headers || {};
             req.headers['x-parsoid-variant'] = variant;
@@ -164,7 +167,7 @@ class ParsoidProxy {
             }
             // if we are in split mode, provide a fallback for
             // transforms for the non-default variant
-            if (this.mode === 'split' && /transform/.test(operation) &&
+            if (!sticky && this.mode === 'split' && /transform/.test(operation) &&
                         variant !== this.default_variant) {
                 if (setHdr) {
                     req.headers['x-parsoid-variant'] = this.default_variant;
@@ -184,13 +187,23 @@ class ParsoidProxy {
         let variant = this._getStickyVariant(hyper, req);
         if (variant) {
             // the variant has been set explicitly by the client, honour it
-            return this._req(variant, operation, hyper, req);
+            return this._req(variant, operation, hyper, req, true, true);
         }
-        variant = this.default_variant;
+        // we can safely check simply where to direct the request
+        // using splitRegex because it won't match anything for any
+        // mode other than split
+        if (this.splitRegex.test(req.params.domain)) {
+            variant = invert(this.default_variant);
+        } else {
+            variant = this.default_variant;
+        }
         // mirror mode works only for getFormat, since for mirroring
         // tranforms we would need to be sure we have the php output
         // stashed
-        if (this.mode === 'mirror' && !/transform/.test(operation)) {
+        // also, if we are in split mode, then we must pretend we are
+        // also in 100% mirror mode since we want to keep both
+        // variants in storage fresh
+        if (this.mode !== 'single' && !/transform/.test(operation)) {
             if (Math.round(Math.random() * 100) <= this.percentage) {
                 // issue an async request to the second variant and
                 // don't wait for the return value
@@ -198,9 +211,7 @@ class ParsoidProxy {
                 .catch((e) => hyper.logger.log(`info/parsoidproxy/${invert(variant)}`, e));
             }
         }
-        // we can now safely check simply where to direct the request using
-        // splitRegex because it won't match anything for any mode other than split
-        variant = this.splitRegex.test(req.params.domain) ? invert(variant) : variant;
+
         return this._req(variant, operation, hyper, req);
     }
 
