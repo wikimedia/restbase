@@ -12,7 +12,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /references/{title}:
-    x-route-filters: &references_title_filters
+    x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -107,8 +107,6 @@ paths:
               references_by_id: /.+/
 
   /references/{title}/{revision}:
-    x-route-filters:
-      <<: *references_title_filters
     get:
       <<: *references_title_get_spec
       parameters:

@@ -394,19 +394,7 @@ paths:
       x-monitor: false
 
   /html/{title}/{revision}:
-    x-route-filters: &html_title_revision_filters
-      - path: ./lib/access_check_filter.js
-        options:
-          redirect_cache_control: '{{options.response_cache_control}}'
-          attach_body_to_redirect: true
-      - path: lib/security_response_header_filter.js
-        options:
-          allowInlineStyles: true
-      - path: lib/content_negotiation_filter.js
     get: &html_title_revision_get_spec
-      x-route-filters:
-        - path: lib/ensure_content_type.js
-        - path: ./lib/language_variants_filter.js
       tags:
         - Page content
       summary: Get HTML for a specific title/revision & optionally timeuuid.
@@ -645,7 +633,7 @@ paths:
       x-monitor: false
 
   /lint/{title}:
-    x-route-filters: &lint_title_filters
+    x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -721,8 +709,6 @@ paths:
       x-monitor: false
 
   /lint/{title}/{revision}:
-    x-route-filters:
-      <<: *lint_title_filters
     get:
       <<: *lint_title_get_spec
       parameters:

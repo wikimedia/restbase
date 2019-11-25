@@ -12,7 +12,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /talk/{title}:
-    x-route-filters: &talk_title_revision_filter
+    x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -114,8 +114,6 @@ paths:
                     indicator: /.+/
 
   /talk/{title}/{revision}:
-    x-route-filters:
-      <<: *talk_title_revision_filter
     get:
       <<: *talk_title_revision_get_spec
       parameters:

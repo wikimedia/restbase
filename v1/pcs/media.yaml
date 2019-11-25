@@ -12,7 +12,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /media/{title}:
-    x-route-filters: &media_title_filters
+    x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -97,8 +97,6 @@ paths:
       x-monitor: false
 
   /media/{title}/{revision}:
-    x-route-filters:
-      <<: *media_title_filters
     get:
       <<: *media_title_get_spec
       parameters:
