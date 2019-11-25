@@ -13,7 +13,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /pdf/{title}:
-    x-route-filters: &pdf_get_title_filters
+    x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.cache_control}}'
@@ -96,8 +96,6 @@ paths:
       x-monitor: false # PDF generation is expensive and it's not stored, so don't run checker script
 
   /pdf/{title}/{format}:
-    x-route-filters:
-      <<: *pdf_get_title_filters
     get:
       <<: *pdf_get_title_spec
       parameters:
@@ -140,8 +138,6 @@ paths:
       x-monitor: false # PDF generation is expensive and it's not stored, so don't run checker script
 
   /pdf/{title}/{format}/{type}:
-    x-route-filters:
-      <<: *pdf_get_title_filters
     get:
       <<: *pdf_get_title_spec
       parameters:

@@ -12,7 +12,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /metadata/{title}:
-    x-route-filters: &metadata_title_filters
+    x-route-filters:
       - path: ./lib/access_check_filter.js
         options:
           redirect_cache_control: '{{options.response_cache_control}}'
@@ -96,8 +96,6 @@ paths:
              body: '{{get_from_pcs.body}}'
 
   /metadata/{title}/{revision}:
-    x-route-filters:
-      <<: *metadata_title_filters
     get:
       <<: *metadata_title_get_spec
       parameters:
