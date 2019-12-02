@@ -165,17 +165,15 @@ class ParsoidProxy {
             if (e.status === 421) {
                 hyper.logger.log('warn/parsoidproxy/421', e);
             }
-            // if we are in split mode, provide a fallback for
-            // transforms for the non-default variant
-            if (!sticky && this.mode === 'split' && /transform/.test(operation) &&
-                        variant !== this.default_variant) {
+            // if we are in split mode, provide a fallback for transforms
+            if (!sticky && this.mode === 'split' && /transform/.test(operation)) {
                 if (setHdr) {
-                    req.headers['x-parsoid-variant'] = this.default_variant;
+                    req.headers['x-parsoid-variant'] = invert(variant);
                 }
-                return this.mods[this.default_variant][operation](hyper, req)
+                return this.mods[invert(variant)][operation](hyper, req)
                 .then((res) => {
                     res.headers = res.headers || {};
-                    res.headers['x-parsoid-variant'] = this.default_variant;
+                    res.headers['x-parsoid-variant'] = invert(variant);
                     return P.resolve(res);
                 });
             }
@@ -210,9 +208,18 @@ class ParsoidProxy {
         // variants in storage fresh
         if (this.mode !== 'single' && !/transform/.test(operation)) {
             if (Math.round(Math.random() * 100) <= this.percentage) {
+                // clone the request and its headers
+                const mReq = {
+                    method: req.method,
+                    uri: req.uri,
+                    headers: Object.assign({}, req.headers),
+                    query: req.query,
+                    body: req.body,
+                    params: req.params
+                };
                 // issue an async request to the second variant and
                 // don't wait for the return value
-                this._req(invert(variant), operation, hyper, req, false)
+                this._req(invert(variant), operation, hyper, mReq, false)
                 .catch((e) => hyper.logger.log(`info/parsoidproxy/${invert(variant)}`, e));
             }
         }
