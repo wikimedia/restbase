@@ -183,16 +183,16 @@ class ParsoidProxy {
     }
 
     doRequest(operation, hyper, req) {
+        // TEMP: All linter and html2html requests go only to JS
+        if (/Lint/.test(operation) || operation === 'transformHtmlToHtml') {
+            return this._req('js', operation, hyper, req, false, true);
+        }
+        // END TEMP
         let variant = this._getStickyVariant(hyper, req);
         if (variant) {
             // the variant has been set explicitly by the client, honour it
             return this._req(variant, operation, hyper, req, true, true);
         }
-        // TEMP: All linter requests go only to JS
-        if (/Lint/.test(operation)) {
-            return this._req('js', operation, hyper, req, false, true);
-        }
-        // END TEMP
         // we can safely check simply where to direct the request
         // using splitRegex because it won't match anything for any
         // mode other than split
