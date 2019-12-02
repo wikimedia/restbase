@@ -165,8 +165,9 @@ class ParsoidProxy {
             if (e.status === 421) {
                 hyper.logger.log('warn/parsoidproxy/421', e);
             }
-            // if we are in split mode, provide a fallback for transforms
-            if (!sticky && this.mode === 'split' && /transform/.test(operation)) {
+            // if we are in split mode, provide a fallback for transforms except lint
+            if (!sticky && this.mode === 'split' && /transform/.test(operation) &&
+                    !/Lint/.test(operation)) {
                 if (setHdr) {
                     req.headers['x-parsoid-variant'] = invert(variant);
                 }
