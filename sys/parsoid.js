@@ -189,6 +189,11 @@ class ParsoidProxy {
             // the variant has been set explicitly by the client, honour it
             return this._req(variant, operation, hyper, req, true, true);
         }
+        // TEMP: All linter requests go only to JS
+        if (/Lint/.test(operation)) {
+            return this._req('js', operation, hyper, req, false, true);
+        }
+        // END TEMP
         // we can safely check simply where to direct the request
         // using splitRegex because it won't match anything for any
         // mode other than split
