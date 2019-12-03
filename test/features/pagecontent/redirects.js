@@ -375,8 +375,9 @@ describe('redirects', () => {
             })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
-                assert.deepEqual(res.headers['content-location'],
-                    'https://commons.wikimedia.org/api/rest_v1/page/html/File%3AThinkingMan_Rodin.jpg');
+                assert.ok(res.headers['content-location'] &&
+                    res.headers['content-location'].startsWith('https://commons.wikimedia.org/api/rest_v1/page/html/'),
+                    'No redirect to commons detected!');
                 assert.deepEqual(res.headers['cache-control'], 'no-cache');
             });
         });
