@@ -13,6 +13,7 @@ class Related {
 
     getPages(hyper, req) {
         const rp = req.params;
+        const rh = req.headers;
 
         return hyper.post({
             uri: new URI([rp.domain, 'sys', 'action', 'query']),
@@ -45,7 +46,7 @@ class Related {
             delete res.body.items;
 
             // Step 2: Hydrate response as always.
-            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri));
+            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri, rh));
         });
     }
 }

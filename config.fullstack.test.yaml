@@ -219,6 +219,8 @@ spec_root: &spec_root
     # Redirect tests require en.wiki being not the first wiki in the list.
     /{domain:en.wikipedia.beta.wmflabs.org}: *wikipedia_project
     /{domain:de.wikipedia.beta.wmflabs.org}: *wikipedia_project
+    /{domain:zh.wikipedia.beta.wmflabs.org}: *wikipedia_project
+    /{domain:commons.wikimedia.beta.wmflabs.org}: *commons_project
     /{domain:wikidata.beta.wmflabs.org}: *wikidata_project
     # Serbian wiki in beta for language variants tests
     /{domain:sr.wikipedia.beta.wmflabs.org}: *wikipedia_project
