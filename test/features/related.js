@@ -20,8 +20,8 @@ describe('Page Related', () => {
         }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.ok(Array.isArray(res.body.pages));
-            assert.deepEqual(res.body.pages[0].displaytitle, "首頁");
-
+            assert.deepEqual(res.body.pages[0].displaytitle, '首頁');
+            assert.deepEqual(res.headers['content-language'], 'zh');
         });
     })
 

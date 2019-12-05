@@ -13,7 +13,11 @@ class Related {
 
     getPages(hyper, req) {
         const rp = req.params;
-        const rh = req.headers;
+        const rh = Object.assign({}, req.headers);
+        // we don't store /page/related no need for cache-control
+        if (rh['cache-control']) {
+            delete rh['cache-control'];
+        }
 
         return hyper.post({
             uri: new URI([rp.domain, 'sys', 'action', 'query']),
@@ -46,7 +50,7 @@ class Related {
             delete res.body.items;
 
             // Step 2: Hydrate response as always.
-            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri, rh));
+            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(res, hyper, uri, rh));
         });
     }
 }
