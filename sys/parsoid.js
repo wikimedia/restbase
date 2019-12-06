@@ -218,6 +218,7 @@ class ParsoidProxy {
         // also, if we are in split mode, then we must pretend we are
         // also in 100% mirror mode since we want to keep both
         // variants in storage fresh
+        /* Mirroring all the traffic causes too much load to withstand
         if (this.mode !== 'single' && !/transform/.test(operation)) {
             if (Math.round(Math.random() * 100) <= this.percentage) {
                 // clone the request and its headers
@@ -234,7 +235,7 @@ class ParsoidProxy {
                 this._req(invert(variant), operation, hyper, mReq, false)
                 .catch((e) => hyper.logger.log(`info/parsoidproxy/${invert(variant)}`, e));
             }
-        }
+        }*/
 
         return this._req(variant, operation, hyper, req);
     }
