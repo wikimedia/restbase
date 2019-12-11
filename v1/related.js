@@ -50,7 +50,7 @@ class Related {
             delete res.body.items;
 
             // Step 2: Hydrate response as always.
-            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(res, hyper, uri, rh));
+            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri, rh, res));
         });
     }
 }
