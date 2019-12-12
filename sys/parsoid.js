@@ -184,10 +184,6 @@ class ParsoidProxy {
 
     doRequest(operation, hyper, req) {
         // TEMP TEMP TEMP
-        // all linter requests go only to JS
-        if (/Lint/.test(operation)) {
-            return this._req('js', operation, hyper, req, false, true);
-        }
         // all html2html requests go to JS and are mirrored to PHP
         if (operation === 'transformHtmlToHtml') {
             if (Math.round(Math.random() * 100) <= 6.5) {
