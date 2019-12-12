@@ -140,7 +140,18 @@ class KVBucket {
                 if (stringify(req.body) === stringify(oldContent.body) &&
                         (!headersToStore['content-type'] ||
                         headersToStore['content-type'] === oldContent.headers['content-type'])) {
-                    hyper.metrics.increment(`sys_kv_${req.params.bucket}.unchanged_rev_render`);
+                    hyper.metrics.makeMetric({
+                        type: 'Counter',
+                        name: 'unchanged_rev_render',  // shared with lib/parsoid
+                        prometheus: {
+                            name: 'restbase_unchanged_rev_render_total',
+                            help: 'unchanged rev render count'
+                        },
+                        labels: {
+                            names: ['path', 'bucket'],
+                            omitLabelNames: true
+                        }
+                    }).increment(1, ['sys_kv', req.params.bucket]);
                     return {
                         status: 412,
                         headers: oldContent.headers
