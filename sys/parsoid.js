@@ -425,7 +425,18 @@ class ParsoidService {
                         currentContentRes.body.html.headers['content-type'] ===
                         res.body.html.headers['content-type']) {
                         // New render is the same as the previous one, no need to store it.
-                        hyper.metrics.increment('sys_parsoid_generateAndSave.unchanged_rev_render');
+                        hyper.metrics.makeMetric({
+                            type: 'Counter',
+                            name: 'unchanged_rev_render',  // shared with sys/key_value
+                            prometheus: {
+                                name: 'restbase_unchanged_rev_render_total',
+                                help: 'unchanged rev render count'
+                            },
+                            labels: {
+                                names: ['path', 'bucket'],
+                                omitLabelNames: true
+                            }
+                        }).increment(1, ['parsoid', 'generateAndSave']);
                         return currentContentRes;
                     } else if (res.status === 200) {
                         let newContent = false;
