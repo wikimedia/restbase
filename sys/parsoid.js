@@ -125,31 +125,6 @@ class ParsoidProxy {
         return ret;
     }
 
-    _getStickyVariant(hyper, req) {
-        let variant = hyper._rootReq.headers['x-parsoid-variant'] ||
-            req.headers['x-parsoid-variant'];
-        if (!variant && hyper._rootReq.headers.cookie) {
-            const match = /parsoid_variant=([^;]+)/i.exec(hyper._rootReq.headers.cookie);
-            if (match) {
-                variant = match[1];
-            }
-        }
-        if (!variant) {
-            return undefined;
-        }
-        variant = variant.toLowerCase();
-        if (!['js', 'php'].includes(variant)) {
-            throw new HTTPError({
-                status: 400,
-                body: {
-                    type: 'bad_request',
-                    description: `Parsoid variant ${variant} not configured!`
-                }
-            });
-        }
-        return variant;
-    }
-
     _req(variant, operation, hyper, req, setHdr = true, sticky = false) {
         if (setHdr) {
             req.headers = req.headers || {};
@@ -183,54 +158,8 @@ class ParsoidProxy {
     }
 
     doRequest(operation, hyper, req) {
-        // TEMP TEMP TEMP
-        // all html2html requests go to JS and are mirrored to PHP
-        if (operation === 'transformHtmlToHtml') {
-            this._req('php', operation, hyper, req, false, true)
-            .catch((e) => hyper.logger.log('info/parsoidproxy/html2html', e));
-            return this._req('js', operation, hyper, req, false, true);
-        }
-        // END TEMP
-        let variant = this._getStickyVariant(hyper, req);
-        // TEMP: Do not honour the header or cookie for now
-        /* if (variant) {
-            // the variant has been set explicitly by the client, honour it
-            return this._req(variant, operation, hyper, req, true, true);
-        } */
-        // END TEMP
-        // we can safely check simply where to direct the request
-        // using splitRegex because it won't match anything for any
-        // mode other than split
-        if (this.splitRegex.test(req.params.domain)) {
-            variant = invert(this.default_variant);
-        } else {
-            variant = this.default_variant;
-        }
-        // mirror mode works only for getFormat, since for mirroring
-        // tranforms we would need to be sure we have the php output
-        // stashed
-        // also, if we are in split mode, then we must pretend we are
-        // also in 100% mirror mode since we want to keep both
-        // variants in storage fresh
-        /* Mirroring all the traffic causes too much load to withstand
-        if (this.mode !== 'single' && !/transform/.test(operation)) {
-            if (Math.round(Math.random() * 100) <= this.percentage) {
-                // clone the request and its headers
-                const mReq = {
-                    method: req.method,
-                    uri: req.uri,
-                    headers: Object.assign({}, req.headers),
-                    query: req.query,
-                    body: req.body,
-                    params: req.params
-                };
-                // issue an async request to the second variant and
-                // don't wait for the return value
-                this._req(invert(variant), operation, hyper, mReq, false)
-                .catch((e) => hyper.logger.log(`info/parsoidproxy/${invert(variant)}`, e));
-            }
-        }*/
-
+        const variant = this.splitRegex.test(req.params.domain) ?
+            invert(this.default_variant) : this.default_variant;
         return this._req(variant, operation, hyper, req);
     }
 
