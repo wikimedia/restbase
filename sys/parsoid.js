@@ -186,10 +186,8 @@ class ParsoidProxy {
         // TEMP TEMP TEMP
         // all html2html requests go to JS and are mirrored to PHP
         if (operation === 'transformHtmlToHtml') {
-            if (Math.round(Math.random() * 100) <= 6.5) {
-                this._req('php', operation, hyper, req, false, true)
-                .catch((e) => hyper.logger.log('info/parsoidproxy/html2html', e));
-            }
+            this._req('php', operation, hyper, req, false, true)
+            .catch((e) => hyper.logger.log('info/parsoidproxy/html2html', e));
             return this._req('js', operation, hyper, req, false, true);
         }
         // END TEMP
