@@ -18,7 +18,7 @@ describe('router - security', function() {
             // Do preparation requests to force siteInfo fetch so that we don't need to mock it
             return P.join(
                 preq.get({uri: `${server.config.bucketURL()}/title/Main_Page`}),
-                preq.get({uri: `${server.config.bucketURL('fr.wikipedia.org')}/title/Wikipédia:Accueil_principal`})
+                preq.get({uri: `${server.config.bucketURL('ru.wikipedia.beta.wmflabs.org')}/title/${encodeURIComponent('Заглавная_страница')}`})
             );
         });
     });
@@ -50,7 +50,7 @@ describe('router - security', function() {
 
     it('should forward cookies on request to api', () => {
         nock.enableNetConnect();
-        const apiURI = server.config.apiURL('fr.wikipedia.org');
+        const apiURI = server.config.apiURL('ru.wikipedia.beta.wmflabs.org');
         const api = nock(apiURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
@@ -65,7 +65,7 @@ describe('router - security', function() {
         .reply(200, sampleRightsResponse);
 
         return preq.get({
-            uri: `${server.config.bucketURL('fr.wikipedia.org')}/title/`,
+            uri: `${server.config.bucketURL('ru.wikipedia.beta.wmflabs.org')}/title/`,
             headers: {
                 'Cookie': 'test=test_cookie'
             }
@@ -76,14 +76,14 @@ describe('router - security', function() {
 
     it('should forward cookies on request to parsoid', () => {
         nock.enableNetConnect();
-        const title = 'Test';
-        const revision = 117795883;
+        const title = 'Б';
+        const revision = 1831;
         const api = nock(server.config.parsoidURI, {
             reqheaders: {
                 cookie: 'test=test_cookie'
             }
         })
-        .get(`/fr.wikipedia.org/v3/page/pagebundle/${title}/${revision}`)
+        .get(`/ru.wikipedia.beta.wmflabs.org/v3/page/pagebundle/${encodeURIComponent(title)}/${revision}`)
         .reply(200, () => {
             return {
                 'html': {
@@ -110,7 +110,7 @@ describe('router - security', function() {
         });
 
         return preq.get({
-            uri: `${server.config.bucketURL('fr.wikipedia.org')}/html/${title}/${revision}`,
+            uri: `${server.config.bucketURL('ru.wikipedia.beta.wmflabs.org')}/html/${encodeURIComponent(title)}/${revision}`,
             headers: {
                 'Cookie': 'test=test_cookie',
                 'Cache-control': 'no-cache'
@@ -130,7 +130,7 @@ describe('router - security', function() {
         .reply(200);
 
         return preq.get({
-            uri: `${server.config.baseURL('fake.wikipedia.org')}/http/${encodeURIComponent(externalURI)}`,
+            uri: `${server.config.baseURL('fake.fakepedia.org')}/http/${encodeURIComponent(externalURI)}`,
             headers: {
                 'cookie': 'test=test_cookie'
             }
@@ -160,7 +160,7 @@ describe('router - security', function() {
         nock.enableNetConnect();
         const title = 'TestingTitle';
 
-        const api = nock(server.config.apiURL('fr.wikipedia.org'))
+        const api = nock(server.config.apiURL('ru.wikipedia.beta.wmflabs.org'))
         .post('')
         .reply(200, {
             'query': {
@@ -172,7 +172,7 @@ describe('router - security', function() {
             }
         });
         return preq.get({
-            uri: `${server.config.bucketURL('fr.wikipedia.org')}/title/${title}`,
+            uri: `${server.config.bucketURL('ru.wikipedia.beta.wmflabs.org')}/title/${title}`,
             headers: {
                 'cache-control': 'no-cache'
             }

@@ -62,14 +62,6 @@ paths:
             headers:
               content-type: /application\/json/
             body:
-              tfa:
-                title: /.+/
-                description: /.+/
-                extract: /.+/
-                thumbnail:
-                  source: /.+/
-                  width: /.+/
-                  height: /.+/
               mostread:
                 date: /.+/
                 articles:
@@ -78,19 +70,6 @@ paths:
                     title: /.+/
                     pageid: /.+/
                     normalizedtitle: /.+/
-              image:
-                title: /.+/
-                description:
-                  text: /.+/
-                  lang: /.+/
-                image:
-                  source: /.+/
-                  width: /.+/
-                  height: /.+/
-                thumbnail:
-                  source: /.+/
-                  width: /.+/
-                  height: /.+/
 components:
   schemas:
     mostread_article:

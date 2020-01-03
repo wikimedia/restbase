@@ -51,8 +51,8 @@ const preq   = require('preq');
         before(() => server.start());
         after(() => server.stop());
 
-        const pageTitle = 'Foobar';
-        const pageRev = 757550077;
+        const pageTitle = 'San_Francisco';
+        const pageRev = 395889;
 
         it(`Should fetch latest ${testSpec.endpoint}`, () => {
             return preq.get({

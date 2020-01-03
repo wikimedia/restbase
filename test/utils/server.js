@@ -2,7 +2,7 @@
 
 const P = require('bluebird');
 const TestRunner = require('service-runner/test/TestServer');
-const DEFAULT_DOMAIN = 'en.wikipedia.org';
+const DEFAULT_DOMAIN = 'en.wikipedia.beta.wmflabs.org';
 
 class TestRestbase {
     constructor() {
@@ -48,7 +48,7 @@ class TestRestbase {
             apiBase,
             apiPath,
             apiURL,
-            parsoidURI: 'https://parsoid-beta.wmflabs.org',
+            parsoidURI: 'https://en.wikipedia.beta.wmflabs.org/w/rest.php',
             conf
         }
     }

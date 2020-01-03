@@ -48,14 +48,14 @@ parallel('Responses should conform to the provided JSON schema of the response',
             schema: 'feed'
         },
         {
-            domain: 'ru.wikipedia.org',
+            domain: 'de.wikipedia.beta.wmflabs.org',
             path: '/feed/featured',
             params: getToday(),
             schema: 'feed'
         },
         {
             path: '/page/summary',
-            params: 'Tank',
+            params: 'Foobar',
             schema: 'summary'
         },
         {
@@ -63,33 +63,28 @@ parallel('Responses should conform to the provided JSON schema of the response',
             schema: 'announcementsResponse'
         },
         {
-            path: '/feed/onthisday',
-            params: 'all/01/03',
-            schema: 'onthisdayResponse'
-        },
-        {
             path: '/page/related',
-            params: 'Tank',
+            params: 'San_Francisco',
             schema: 'related'
         },
         {
             path: '/page/media',
-            params: 'Tank',
+            params: 'San_Francisco',
             schema: 'media_list_with_metadata'
         },
         {
             path: '/page/media-list',
-            params: 'Tank',
+            params: 'San_Francisco',
             schema: 'media_list'
         },
         {
             path: '/page/references',
-            params: 'Tank',
+            params: 'San_Francisco',
             schema: 'references_response'
         },
         {
             path: '/page/metadata',
-            params: 'Tank',
+            params: 'San_Francisco',
             schema: 'metadata'
         }
     ].forEach((testSpec) => {

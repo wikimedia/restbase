@@ -14,9 +14,9 @@ describe('Change event emitting', () => {
 
     it('should not explode if events config is not provided', () => {
         return preq.post({
-            uri: `${server.config.baseURL('fake.wikipedia.org')}/events_no_config/`,
+            uri: `${server.config.baseURL('fake.fakepedia.org')}/events_no_config/`,
             body: [
-                { uri: '//fake.wikipedia.org' }
+                { uri: '//fake.fakepedia.org' }
             ]
         });
     });
@@ -34,7 +34,7 @@ describe('Change event emitting', () => {
                         const events = JSON.parse(postData.toString());
                         assert.deepEqual(events.length, 1);
                         const event = events[0];
-                        assert.deepEqual(event.meta.domain, 'fake.wikipedia.org');
+                        assert.deepEqual(event.meta.domain, 'fake.fakepedia.org');
                         assert.deepEqual(!!new Date(event.meta.dt), true);
                         assert.deepEqual(uuidUtils.test(event.meta.id), true);
                         assert.deepEqual(uuidUtils.test(event.meta.request_id), true);
@@ -71,11 +71,11 @@ describe('Change event emitting', () => {
 
         eventLogging = createEventLogging(really_done, {
             stream: 'resource_change',
-            uri: 'http://fake.wikipedia.org/wiki/User:Pchelolo'
+            uri: 'http://fake.fakepedia.org/wiki/User:Pchelolo'
         });
 
         preq.post({
-            uri: `${server.config.baseURL('fake.wikipedia.org')}/events/`,
+            uri: `${server.config.baseURL('fake.fakepedia.org')}/events/`,
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
@@ -83,7 +83,7 @@ describe('Change event emitting', () => {
             body: [
                 {
                     meta: {
-                        uri: '//fake.wikipedia.org/wiki/User:Pchelolo'
+                        uri: '//fake.fakepedia.org/wiki/User:Pchelolo'
                     },
                     tags: ['test']
                 },
@@ -110,21 +110,21 @@ describe('Change event emitting', () => {
 
         eventLogging = createEventLogging(really_done, {
             stream: 'change-prop.transcludes.resource-change',
-            uri: 'http://fake.wikipedia.org/api/rest_v1/page/html/User:Pchelolo',
-            trigger: 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://fake.wikipedia.org/wiki/User:Pchelolo'
+            uri: 'http://fake.fakepedia.org/api/rest_v1/page/html/User:Pchelolo',
+            trigger: 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://fake.fakepedia.org/wiki/User:Pchelolo'
         });
 
         preq.post({
-            uri: `${server.config.baseURL('fake.wikipedia.org')}/events/`,
+            uri: `${server.config.baseURL('fake.fakepedia.org')}/events/`,
             headers: {
                 'content-type': 'application/json',
                 connection: 'close',
-                'x-triggered-by': 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://fake.wikipedia.org/wiki/User:Pchelolo'
+                'x-triggered-by': 'mediawiki.revision-create:https://en.wikimedia.org/wiki/Template:One,change-prop.transcludes.resource-change:https://fake.fakepedia.org/wiki/User:Pchelolo'
             },
             body: [
                 {
                     meta: {
-                        uri: '//fake.wikipedia.org/api/rest_v1/page/html/User:Pchelolo'
+                        uri: '//fake.fakepedia.org/api/rest_v1/page/html/User:Pchelolo'
                     },
                     tags: ['test']
                 }
@@ -149,26 +149,26 @@ describe('Change event emitting', () => {
 
         eventLogging = createEventLogging(really_done, {
             stream: 'resource_change',
-            uri: 'http://fake.wikipedia.org/wiki/User:Pchelolo',
-            trigger: 'resource_change:https://fake.wikipedia.org/wiki/Prohibited'
+            uri: 'http://fake.fakepedia.org/wiki/User:Pchelolo',
+            trigger: 'resource_change:https://fake.fakepedia.org/wiki/Prohibited'
         });
 
         preq.post({
-            uri: `${server.config.baseURL('fake.wikipedia.org')}/events/`,
+            uri: `${server.config.baseURL('fake.fakepedia.org')}/events/`,
             headers: {
                 'content-type': 'application/json',
-                'x-triggered-by': 'resource_change:https://fake.wikipedia.org/wiki/Prohibited'
+                'x-triggered-by': 'resource_change:https://fake.fakepedia.org/wiki/Prohibited'
             },
             body: [
                 {
                     meta: {
-                        uri: '//fake.wikipedia.org/wiki/Prohibited'
+                        uri: '//fake.fakepedia.org/wiki/Prohibited'
                     },
                     tags: ['test']
                 },
                 {
                     meta: {
-                        uri: '//fake.wikipedia.org/wiki/User:Pchelolo'
+                        uri: '//fake.fakepedia.org/wiki/User:Pchelolo'
                     },
                     tags: ['test']
                 }

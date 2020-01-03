@@ -528,54 +528,59 @@ describe('reading lists', function() {
     });
 
     describe('GET /lists/{id}/entries/', () => {
-        const entries =  [
-            {
-                id: 10,
-                listId: 4,
-                project: 'en.wikipedia.org',
-                title: 'Foo Bar',
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-            },
-            {
-                id: 11,
-                listId: 4,
-                project: 'en.wikipedia.org',
-                title: 'Boo(m)?',
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-            },
-        ];
-        const expectedEntries = [
-            {
-                id: 10,
-                listId: 4,
-                project: 'en.wikipedia.org',
-                title: 'Foo Bar',
-                summary: {
-                    title: 'Foo_Bar',
-                    normalizedtitle: 'Foo Bar',
-                    summaryData: '<data1>',
+        let entries;
+        let expectedEntries;
+        before(() => {
+            entries = [
+                {
+                    id: 10,
+                    listId: 4,
+                    project: server.config.defaultDomain,
+                    title: 'Foo Bar',
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
                 },
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-            },
-            {
-                id: 11,
-                listId: 4,
-                project: 'en.wikipedia.org',
-                title: 'Boo(m)?',
-                summary: {
+                {
+                    id: 11,
+                    listId: 4,
+                    project: server.config.defaultDomain,
                     title: 'Boo(m)?',
-                    normalizedtitle: 'Boo(m)?',
-                    summaryData: '<data2>',
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
                 },
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-            },
-        ];
+            ];
+            expectedEntries = [
+                {
+                    id: 10,
+                    listId: 4,
+                    project: server.config.defaultDomain,
+                    title: 'Foo Bar',
+                    summary: {
+                        title: 'Foo_Bar',
+                        normalizedtitle: 'Foo Bar',
+                        summaryData: '<data1>',
+                    },
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
+                },
+                {
+                    id: 11,
+                    listId: 4,
+                    project: server.config.defaultDomain,
+                    title: 'Boo(m)?',
+                    summary: {
+                        title: 'Boo(m)?',
+                        normalizedtitle: 'Boo(m)?',
+                        summaryData: '<data2>',
+                    },
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
+                },
+            ];
+        });
+
         function getEnwikiMock() {
-            return nock('https://en.wikipedia.org', {
+            return nock(`https://${server.config.defaultDomain}`, {
                 // FIXME should not send cookies to a different domain
                 // badheaders: [ 'Cookie' ],
             })
@@ -751,7 +756,7 @@ describe('reading lists', function() {
                 {
                     id: 1,
                     listId: 1,
-                    project: 'de.wikipedia.org',
+                    project: 'de.fakepedia.org',
                     title: 'Barack Obama',
                     created: '2017-09-27T06:59:13Z',
                     updated: '2017-10-17T07:40:50Z',
@@ -797,7 +802,7 @@ describe('reading lists', function() {
                     action: 'readinglists',
                     command: 'createentry',
                     list: '3',
-                    project: 'en.wikipedia.org',
+                    project: server.config.defaultDomain,
                     title: 'Barack Obama',
                     token: csrfToken,
                     format: 'json',
@@ -815,7 +820,7 @@ describe('reading lists', function() {
                     csrf_token: csrfToken,
                 },
                 body: {
-                    project: 'en.wikipedia.org',
+                    project: server.config.defaultDomain,
                     title: 'Barack Obama',
                 },
                 headers: {
@@ -865,11 +870,11 @@ describe('reading lists', function() {
         it('forward call', () => {
             const batchEntries = [
                 {
-                    project: 'en.wikipedia.org',
+                    project: server.config.defaultDomain,
                     title: 'Foobar',
                 },
                 {
-                    project: 'en.wikipedia.org',
+                    project: server.config.defaultDomain,
                     title: 'Dog',
                 },
             ];
@@ -889,14 +894,14 @@ describe('reading lists', function() {
                         entries: [
                             {
                                 id: 2,
-                                project: 'en.wikipedia.org',
+                                project: server.config.defaultDomain,
                                 title: 'Foobar',
                                 created: '2018-08-30T13:44:04.276Z',
                                 updated: '2018-08-30T13:44:04.276Z'
                             },
                             {
                                 id: 3,
-                                project: 'en.wikipedia.org',
+                                project: server.config.defaultDomain,
                                 title: 'Dog',
                                 created: '2018-08-30T13:44:04.276Z',
                                 updated: '2018-08-30T13:44:04.276Z'
@@ -933,14 +938,14 @@ describe('reading lists', function() {
                     entries: [
                         {
                             id: 2,
-                            project: 'en.wikipedia.org',
+                            project: server.config.defaultDomain,
                             title: 'Foobar',
                             created: '2018-08-30T13:44:04.276Z',
                             updated: '2018-08-30T13:44:04.276Z'
                         },
                         {
                             id: 3,
-                            project: 'en.wikipedia.org',
+                            project: server.config.defaultDomain,
                             title: 'Dog',
                             created: '2018-08-30T13:44:04.276Z',
                             updated: '2018-08-30T13:44:04.276Z'
@@ -984,7 +989,7 @@ describe('reading lists', function() {
                 .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
-                    rlproject: 'en.wikipedia.org',
+                    rlproject: server.config.defaultDomain,
                     rltitle: 'Foo_Bar',
                     rllimit: 'max',
                     format: 'json',
@@ -997,7 +1002,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${server.config.baseURL()}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
+                uri: `${server.config.baseURL()}/data/lists/pages/${server.config.defaultDomain}/Foo%20Bar`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -1016,7 +1021,7 @@ describe('reading lists', function() {
                 .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
-                    rlproject: 'en.wikipedia.org',
+                    rlproject: server.config.defaultDomain,
                     rltitle: 'Foo_Bar',
                     rllimit: 'max',
                     format: 'json',
@@ -1033,7 +1038,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${server.config.baseURL()}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
+                uri: `${server.config.baseURL()}/data/lists/pages/${server.config.defaultDomain}/Foo%20Bar`,
                 headers: {
                     'Cookie': sessionCookies,
                 },
@@ -1053,7 +1058,7 @@ describe('reading lists', function() {
                 .post(server.config.apiPath, nockDiff({
                     action: 'query',
                     meta: 'readinglists',
-                    rlproject: 'en.wikipedia.org',
+                    rlproject: server.config.defaultDomain,
                     rltitle: 'Foo_Bar',
                     rllimit: 'max',
                     rlcontinue: 1,
@@ -1068,7 +1073,7 @@ describe('reading lists', function() {
                 });
 
             return preq.get({
-                uri: `${server.config.baseURL()}/data/lists/pages/en.wikipedia.org/Foo%20Bar`,
+                uri: `${server.config.baseURL()}/data/lists/pages/${server.config.defaultDomain}/Foo%20Bar`,
                 query: {
                     next: '{"rlcontinue":1,"continue":"-||"}',
                 },
@@ -1087,51 +1092,55 @@ describe('reading lists', function() {
     });
 
     describe('GET /lists/changes/since/{date}', () => {
-        const lists = [
-            {
-                id: 1,
-                name: 'default',
-                default: true,
-                description: '',
-                color: '',
-                image: '',
-                icon: '',
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-                order: [ 1, 2 ],
-                listOrder: [ 1, 2 ],
-            },
-            {
-                id: 2,
-                name: 'deleted',
-                description: '',
-                color: '',
-                image: '',
-                icon: '',
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-                deleted: true,
-            },
-        ];
-        const entries =  [
-            {
-                id: 1,
-                listId: 1,
-                project: 'en.wikipedia.org',
-                title: 'Foo Bar',
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-            },
-            {
-                id: 2,
-                listId: 1,
-                project: 'en.wikipedia.org',
-                title: 'Boom Baz',
-                created: '2017-09-27T06:59:13Z',
-                updated: '2017-10-17T07:40:50Z',
-                deleted: true,
-            },
-        ];
+        let lists;
+        let entries;
+        before(() => {
+            lists = [
+                {
+                    id: 1,
+                    name: 'default',
+                    default: true,
+                    description: '',
+                    color: '',
+                    image: '',
+                    icon: '',
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
+                    order: [ 1, 2 ],
+                    listOrder: [ 1, 2 ],
+                },
+                {
+                    id: 2,
+                    name: 'deleted',
+                    description: '',
+                    color: '',
+                    image: '',
+                    icon: '',
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
+                    deleted: true,
+                },
+            ];
+            entries =  [
+                {
+                    id: 1,
+                    listId: 1,
+                    project: server.config.defaultDomain,
+                    title: 'Foo Bar',
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
+                },
+                {
+                    id: 2,
+                    listId: 1,
+                    project: server.config.defaultDomain,
+                    title: 'Boom Baz',
+                    created: '2017-09-27T06:59:13Z',
+                    updated: '2017-10-17T07:40:50Z',
+                    deleted: true,
+                },
+            ];
+        });
 
         it('forward call', () => {
             const scope = getApi()
