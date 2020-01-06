@@ -4,7 +4,6 @@ const assert = require('../../utils/assert.js');
 const preq = require('preq');
 const Server = require('../../utils/server.js');
 const P = require('bluebird');
-const mwUtils = require('../../../lib/mwUtil');
 
 describe('item requests', function() {
     this.timeout(20000);
@@ -18,11 +17,11 @@ describe('item requests', function() {
     }));
     after(() => server.stop());
 
-    const deniedTitle = 'User talk:DivineAlpha%2FQ1 2015 discussions';
-    const deniedRev = '645504917';
+    const deniedTitle = 'User:Pchelolo/Restricted Revision';
+    const deniedRev = '409440';
 
     function contentURI(format) {
-        return [server.config.bucketURL(), format, deniedTitle, deniedRev].join('/');
+        return [server.config.bucketURL(), format, encodeURIComponent(deniedTitle), deniedRev].join('/');
     }
     const assertCORS = (res) => {
         assert.deepEqual(res.headers['access-control-allow-origin'], '*');
@@ -36,7 +35,7 @@ describe('item requests', function() {
     };
     const createTest = (method) => {
         it(`should respond to ${method} request with CORS headers`, () => {
-            return preq[method]({ uri: `${server.config.bucketURL()}/html/Foobar/624484477` })
+            return preq[method]({ uri: `${server.config.bucketURL()}/html/Foobar/385014` })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assertCORS(res);
@@ -55,13 +54,13 @@ describe('item requests', function() {
 
     it('should transparently create a new HTML revision for Main_Page', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
+            uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`
+                uri: `${server.config.bucketURL()}/html/Main_Page`
             });
         })
         .then((res) => {
@@ -71,7 +70,7 @@ describe('item requests', function() {
     });
     it('should transparently create a new HTML revision with id 252937', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/252937`,
+            uri: `${server.config.bucketURL()}/html/Foobar/252937`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -80,7 +79,7 @@ describe('item requests', function() {
     });
     it('should not allow to frontend cache HTML if requested a stash', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar?stash=true`,
+            uri: `${server.config.bucketURL()}/html/Foobar?stash=true`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -100,7 +99,7 @@ describe('item requests', function() {
 
     it('should request page lints. with revision', () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest/830278619`
+            uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest/409437`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -109,9 +108,9 @@ describe('item requests', function() {
     });
 
     let rev2Etag;
-    it('should transparently create data-parsoid with id 252937, rev 2', () => {
+    it('should transparently create data-parsoid with id 383159, rev 2', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/252937?stash=true`
+            uri: `${server.config.bucketURL()}/html/Foobar/383159?stash=true`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -120,9 +119,9 @@ describe('item requests', function() {
         });
     });
 
-    it('should return data-parsoid just created with revision 252937, rev 2', () => {
+    it('should return data-parsoid just created with revision 383159, rev 2', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${rev2Etag}`
+            uri: `${server.config.bucketURL()}/data-parsoid/Foobar/${rev2Etag}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -130,16 +129,16 @@ describe('item requests', function() {
         });
     });
 
-    it('should return HTML and data-parsoid just created by revision 241155', () => {
+    it('should return HTML and data-parsoid just created by revision 295771', () => {
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar/241155?stash=true`
+            uri: `${server.config.bucketURL()}/html/Foobar/295771?stash=true`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/data-parsoid/Foobar/${
+                uri: `${server.config.bucketURL()}/data-parsoid/Foobar/${
                     res.headers.etag.replace(/^"(.*)"$/, '$1')}`
             });
         })
@@ -151,7 +150,7 @@ describe('item requests', function() {
 
     it('should list APIs using the generic listing handler', () => {
         return preq.get({
-            uri: `${server.config.hostPort}/en.wikipedia.org/`
+            uri: `${server.config.hostPort}/${server.config.defaultDomain}/`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -230,9 +229,6 @@ describe('item requests', function() {
             assert.contentType(res, 'application/json');
             if (!res.body.items || !res.body.items.length) {
                 throw new Error("Empty listing result!");
-            }
-            if (!/^!/.test(res.body.items[0])) {
-                throw new Error("Expected the first titles to start with !");
             }
             pagingToken = res.body._links.next.href;
         });

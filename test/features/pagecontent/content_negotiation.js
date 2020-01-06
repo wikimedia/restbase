@@ -20,7 +20,7 @@ describe.skip('Content negotiation', function() {
 
     function getFakePageVersion(pageName, version) {
         let parsoidNock;
-        return preq.get({uri: `${server.config.parsoidURI}/en.wikipedia.org/v3/page/pagebundle/${pageName}`})
+        return preq.get({uri: `${server.config.parsoidURI}/${server.config.defaultDomain}/v3/page/pagebundle/${pageName}`})
         .then((res) => {
             currentParsoidContentType = res.body.html.headers['content-type'];
             res.body.html.headers['content-type'] = res.body.html.headers['content-type']

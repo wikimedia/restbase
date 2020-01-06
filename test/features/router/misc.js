@@ -18,7 +18,7 @@ describe('router - misc', function() {
     after(() => server.stop());
 
     it('should deny access to /{domain}/sys', () => {
-        return preq.get({uri: `${server.config.hostPort}/en.wikipedia.org/sys/action/query`})
+        return preq.get({uri: `${server.config.hostPort}/${server.config.defaultDomain}/sys/action/query`})
         .catch((err) => {
             assert.deepEqual(err.status, 403);
         });

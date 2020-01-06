@@ -4,27 +4,27 @@ const assert = require('../utils/assert.js');
 const Server = require('../utils/server.js');
 const preq   = require('preq');
 
-function assertMCSRequest(content, date, expected) {
-    const serviceURI = 'https://wikifeeds.wmflabs.org';
-    let path = `/en.wikipedia.org/v1/${content}`;
-    if (date) {
-        path += `/${date}`;
-    }
-    const serviceRequests = assert.findRequests(log =>
-        log.scope.startsWith(serviceURI) && log.path.startsWith(path));
-    if (expected) {
-        assert.deepEqual(serviceRequests.length > 0, true,
-            `Should have made request to service for ${content}`);
-    } else {
-        assert.deepEqual(serviceRequests.length === 0, true,
-            `Should NOT have made request to service for ${content}`);
-    }
-}
-
 describe('Featured feed', () => {
     const server = new Server();
     before(() => server.start());
     after(() => server.stop());
+
+    function assertMCSRequest(content, date, expected) {
+        const serviceURI = 'https://wikifeeds.wmflabs.org';
+        let path = `/${server.config.defaultDomain}/v1/${content}`;
+        if (date) {
+            path += `/${date}`;
+        }
+        const serviceRequests = assert.findRequests(log =>
+            log.scope.startsWith(serviceURI) && log.path.startsWith(path));
+        if (expected) {
+            assert.deepEqual(serviceRequests.length > 0, true,
+                `Should have made request to service for ${content}`);
+        } else {
+            assert.deepEqual(serviceRequests.length === 0, true,
+                `Should NOT have made request to service for ${content}`);
+        }
+    }
 
     it('Should render non-available historic content', () => {
         const date = '2016/10/01';

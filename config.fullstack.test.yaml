@@ -11,10 +11,7 @@ default_project: &default_project
                     grace_ttl: 1000000
                     php_host: https://en.wikipedia.beta.wmflabs.org/w/rest.php
                     proxy:
-                      default_variant: js
-                      mode: split
-                      pattern:
-                        - en.wikipedia.beta.wmflabs.org
+                      default_variant: php
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
                     baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"
@@ -220,41 +217,28 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\//
   paths:
-    /{domain:test.wikipedia.org}: *wikipedia_project
+    /{domain:commons.wikimedia.beta.wmflabs.org}: *commons_project
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
-    /{domain:en.wikipedia.org}: *wikipedia_project
-    /{domain:ru.wikipedia.org}: *wikipedia_project
-    /{domain:de.wikipedia.org}: *wikipedia_project
-    /{domain:test2.wikipedia.org}: *wikipedia_project
-    /{domain:commons.wikimedia.org}: *commons_project
-    /{domain:www.wikidata.org}: *wikidata_project
-
-    # labs, used for most tests
     /{domain:en.wikipedia.beta.wmflabs.org}: *wikipedia_project
-    /{domain:commons.wikimedia.beta.wmflabs.org}: *commons_project
+    /{domain:de.wikipedia.beta.wmflabs.org}: *wikipedia_project
     /{domain:wikidata.beta.wmflabs.org}: *wikidata_project
-
     # Serbian wiki in beta for language variants tests
     /{domain:sr.wikipedia.beta.wmflabs.org}: *wikipedia_project
-
-    # For security testing we rely on mocks, so it's OK to use French wiki.
-    /{domain:fr.wikipedia.org}:
+    # For security testing we rely on mocks, so it's OK to use Russian wiki.
+    /{domain:ru.wikipedia.beta.wmflabs.org}:
       <<: *wikipedia_project
       x-route-filters:
         - path: ./lib/mediawiki_auth_filter.js
           options:
             permissions:
               - read
-
     # global domain
     /{domain:wikimedia.org}: *wikimedia_project
-
     # Wiktionary has some specific endpoints
-    /{domain:en.wiktionary.org}: *wiktionary_project
-
+    /{domain:en.wiktionary.beta.wmflabs.org}: *wiktionary_project
     # Fake domain to run tests relying on test_module
-    /{domain:fake.wikipedia.org}: *testing_project
+    /{domain:fake.fakepedia.org}: *testing_project
 
 # Finally, a standard service-runner config.
 info:

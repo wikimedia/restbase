@@ -6,16 +6,16 @@ const assert = require('../../utils/assert.js');
 const preq   = require('preq');
 const Server = require('../../utils/server.js');
 const nock   = require('nock');
-const P      = require('bluebird');
 
+// TODO: add support for nocked tests
 const NOCK_TESTS = false; // because of Parsoid/PHP which uses the same URI structure as the MW API
 
 describe('Access checks', () => {
     const server = new Server();
 
     const deletedPageTitle = 'User:Pchelolo/Access_Check_Tests';
-    const deletedPageOlderRevision = 705347919;
-    const deletedPageRevision = 705347950;
+    const deletedPageOlderRevision = 409433;
+    const deletedPageRevision = 409434;
     const emptyResponse = { 'batchcomplete': '', 'query': { 'badrevids': { '292466': { 'revid': '292466' } } } };
 
     function setUpNockResponse(api, title, revision) {
@@ -57,20 +57,12 @@ describe('Access checks', () => {
         }
         return server.start()
         // Do a preparation request to force siteinfo fetch so that we don't need to mock it
-        .then(() => P.join(
-            preq.get({
-                uri: `${server.config.bucketURL()}/html/Main_Page`,
-                headers: {
-                    'cache-control': 'no-cache'
-                }
-            }),
-            preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Main_Page`,
-                headers: {
-                    'cache-control': 'no-cache'
-                }
-            })
-        ))
+        .then(() => preq.get({
+            uri: `${server.config.bucketURL()}/html/Main_Page`,
+            headers: {
+                'cache-control': 'no-cache'
+            }
+        }))
         // Load in the revisions
         .then(() => {
             let api = nock(server.config.apiURL());
@@ -92,7 +84,7 @@ describe('Access checks', () => {
                 });
             })
             .then(res => assert.deepEqual(res.status, 200))
-            .then(res => api.done())
+            .then(() => api.done())
             .finally(() => nock.cleanAll());
         });
     });

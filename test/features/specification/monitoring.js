@@ -35,6 +35,13 @@ function filterPath(paths, pathStr, method) {
     return p['x-monitor'];
 }
 
+function betaDomain(domain) {
+    if (domain === 'wikimedia.org') {
+        return domain;
+    }
+    return domain.replace(/\.org$/, '.beta.wmflabs.org');
+}
+
 function constructTests(spec, options, server) {
     const paths = spec.paths;
     const ret = [];
@@ -53,7 +60,8 @@ function constructTests(spec, options, server) {
             p['x-amples'].forEach((ex) => {
                 ex.request = ex.request || {};
                 ex.request.params = ex.request.params || {};
-                ex.request.params.domain = ex.request.params.domain || options.domain;
+                ex.request.params.domain = ex.request.params.domain ?
+                    betaDomain(ex.request.params.domain) : options.domain;
                 if (ex.request.params.domain !== options.domain) {
                     return;
                 }
@@ -170,7 +178,7 @@ describe('Monitoring tests', function() {
 
     it('should get the spec', () => {
         return P.each([{
-            domain: 'en.wikipedia.org',
+            domain: 'en.wikipedia.beta.wmflabs.org',
             specURI: `${server.config.baseURL()}/?spec`
         },
         {
@@ -178,16 +186,16 @@ describe('Monitoring tests', function() {
             specURI: `${server.config.baseURL('wikimedia.org')}/?spec`
         },
         {
-            domain: 'en.wiktionary.org',
-            specURI: `${server.config.baseURL('en.wiktionary.org')}/?spec`
+            domain: 'en.wiktionary.beta.wmflabs.org',
+            specURI: `${server.config.baseURL('en.wiktionary.beta.wmflabs.org')}/?spec`
         },
         {
-            domain: 'www.wikidata.org',
-            specURI: `${server.config.baseURL('www.wikidata.org')}/?spec`
+            domain: 'wikidata.beta.wmflabs.org',
+            specURI: `${server.config.baseURL('wikidata.beta.wmflabs.org')}/?spec`
         },
         {
-            domain: 'commons.wikimedia.org',
-            specURI: `${server.config.baseURL('commons.wikimedia.org')}/?spec`
+            domain: 'commons.wikimedia.beta.wmflabs.org',
+            specURI: `${server.config.baseURL('commons.wikimedia.beta.wmflabs.org')}/?spec`
         }],
         (options) => {
             return preq.get(options.specURI)
@@ -218,8 +226,7 @@ describe('Monitoring tests', function() {
                         });
                     });
                 };
-                parallel(`Monitoring routes, ${options.domain} domain, new content`, defineTests);
-                parallel(`Monitoring routes, ${options.domain} domain, from storage`, defineTests);
+                parallel(`Monitoring routes, ${options.domain} domain`, defineTests);
             });
         });
     });
