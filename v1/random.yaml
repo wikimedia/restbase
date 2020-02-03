@@ -27,7 +27,7 @@ paths:
         303:
           description: The redirect to the desired format URI for a random page
           content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Random/0.6.0":
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Random/0.7.0":
               schema:
                 type: object
         default:
