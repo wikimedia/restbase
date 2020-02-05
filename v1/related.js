@@ -13,6 +13,11 @@ class Related {
 
     getPages(hyper, req) {
         const rp = req.params;
+        const rh = Object.assign({}, req.headers);
+        // we don't store /page/related no need for cache-control
+        if (rh['cache-control']) {
+            delete rh['cache-control'];
+        }
 
         return hyper.post({
             uri: new URI([rp.domain, 'sys', 'action', 'query']),
@@ -45,7 +50,22 @@ class Related {
             delete res.body.items;
 
             // Step 2: Hydrate response as always.
-            return mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri));
+            return mwUtil.hydrateResponse(res, (uri) => {
+                return mwUtil.fetchSummary(hyper, uri, rh).then((result) => {
+                    if (!result) {
+                        return result;
+                    }
+
+                    // Assign content-language and vary header to parent response
+                    // based on one of summary responses
+                    if (res && res.headers && !res.headers['content-language'] &&
+                    result['content-language']) {
+                        res.headers['content-language'] = result['content-language'];
+                        mwUtil.addVaryHeader(res, 'accept-language');
+                    }
+                    return result.summary;
+                });
+            });
         });
     }
 }

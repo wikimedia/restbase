@@ -189,7 +189,11 @@ class ReadingLists {
                 };
             }).catch(() => {});
         })
-        .then(() => mwUtil.hydrateResponse(res, (uri) => mwUtil.fetchSummary(hyper, uri)));
+        .then(() => mwUtil.hydrateResponse(res, (uri) => {
+            return mwUtil.fetchSummary(hyper, uri).then((result) => {
+                return result && result.summary;
+            });
+        }));
     }
 }
 
