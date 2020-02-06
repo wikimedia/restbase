@@ -95,6 +95,9 @@ paths:
           name: mobile-html
           response_cache_control: '{{options.purged_cache_control}}'
           host: '{{options.mobileapps.host}}'
+      - path: v1/pcs/mobile-html-offline-resources.yaml
+        options:
+          host: '{{options.mobileapps.host}}'
       - path: v1/related.js
         options: '{{options.related}}'
       - path: v1/random.yaml

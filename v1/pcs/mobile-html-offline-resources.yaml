@@ -1,0 +1,87 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: MediaWiki page mobile-html-offline-resources API
+  description: Provides links to scripts and styles needed for viewing mobile-html-formatted pages offline
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: WMF Product Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Product_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /mobile-html-offline-resources/{title}:
+    get: &mobile-html-offline-resources_title_revision_get_spec
+      tags:
+        - Page content
+        - offline
+      summary: Get styles and scripts for offline consumption of mobile-html-formatted pages
+      description: Provides links to scripts and styles needed for viewing mobile-html-formatted pages offline
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: links to scripts and styles to accompany the mobile-html of the page for offline consumption
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML-Offline-Resources/1.0.0":
+              schema:
+                type: string
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get-mobile-html-offline-resources:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/page/mobile-html-offline-resources/{title}'
+            return:
+              status: 200
+              headers: '{{get-mobile-html-offline-resources.headers}}'
+              body: '{{get-mobile-html-offline-resources.body}}'
+      x-monitor: true
+      x-amples:
+        - title: Get offline resource links to accompany page content HTML for test page
+          request:
+            params:
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+          response:
+            status: 200
+            headers:
+              content-type: /^application\/json.+/
+
+  /mobile-html-offline-resources/{title}/{revision}:
+    get:
+      <<: *mobile-html-offline-resources_title_revision_get_spec
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+        - name: revision
+          in: path
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
+          required: true
+          schema:
+            type: integer
+      x-request-handler:
+        - get-mobile-html-offline-resources:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/page/mobile-html-offline-resources/{title}{/revision}'
+            return:
+              status: 200
+              headers: '{{get-mobile-html-offline-resources.headers}}'
+              body: '{{get-mobile-html-offline-resources.body}}'
+      x-monitor: false
