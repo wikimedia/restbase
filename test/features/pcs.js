@@ -85,7 +85,8 @@ describe('Page Content Service: transforms', () => {
         return preq.post({
             uri: `${server.config.baseURL()}/transform/wikitext/to/mobile-html/Main_Page`,
             body: {
-                wikitext: '== Heading =='
+                wikitext: `== Heading ==
+                hello world`
             }
         })
         .then((res) => {
