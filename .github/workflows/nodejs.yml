@@ -1,12 +1,16 @@
 name: Node.js CI
 
-on: [push,pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [6.x, 10.x]
@@ -34,6 +38,7 @@ jobs:
         echo "-Xms256m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
         echo "-Xmx512m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
         sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
-        ../apache-cassandra-${{ matrix.cassandra-version }}/bin/cassandra
+        export PATH=${PATH}:../apache-cassandra-${{ matrix.cassandra-version }}/bin
+        cassandra
     - run: npm install
-    - run: npm run lint && npm run coverage -- ${{ matrix.test-target }} ${{ matrix.test-mode }} && (npm run-script coveralls || exit 0)
+    - run: npm run lint && npm run coverage -- ${{ matrix.test-target }} ${{ matrix.test-mode }}
