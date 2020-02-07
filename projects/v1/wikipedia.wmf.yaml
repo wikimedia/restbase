@@ -96,7 +96,7 @@ paths:
         options: '{{options.related}}'
       - path: v1/random.yaml
         options: '{{merge({"random_cache_control": "s-maxage=2, max-age=1"},
-                      options.mobileapps)}}'
+                      options.wikifeeds)}}'
       - path: v1/talk.yaml
         options:
           host: '{{options.mobileapps.host}}'
