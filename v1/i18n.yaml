@@ -1,0 +1,61 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0-beta
+  title: Internationalization
+  description: API for retrieving internationalization information
+  termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
+  contact:
+    name: Reading Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+  license:
+    name: Apache licence, v2
+    url: https://www.apache.org/licenses/LICENSE-2.0
+paths:
+  /css/mobile/{type}:
+    x-route-filters:
+      - path: lib/security_response_header_filter.js
+    get:
+      summary: Get internationalization info
+      description: |
+        Gets internationalization information for the given site. Currently the only
+        supported type is pcs for the Page Content Service.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      parameters:
+        - name: type
+          in: path
+          description: The desired internationalization bundle
+          schema:
+            type: string
+            enum:
+              - pcs
+          required: true
+      responses:
+        200:
+          description: Success
+          headers:
+            ETag:
+              description: Different values indicate that the content has changed
+              schema:
+                type: string
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/i18n/0.0.1":
+              schema:
+                type: object
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_pcs:
+            request:
+              method: get
+              uri: '{{options.host}}/{domain}/v1/data/i18n/{type}'
+            return:
+              status: 200
+              headers: '{{ merge({"cache-control": options.response_cache_control},
+              get_from_pcs.headers) }}'
+              body: '{{get_from_pcs.body}}'
+      x-monitor: false
