@@ -5,8 +5,8 @@ info:
   description: API for retrieving additional metadata of a given page
   termsOfService: https://www.mediawiki.org/wiki/REST_API#Terms_and_conditions
   contact:
-    name: Reading Infrastructure
-    url: https://www.mediawiki.org/wiki/Wikimedia_Reading_Infrastructure_team
+    name: Product Infrastructure
+    url: https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team
   license:
     name: Apache licence, v2
     url: https://www.apache.org/licenses/LICENSE-2.0
