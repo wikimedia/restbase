@@ -12,6 +12,8 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
 paths:
   /mobile-html-offline-resources/{title}:
+    x-route-filters:
+      - path: lib/ensure_content_type.js
     get: &mobile-html-offline-resources_title_revision_get_spec
       tags:
         - Page content
@@ -29,7 +31,7 @@ paths:
         200:
           description: links to scripts and styles to accompany the mobile-html of the page for offline consumption
           content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML-Offline-Resources/1.0.0":
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML-Offline-Resources/1.2.0":
               schema:
                 type: string
         default:
