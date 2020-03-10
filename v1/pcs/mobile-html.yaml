@@ -20,6 +20,7 @@ paths:
         options:
           mobile_html: true
       - path: lib/language_variants_filter.js
+      - path: lib/ensure_content_type.js
     get: &mobile-html_title_revision_get_spec
       tags:
         - Page content
@@ -80,7 +81,7 @@ paths:
               schema:
                 type: string
           content:
-            text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML/1.0.0":
+            text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML/1.2.0":
               schema:
                 type: string
         301:
