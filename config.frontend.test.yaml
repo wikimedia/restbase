@@ -8,7 +8,7 @@ default_project: &default_project
               - path: projects/v1/default.wmf.yaml
                 options: &default_options
                   parsoid:
-                    host: https://en.wikipedia.beta.wmflabs.org/w/rest.php
+                    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
                     grace_ttl: 1000000
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
@@ -171,7 +171,7 @@ spec_root: &spec_root
             forward_headers: true
           - pattern: /^https?:\/\/[a-zA-Z0-9\.]+\/w\/rest\.php.+/
             forward_headers: true
-          - pattern: /^https?:\/\/parsoid-beta.wmflabs.org.+/
+          - pattern: /^https?:\/\/parsoid-external-ci-access.beta.wmflabs.org.+/
             forward_headers: true
           # Need to forward cookie to backend RESTBase
           - pattern: /^https?:\/\/localhost:7233.+/

@@ -80,7 +80,8 @@ describe('router - security', function() {
         const revision = 1831;
         const api = nock(server.config.parsoidURI, {
             reqheaders: {
-                cookie: 'test=test_cookie'
+                cookie: 'test=test_cookie',
+                host: 'ru.wikipedia.beta.wmflabs.org',
             }
         })
         .get(`/ru.wikipedia.beta.wmflabs.org/v3/page/pagebundle/${encodeURIComponent(title)}/${revision}`)
