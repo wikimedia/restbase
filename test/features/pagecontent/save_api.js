@@ -13,7 +13,7 @@ describe('page save api', function() {
     const server = new Server();
     after(() =>  server.stop());
 
-    const pageTitle = 'Save_test';
+    const pageTitle = process.env.SAVE_PAGE_NAME || 'Save_test';
     let token = '';
     let oldETag = '';
     const saveText = `${"Welcome to the page which tests the [[:mw:RESTBase|RESTBase]] save " +
@@ -21,7 +21,6 @@ describe('page save api', function() {
         "with the current version of MediaWiki.\n\n" +
         "== Date ==\nText generated on "}${new Date().toUTCString()}\n\n` +
         `== Random ==\nHere's a random number: ${Math.floor(Math.random() * 32768)}`;
-    const oldRev = 259419;
     let lastRev = 0;
     let lastETag = '';
 
@@ -30,27 +29,40 @@ describe('page save api', function() {
             nock.activate();
         }
         return server.start().then(() => {
-            return P.all([
-                preq.get({
-                    uri: server.config.apiURL('en.wikipedia.beta.wmflabs.org'),
-                    query: {
-                        action: 'query',
-                        meta: 'tokens',
-                        format: 'json',
-                        formatversion: 2
-                    }
-                })
-                .then((res) => {
-                    token = res.body.query.tokens.csrftoken;
-                }),
-
-                preq.get({
-                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${pageTitle}/${oldRev}`
-                })
-                .then((res) => {
-                    oldETag = res.headers.etag;
-                })
-            ]);
+            return preq.get({
+                uri: server.config.apiURL('en.wikipedia.beta.wmflabs.org'),
+                query: {
+                    action: 'query',
+                    meta: 'tokens',
+                    format: 'json',
+                    formatversion: 2
+                }
+            })
+            .then((res) => {
+                token = res.body.query.tokens.csrftoken;
+            });
+        }).then(() => {
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/title/${pageTitle}`
+            })
+            .then((res) => {
+                oldETag = res.headers.etag;
+            }, (err) => {
+                // If SAVE_PAGE_CREATE is set, then go ahead and create
+                // the missing page
+                if (process.env.SAVE_PAGE_CREATE !== undefined) {
+                    return preq.post({
+                        uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/wikitext/${pageTitle}`,
+                        body: {
+                            wikitext: 'Initial page creation!',
+                            csrf_token: token,
+                        }
+                    }).then((res) => {
+                        oldETag = res.headers.etag;
+                    });
+                }
+                throw err;
+            });
         })
         .then(() => {
             // Do a preparation request to force siteinfo fetch so that we don't need to mock it

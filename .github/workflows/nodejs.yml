@@ -44,4 +44,5 @@ jobs:
         export PATH=${PATH}:../apache-cassandra-${{ matrix.cassandra-version }}/bin
         cassandra
     - run: npm install
-    - run: npm run lint && npm run coverage -- ${{ matrix.test-target }} ${{ matrix.test-mode }}
+    - run: npm run lint
+    - run: SAVE_PAGE_NAME="Save_test%2F${{ matrix.node-version }}-${{ matrix.cassandra-version }}-${{ matrix.test-target }}-${{ matrix.test-mode }}" npm run coverage -- ${{ matrix.test-target }} ${{ matrix.test-mode }}
