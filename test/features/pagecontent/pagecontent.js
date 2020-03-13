@@ -87,7 +87,7 @@ describe('item requests', function() {
         });
     });
 
-    it.skip('should request page lints. no revision', () => {
+    it('should request page lints. no revision', () => {
         return preq.get({
             uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest`
         })
