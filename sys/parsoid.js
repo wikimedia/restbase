@@ -751,7 +751,19 @@ class ParsoidService {
         if (rp.revision) {
             path += `/${rp.revision}`;
         }
-        return hyper.post(this._getParsoidReq(req, path, {}, {}));
+        const parsoidReq = this._getParsoidReq(req, path, {}, {});
+        parsoidReq.followRedirect = false;
+        return hyper.post(parsoidReq).then((res) => {
+            if (res.status === 307) {
+                // Handle redirect - workaround for Parsoid bug
+                // redirect generated for Host, not the domain where Parsoid was called.
+                const nloc = new URI(res.headers.location);
+                const revision = nloc.path.slice(-1)[0];
+                const npath = `${path}/${revision}`;
+                return hyper.post(this._getParsoidReq(req, npath, {}, {}));
+            }
+            return res;
+        });
     }
 
     makeTransform(from, to) {

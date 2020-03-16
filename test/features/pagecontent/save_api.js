@@ -6,7 +6,7 @@ const Server = require('../../utils/server.js');
 const P      = require('bluebird');
 const nock   = require('nock');
 
-const NOCK_TESTS = false; // because of Parsoid/PHP which uses the same URI structure as the MW API
+const NOCK_TESTS = true;
 
 describe('page save api', function() {
     this.timeout(20000);
