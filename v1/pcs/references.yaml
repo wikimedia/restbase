@@ -26,7 +26,7 @@ paths:
         Gets references of a page in a way that makes it easy to look up the details of a reference by id
         and allow some reference lists to be rebuild.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated)
       parameters:
         - name: title
           in: path
