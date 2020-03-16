@@ -25,7 +25,7 @@ paths:
       description: |
         Gets metadata of a page that's not already covered by the summary endpoint.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated)
       parameters:
         - name: title
           in: path

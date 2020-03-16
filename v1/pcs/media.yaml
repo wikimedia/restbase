@@ -25,7 +25,7 @@ paths:
         Gets detailed information on the media items (images, audio, and video) in the order in which they appear on a
         given wiki page.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated)
       parameters:
         - name: title
           in: path
