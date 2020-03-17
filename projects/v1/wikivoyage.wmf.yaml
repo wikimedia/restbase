@@ -72,22 +72,9 @@ paths:
       - path: v1/summary.js
         options: '{{merge({"response_cache_control": options.purged_cache_control_client_cache},
                       options.summary)}}'
-      - path: v1/pcs/media.yaml
-        options:
-          response_cache_control: '{{options.purged_cache_control}}'
-          host: '{{options.mobileapps.host}}'
-      - path: v1/pcs/metadata.yaml
-        options:
-          response_cache_control: '{{options.purged_cache_control}}'
-          host: '{{options.mobileapps.host}}'
       - path: v1/pcs/stored_endpoint.js
         options:
           name: media-list
-          response_cache_control: '{{options.purged_cache_control}}'
-          host: '{{options.mobileapps.host}}'
-      - path: v1/pcs/stored_endpoint.js
-        options:
-          name: references
           response_cache_control: '{{options.purged_cache_control}}'
           host: '{{options.mobileapps.host}}'
       - path: v1/pcs/stored_endpoint.js
