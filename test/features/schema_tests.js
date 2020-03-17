@@ -68,24 +68,9 @@ parallel('Responses should conform to the provided JSON schema of the response',
             schema: 'related'
         },
         {
-            path: '/page/media',
-            params: 'San_Francisco',
-            schema: 'media_list_with_metadata'
-        },
-        {
             path: '/page/media-list',
             params: 'San_Francisco',
             schema: 'media_list'
-        },
-        {
-            path: '/page/references',
-            params: 'San_Francisco',
-            schema: 'references_response'
-        },
-        {
-            path: '/page/metadata',
-            params: 'San_Francisco',
-            schema: 'metadata'
         }
     ].forEach((testSpec) => {
         let name = `${testSpec.path} should conform schema`;

@@ -178,9 +178,6 @@ describe('Access checks', () => {
         testAccess('mobile-sections-lead', 'deleted', deletedPageTitle);
         testAccess('mobile-sections-remaining', 'deleted', deletedPageTitle);
         testAccess('summary', 'deleted', deletedPageTitle);
-        testAccess('media', 'deleted', deletedPageTitle);
-        testAccess('metadata', 'deleted', deletedPageTitle);
-        testAccess('references', 'deleted', deletedPageTitle);
         testAccess('mobile-html', 'deleted', deletedPageTitle);
     });
 
