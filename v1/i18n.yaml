@@ -15,6 +15,8 @@ paths:
     x-route-filters:
       - path: lib/security_response_header_filter.js
     get:
+      tags:
+        - Mobile
       summary: Get internationalization info
       description: |
         Gets internationalization information for the given site. Currently the only
