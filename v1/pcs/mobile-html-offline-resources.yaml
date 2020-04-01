@@ -31,7 +31,7 @@ paths:
         200:
           description: links to scripts and styles to accompany the mobile-html of the page for offline consumption
           content:
-            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML-Offline-Resources/1.2.0":
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML-Offline-Resources/1.2.1":
               schema:
                 type: string
         default:
