@@ -46,10 +46,8 @@ preq.get({
     });
 
     Object.keys(projects).forEach((name) => {
-        // eslint-disable-next-line no-console
         console.log(`\n    # ${name}`);
         projects[name].forEach((domain) => {
-            // eslint-disable-next-line no-console
             console.log(`    /{domain:${domain}}: *wp/default/1.0.0`);
         });
     });
