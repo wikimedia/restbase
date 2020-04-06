@@ -22,7 +22,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
           required: true
           schema:
             type: string
@@ -104,7 +104,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
           required: true
           schema:
             type: string
@@ -149,7 +149,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
           required: true
           schema:
             type: string
@@ -217,7 +217,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
           required: true
           schema:
             type: string
@@ -263,7 +263,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
           required: true
           schema:
             type: string
@@ -331,7 +331,7 @@ paths:
       parameters:
         - name: title
           in: path
-          description: 'Page title. Use underscores instead of spaces. Example: `Main_Page`.'
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
           required: true
           schema:
             type: string
