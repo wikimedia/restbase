@@ -1,6 +1,6 @@
 'use strict';
 
-const P         = require('bluebird');
+const P = require('bluebird');
 const uuidv1 = require('uuid/v1');
 
 class EventService {

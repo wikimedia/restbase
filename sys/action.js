@@ -111,7 +111,7 @@ const errCodes = {
 
 function apiError(apiErr) {
     apiErr = apiErr || {};
-    const  ret = {
+    const ret = {
         msg: `MW API call error ${apiErr.code}`,
         status: errDefs['500'].status,
         body: {
