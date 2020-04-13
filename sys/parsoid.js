@@ -5,7 +5,7 @@ const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
-const uuidv1   = require('uuid/v1');
+const uuidv1 = require('uuid/v1');
 const uuidUtils = require('../lib/uuidUtils');
 
 const mwUtil = require('../lib/mwUtil');
@@ -414,7 +414,7 @@ class ParsoidService {
             })
             .then(() => P.join(this._getPageBundleFromParsoid(hyper, req), currentContentRes)
                 .spread((res, currentContentRes) => {
-                    const tid  = uuidv1();
+                    const tid = uuidv1();
                     const etag = mwUtil.makeETag(rp.revision, tid);
                     res.body.html.body = insertTidMeta(res.body.html.body, tid);
                     res.body.html.headers.etag = res.headers.etag = etag;

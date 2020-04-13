@@ -19,8 +19,6 @@ rules:
     - 4
     - SwitchCase: 1
       MemberExpression: 'off'
-  no-multi-spaces:
-    - off
   # defined in eslint-config-wikimedia to avoid breaking IE. Not needed here
   no-restricted-syntax:
     - off
