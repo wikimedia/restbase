@@ -55,7 +55,7 @@ paths:
         - name: agent
           in: path
           description: |
-            If you want to filter by agent type, use one of user, bot or spider. If you are
+            If you want to filter by agent type, use one of user, automated or spider. If you are
             interested in pageviews regardless of agent type, use all-agents.
           required: true
           schema:
@@ -64,7 +64,7 @@ paths:
               - all-agents
               - user
               - spider
-              - bot
+              - automated
         - name: article
           in: path
           description: |
@@ -169,7 +169,7 @@ paths:
         - name: agent
           in: path
           description: |
-            If you want to filter by agent type, use one of user or spider. If you are interested
+            If you want to filter by agent type, use one of user, automated or spider. If you are interested
             in pageviews regardless of agent type, use all-agents.
           required: true
           schema:
@@ -178,6 +178,7 @@ paths:
               - all-agents
               - user
               - spider
+              - automated
         - name: granularity
           in: path
           description: |
