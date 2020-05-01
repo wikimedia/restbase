@@ -158,3 +158,7 @@ components:
             type: number
             description: Score of the recommendation. The higher the score, the more
               important the recommendation is.
+          source_language:
+            type: string
+            description: Source of the recommendation -- which wiki is
+              recommending the current article.
