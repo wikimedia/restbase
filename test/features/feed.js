@@ -41,27 +41,6 @@ describe('Featured feed', () => {
         .finally(() => assert.cleanupRecorder());
     });
 
-    it('Should forward accept-language', () => {
-        const date = '2018/05/07';
-        assert.recordRequests();
-        return preq.get({
-            /* zh.wikipedia.beta.wmflabs.org doesn't have data for /feed/featured tests */
-            uri: `${server.config.baseURL('zh.wikipedia.org')}/feed/featured/${date}`,
-            headers: {
-                'accept-language': 'zh-hans',
-            }
-        })
-        .then((res) => {
-            const { mostread } = res && res.body;
-            assert.deepEqual(res.status, 200);
-            assert.ok(Array.isArray(mostread.articles));
-            assert.deepEqual(res.headers['content-language'], 'zh-hans');
-            assert.ok(res.headers['vary'].includes('accept-language'));
-            assert.deepEqual(mostread.articles[0].displaytitle, "复仇者联盟3：无限之战");
-        })
-        .finally(() => assert.cleanupRecorder());
-    });
-
     it.skip('Should not rerender available historic content', () => {
         const date = '2016/10/01';
         assert.recordRequests();
