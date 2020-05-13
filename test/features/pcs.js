@@ -46,6 +46,9 @@ describe('Page Content Service: transforms', () => {
     it('should transform wikitext to mobile-html', () => {
         return preq.post({
             uri: `${server.config.baseURL()}/transform/wikitext/to/mobile-html/Main_Page`,
+            headers: {
+                'output-mode': 'contentAndReferences'
+            },
             body: {
                 wikitext: `== Heading ==
                 hello world`
@@ -56,6 +59,25 @@ describe('Page Content Service: transforms', () => {
             assert.deepEqual(res.headers['content-language'], 'en');
             assert.checkString(res.headers['cache-control'], /private/, 'Must not be cached');
             assert.checkString(res.body, /<h2 id="Heading" class="(:?[^"]+)">Heading<\/h2>/);
+            assert.checkString(res.body, /pcs-edit-section-link-container/);
+        })
+    });
+
+    it('should transform wikitext to mobile-html, propagating output flags', () => {
+        return preq.post({
+            uri: `${server.config.baseURL()}/transform/wikitext/to/mobile-html/Main_Page`,
+            headers: {
+                'output-mode': 'editPreview'
+            },
+            body: {
+                wikitext: `== Heading ==
+                hello world`
+            }
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-language'], 'en');
+            assert.deepEqual(/pcs-edit-section-link-container/.test(res.body), false);
         })
     });
 
