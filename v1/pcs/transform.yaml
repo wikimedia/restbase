@@ -37,6 +37,13 @@ paths:
             The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
           schema:
             type: string
+        - name: output-mode
+          in: header
+          description: |
+            Output mode for mobile-html. Valid options: `contentAndReferences` (default), `content`, `references`, `editPreview`.
+          required: false
+          schema:
+            type: string
       requestBody:
         content:
           multipart/form-data:

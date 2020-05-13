@@ -29,7 +29,8 @@ class TransformService {
                 uri: new URI(`${this._options.mobileapps_host}/${rp.domain}` +
                     `/v1/transform/html/to/mobile-html/${rp.title}`),
                 headers: {
-                    'content-type': res.headers['content-type']
+                    'content-type': res.headers['content-type'],
+                    'output-mode': req.headers['output-mode']
                 },
                 body: res.body
             })
