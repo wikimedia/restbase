@@ -26,7 +26,7 @@ paths:
         Gets the list of media items (images, audio, and video) in the order in which they appear on a
         given wiki page.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: title
           in: path
