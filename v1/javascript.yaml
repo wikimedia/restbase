@@ -26,11 +26,11 @@ paths:
         * has code to lazy load images on the page,
         * code for collapsing and expanding tables.
 
-        Valid types are pagelib or pcs. Passing pcs will return the JavaScript for the 
+        Valid types are pagelib or pcs. Passing pcs will return the JavaScript for the
         Page Content Service. Passing pagelib will return a deprecated legacy version
         of the wikimedia-page-library JavaScript to support existing app clients.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
       parameters:
         - name: type
           in: path
