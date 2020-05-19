@@ -19,6 +19,8 @@ paths:
         native mobile applications. Note that the output is split by sections.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: title
           in: path
@@ -146,6 +148,8 @@ paths:
         for viewing with native mobile applications.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: title
           in: path
@@ -260,6 +264,8 @@ paths:
         provided as a JSON object containing the sections.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: title
           in: path

@@ -29,6 +29,8 @@ paths:
         the page.
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: title
           in: path
