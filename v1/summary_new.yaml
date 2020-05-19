@@ -28,7 +28,7 @@ paths:
         sentences, as well as information about a thumbnail that represents
         the page.
 
-        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        Stability: [stable](https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team/API_endpoint_stability_policy#Stable)
 
         Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
