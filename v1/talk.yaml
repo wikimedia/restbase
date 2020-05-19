@@ -24,7 +24,7 @@ paths:
       description: |
         Gets structured talk page contents for the provided title.
 
-        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        Stability: [experimental](https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team/API_endpoint_stability_policy#Experimental)
       parameters:
         - name: title
           in: path

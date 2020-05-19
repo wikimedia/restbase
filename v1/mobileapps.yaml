@@ -18,7 +18,7 @@ paths:
         Retrieve the latest HTML for a page title optimised for viewing with
         native mobile applications. Note that the output is split by sections.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: [unstable](https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team/API_endpoint_stability_policy#Unstable)
 
         Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
@@ -147,7 +147,7 @@ paths:
         Retrieve the lead section of the latest HTML for a page title optimised
         for viewing with native mobile applications.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: [unstable](https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team/API_endpoint_stability_policy#Unstable)
 
         Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
@@ -263,7 +263,7 @@ paths:
         a page title optimised for viewing with native mobile applications,
         provided as a JSON object containing the sections.
 
-        Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+        Stability: [unstable](https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team/API_endpoint_stability_policy#Unstable)
 
         Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
