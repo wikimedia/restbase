@@ -24,6 +24,8 @@ paths:
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 25 req/s (5 req/s when `stash: true`)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: title
           in: path

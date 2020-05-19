@@ -27,6 +27,8 @@ paths:
         given wiki page.
 
         Stability: [unstable](https://www.mediawiki.org/wiki/API_versioning#Unstable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: title
           in: path

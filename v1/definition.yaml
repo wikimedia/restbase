@@ -31,6 +31,8 @@ paths:
         for background and considerations for further development.
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api) for announcements of breaking changes.
       parameters:
         - name: term
           in: path
