@@ -25,7 +25,7 @@ paths:
         * site (Site-specific, mobile CSS from ResourceLoader, as defined in MediaWiki\:Mobile.css)
         * pcs (CSS for the Page Content Service)
 
-        The first two are the same regardless of what domain is used.
+        The `base` and `pcs` responses are the same regardless of what domain is used.
         For these we suggest meta.wikimedia.org.
 
         You can still pass pagelib for type, but this is a legacy version of the CSS for
