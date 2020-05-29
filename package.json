@@ -25,6 +25,7 @@
     "tables",
     "queues",
     "cassandra",
+    "mysql",
     "kafka"
   ],
   "author": "Wikimedia Service Team <services@wikimedia.org>",
@@ -43,6 +44,7 @@
     "jsonwebtoken": "^8.5.1",
     "mediawiki-title": "^0.7.2",
     "restbase-mod-table-cassandra": "^1.2.1",
+    "restbase-mod-table-mysql": "^0.1.1",
     "semver": "^7.3.2",
     "service-runner": "^2.7.8",
     "uuid": "^7.0.3"
