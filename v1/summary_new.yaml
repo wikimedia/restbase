@@ -22,11 +22,11 @@ paths:
     get:
       tags:
         - Page content
-      summary: Get a text extract & thumb summary of a page.
+      summary: Get basic metadata and simplified article introduction.
       description: |
-        The summary response includes a text extract of the first several
-        sentences, as well as information about a thumbnail that represents
-        the page.
+        The summary response includes an extract of the first paragraph of the page in plain text
+        and HTML as well as the type of page. This is useful for page previews (fka. Hovercards,
+        aka. Popups) on the web and link previews in the apps.
 
         Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
       parameters:
