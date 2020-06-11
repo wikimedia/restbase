@@ -8,6 +8,7 @@ const assert = require('../utils/assert.js');
 const Server = require('../utils/server.js');
 const preq   = require('preq');
 const Ajv = require('ajv');
+const P = require('bluebird');
 const OpenAPISchemaValidator = require('openapi-schema-validator').default;
 const validator = new OpenAPISchemaValidator({ version: 3 });
 
@@ -25,13 +26,28 @@ parallel('Responses should conform to the provided JSON schema of the response',
         return `${now.getUTCFullYear()}/${zeroPad(now.getUTCMonth() + 1)}/${zeroPad(now.getUTCDate())}`;
     }
 
-    before(() => server.start()
-    .then(() => preq.get({uri: `${server.config.baseURL()}/?spec`}))
-    .then((res) => {
-        Object.keys(res.body.components.schemas).forEach((defName) => {
-            ajv.addSchema(res.body.components.schemas[defName], `#/components/schemas/${defName}`);
-        });
-    }));
+    before(
+        () => server.start()
+        .then(() => P.map([
+                server.config.defaultDomain,
+                'commons.wikimedia.beta.wmflabs.org',
+                'wikidata.beta.wmflabs.org'
+            ],
+            (domain) =>
+                preq.get({uri: `${server.config.baseURL(domain)}/?spec`})
+                .then((res) => {
+                    Object.keys(res.body.components.schemas).forEach((defName) => {
+                        try {
+                            ajv.addSchema(
+                                res.body.components.schemas[defName],
+                                `#/components/schemas/${defName}`);
+                        } catch(e) {
+                            // ignore
+                        }
+                    });
+                })
+        ))
+    );
     after(() => server.stop());
 
     it('should expose valid OpenAPI spec', () => {
@@ -71,7 +87,27 @@ parallel('Responses should conform to the provided JSON schema of the response',
             path: '/page/media-list',
             params: 'San_Francisco',
             schema: 'media_list'
-        }
+        },
+        {
+            domain: 'commons.wikimedia.beta.wmflabs.org',
+            path: '/data/recommendation/caption/addition/en',
+            schema: 'caption_recommendation_result'
+        },
+        {
+            domain: 'commons.wikimedia.beta.wmflabs.org',
+            path: '/data/recommendation/caption/translation/from/en/to/ru',
+            schema: 'caption_recommendation_result'
+        },
+        {
+            domain: 'wikidata.beta.wmflabs.org',
+            path: '/data/recommendation/description/addition/ru',
+            schema: 'description_recommendation_result'
+        },
+        {
+            domain: 'wikidata.beta.wmflabs.org',
+            path: '/data/recommendation/description/translation/from/en/to/ru',
+            schema: 'description_recommendation_result'
+        },
     ].forEach((testSpec) => {
         let name = `${testSpec.path} should conform schema`;
         if (testSpec.domain) {
