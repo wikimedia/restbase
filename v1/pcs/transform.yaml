@@ -41,11 +41,11 @@ paths:
             type: string
         - name: output-mode
           in: header
-          description: |
-            Output mode for mobile-html. Valid options: `contentAndReferences` (default), `content`, `references`, `editPreview`.
+          description: Output mode for mobile-html. Default is `editPreview`.
           required: false
           schema:
             type: string
+            enum: ['editPreview', 'contentAndReferences', 'content', 'references']
       requestBody:
         content:
           multipart/form-data:
