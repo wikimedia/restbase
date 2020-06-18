@@ -57,11 +57,17 @@ components:
       type: object
       properties:
         title:
+          deprecated: true
           type: string
-          description: The page title
+          description: |
+            The page title.
+            Deprecated: Use `titles.normalized` instead.
         displaytitle:
+          deprecated: true
           type: string
-          description: The page title how it should be shown to the user
+          description: |
+            The page title how it should be shown to the user.
+            Deprecated: Use `titles.display` instead.
         pageid:
           type: integer
           description: The page ID

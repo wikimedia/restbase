@@ -19,7 +19,10 @@ paths:
         - Page content
         - offline
       summary: Get styles and scripts for offline consumption of mobile-html-formatted pages
-      description: Provides links to scripts and styles needed for viewing mobile-html-formatted pages offline
+      description: |
+        Provides links to scripts and styles needed for viewing mobile-html-formatted pages offline.
+
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
       parameters:
         - name: title
           in: path
