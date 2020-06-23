@@ -13,7 +13,7 @@
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
 const URI = HyperSwitch.URI;
-const uuidv1 = require('uuid/v1');
+const uuidv1 = require('uuid').v1;
 const mwUtil = require('../lib/mwUtil');
 const stringify = require('fast-json-stable-stringify');
 
