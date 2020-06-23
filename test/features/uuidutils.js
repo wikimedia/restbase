@@ -4,11 +4,11 @@
  * Unit tests for uuid helper methods
  */
 
-// require('uuid') deprecated with version 3.x
-const uuidv1 = require('uuid/v1');
-const uuidv3 = require('uuid/v3');
-const uuidv4 = require('uuid/v4');
-const uuidv5 = require('uuid/v5');
+const uuid = require('uuid');
+const uuidv1 = uuid.v1;
+const uuidv3 = uuid.v3;
+const uuidv4 = uuid.v4;
+const uuidv5 = uuid.v5;
 
 const uuidUtils = require('../../lib/uuidUtils');
 const assert = require('../utils/assert');

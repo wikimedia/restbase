@@ -5,7 +5,7 @@ const HyperSwitch = require('hyperswitch');
 const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
-const uuidv1 = require('uuid/v1');
+const uuidv1 = require('uuid').v1;
 const uuidUtils = require('../lib/uuidUtils');
 
 const mwUtil = require('../lib/mwUtil');

@@ -4,7 +4,7 @@
  * Key-value bucket handler
  */
 
-const uuidv1 = require('uuid/v1');
+const uuidv1 = require('uuid').v1;
 const mwUtil = require('../lib/mwUtil');
 const HyperSwitch = require('hyperswitch');
 const stringify = require('fast-json-stable-stringify');

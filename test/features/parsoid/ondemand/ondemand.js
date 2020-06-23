@@ -7,7 +7,7 @@ const assert = require('../../../utils/assert.js');
 const Server = require('../../../utils/server.js');
 const preq   = require('preq');
 const mwUtil = require('../../../../lib/mwUtil');
-const uuidv1   = require('uuid');
+const uuidv1   = require('uuid').v1;
 
 const revB = '275844';
 const revC = '275845';

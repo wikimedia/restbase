@@ -3,7 +3,7 @@
 const preq   = require('preq');
 const assert = require('../../utils/assert.js');
 const Server = require('../../utils/server.js');
-const uuidv1 = require('uuid');
+const uuidv1 = require('uuid').v1;
 const P = require('bluebird');
 const parallel = require('mocha.parallel');
 
