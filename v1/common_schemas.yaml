@@ -53,9 +53,29 @@ components:
         - source
         - width
 
+    titles_set:
+      type: object
+      description: a good example of the differences can be seen in https://en.wikipedia.org/api/rest_v1/page/summary/IOS_13
+      properties:
+        canonical:
+          type: string
+          description: the DB key (non-prefixed), e.g. may have _ instead of spaces, best for making request URIs, still requires Percent-encoding
+        normalized:
+          type: string
+          description: the normalized title (https://www.mediawiki.org/wiki/API:Query#Example_2:_Title_normalization), e.g. may have spaces instead of _
+        display:
+          type: string
+          description: the title as it should be displayed to the user
+      required:
+        - canonical
+        - normalized
+        - display
+
     summary:
       type: object
       properties:
+        titles:
+          $ref: '#/components/schemas/titles_set'
         title:
           deprecated: true
           type: string
@@ -119,7 +139,7 @@ components:
         - dir
         - extract
         - lang
-        - title
+        - titles
 
     cx_mt:
       type: object
