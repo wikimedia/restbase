@@ -81,6 +81,22 @@ describe('Page Content Service: transforms', () => {
         })
     });
 
+    it('should transform wikitext to mobile-html, titles with special characters', () => {
+        return preq.post({
+            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/mobile-html/User%3AMateusbs17%2F%2Fdev%2Frandom`,
+            body: {
+                wikitext: `== Heading ==
+                hello world`
+            }
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['content-language'], 'en');
+            assert.checkString(res.headers['cache-control'], /private/, 'Must not be cached');
+            assert.checkString(res.body, /<h2 id="Heading" class="(:?[^"]+)">Heading<\/h2>/);
+        })
+    });
+
     it('should transform wikitext to mobile-html, language variants, no variant', () => {
         return preq.post({
             uri: `${server.config.baseURL('sr.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/mobile-html/RESTBase_Testing_Page`,
