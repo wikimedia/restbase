@@ -27,7 +27,7 @@ class TransformService {
         .then((res) => {
             return hyper.post({
                 uri: new URI(`${this._options.mobileapps_host}/${rp.domain}` +
-                    `/v1/transform/html/to/mobile-html/${rp.title}`),
+                    `/v1/transform/html/to/mobile-html/${encodeURIComponent(rp.title)}`),
                 headers: {
                     'content-type': res.headers['content-type'],
                     'output-mode': req.headers['output-mode']
