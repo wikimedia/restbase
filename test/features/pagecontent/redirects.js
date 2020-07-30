@@ -397,7 +397,7 @@ describe('redirects', () => {
                 throw new Error('Error must be thrown');
             }, (e) => {
                 assert.deepEqual(e.status, 504);
-                assert.deepEqual(/Exceeded maxRedirects/.test(e.body.detail), true);
+                assert.deepEqual(/Exceeded max redirects/.test(e.body.detail), true);
             });
         });
     });
