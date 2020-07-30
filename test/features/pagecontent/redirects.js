@@ -240,6 +240,7 @@ describe('redirects', () => {
                 assert.deepEqual(res.headers.location, undefined);
                 assert.deepEqual(res.body.length > 0, true);
                 assert.deepEqual(/Redirect Target/.test(res.body.toString()), false);
+                assert.deepEqual(res.headers.age, undefined);
             });
         });
 
