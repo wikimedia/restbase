@@ -2973,6 +2973,72 @@ paths:
                 keepAlive: true
       x-monitor: false
 
+  /by-country/{project}/{activity-level}/{year}/{month}:
+    get:
+      tags:
+        - Editors data
+      summary: Get editor counts by country.
+      description: |
+        Given a Wikipedia project, an activity level, and a month, returns the upper bounds of
+        the editor counts, split by country of origin. Because of privacy reasons, editor counts
+        are given in a bounded format and are not reported for certain countries or for inactive
+        Wikipedias. Read more about privacy considerations
+        [here](https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Edits/Geoeditors/Public#Privacy).
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: |
+            The name of any Wikipedia project formatted like {language code}.{project name},
+            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
+            off. Non-Wikipedia projects are not available for this endpoint.
+          type: string
+          required: true
+        - name: activity-level
+          in: path
+          description: |
+            Use either '5..99-edits' or '100..-edits' for activity level filtering.
+            Counts for 0..4-edits are not available due to privacy reasons.
+          type: string
+          enum: ['5..99-edits', '100..-edits']
+          required: true
+        - name: year
+          in: path
+          description: The year of the date for which to retrieve editor counts, in YYYY format.
+          type: string
+          required: true
+        - name: month
+          in: path
+          description: The month of the date for which to retrieve editor counts, in MM format.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: The list of values
+          schema:
+            $ref: '#/definitions/editors-by-country'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/editors/by-country/{project}/{activity-level}/{year}/{month}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
+      x-monitor: false
 
 
 ########################################
@@ -3794,3 +3860,28 @@ components:
                     requests:
                       type: integer
                       format: int64
+
+# Geoeditors (editors by country)
+  editors-by-country:
+    properties:
+      items:
+        type: array
+        items:
+          properties:
+            project:
+              type : string
+            activity-level:
+              type: string
+            year:
+              type: string
+            month:
+              type: string
+            results:
+              type: array
+              items:
+                properties:
+                  country:
+                    type: string
+                  editors-ceil:
+                    type: integer
+                    format: int64
