@@ -81,7 +81,7 @@ paths:
         - get_from_sys:
             request:
               method: post
-              uri: /wikimedia.org/sys/mathoid/check/{type}
+              uri: /{domain}/sys/mathoid/check/{type}
               headers: '{{ request.headers }}'
               body: '{{ request.body }}'
 
@@ -127,7 +127,7 @@ paths:
         - get_from_sys:
             request:
               method: get
-              uri: /wikimedia.org/sys/mathoid/formula/{hash}
+              uri: /{domain}/sys/mathoid/formula/{hash}
               headers: '{{ request.headers }}'
 
   /math/render/{format}/{hash}:
@@ -192,7 +192,7 @@ paths:
         - check_storage:
             request:
               method: get
-              uri: /wikimedia.org/sys/key_value/mathoid_ng.{format}/{hash}
+              uri: /{domain}/sys/key_value/mathoid_ng.{format}/{hash}
               headers:
                 cache-control: '{{ cache-control }}'
             catch:
@@ -205,11 +205,11 @@ paths:
               body: '{{ check_storage.body }}'
         - postdata:
             request:
-              uri: /wikimedia.org/sys/mathoid/formula/{request.params.hash}
+              uri: /{domain}/sys/mathoid/formula/{request.params.hash}
         - mathoid:
             request:
               method: post
-              uri: /wikimedia.org/sys/mathoid/render/{request.params.format}
+              uri: /{domain}/sys/mathoid/render/{request.params.format}
               headers:
                 content-type: application/json
                 x-resource-location: '{{ request.params.hash }}'
