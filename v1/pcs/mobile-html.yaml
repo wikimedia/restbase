@@ -81,7 +81,7 @@ paths:
               schema:
                 type: string
           content:
-            text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML/1.2.1":
+            text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Mobile-HTML/1.2.2":
               schema:
                 type: string
         301:
