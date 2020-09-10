@@ -2973,7 +2973,7 @@ paths:
                 keepAlive: true
       x-monitor: false
 
-  /by-country/{project}/{activity-level}/{year}/{month}:
+  /editors/by-country/{project}/{activity-level}/{year}/{month}:
     get:
       tags:
         - Editors data
