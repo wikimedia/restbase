@@ -2985,8 +2985,6 @@ paths:
         Wikipedias. Read more about privacy considerations
         [here](https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Edits/Geoeditors/Public#Privacy).
         Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
-      produces:
-        - application/json
       parameters:
         - name: project
           in: path
@@ -2994,35 +2992,43 @@ paths:
             The name of any Wikipedia project formatted like {language code}.{project name},
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. Non-Wikipedia projects are not available for this endpoint.
-          type: string
+          schema:
+            type: string
           required: true
         - name: activity-level
           in: path
           description: |
             Use either '5..99-edits' or '100..-edits' for activity level filtering.
             Counts for 0..4-edits are not available due to privacy reasons.
-          type: string
-          enum: ['5..99-edits', '100..-edits']
+          schema:
+            type: string
+            enum: ['5..99-edits', '100..-edits']
           required: true
         - name: year
           in: path
           description: The year of the date for which to retrieve editor counts, in YYYY format.
-          type: string
+          schema:
+            type: string
           required: true
         - name: month
           in: path
           description: The month of the date for which to retrieve editor counts, in MM format.
-          type: string
+          schema:
+            type: string
           required: true
       responses:
         '200':
           description: The list of values
-          schema:
-            $ref: '#/definitions/editors-by-country'
+          content:
+            'application/json':
+              schema:
+                $ref: '#/definitions/editors-by-country'
         default:
           description: Error
-          schema:
-            $ref: '#/definitions/problem'
+          content:
+            'application/json':
+              schema:
+                $ref: '#/definitions/problem'
       x-route-filters:
         - type: default
           name: ratelimit_route
@@ -3861,27 +3867,27 @@ components:
                       type: integer
                       format: int64
 
-# Geoeditors (editors by country)
-  editors-by-country:
-    properties:
-      items:
-        type: array
+    # Geoeditors (editors by country)
+    editors-by-country:
+      properties:
         items:
-          properties:
-            project:
-              type : string
-            activity-level:
-              type: string
-            year:
-              type: string
-            month:
-              type: string
-            results:
-              type: array
-              items:
-                properties:
-                  country:
-                    type: string
-                  editors-ceil:
-                    type: integer
-                    format: int64
+          type: array
+          items:
+            properties:
+              project:
+                type : string
+              activity-level:
+                type: string
+              year:
+                type: string
+              month:
+                type: string
+              results:
+                type: array
+                items:
+                  properties:
+                    country:
+                      type: string
+                    editors-ceil:
+                      type: integer
+                      format: int64
