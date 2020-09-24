@@ -4,7 +4,6 @@ const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const Template = HyperSwitch.Template;
 const BaseFeed = require('../lib/base_feed');
-const mwUtil = require('../lib/mwUtil');
 
 const POSSIBLE_PARTS = [
     'selected',
@@ -33,24 +32,6 @@ class Feed extends BaseFeed {
             return body;
         }
         return result.body;
-    }
-
-    _hydrateResponse(hyper, req, res) {
-        return super._hydrateResponse(hyper, req, res)
-        .then((response) => {
-            Object.keys(response.body).forEach((key) => {
-                if (!Array.isArray(response.body[key])) {
-                    return;
-                }
-                response.body[key].forEach((elem) => {
-                    if (!elem || !Array.isArray(elem.pages)) {
-                        return;
-                    }
-                    elem.pages = mwUtil.removeDuplicateTitles(elem.pages);
-                });
-            });
-            return response;
-        });
     }
 
     _makeFeedRequests(hyper, req) {
@@ -90,7 +71,6 @@ module.exports = (options) => {
     options.content_type = 'application/json; charset=utf-8; ' +
         'profile="https://www.mediawiki.org/wiki/Specs/onthisday-feed/0.5.0"';
     options.spec = spec;
-    options.storeHistory = false;
 
     return new Feed(options).getModuleDeclaration();
 };
