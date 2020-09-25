@@ -66,6 +66,9 @@ describe('redirects', () => {
         it('should redirect to commons for missing file pages', () => {
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/${FILE_PAGE}`,
+                headers: {
+                    'x-client-ip': '123.123.123.123'
+                },
                 followRedirect: false
             })
             .then((res) => {
@@ -79,12 +82,28 @@ describe('redirects', () => {
         it('should redirect to commons for missing file pages, dewiki', () => {
             return preq.get({
                 uri: `${server.config.bucketURL('de.wikipedia.beta.wmflabs.org')}/html/Datei:A.jpg`,
+                headers: {
+                    'x-client-ip': '123.123.123.123'
+                },
                 followRedirect: false
             })
             .then((res) => {
                 assert.deepEqual(res.status, 302);
                 assert.deepEqual(res.headers.location,
                     `https://commons.wikimedia.beta.wmflabs.org/api/rest_v1/page/html/${encodeURIComponent(FILE_PAGE)}`);
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            });
+        });
+
+        it('should redirect to commons for missing file pages, relative for internal requests', () => {
+            return preq.get({
+                uri: `${server.config.bucketURL()}/html/${FILE_PAGE}`,
+                followRedirect: false
+            })
+            .then((res) => {
+                assert.deepEqual(res.status, 302);
+                assert.deepEqual(res.headers.location,
+                    `/commons.wikimedia.beta.wmflabs.org/v1/page/html/${encodeURIComponent(FILE_PAGE)}`);
                 assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             });
         });
@@ -373,7 +392,8 @@ describe('redirects', () => {
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/${FILE_PAGE}`,
                 headers: {
-                    origin: 'test.com'
+                    origin: 'test.com',
+                    'x-client-ip': '123.123.123.123'
                 },
                 followRedirect: false
             })
