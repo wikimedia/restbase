@@ -48,28 +48,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/problem'
       operationId: aggregatedFeed
-      x-monitor: true
-      x-amples:
-        - title: Retrieve aggregated feed content for April 29, 2016
-          request:
-            params:
-              domain: en.wikipedia.org
-              yyyy: "2016"
-              mm: "04"
-              dd: "29"
-          response:
-            status: 200
-            headers:
-              content-type: /application\/json/
-            body:
-              mostread:
-                date: /.+/
-                articles:
-                  - views: /.+/
-                    rank: /.+/
-                    title: /.+/
-                    pageid: /.+/
-                    normalizedtitle: /.+/
+      x-monitor: false
+#      x-amples:
+#        - title: Retrieve aggregated feed content for April 29, 2016
+#          request:
+#            params:
+#              domain: en.wikipedia.org
+#              yyyy: "2016"
+#              mm: "04"
+#              dd: "29"
+#          response:
+#            status: 200
+#            headers:
+#              content-type: /application\/json/
+#            body:
+#              mostread:
+#                date: /.+/
+#                articles:
+#                  - views: /.+/
+#                    rank: /.+/
+#                    title: /.+/
+#                    pageid: /.+/
+#                    normalizedtitle: /.+/
 components:
   schemas:
     mostread_article:
