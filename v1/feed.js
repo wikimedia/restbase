@@ -12,6 +12,9 @@ const PARTS_URIS = {
             uri: '{{options.host}}/{{domain}}/v1/page/featured/{{yyyy}}/{{mm}}/{{dd}}',
             query: {
                 aggregated: true
+            },
+            headers: {
+                'accept-language': '{{accept-language}}'
             }
         }),
         renewable: true
@@ -21,6 +24,9 @@ const PARTS_URIS = {
             uri: '{{options.host}}/{{domain}}/v1/page/most-read/{{yyyy}}/{{mm}}/{{dd}}',
             query: {
                 aggregated: true
+            },
+            headers: {
+                'accept-language': '{{accept-language}}'
             }
         }),
         renewable: true
@@ -30,6 +36,9 @@ const PARTS_URIS = {
             uri: '{{options.host}}/{{domain}}/v1/media/image/featured/{{yyyy}}/{{mm}}/{{dd}}',
             query: {
                 aggregated: true
+            },
+            headers: {
+                'accept-language': '{{accept-language}}'
             }
         }),
         renewable: true
@@ -39,13 +48,19 @@ const PARTS_URIS = {
             uri: '{{options.host}}/{{domain}}/v1/page/news',
             query: {
                 aggregated: true
+            },
+            headers: {
+                'accept-language': '{{accept-language}}'
             }
         }),
         renewable: false
     },
     onthisday: {
         reqTemplate: new Template({
-            uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/selected/{{mm}}/{{dd}}'
+            uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/selected/{{mm}}/{{dd}}',
+            headers: {
+                'accept-language': '{{accept-language}}'
+            }
         }),
         renewable: true
     }
