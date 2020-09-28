@@ -14,7 +14,10 @@ const POSSIBLE_PARTS = [
 ];
 
 const REQUEST_TEMPLATE = new Template({
-    uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/{{type}}/{{mm}}/{{dd}}'
+    uri: '{{options.host}}/{{domain}}/v1/feed/onthisday/{{type}}/{{mm}}/{{dd}}',
+    headers: {
+        'accept-language': '{{accept-language}}'
+    }
 });
 
 class Feed extends BaseFeed {
