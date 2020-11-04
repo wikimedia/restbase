@@ -1,9 +1,9 @@
 'use strict';
 
-const assert = require('../../utils/assert.js');
 const Server = require('../../utils/server.js');
 const preq   = require('preq');
-const { REST } = require('api-testing');
+const { REST, assert } = require('api-testing');
+const mwUtil = require('../../../lib/mwUtil');
 
 const testPage = {
     title: 'User:Pchelolo%2fRestbase_Test',
@@ -38,7 +38,7 @@ describe('transform api', function() {
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes.html);
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.html]));
             const pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.text)) {
                 throw new Error(`Expected pattern in response: ${pattern}\nSaw: ${res.text}`);
@@ -53,7 +53,7 @@ describe('transform api', function() {
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes.html);
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.html]));
             const pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.text)) {
                 throw new Error(`Expected pattern in response: ${pattern}\nSaw: ${res.text}`);
@@ -68,7 +68,7 @@ describe('transform api', function() {
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes.html);
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.html]));
             const pattern = /^<h2.*>Heading<\/h2>$/;
             if (!pattern.test(res.text)) {
                 throw new Error(`Expected pattern in response: ${pattern
@@ -106,7 +106,7 @@ describe('transform api', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.text, 'The modified HTML');
-            assert.contentType(res, contentTypes.wikitext);
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.wikitext]));
         });
     });
 
@@ -118,21 +118,18 @@ describe('transform api', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.text, testPage.wikitext);
-            assert.contentType(res, contentTypes.wikitext);
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.wikitext]));
         });
     });
 
     it('html2wt with scrub_wikitext', () => {
-        return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext`,
-            body: {
-                html: '<h2></h2>',
-                scrub_wikitext: 1
-            }
-        })
+        return client.post(
+            `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext`,
+            { html: '<h2></h2>', scrub_wikitext: 1 }
+        )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, '');
+            assert.deepEqual(res.text, '');
         });
     });
 
@@ -150,35 +147,27 @@ describe('transform api', function() {
                 throw new Error(`Expected pattern in response: ${pattern
                 }\nSaw: ${JSON.stringify(res, null, 2)}`);
             }
-            assert.contentType(res, contentTypes.wikitext);
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.wikitext]));
         });
     });
 
     it('supports stashing content', () => {
-        return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}/${testPage.revision}`,
-            body: {
-                wikitext: '== ABCDEF ==',
-                stash: true
-            }
-        })
+        return client.post(
+            `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}/${testPage.revision}`,
+            { wikitext: '== ABCDEF ==', stash: true }
+        )
         .then((res) => {
             assert.deepEqual(res.status, 200);
             const etag = res.headers.etag;
             assert.deepEqual(/\/stash"$/.test(etag), true);
-            return preq.post({
-                uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
-                headers: {
-                    'if-match': etag
-                },
-                body: {
-                    html: res.body.replace('>ABCDEF<', '>FECDBA<')
-                }
-            });
+            return client.post(
+                `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
+                { 'if-match': etag, html: res.text.replace('>ABCDEF<', '>FECDBA<') }
+            );
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, '== FECDBA ==');
+            assert.deepEqual(res.text, '== FECDBA ==');
         });
     });
 
