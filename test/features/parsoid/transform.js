@@ -125,7 +125,7 @@ describe('transform api', function() {
     it('html2wt with scrub_wikitext', () => {
         return client.post(
             `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext`,
-            { html: '<h2></h2>', scrub_wikitext: 1 }
+            { html: '<h2></h2>', scrub_wikitext: true }
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
