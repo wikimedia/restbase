@@ -1,6 +1,14 @@
 'use strict';
 
 const Server = require('../../utils/server.js');
+try {
+    // check whether api-testing can be loaded by the node 6 CI
+    const apiTesting = require('api-testing');
+}
+catch (e) {
+    // skip this whole test suite if api-testing is not loadable
+    return;
+}
 const { REST, assert } = require('api-testing');
 const mwUtil = require('../../../lib/mwUtil');
 
@@ -37,7 +45,7 @@ describe('transform api', function() {
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.contentTypes(res, mwUtil.constructRegex([contentTypes.html]));
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.html]));
             const pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.text)) {
                 throw new Error(`Expected pattern in response: ${pattern}\nSaw: ${res.text}`);
@@ -52,7 +60,7 @@ describe('transform api', function() {
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.contentTypes(res, mwUtil.constructRegex([contentTypes.html]));
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.html]));
             const pattern = /<h2.*>Heading<\/h2>/;
             if (!pattern.test(res.text)) {
                 throw new Error(`Expected pattern in response: ${pattern}\nSaw: ${res.text}`);
@@ -67,7 +75,7 @@ describe('transform api', function() {
         )
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.contentTypes(res, mwUtil.constructRegex([contentTypes.html]));
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.html]));
             const pattern = /^<h2.*>Heading<\/h2>$/;
             if (!pattern.test(res.text)) {
                 throw new Error(`Expected pattern in response: ${pattern
@@ -105,7 +113,7 @@ describe('transform api', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.text, 'The modified HTML');
-            assert.contentTypes(res, mwUtil.constructRegex([contentTypes.wikitext]));
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.wikitext]));
         });
     });
 
@@ -117,7 +125,7 @@ describe('transform api', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.deepEqual(res.text, testPage.wikitext);
-            assert.contentTypes(res, mwUtil.constructRegex([contentTypes.wikitext]));
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.wikitext]));
         });
     });
 
@@ -146,7 +154,7 @@ describe('transform api', function() {
                 throw new Error(`Expected pattern in response: ${pattern
                 }\nSaw: ${JSON.stringify(res, null, 2)}`);
             }
-            assert.contentTypes(res, mwUtil.constructRegex([contentTypes.wikitext]));
+            assert.match(res.headers['content-type'], mwUtil.constructRegex([contentTypes.wikitext]));
         });
     });
 
