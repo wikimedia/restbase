@@ -260,4 +260,11 @@ logging:
   streams:
     - type: stdout
 
+metrics:
+  - type: prometheus
+    port: 9000
+  - type: statsd
+    host: localhost
+    port: 8125
+
 num_workers: 0
