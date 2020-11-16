@@ -142,7 +142,7 @@ class KVBucket {
                         headersToStore['content-type'] === oldContent.headers['content-type'])) {
                     hyper.metrics.makeMetric({
                         type: 'Counter',
-                        name: 'unchanged_rev_render',  // shared with lib/parsoid
+                        name: 'unchanged_rev_render', // shared with lib/parsoid
                         prometheus: {
                             name: 'restbase_unchanged_rev_render_total',
                             help: 'unchanged rev render count'
