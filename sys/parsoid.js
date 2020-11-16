@@ -427,7 +427,7 @@ class ParsoidService {
                         // New render is the same as the previous one, no need to store it.
                         hyper.metrics.makeMetric({
                             type: 'Counter',
-                            name: 'unchanged_rev_render',  // shared with sys/key_value
+                            name: 'unchanged_rev_render', // shared with sys/key_value
                             prometheus: {
                                 name: 'restbase_unchanged_rev_render_total',
                                 help: 'unchanged rev render count'
