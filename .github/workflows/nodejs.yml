@@ -27,21 +27,13 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Setup Java JRE
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-        java-package: jre
     - name: Setup Cassandra
       if: matrix.test-target == 'cassandra'
-      run: |
-        wget https://archive.apache.org/dist/cassandra/${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz -P ../
-        tar -xzf ../apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz -C ../
-        mkdir -p ../apache-cassandra-${{ matrix.cassandra-version }}/logs
-        echo "-Xms256m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
-        echo "-Xmx512m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
-        sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
-        export PATH=${PATH}:../apache-cassandra-${{ matrix.cassandra-version }}/bin
-        cassandra
+      uses: fabasoad/setup-cassandra-action@v1.0.1
+      with:
+        host: '127.0.0.1'
+        connect-timeout: 30
     - run: npm install
     - run: npm run lint && npm run coverage -- ${{ matrix.test-target }} ${{ matrix.test-mode }}
+      env:
+        RB_CASSANDRA_HOST: '127.0.0.1'

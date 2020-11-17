@@ -26,7 +26,8 @@ default_project: &default_project
                           options:
                             conf:
                               backend: '{env(RB_TEST_BACKEND, sqlite)}'
-                              hosts: [localhost]
+                              hosts:
+                                - '{env(RB_CASSANDRA_HOST, localhost)}'
                               keyspace: system
                               username: cassandra
                               password: cassandra
