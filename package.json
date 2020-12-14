@@ -44,7 +44,7 @@
     "mediawiki-title": "^0.7.2",
     "restbase-mod-table-cassandra": "^1.2.1",
     "semver": "^7.3.2",
-    "service-runner": "^2.8.0",
+    "service-runner": "^2.8.1",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
