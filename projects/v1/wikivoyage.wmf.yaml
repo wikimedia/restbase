@@ -67,8 +67,6 @@ paths:
         options: '{{merge({"response_cache_control": options.purged_cache_control},
                           options.mobileapps,
                           {"cache-control": "no-store"})}}'
-      - path: v1/graphoid.yaml
-        options: '{{options.graphoid}}'
       - path: v1/summary.js
         options: '{{merge({"response_cache_control": options.purged_cache_control_client_cache},
                       options.summary)}}'
