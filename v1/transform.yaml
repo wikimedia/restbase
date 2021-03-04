@@ -59,7 +59,7 @@ paths:
         200:
           description: MediaWiki Wikitext.
           content:
-            text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0":        
+            text/plain; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/wikitext/1.0.0":
               schema:
                 type: string
         403:
@@ -97,7 +97,9 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
+              # T276485: Due to recent proxy changes requests from clients such as MediaWiki
+              # appear as internal requests and is causing high alerts
+              # internal: 10
               external: 25
 
       x-request-handler:
@@ -272,7 +274,9 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
+              # T276485: Due to recent proxy changes requests from clients such as MediaWiki
+              # appear as internal requests and is causing high alerts
+              # internal: 10
               external: 25
 
       x-request-handler:
@@ -447,7 +451,9 @@ paths:
           name: ratelimit_route
           options:
             limits:
-              internal: 10
+              # T276485: Due to recent proxy changes requests from clients such as MediaWiki
+              # appear as internal requests and is causing high alerts
+              # internal: 10
               external: 25
 
       x-request-handler:
