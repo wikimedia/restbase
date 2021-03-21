@@ -424,6 +424,90 @@ paths:
                 keepAlive: true
       x-monitor: false
 
+  /pageviews/top-per-country/{country}/{access}/{year}/{month}/{day}:
+    get:
+      tags:
+        - Pageviews data
+      summary: Get the most viewed articles for a country.
+      description: |
+        Lists the 1000 most viewed articles for a given country and date, across all projects.
+        You can filter by access method.
+        Because of privacy reasons, pageview counts are given in a bounded format and are not reported for certain countries.
+        Furthermore, articles visited by 1000 unique individuals or fewer on the given date will be excluded from the returned data.
+        Also, views produced by agents categorized as bots or web crawlers will be excluded from all calculations.
+
+        - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+        - Rate limit: 100 req/s
+        - License: Data accessible via this endpoint is available under the
+          [CC0 1.0 license](https://creativecommons.org/publicdomain/zero/1.0/).
+      parameters:
+        - name: country
+          in: path
+          description: The ISO 3166-1 alpha-2 code of a country for which to retrieve top articles, like 'FR' or 'IN'.
+          required: true
+          schema:
+            type: string
+        - name: access
+          in: path
+          description: |
+            If you want to filter by access method, use one of desktop, mobile-app or mobile-web.
+            If you are interested in pageviews regardless of access method, use all-access.
+          required: true
+          schema:
+            type: string
+            enum:
+              - all-access
+              - desktop
+              - mobile-app
+              - mobile-web
+        - name: year
+          in: path
+          description: The year for which to retrieve top articles, in YYYY format.
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: The month for which to retrieve top articles, in MM format.
+          required: true
+          schema:
+            type: string
+        - name: day
+          in: path
+          description: The day for which to retrieve top articles, in DD format.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The list of top articles by pageviews in the country.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/per-country'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/pageviews/top-per-country/{country}/{access}/{year}/{month}/{day}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
+      x-monitor: false
+
   ########################################
   # Unique Devices
   ########################################
@@ -3169,6 +3253,40 @@ components:
                     country:
                       type: string
                     views:
+                      type: integer
+                      format: int64
+
+    per-country:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              country:
+                type: string
+              access:
+                type : string
+              year:
+                type: string
+              month:
+                type: string
+              day:
+                type: string
+              articles:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      format: int32
+                    article:
+                      type: string
+                    project:
+                      type: string
+                    views_ceil:
                       type: integer
                       format: int64
 
