@@ -67,7 +67,7 @@ paths:
       - path: v1/related.js
         options: '{{options.related}}'
       - path: v1/random.yaml
-        options: '{{merge({"random_cache_control": "s-maxage=2, max-age=1"}, options.wikifeeds)}}'
+        options: '{{options.wikifeeds)}}'
       - path: v1/pdf.js
         options: '{{options.pdf}}'
       - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
