@@ -33,9 +33,24 @@ elif [ "$test_target" = "cassandra" ]; then
       echo "Cassandra is ready."
     fi
     export RB_TEST_BACKEND=cassandra
+    export RB_TEST_BACKEND_USERNAME=cassandra
+    export RB_TEST_BACKEND_PASSWORD=cassandra
+    sh ./test/utils/cleandb.sh local_group_test
+elif [ "$test_target" = "mysql" ]; then
+    echo "Running with MySQL backend"
+    if [ `nc -z localhost 3306 < /dev/null; echo $?` != 0 ]; then
+      echo "Waiting for MySQL to start..."
+      while [ `nc -z localhost 3306; echo $?` != 0 ]; do
+        sleep 1
+      done
+      echo "MySQL is ready."
+    fi
+    export RB_TEST_BACKEND=mysql
+    export RB_TEST_BACKEND_USERNAME=mysql
+    export RB_TEST_BACKEND_PASSWORD=mysql
     sh ./test/utils/cleandb.sh local_group_test
 else
-    echo "Invalid TEST_TARGET $test_target. Must me 'sqlite' or 'cassandra' if specified"
+    echo "Invalid TEST_TARGET $test_target. Must me 'sqlite', 'cassandra' or 'mysql' if specified"
     exit 1
 fi
 

@@ -66,14 +66,15 @@ default_project: &default_project
                               backend: '{env(RB_TEST_BACKEND, sqlite)}'
                               hosts: [localhost]
                               keyspace: system
-                              username: cassandra
-                              password: cassandra
+                              username: '{env(RB_TEST_BACKEND_USERNAME, cassandra)}'
+                              password: '{env(RB_TEST_BACKEND_PASSWORD, cassandra)}'
                               defaultConsistency: one # or 'localQuorum' for production
                               storage_groups:
                                 - name: test.group.local
                                   domains: /./
-                              # ignored in cassandra, but useful in SQLite testing
-                              dbname: '{env(RB_SQLITE_FILE, test.db.sqlite3)}'
+                              host: localhost # ignored in cassandra, but useful in MySQL testing
+                              database: test_db # ignored in cassandra, but useful in MySQL testing
+                              dbname: '{env(RB_SQLITE_FILE, test.db.sqlite3)}' # ignored in cassandra, but useful in SQLite testing
 
 wikimedia_project: &wikimedia_project
   x-modules:
