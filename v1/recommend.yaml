@@ -52,6 +52,8 @@ paths:
         - get_from_backend:
             request:
               uri: '{{options.host}}/{domain}/v1/article/creation/translation/{from_lang}/{default(seed_article,"")}'
+              query:
+                count: '{{count}}'
       x-monitor: false
 
   /recommendation/article/creation/translation/{from_lang}/{seed_article}:
