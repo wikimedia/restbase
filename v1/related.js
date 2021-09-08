@@ -11,59 +11,89 @@ class Related {
         this._options = options;
     }
 
+    _relatedPageRedirect(hyper, domain, title) {
+        const params = `action=query&format=json&titles=${title}&redirects=1&converttitles=1`;
+        const apiURL = `https://${domain}/w/api.php?${params}`;
+        return hyper.get({
+            uri: apiURL,
+            headers: {
+                'content-type': 'application/json'
+            }
+        }).then((res) => {
+            return res.body;
+        }).catch((e) => {
+            hyper.logger.log('error/related', {
+                message: 'Failed to fetch related pages',
+                error: e
+            });
+            throw e;
+        });
+    }
+
     getPages(hyper, req) {
         const rp = req.params;
-        const rh = Object.assign({}, req.headers);
-        // we don't store /page/related no need for cache-control
-        if (rh['cache-control']) {
-            delete rh['cache-control'];
-        }
 
-        return hyper.post({
-            uri: new URI([rp.domain, 'sys', 'action', 'query']),
-            body: {
-                format: 'json',
-                generator: 'search',
-                gsrsearch: `morelike:${rp.title}`,
-                gsrnamespace: 0,
-                gsrwhat: 'text',
-                gsrinfo: '',
-                gsrprop: 'redirecttitle',
-                gsrlimit: 20
+        return this._relatedPageRedirect(hyper, rp.domain, rp.title).then((res) => {
+
+            // Return the right title to redirect if it has another language option
+            if (res.query.converted) {
+                rp.title = res.query.converted[0].to;
+            } else if (res.query.redirects) {
+                rp.title = res.query.redirects[0].to;
             }
-        })
-        .then((res) => {
-            delete res.body.next;
 
-            // Step 1: Normalize and convert titles to use $merge
-            res.body.items.forEach((item) => {
-                // We can avoid using the full-blown title normalisation here because
-                // the titles come from MW API and they're already normalised except
-                // they use spaces instead of underscores.
-                item.$merge = [ new URI([rp.domain, 'v1', 'page',
-                    'summary', item.title.replace(/ /g, '_')]) ];
-                delete item.title;
-            });
+            const rh = Object.assign({}, req.headers);
+            // we don't store /page/related no need for cache-control
+            if (rh['cache-control']) {
+                delete rh['cache-control'];
+            }
 
-            // Rename `items` to `pages`
-            res.body.pages = res.body.items;
-            delete res.body.items;
+            return hyper.post({
+                uri: new URI([rp.domain, 'sys', 'action', 'query']),
+                body: {
+                    format: 'json',
+                    generator: 'search',
+                    gsrsearch: `morelike:${rp.title}`,
+                    gsrnamespace: 0,
+                    gsrwhat: 'text',
+                    gsrinfo: '',
+                    gsrprop: 'redirecttitle',
+                    gsrlimit: 20
+                }
+            })
+            .then((res) => {
+                delete res.body.next;
 
-            // Step 2: Hydrate response as always.
-            return mwUtil.hydrateResponse(res, (uri) => {
-                return mwUtil.fetchSummary(hyper, uri, rh).then((result) => {
-                    if (!result) {
-                        return result;
-                    }
+                // Step 1: Normalize and convert titles to use $merge
+                res.body.items.forEach((item) => {
+                    // We can avoid using the full-blown title normalisation here because
+                    // the titles come from MW API and they're already normalised except
+                    // they use spaces instead of underscores.
+                    item.$merge = [ new URI([rp.domain, 'v1', 'page',
+                        'summary', item.title.replace(/ /g, '_')]) ];
+                    delete item.title;
+                });
 
-                    // Assign content-language and vary header to parent response
-                    // based on one of summary responses
-                    if (res && res.headers && !res.headers['content-language'] &&
-                    result['content-language']) {
-                        res.headers['content-language'] = result['content-language'];
-                        mwUtil.addVaryHeader(res, 'accept-language');
-                    }
-                    return result.summary;
+                // Rename `items` to `pages`
+                res.body.pages = res.body.items;
+                delete res.body.items;
+
+                // Step 2: Hydrate response as always.
+                return mwUtil.hydrateResponse(res, (uri) => {
+                    return mwUtil.fetchSummary(hyper, uri, rh).then((result) => {
+                        if (!result) {
+                            return result;
+                        }
+
+                        // Assign content-language and vary header to parent response
+                        // based on one of summary responses
+                        if (res && res.headers && !res.headers['content-language'] &&
+                        result['content-language']) {
+                            res.headers['content-language'] = result['content-language'];
+                            mwUtil.addVaryHeader(res, 'accept-language');
+                        }
+                        return result.summary;
+                    });
                 });
             });
         });
