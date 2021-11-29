@@ -198,6 +198,10 @@ spec_root: &spec_root
   # Some more general RESTBase info
   x-request-filters:
     - path: lib/security_response_header_filter.js
+    - path: lib/purge_content.js
+      options:
+        start_time: 1638217479863 # start of purge Unix timestamp
+        end_time: 1638218479863 # end of purge Unix timestamp
 
   x-sub-request-filters:
     - type: default
