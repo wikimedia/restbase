@@ -229,6 +229,10 @@ spec_root: &spec_root
   # Some more general RESTBase info
   x-request-filters:
     - path: lib/security_response_header_filter.js
+    - path: lib/purge_content.js
+      options:
+        start_time: "Wed Jan 24 2024 14:55:23 GMT+0000" # start of purge (ISO 8601)
+        end_time: "Wed Jan 25 2024 14:55:23 GMT+0000" # end of purge (ISO 8601)
 
   x-sub-request-filters:
     - type: default
