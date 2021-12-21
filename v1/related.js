@@ -12,12 +12,19 @@ class Related {
     }
 
     _relatedPageRedirect(hyper, domain, title) {
-        const params = `action=query&format=json&titles=${title}&redirects=1&converttitles=1`;
-        const apiURL = `https://${domain}/w/api.php?${params}`;
+        const apiURI = new URI(`https://${domain}/w/api.php`);
+
         return hyper.get({
-            uri: apiURL,
+            uri: apiURI,
             headers: {
                 'content-type': 'application/json'
+            },
+            query: {
+                action: 'query',
+                format: 'json',
+                titles: title,
+                redirects: 1,
+                converttitles: 1
             }
         }).then((res) => {
             return res.body;
@@ -36,10 +43,12 @@ class Related {
         return this._relatedPageRedirect(hyper, rp.domain, rp.title).then((res) => {
 
             // Return the right title to redirect if it has another language option
-            if (res.query.converted) {
-                rp.title = res.query.converted[0].to;
-            } else if (res.query.redirects) {
-                rp.title = res.query.redirects[0].to;
+            if (res && res.query) {
+                if (res.query.converted) {
+                    rp.title = res.query.converted[0].to;
+                } else if (res.query.redirects) {
+                    rp.title = res.query.redirects[0].to;
+                }
             }
 
             const rh = Object.assign({}, req.headers);
