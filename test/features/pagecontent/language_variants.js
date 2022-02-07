@@ -16,13 +16,14 @@ describe('Page Related', () => {
         return preq.get({
             uri,
             headers: {
-                'accept-language': 'zh-hant',
+                'accept-language': 'zh-cn',
             }
         }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.ok(Array.isArray(res.body.pages));
-            assert.deepEqual(res.body.pages[0].displaytitle, '首頁');
-            assert.deepEqual(res.headers['content-language'], 'zh-hant');
+            // 无政府主义史 is zh-cn for 無政府主義史
+            assert.ok(res.body.pages.some(page => page.displaytitle === '无政府主义史' ));
+            assert.deepEqual(res.headers['content-language'], 'zh-cn');
             assert.ok(res.headers['vary'].includes('accept-language'));
         });
     })
