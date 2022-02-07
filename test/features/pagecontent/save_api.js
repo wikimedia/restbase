@@ -8,7 +8,12 @@ const nock   = require('nock');
 
 const NOCK_TESTS = true;
 
-describe('page save api', function() {
+// These tests are inherently unstable and since they're running against
+// extensive mocks, they're not really testing anything. Page saving via RESTBase
+// has never been fully adopted and . With RESTBase deprecation and these endpoints
+// being unstable, it's better to just skip the tests then to fix them.
+// We will drop the page saving endpoints soon enough.
+describe.skip('page save api', function() {
     this.timeout(20000);
     const server = new Server();
     after(() =>  server.stop());
