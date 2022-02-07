@@ -88,7 +88,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
             params: 'San_Francisco',
             schema: 'media_list'
         },
-        {
+        /* no recommendation-api in beta {
             domain: 'commons.wikimedia.beta.wmflabs.org',
             path: '/data/recommendation/caption/addition/en',
             schema: 'caption_recommendation_result'
@@ -107,7 +107,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
             domain: 'wikidata.beta.wmflabs.org',
             path: '/data/recommendation/description/translation/from/en/to/ru',
             schema: 'description_recommendation_result'
-        },
+        }, */
     ].forEach((testSpec) => {
         let name = `${testSpec.path} should conform schema`;
         if (testSpec.domain) {
