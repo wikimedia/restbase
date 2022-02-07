@@ -12,7 +12,7 @@ const entities = require('entities');
  * attributes are separated by spaces, attribute might have a value surrounded by ' or ",
  * the value is allowed to have any character.
  *
- * @const
+ * @constant
  * @type {RegExp}
  */
 const TAGS_MATCH = /<\/?[a-zA-Z][\w-]*(?:\s+[a-zA-Z_\-:]+(?:=\\?(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g;
