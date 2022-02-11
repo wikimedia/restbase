@@ -12,14 +12,14 @@ class Related {
     }
 
     _relatedPageRedirect(hyper, domain, title) {
-        const apiURI = new URI(`https://${domain}/w/api.php`);
+        const apiURI = new URI([domain, 'sys', 'action', 'rawquery']);
 
         return hyper.get({
             uri: apiURI,
             headers: {
                 'content-type': 'application/json'
             },
-            query: {
+            body: {
                 action: 'query',
                 format: 'json',
                 titles: title,
