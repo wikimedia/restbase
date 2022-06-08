@@ -78,24 +78,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/problem'
       operationId: getCitation
-      # TEMP TEMP TEMP
-      # Citoid monitoring temporarily disabled due to T211411
-      x-monitor: false
-#      x-amples:
-#        - title: Get citation for Darth Vader
-#          request:
-#            params:
-#              domain: en.wikipedia.org
-#              format: mediawiki
-#              query: 'https://en.wikipedia.org/wiki/Darth_Vader'
-#          response:
-#            status: 200
-#            headers:
-#              content-type:  /^application\/json/
-#            body:
-#              - title: /.+/
-#                itemType: /.+/
-
+      x-monitor: true
+      x-amples:
+        - title: Get citation for Darth Vader
+          request:
+            params:
+              domain: en.wikipedia.org
+              format: mediawiki
+              query: 'https://en.wikipedia.org/wiki/Darth_Vader'
+          response:
+            status: 200
+            headers:
+              content-type:  /^application\/json/
+            body:
+              - title: /.+/
+                itemType: /.+/
 components:
   schemas:
     result:
