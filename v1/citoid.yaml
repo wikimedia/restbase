@@ -23,6 +23,10 @@ paths:
       description: |
         Generates citation data given a URL, DOI, PMID, ISBN, or PMCID.
 
+        Because requests for ISBNs go to WorldCat and we have a limited number of these requests to their API per day, please limit requests to 100 per user or bot per day.
+
+        Automated requests for URLs and DOIs can be made at a rate of 1 request per second (rqs).
+
         See more at [Citoid service documentation](https://www.mediawiki.org/wiki/Citoid)
 
         The citation data can be requested in one of the following formats:
