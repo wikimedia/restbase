@@ -108,20 +108,16 @@ components:
         lang:
           type: string
           description: The page language code
-          example: en
         dir:
           type: string
           description: The page language direction code
-          example: ltr
         timestamp:
           type: string
           description: The time when the page was last edited in the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
             format
-          example: 1970-01-01T00:00:00.000Z
         description:
           type: string
           description: Wikidata description for the page
-          example: American poet
         coordinates:
           type: object
           description: The coordinates of the item

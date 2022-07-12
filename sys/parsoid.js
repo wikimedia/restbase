@@ -25,6 +25,7 @@ function sameHtml(a, b) {
 
 /**
  * Makes sure we have a meta tag for the tid in our output
+ *
  * @param  {string} html original HTML content
  * @param  {string} tid  the tid to insert
  * @return {string}      modified html
@@ -48,6 +49,7 @@ function extractTidMeta(html) {
 /**
  *  Checks whether the content has been modified since the timestamp
  *  in `if-unmodified-since` header of the request
+ *
  * @param  {Object} req the request
  * @param  {Object} res the response
  * @return {boolean}    true if content has beed modified
@@ -66,6 +68,7 @@ function isModifiedSince(req, res) {
 }
 
 /** HTML resource_change event emission
+ *
  * @param   {HyperSwitch}   hyper           the hyperswitch router object
  * @param   {Object}        req             the request
  * @param   {boolean}       [newContent]    whether this is the newest revision
@@ -224,6 +227,7 @@ class ParsoidService {
 
     /**
      * Get full content from the stash bucket.
+     *
      * @param {HyperSwitch} hyper the hyper object to route requests
      * @param {string} domain the domain name
      * @param {string} title the article title
@@ -273,6 +277,7 @@ class ParsoidService {
      * // it's not really the latest content, but we have already looked into
      * // the latest bucket, thus we can somehow pass the data over here
      * // so that we don't do several checks.
+     *
      * @param {HyperSwitch} hyper the hyper object for request routing
      * @param {string} domain the domain name
      * @param {string} title the page title
@@ -352,6 +357,7 @@ class ParsoidService {
      *  as we can not check the stash with no tid provided.
      *  If all the 'title', 'revision' and 'tid' are provided,
      *  we check the latest bucket first, and then the stash bucket.
+     *
      * @param {HyperSwitch} hyper the hyper object to rout requests
      * @param {string} domain the domain name
      * @param {string} title the article title
@@ -400,6 +406,7 @@ class ParsoidService {
     /**
      * Generate content and store it in the latest bucket if the content is indeed
      * newer then the original content we have fetched.
+     *
      * @param {HyperSwitch} hyper the hyper object for request routing
      * @param {Object} req the original request
      * @param {Object} currentContentRes the pagebundle received from latest or fallback bucket.
@@ -481,7 +488,8 @@ class ParsoidService {
      * https://phabricator.wikimedia.org/T120171 and
      * https://phabricator.wikimedia.org/T120972 are resolved / resource
      * consumption for these articles has been reduced to a reasonable level.
-     * @param  {Request} req    the request being processed
+     *
+     * @param  {Object} req    the request being processed
      * @return {boolean}        Whether re-rendering this title is okay.
      */
     _okayToRerender(req) {

@@ -251,6 +251,7 @@ class PRS {
      *  - sha1hidden or texthidden: raise 403 error
      *  - commenthidden: remove comment field from response
      *  - userhidden: remove user information from response
+     *
      * @param  {Object} item the revision item
      * @throws               HTTPError if access to the revision should be denied
      */
@@ -316,6 +317,7 @@ class PRS {
 
     /**
      * Checks if two revisions are the same, ignoring different tid values.
+     *
      * @private
      * @param  {Object}  firstRev
      * @param  {Object}  secondRev

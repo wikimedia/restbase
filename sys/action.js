@@ -283,6 +283,7 @@ class ActionService {
      *
      * Expects the project domain to be passed in req.params.domain. Fetching
      * siteinfo for other projects / domains is not supported.
+     *
      * @param  {Object}  hyper   Hyperswitch instance
      * @param  {Object}  req     request object
      * @return {Object}          site info

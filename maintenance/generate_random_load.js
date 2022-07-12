@@ -18,19 +18,16 @@ function makeCheck() {
             return preq.get(`${testRestBASEUri}/page/html/${encodeURIComponent(title)}/${revision}`)
             .then((res) => {
                 const tid = res.headers.etag.match(/\/(.+)"$/)[1];
-                // eslint-disable-next-line no-console
                 console.log(`Testing for ${title}/${revision}/${tid}`);
                 P.delay(Math.floor(Math.random() * 86400000))
                 .then(() => {
                     return P.all([
                         preq.get(`${testRestBASEUri}/page/html/${encodeURIComponent(title)}/${revision}/${tid}`)
                         .catch((err) => {
-                            // eslint-disable-next-line no-console
                             console.log(`${new Date()} Failed to fetch HTML ${title}/${revision}/${tid} from test RB: ${err}`);
                         }),
                         preq.get(`${testRestBASEUri}/page/html/${encodeURIComponent(title)}/${revision}/${tid}`)
                         .catch((err) => {
-                            // eslint-disable-next-line no-console
                             console.log(`${new Date()} Failed to fetch Data-Parsoid ${title}/${revision}/${tid} from test RB: ${err}`);
                         })
                     ]);
@@ -38,7 +35,6 @@ function makeCheck() {
 
                 return P.delay(500).then(makeCheck);
             }, (e) => {
-                // eslint-disable-next-line no-console
                 console.log(`${new Date()} Failed to fetch HTML ${title}/${revision} from test RB: ${e}`);
             });
         });
