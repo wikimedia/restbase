@@ -58,7 +58,7 @@ node server
 
 The defaults without a config file should work for a local Cassandra
 installation with the default passwords. Restbase has been tested with
-[Cassandra 2.2.6](http://wiki.apache.org/cassandra/DebianPackaging).
+[Cassandra 2.2.6](https://cwiki.apache.org/confluence/display/CASSANDRA2/DebianPackaging).
 To customize RESTBase's behaviour, copy the example config to its
 default location:
 
