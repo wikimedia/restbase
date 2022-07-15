@@ -17,6 +17,7 @@ class ReadingLists {
 
     /**
      * Transform the continuation data into a string so it is easier for clients to deal with.
+     *
      * @param  {!Object|undefined} continuation Continuation object returned by the MediaWiki API.
      * @return {!string|undefined}              Continuation string.
      */
@@ -26,6 +27,7 @@ class ReadingLists {
 
     /**
      * Inverse of flattenContinuation.
+     *
      * @param  {!string|undefined} continuation Continuation string returned by
      *                                          flattenContinuation()
      * @return {!Object}                        Continuation object.
@@ -63,6 +65,7 @@ class ReadingLists {
 
     /**
      * Convert an array of values into the format expected by the MediaWiki API.
+     *
      * @param  {!Array}  list A list containing strings and numbers.
      * @return {!string}
      */
@@ -72,10 +75,11 @@ class ReadingLists {
 
     /**
      * Takes an array of integers and formats them as an array of {<keyword>: <id>} objects.
+     *
      * @param   {!Array} ids
      * @param  {!string} keyword
      * @return {!Array}
-    */
+     */
     idsToObjects(ids, keyword) {
         return ids.map((id) => {
             // If the MW API has been updated to send objects, handle that gracefully.
@@ -91,6 +95,7 @@ class ReadingLists {
 
     /**
      * Get the sort parameters for the action API.
+     *
      * @param  {!string} sort Sort mode ('name' or 'updated').
      * @return {!Object}      { sort: <rlsort/rlesort parameter>, dir: <rldir/rledir parameter> }
      */
@@ -110,6 +115,7 @@ class ReadingLists {
      *
      * Normally the timstamp is just copied from the MediaWiki response, but for a transition
      * period we are going to generate it.
+     *
      * @param  {!Object} responseBody The response object body.
      * @param  {!string} next         The continuation parameter submitted by the client.
      * @return {!string}              An ISO 8601 timestamp.
@@ -133,6 +139,7 @@ class ReadingLists {
 
     /**
      * Handle the /list/{id}/entries endpoint (get entries of a list).
+     *
      * @param  {!HyperSwitch}     hyper
      * @param  {!Object}          req   The request object as provided by HyperSwitch.
      * @return {!Promise<Object>}       A response promise.
@@ -173,6 +180,7 @@ class ReadingLists {
 
     /**
      * Add data from the summary endpoint to an array of list entries.
+     *
      * @param  {!Object}         res   Response object.
      * @param  {!HyperSwitch}    hyper Hyperswitch context
      * @param  {!Object}         req   The request object as provided by HyperSwitch.
