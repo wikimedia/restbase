@@ -25,7 +25,7 @@ paths:
 
         Because requests for ISBNs go to WorldCat and we have a limited number of these requests to their API per day, please limit requests to 100 per user or bot per day.
 
-        Automated requests for URLs and DOIs can be made at a rate of 1 request per second (rqs).
+        Automated requests for URLs and DOIs can be made at a rate of 1 request per second (rps).
 
         See more at [Citoid service documentation](https://www.mediawiki.org/wiki/Citoid)
 
