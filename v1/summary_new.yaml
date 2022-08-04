@@ -207,3 +207,176 @@ paths:
               lang: en
               dir: ltr
               description: /.+/
+
+  /summary/{title}/{revision}:
+    x-route-filters:
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+      - path: ./lib/ensure_content_type.js
+      - path: ./lib/language_variants_filter.js
+    get:
+      tags:
+        - Page content
+      summary: Get basic metadata and simplified article introduction.
+      description: |
+        The summary response includes an extract of the first paragraph of the page in plain text
+        and HTML as well as the type of page. This is useful for page previews (fka. Hovercards,
+        aka. Popups) on the web and link previews in the apps.
+
+        Stability: [stable](https://www.mediawiki.org/wiki/Wikimedia_Product/Wikimedia_Product_Infrastructure_team/API_endpoint_stability_policy#Stable)
+
+        Please follow [wikitech-l](https://lists.wikimedia.org/mailman/listinfo/wikitech-l) or [mediawiki-api-announce](https://lists.wikimedia.org/mailman/listinfo/mediawiki-api-announce) for announcements of breaking changes.
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+        - name: revision
+          in: path
+          description: |
+            Optional page revision. Note that older revisions are not stored, so request latency with the revision would be higher.
+          required: true
+          schema:
+            type: integer
+        - name: redirect
+          in: query
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          schema:
+            type: boolean
+        - name: Accept-Language
+          in: header
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
+          schema:
+            type: string
+      responses:
+        200:
+          description: The summary for the given page
+          headers:
+            ETag:
+              description: |
+                Syntax: "{revision}/{tid}". Example: "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+              schema:
+                type: string
+          content:
+            application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/Summary/1.4.2":
+              schema:
+                $ref: '#/components/schemas/summary'
+        301:
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        302:
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        404:
+          description: Unknown page title
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-setup-handler:
+        # Set up a simple key-value bucket.
+        - init:
+            method: put
+            uri: /{domain}/sys/key_value/page_summary
+            headers:
+              content-type: application/json
+            body:
+              valueType: json
+      x-request-handler:
+        - storage:
+            request:
+              method: get
+              headers:
+                cache-control: '{{cache-control}}'
+              uri: /{domain}/sys/key_value/page_summary/{request.params.title}/{request.params.revision}
+            catch:
+              status: 404
+            return_if:
+              # Typical case: Return straight from storage.
+              status: 2xx
+            return:
+              status: 200
+              headers:
+                content-type: '{{storage.headers.content-type}}'
+                etag: '{{storage.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
+                x-foo-bar-1: 'foobar-from-storage'
+                x-custom: '{{getNumber(123)}'
+                content-language: '{{storage.headers.content-language}}'
+                vary: '{{storage.headers.vary}}'
+              body: '{{storage.body}}'
+
+        # Storage miss. Call the Action API to get the textextract.
+        - extract:
+            request:
+              method: get
+              headers:
+                accept-language: '{{accept-language}}'
+              uri: '{{options.host}}/{domain}/v1/page/summary/{title}/{revision}'
+            response:
+              status: '{{extract.status}}'
+              headers: '{{extract.headers}}'
+              body: '{{changeProtocol(extract.body)}}'
+        - emit_change_event:
+            request:
+              method: post
+              uri: /{domain}/sys/events/
+              body:
+                - meta:
+                    uri: //{request.params.domain}/api/rest_v1/page/summary/{request.params.title}/{request.params.revision}
+            return:
+              status: 200
+              headers:
+                etag: '{{extract.headers.etag}}'
+                cache-control: '{{options.response_cache_control}}'
+                content-language: '{{extract.headers.content-language}}'
+                content-type: '{{extract.headers.content-type}}'
+                vary: '{{extract.headers.vary}}'
+              body: '{{extract.body}}'
+
+      x-monitor: true
+      x-amples:
+        - title: Get summary from storage
+          request:
+            params:
+              # domain: en.wikipedia.org
+              domain: en.wikipedia.beta.wmflabs.org
+              title: Cat
+              revision: 68036
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^application\/json/
+            body:
+              extract: /.+/
+              extract_html: /.+/
+              thumbnail:
+                source: /^https:/
+              originalimage:
+                source: /^https:/
+              lang: en
+              dir: ltr
+              description: /.+/
