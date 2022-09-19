@@ -124,6 +124,20 @@ wikipedia_project: &wikipedia_project
                 options: *proxy_options
           /{api:sys}: *default_sys
 
+wikipedia_project_no_storage: &wikipedia_project_no_storage
+  x-modules:
+    - spec:
+        paths:
+          /{api:v1}:
+            x-modules:
+              - path: projects/v1/wikipedia.wmf.yaml
+                options:
+                  <<: *default_options
+                  disabled_storage: true
+              - path: projects/proxy.yaml
+                options: *proxy_options
+          /{api:sys}: *default_sys
+
 wiktionary_project: &wiktionary_project
   x-modules:
     - spec:
@@ -214,7 +228,8 @@ spec_root: &spec_root
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
     /{domain:en.wikipedia.beta.wmflabs.org}: *wikipedia_project
-    /{domain:de.wikipedia.beta.wmflabs.org}: *wikipedia_project
+    # For testing purpose lets run de-beta with storage disabled
+    /{domain:de.wikipedia.beta.wmflabs.org}: *wikipedia_project_no_storage
     /{domain:zh.wikipedia.beta.wmflabs.org}: *wikipedia_project
     /{domain:wikidata.beta.wmflabs.org}: *wikidata_project
     # Serbian wiki in beta for language variants tests

@@ -35,7 +35,17 @@ describe('Language variants', function() {
     this.timeout(20000);
     const server = new Server();
 
-    before(() => server.start());
+    before(async () => {
+        // Cleaning require cache because of side-effects
+        // on the way modules are instantiated in hyperswitch
+        try {
+            delete require.cache[require.resolve("../../../v1/summary.js")];
+        } catch {
+            console.log("Couldn't delete cached module");
+        }
+        await server.start();
+    });
+
     after(() => server.stop());
 
     it('should request html with impossible variants', () => {
@@ -137,6 +147,21 @@ describe('Language variants', function() {
         });
     });
 
+    it('should request summary with no variant and not store it (no-storage)', () => {
+        // de.wikipedia.beta.wmflabs.org is configured to not use storage while testing
+        return preq.get({
+            uri: `${server.config.bucketURL('de.wikipedia.beta.wmflabs.org')}/summary/${variantsPageTitle}`
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
+            assert.deepEqual(res.headers['content-language'], 'de');
+            assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
+            assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
+            assert.deepEqual('Das ist eine testseite', res.body.extract);
+        })
+    });
+
     it('should request summary with no variant and store it', () => {
         let storedEtag;
         return preq.get({
@@ -148,6 +173,7 @@ describe('Language variants', function() {
             assert.validateListHeader(res.headers.vary,  { require: ['Accept-Language'], disallow: ['Accept'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control_with_client_caching');
             assert.deepEqual(res.headers['content-language'], 'sr');
+            assert.deepEqual(res.headers['x-restbase-sunset'] || null, null);
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
             assert.deepEqual('1. Ово је тестна страница', res.body.extract);
             // Not try fetching again with a default variant and see if etag matches

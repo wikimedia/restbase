@@ -7,7 +7,16 @@ const preq   = require('preq');
 
 describe('Page Content Service: /page/media-list', () => {
     const server = new Server();
-    before(() => server.start());
+    before(async () => {
+        // Cleaning require cache because of side-effects
+        // on the way modules are instantiated in hyperswitch
+        try {
+            delete require.cache[require.resolve('../../v1/pcs/stored_endpoint.js')]
+        } catch {
+            console.log("Couldn't delete cached module")
+        }
+        await server.start();
+    });
     after(() => server.stop());
 
     const pageTitle = 'San_Francisco';
@@ -25,6 +34,20 @@ describe('Page Content Service: /page/media-list', () => {
             });
     });
 
+    it('Should fetch latest media-list without storing it', () => {
+        // de.wikipedia.beta.wmflabs.org is configured to not use storage while testing
+        return preq.get({
+            uri: `${server.config.bucketURL('de.wikipedia.beta.wmflabs.org')}/media-list/Erde`
+        })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
+                assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
+                assert.deepEqual(!!res.body.items, true);
+                assert.deepEqual(!!res.headers.etag, true);
+            });
+    });
+
     it('Should fetch older media-list', () => {
         return preq.get({
             uri: `${server.config.bucketURL()}/media-list/${pageTitle}/${pageRev}`
@@ -34,6 +57,47 @@ describe('Page Content Service: /page/media-list', () => {
                 assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
                 assert.deepEqual(!!res.body.items, true);
                 assert.deepEqual(new RegExp(`^(?:W\/)?"${pageRev}\/.+"$`).test(res.headers.etag), true);
+            });
+    });
+});
+
+describe('Page Content Service: /page/mobile-html', () => {
+    const server = new Server();
+    before(async () => {
+        // Cleaning require cache because of side-effects
+        // on the way modules are instantiated in hyperswitch
+        try {
+            delete require.cache[require.resolve('../../v1/pcs/stored_endpoint.js')]
+        } catch {
+            console.log("Couldn't delete cached module")
+        }
+        await server.start();
+    });
+    after(() => server.stop());
+
+    it('Should fetch latest mobile-html', () => {
+        const pageTitle = 'Earth';
+        return preq.get({
+            uri: `${server.config.bucketURL()}/mobile-html/${pageTitle}`
+        })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
+                assert.deepEqual(res.headers['x-restbase-sunset'] || null, null);
+            });
+    });
+
+    it('Should fetch latest mobile-html directly from PCS', () => {
+        // de.wikipedia.beta.wmflabs.org is configured to not use storage while testing
+        const domain = 'de.wikipedia.beta.wmflabs.org'
+        const pageTitle = 'Erde';
+        return preq.get({
+            uri: `${server.config.bucketURL(domain)}/mobile-html/${pageTitle}`
+        })
+            .then((res) => {
+                assert.deepEqual(res.status, 200);
+                assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
+                assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
             });
     });
 });

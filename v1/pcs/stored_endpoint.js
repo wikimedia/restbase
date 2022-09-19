@@ -7,6 +7,7 @@ const mwUtils = require('../../lib/mwUtil');
 class PCSEndpoint {
     constructor(options) {
         this._options = options;
+        this._disabled_storage = options.disabled_storage || false;
     }
 
     _injectCacheControl(res) {
@@ -18,6 +19,21 @@ class PCSEndpoint {
     getContent(hyper, req) {
         const startTime = Date.now();
         const rp = req.params;
+
+        // restbase sunset: Make PCS requests passthrough
+        // to mobileapps service
+        if (this._disabled_storage) {
+            return this._fetchFromPCS(hyper, req)
+            .tap((res) => {
+                res.headers['x-restbase-sunset'] = true;
+                this._injectCacheControl.bind(this);
+                hyper.metrics.timing([
+                    'pcs_getContent_latency',
+                    'pcs_getContent_latency_no_storage',
+                    `pcs_getContent_latency_${rp.domain}`
+                ], startTime);
+            });
+        }
 
         if (mwUtils.isNoCacheRequest(req)) {
             return this._fetchFromPCSAndStore(hyper, req)
