@@ -71,7 +71,7 @@ parallel('Responses should conform to the provided JSON schema of the response',
         },
         {
             path: '/page/summary',
-            params: 'Foobar',
+            params: 'Earth',
             schema: 'summary'
         },
         {

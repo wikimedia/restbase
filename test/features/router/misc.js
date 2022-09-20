@@ -14,6 +14,8 @@ function getHeader(res, name) {
 describe('router - misc', function() {
     this.timeout(100000);
     const server = new Server();
+    const title = 'Earth'
+
     before(() => server.start());
     after(() => server.stop());
 
@@ -27,7 +29,7 @@ describe('router - misc', function() {
     it('should set a request ID for each sub-request and return it', () => {
         assert.recordRequests();
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${title}`,
             headers: {
                 'Cache-Control': 'no-cache'
             }
@@ -46,7 +48,7 @@ describe('router - misc', function() {
         assert.recordRequests();
         const reqId = 'b6c17ea83d634b31bb28d60aae1caaac';
         return preq.get({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar`,
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${title}`,
             headers: {
                 'X-Request-Id': reqId
             }
@@ -80,7 +82,7 @@ describe('router - misc', function() {
 
     it('should truncate body upon HEAD request', () => {
         return preq.head({
-            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/Foobar`
+            uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}/html/${title}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
