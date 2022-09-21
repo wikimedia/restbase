@@ -9,6 +9,9 @@ describe('item requests', function() {
     this.timeout(20000);
     let pagingToken = '';
     let contentTypes;
+    const title = 'Earth';
+    const revision = '358126';
+    const prevRevisions = ['358125', '214592', '214591']
 
     const server = new Server();
     before(() => server.start()
@@ -35,7 +38,7 @@ describe('item requests', function() {
     };
     const createTest = (method) => {
         it(`should respond to ${method} request with CORS headers`, () => {
-            return preq[method]({ uri: `${server.config.bucketURL()}/html/Foobar/385014` })
+            return preq[method]({ uri: `${server.config.bucketURL()}/html/${title}/${revision}` })
             .then((res) => {
                 assert.deepEqual(res.status, 200);
                 assertCORS(res);
@@ -68,9 +71,9 @@ describe('item requests', function() {
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
-    it('should transparently create a new HTML revision with id 252937', () => {
+    it(`should transparently create a new HTML revision with id ${prevRevisions[0]}`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/Foobar/252937`,
+            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[0]}`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -79,7 +82,7 @@ describe('item requests', function() {
     });
     it('should not allow to frontend cache HTML if requested a stash', () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/Foobar?stash=true`,
+            uri: `${server.config.bucketURL()}/html/${title}?stash=true`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -108,9 +111,9 @@ describe('item requests', function() {
     });
 
     let rev2Etag;
-    it('should transparently create data-parsoid with id 383159, rev 2', () => {
+    it(`should transparently create data-parsoid with id ${prevRevisions[1]}, rev 2`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/Foobar/383159?stash=true`
+            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[1]}?stash=true`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -119,9 +122,9 @@ describe('item requests', function() {
         });
     });
 
-    it('should return data-parsoid just created with revision 383159, rev 2', () => {
+    it(`should return data-parsoid just created with revision ${rev2Etag}, rev 2`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/data-parsoid/Foobar/${rev2Etag}`
+            uri: `${server.config.bucketURL()}/data-parsoid/${title}/${rev2Etag}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -129,16 +132,16 @@ describe('item requests', function() {
         });
     });
 
-    it('should return HTML and data-parsoid just created by revision 295771', () => {
+    it(`should return HTML and data-parsoid just created by revision ${prevRevisions[2]}`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/Foobar/295771?stash=true`
+            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[2]}?stash=true`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, contentTypes.html);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
             return preq.get({
-                uri: `${server.config.bucketURL()}/data-parsoid/Foobar/${
+                uri: `${server.config.bucketURL()}/data-parsoid/${title}/${
                     res.headers.etag.replace(/^"(.*)"$/, '$1')}`
             });
         })

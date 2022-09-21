@@ -21,8 +21,9 @@ describe('Page Related', () => {
         }).then((res) => {
             assert.deepEqual(res.status, 200);
             assert.ok(Array.isArray(res.body.pages));
+
             // 无政府主义史 is zh-cn for 無政府主義史
-            assert.ok(res.body.pages.some(page => page.displaytitle === '无政府主义史' ));
+            assert.ok(res.body.pages.some(page => page.displaytitle === '<span class=\"mw-page-title-main\">无政府主义史</span>' ));
             assert.deepEqual(res.headers['content-language'], 'zh-cn');
             assert.ok(res.headers['vary'].includes('accept-language'));
         });

@@ -9,8 +9,8 @@ describe('Mobile Content Service', () => {
     before(() => server.start());
     after(() => server.stop());
 
-    const pageTitle = 'Foobar';
-    const pageRev = 385014;
+    const pageTitle = 'Earth';
+    const pageRev = 358126;
 
     it('Should fetch latest mobile-sections', () => {
         return preq.get({
