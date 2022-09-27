@@ -16,12 +16,21 @@ class PCSEndpoint {
     }
 
     getContent(hyper, req) {
+        const startTime = Date.now();
+        const rp = req.params;
+
         if (mwUtils.isNoCacheRequest(req)) {
             return this._fetchFromPCSAndStore(hyper, req)
-            .tap(this._injectCacheControl.bind(this));
+            .tap(() => {
+                this._injectCacheControl.bind(this);
+                hyper.metrics.timing([
+                    'pcs_getContent_latency',
+                    'pcs_getContent_latency_no_cache',
+                    `pcs_getContent_latency_${rp.domain}`
+                ], startTime);
+            });
         }
 
-        const rp = req.params;
         return hyper.get({
             uri: new URI([rp.domain, 'sys', 'key_value', this._options.name, rp.title])
         })
@@ -33,7 +42,14 @@ class PCSEndpoint {
             return this._fetchFromPCS(hyper, req);
         })
         .catch({ status: 404 }, () => this._fetchFromPCSAndStore(hyper, req))
-        .tap(this._injectCacheControl.bind(this));
+        .tap(() => {
+            this._injectCacheControl.bind(this);
+            hyper.metrics.timing([
+                'pcs_getContent_latency',
+                'pcs_getContent_latency_cached',
+                `pcs_getContent_latency_${rp.domain}`
+            ], startTime);
+        });
     }
 
     _purgeURIs(hyper, req, revision) {
@@ -66,6 +82,7 @@ class PCSEndpoint {
     }
 
     _fetchFromPCS(hyper, req) {
+        const startTime = Date.now();
         const rp = req.params;
         let serviceURI = `${this._options.host}/${rp.domain}/v1/page/${this._options.name}`;
         serviceURI += `/${encodeURIComponent(rp.title)}`;
@@ -78,7 +95,10 @@ class PCSEndpoint {
             headers: {
                 'accept-language': req.headers['accept-language']
             }
-        });
+        }).tap(() => hyper.metrics.timing([
+            'pcs_fetch_latency',
+            `pcs_fetch_latency_${rp.domain}`
+        ], startTime));
     }
 
     _fetchFromPCSAndStore(hyper, req) {
