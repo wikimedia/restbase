@@ -1,6 +1,6 @@
 restbase
 coverage
-config.yaml
+/config.yaml
 node_modules
 npm-debug.log
 package-lock.json
