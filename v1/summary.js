@@ -77,8 +77,38 @@ module.exports = (options) => {
     } else if (options.protocol === 'https') {
         protocol = 'https://';
     }
+
+    const disabledStorage = options.disabled_storage || false;
+
+    let summarySpec = spec;
+    if (options.implementation === 'mcs') {
+        summarySpec = newSpec;
+
+        // restbase sunset: Make page summary requests passthrough
+        // to mobileapps service
+        if (disabledStorage) {
+            // Filter out storage related handlers and keep only requests to backend
+            let handlers = summarySpec.paths['/summary/{title}'].get['x-request-handler'];
+            handlers = handlers.filter((elem) => Object.keys(elem).includes('extract'));
+            delete handlers[0].extract.response;
+            handlers[0].extract.return = {
+                status: 200,
+                headers: {
+                    etag: '{{extract.headers.etag}}',
+                    vary: '{{extract.headers.vary}}',
+                    'cache-control': '{{options.response_cache_control}}',
+                    'content-language': '{{extract.headers.content-language}}',
+                    'content-type': '{{extract.headers.content-type}}',
+                    'x-restbase-sunset': 'true'
+                },
+                body: '{{changeProtocol(extract.body)}}'
+            };
+            summarySpec.paths['/summary/{title}'].get['x-request-handler'] = handlers;
+        }
+    }
+
     return {
-        spec: options.implementation === 'mcs' ? newSpec : spec,
+        spec: summarySpec,
         globals: Object.assign({ options }, functions)
     };
 };
