@@ -27,7 +27,7 @@ class PCSEndpoint {
             .tap((res) => {
                 res.headers['x-restbase-sunset'] = true;
                 this._injectCacheControl.bind(this);
-                hyper.metrics.timing([
+                hyper.metrics.endTiming([
                     'pcs_getContent_latency',
                     'pcs_getContent_latency_no_storage',
                     `pcs_getContent_latency_${rp.domain}`
@@ -39,7 +39,7 @@ class PCSEndpoint {
             return this._fetchFromPCSAndStore(hyper, req)
             .tap(() => {
                 this._injectCacheControl.bind(this);
-                hyper.metrics.timing([
+                hyper.metrics.endTiming([
                     'pcs_getContent_latency',
                     'pcs_getContent_latency_no_cache',
                     `pcs_getContent_latency_${rp.domain}`
@@ -60,7 +60,7 @@ class PCSEndpoint {
         .catch({ status: 404 }, () => this._fetchFromPCSAndStore(hyper, req))
         .tap(() => {
             this._injectCacheControl.bind(this);
-            hyper.metrics.timing([
+            hyper.metrics.endTiming([
                 'pcs_getContent_latency',
                 'pcs_getContent_latency_cached',
                 `pcs_getContent_latency_${rp.domain}`
@@ -111,7 +111,7 @@ class PCSEndpoint {
             headers: {
                 'accept-language': req.headers['accept-language']
             }
-        }).tap(() => hyper.metrics.timing([
+        }).tap(() => hyper.metrics.endTiming([
             'pcs_fetch_latency',
             `pcs_fetch_latency_${rp.domain}`
         ], startTime));
