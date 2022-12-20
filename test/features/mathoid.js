@@ -9,8 +9,8 @@ describe('Mathoid', function() {
     const server = new Server();
     const f = 'c^2 = a^2 + b^2';
     const nf = 'c^{2}=a^{2}+b^{2}';
-    const formats = ['mml', 'svg', 'png'];
-    const formats_regex = [/mathml/, /svg/, /png/];
+    const formats = ['mml', 'svg'];
+    const formats_regex = [/mathml/, /svg/];
     let hash;
 
     before(() => server.start());

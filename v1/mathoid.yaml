@@ -153,7 +153,6 @@ paths:
             enum:
               - svg
               - mml
-              - png
         - name: hash
           in: path
           description: The hash string of the previous POST data
@@ -171,10 +170,6 @@ paths:
             application/mathml+xml:
               schema:
                 type: string
-            image/png:
-              schema:
-                type: string
-                format: binary
         404:
           description: Unknown format or hash ID
           content:

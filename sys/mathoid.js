@@ -6,7 +6,7 @@ const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 const mwUtil = require('../lib/mwUtil');
 
-const FORMATS = ['mml', 'svg', 'png'];
+const FORMATS = ['mml', 'svg'];
 
 function prefixHeaders(headers, prefix = 'x-store-') {
     const prefixedHeaders = {};
@@ -141,12 +141,6 @@ class MathoidService {
                 }, prefixHeaders(completeBody[format].headers)),
                 body: completeBody[format].body
             };
-            if (format === 'png' && reqObj.body && reqObj.body.type === 'Buffer') {
-                // for png, we need to convert the encoded data manually
-                // because we are receiving it wrapped inside a JSON
-                reqObj.body = Buffer.from(reqObj.body.data);
-                completeBody[format].body = reqObj.body;
-            }
             // store the emit Promise
             reqs[idx] = hyper.put(reqObj);
         }
@@ -289,15 +283,6 @@ module.exports = (options) => {
                 body: {
                     keyType: 'string',
                     valueType: 'string'
-                }
-            }, {
-                uri: '/{domain}/sys/key_value/mathoid_ng.png',
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: {
-                    keyType: 'string',
-                    valueType: 'blob'
                 }
             }
         ]
