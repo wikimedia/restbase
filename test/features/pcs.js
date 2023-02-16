@@ -179,13 +179,13 @@ describe('Page Content Service: transforms', () => {
         return preq.post({
             uri: `${server.config.baseURL('sr.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/mobile-html/RESTBase_Testing_Page`,
             headers: {
-                'accept-language': 'sr-ec'
+                'accept-language': 'sr-Cyrl'
             },
             body: { wikitext: 'Ово је тестна страница - 1\n\nOvo je testna stranica - 2' }
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-language'], 'sr-ec');
+            assert.deepEqual(res.headers['content-language'], 'sr-Cyrl');
             assert.checkString(res.headers['cache-control'], /private/, 'Must not be cached');
             assert.checkString(res.body, /Ово је тестна страница - 1/, 'Must not convert cyrillic with cyrillic variant');
             assert.checkString(res.body, /Ово је тестна страница - 2/, 'Must convert latin with cyrillic variant');
@@ -196,13 +196,13 @@ describe('Page Content Service: transforms', () => {
         return preq.post({
             uri: `${server.config.baseURL('sr.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/mobile-html/RESTBase_Testing_Page`,
             headers: {
-                'accept-language': 'sr-el'
+                'accept-language': 'sr-Latn'
             },
             body: { wikitext: 'Ово је тестна страница - 1\n\nOvo je testna stranica - 2' }
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-language'], 'sr-el');
+            assert.deepEqual(res.headers['content-language'], 'sr-Latn');
             assert.checkString(res.headers['cache-control'], /private/, 'Must not be cached');
             assert.checkString(res.body, /Ovo je testna stranica - 1/, 'Must convert cyrillic with latin variant');
             assert.checkString(res.body, /Ovo je testna stranica - 2/, 'Must not convert latin with latin variant');

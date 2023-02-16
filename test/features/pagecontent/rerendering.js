@@ -28,17 +28,23 @@ describe('page re-rendering', function() {
         let r1etag1;
         let r1etag2;
         let r2etag1;
-        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}?stash=true`})
-        .then((res) => {
+        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}?stash=true`})
+        .then(async (res) => {
             assert.deepEqual(res.status, 200);
             r1etag1 = res.headers.etag;
             hasTextContentType(res);
-
+            let purgeRes = await preq.post({
+                uri: `${server.config.apiURL('en.wikipedia.beta.wmflabs.org')}`,
+                body: {
+                    action: "purge",
+                    revids: "275851"
+                }
+            })
             // delay for 1s to make sure that the timestamp differs on re-render
-            return P.delay(1500)
+            return P.delay(3000)
             .then(() => {
                 return preq.get({
-                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}?stash=true`,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}?stash=true`,
                     headers: { 'cache-control': 'no-cache' }
                 });
             });
@@ -50,21 +56,25 @@ describe('page re-rendering', function() {
             assert.notDeepEqual(r1etag2, r1etag1);
             assert.notDeepEqual(r1etag2, undefined);
             hasTextContentType(res);
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}}`});
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}}`});
         })
         .then((res) => {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}?stash=true`});
+            return preq.get({
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}?stash=true`,
+                headers: { 'cache-control': 'no-cache' }
+            });
         })
         .then((res) => {
             r2etag1 = res.headers.etag;
             assert.deepEqual(res.status, 200);
             hasTextContentType(res);
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`});
+            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`});
         })
         .then((res) => {
-            assert.deepEqual(res.headers.etag, r2etag1);
+            // old revisions are not cached
+            assert.notDeepEqual(res.headers.etag, r2etag1);
             hasTextContentType(res);
         });
     });
