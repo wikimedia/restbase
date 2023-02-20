@@ -122,7 +122,7 @@ describe('Language variants', function() {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-            assert.deepEqual(res.headers['content-language'], 'sr-ec');
+            assert.deepEqual(res.headers['content-language'], 'sr-Cyrl');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
             assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
             assert.deepEqual(/2\. Ово је тестна страница/.test(res.body), true);
@@ -140,7 +140,7 @@ describe('Language variants', function() {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
             assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-            assert.deepEqual(res.headers['content-language'], 'sr-el');
+            assert.deepEqual(res.headers['content-language'], 'sr-Latn');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
             assert.deepEqual(/1\. Ovo je testna stranica/.test(res.body), true);
             assert.deepEqual(/2\. Ovo je testna stranica/.test(res.body), true);
