@@ -31,6 +31,7 @@ describe('Page Content Service: /page/media-list', () => {
                 assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
                 assert.deepEqual(!!res.body.items, true);
                 assert.deepEqual(!!res.headers.etag, true);
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             });
     });
 
@@ -45,6 +46,7 @@ describe('Page Content Service: /page/media-list', () => {
                 assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
                 assert.deepEqual(!!res.body.items, true);
                 assert.deepEqual(!!res.headers.etag, true);
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             });
     });
 
@@ -57,6 +59,7 @@ describe('Page Content Service: /page/media-list', () => {
                 assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
                 assert.deepEqual(!!res.body.items, true);
                 assert.deepEqual(new RegExp(`^(?:W\/)?"${pageRev}\/.+"$`).test(res.headers.etag), true);
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             });
     });
 });
@@ -84,6 +87,7 @@ describe('Page Content Service: /page/mobile-html', () => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
                 assert.deepEqual(res.headers['x-restbase-sunset'] || null, null);
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             });
     });
 
@@ -98,6 +102,7 @@ describe('Page Content Service: /page/mobile-html', () => {
                 assert.deepEqual(res.status, 200);
                 assert.deepEqual(/^text\/html/.test(res.headers['content-type']), true);
                 assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
+                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
             });
     });
 });
