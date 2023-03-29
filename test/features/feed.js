@@ -10,7 +10,7 @@ describe('Featured feed', () => {
     after(() => server.stop());
 
     function assertMCSRequest(content, date, expected) {
-        const serviceURI = 'https://wikifeeds.wmflabs.org';
+        const serviceURI = 'https://wikifeeds-beta.wmflabs.org';
         let path = `/${server.config.defaultDomain}/v1/${content}`;
         if (date) {
             path += `/${date}`;

@@ -19,7 +19,7 @@ default_project: &default_project
                   mobileapps:
                     host: https://mobileapps.wmcloud.org
                   wikifeeds:
-                    host: https://wikifeeds.wmflabs.org
+                    host: https://wikifeeds-beta.wmflabs.org
                   summary:
                     protocol: https
                     implementation: mcs
