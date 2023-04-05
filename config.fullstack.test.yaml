@@ -18,6 +18,7 @@ default_project: &default_project
                     cache-control: s-maxage=864000, max-age=86400
                   mobileapps:
                     host: https://mobileapps.wmcloud.org
+                    cache_control: test_mobileapps_cache_control
                   wikifeeds:
                     host: https://wikifeeds-beta.wmflabs.org
                   summary:
