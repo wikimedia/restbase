@@ -18,6 +18,7 @@ describe('Mobile Content Service', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.sunset, 'Sat, 01 Jul 2023 00:00:00 GMT');
             assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
             assert.deepEqual(!!res.headers.etag, true);
             assert.deepEqual(!!res.body.lead, true);
@@ -31,6 +32,7 @@ describe('Mobile Content Service', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.sunset, 'Sat, 01 Jul 2023 00:00:00 GMT');
             assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
             assert.deepEqual(!!res.headers.etag, true);
         });
@@ -42,6 +44,7 @@ describe('Mobile Content Service', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.sunset, 'Sat, 01 Jul 2023 00:00:00 GMT');
             assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
             assert.deepEqual(!!res.headers.etag, true);
         });
@@ -53,6 +56,7 @@ describe('Mobile Content Service', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.sunset, 'Sat, 01 Jul 2023 00:00:00 GMT');
             assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
             assert.deepEqual(new RegExp(`^"${pageRev}\/.+"$`).test(res.headers.etag), true);
             assert.deepEqual(!!res.body.lead, true);
@@ -67,6 +71,7 @@ describe('Mobile Content Service', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.sunset, 'Sat, 01 Jul 2023 00:00:00 GMT');
             assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
             assert.deepEqual(new RegExp(`^"${pageRev}\/.+"$`).test(res.headers.etag), true);
             assert.deepEqual(res.body.revision, pageRev);
@@ -79,6 +84,7 @@ describe('Mobile Content Service', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers.sunset, 'Sat, 01 Jul 2023 00:00:00 GMT');
             assert.deepEqual(/^application\/json/.test(res.headers['content-type']), true);
             assert.deepEqual(new RegExp(`^"${pageRev}\/.+"$`).test(res.headers.etag), true);
         });
