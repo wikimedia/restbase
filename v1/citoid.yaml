@@ -53,7 +53,7 @@ paths:
         - name: query
           in: path
           description: |
-            URL of an article, DOI, ISBN, PMCID or PMID in the URL-encoded format. Note that on the Swagger-UI doc page you don't need to URI-encode the parameter manually, it will be done by the docs engine.
+            URL of an article, DOI, PMCID or PMID in the URL-encoded format. Note that on the Swagger-UI doc page you don't need to URI-encode the parameter manually, it will be done by the docs engine.
           required: true
           schema:
             type: string
