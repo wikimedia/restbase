@@ -69,8 +69,8 @@
     "node": ">=6"
   },
   "deploy": {
-    "node": "6.11.1",
-    "target": "debian:stretch",
+    "node": "10",
+    "target": "debian:bullseye",
     "dependencies": {
       "_all": []
     }
