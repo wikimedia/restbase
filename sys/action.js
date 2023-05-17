@@ -71,7 +71,6 @@ const errCodes = {
     /* 401 - unauthorised */
     'cantcreate-anon': errDefs['401'],
     confirmemail: errDefs['401'],
-    'noedit-anon': errDefs['401'],
     'noimageredirect-anon': errDefs['401'],
     notloggedin: errDefs['401'],
     protectedpage: errDefs['401'],
@@ -87,7 +86,6 @@ const errCodes = {
     emptypage: errDefs['403'],
     filtered: errDefs['403'],
     hookaborted: errDefs['403'],
-    noedit: errDefs['403'],
     noimageredirect: errDefs['403'],
     permissiondenied: errDefs['403'],
     protectednamespace: errDefs['403'],
@@ -98,7 +96,6 @@ const errCodes = {
     writeapidenied: errDefs['403'],
     /* 409 - conflict */
     cascadeprotected: errDefs['409'],
-    editconflict: errDefs['409'],
     pagedeleted: errDefs['409'],
     spamdetected: errDefs['409'],
     /* 413 - body too large */
@@ -169,21 +166,6 @@ function buildQueryResponse(apiReq, res) {
     } else {
         throw apiError({ info: 'Unable to parse PHP action API response.' });
     }
-}
-
-function buildEditResponse(apiReq, res) {
-    if (res.status !== 200) {
-        throw apiError({
-            info: `Unexpected response status (${res.status}) from the PHP action API.`
-        });
-    } else if (!res.body || res.body.error) {
-        throw apiError((res.body || {}).error);
-    }
-    res.body = res.body.edit;
-    if (res.body && !res.body.nochange) {
-        res.status = 201;
-    }
-    return res;
 }
 
 function findSharedRepoDomain(siteInfoRes) {
@@ -266,15 +248,6 @@ class ActionService {
             format: 'json',
             formatversion: 2
         }, checkQueryResponse)
-        .tapCatch(logError.bind(null, hyper));
-    }
-
-    edit(hyper, req) {
-        return this._doRequest(hyper, req, {
-            action: 'edit',
-            format: 'json',
-            formatversion: 2
-        }, buildEditResponse)
         .tapCatch(logError.bind(null, hyper));
     }
 
@@ -380,18 +353,12 @@ module.exports = (options) => {
                     all: {
                         operationId: 'mwApiSiteInfo'
                     }
-                },
-                '/edit': {
-                    post: {
-                        operationId: 'mwApiEdit'
-                    }
                 }
             }
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
             mwRawApiQuery: actionService.rawQuery.bind(actionService),
-            mwApiEdit: actionService.edit.bind(actionService),
             mwApiSiteInfo: actionService.siteinfo.bind(actionService)
         }
     };
