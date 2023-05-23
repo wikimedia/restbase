@@ -17,7 +17,7 @@ const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
 function normalizeHtml(html) {
     return html && html.toString &&
         html.toString()
-            .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]+>/g, '');
+            .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]{1,128}>/g, '');
 }
 function sameHtml(a, b) {
     return normalizeHtml(a) === normalizeHtml(b);
@@ -30,8 +30,8 @@ function sameHtml(a, b) {
  * @return {string}      modified html
  */
 function insertTidMeta(html, tid) {
-    if (!/<meta property="mw:TimeUuid" [^>]+>/.test(html)) {
-        return html.replace(/(<head [^>]+>)/,
+    if (!/<meta property="mw:TimeUuid" [^>]{1,128}>/.test(html)) {
+        return html.replace(/(<head [^>]{1,128}>)/,
             `$1<meta property="mw:TimeUuid" content="${tid}"/>`);
     }
     return html;
