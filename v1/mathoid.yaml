@@ -171,10 +171,6 @@ paths:
             application/mathml+xml:
               schema:
                 type: string
-            image/png:
-              schema:
-                type: string
-                format: binary
         404:
           description: Unknown format or hash ID
           content:
