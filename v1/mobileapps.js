@@ -19,6 +19,14 @@ class MobileApps {
         return res;
     }
 
+    _injectDeprecationHeaders(res) {
+        // Sunset HTTP header spec:
+        // https://www.rfc-editor.org/rfc/rfc8594.html
+        res.headers = res.headers || {};
+        res.headers.sunset = 'Sat, 01 Jul 2023 00:00:00 GMT';
+        return res;
+    }
+
     getSections(hyper, req) {
         if (mwUtils.isNoCacheRequest(req)) {
             return this._fetchFromMCSAndStore(hyper, req)
@@ -37,6 +45,7 @@ class MobileApps {
             return this._fetchFromMCS(hyper, req);
         })
         .catch({ status: 404 }, () => this._fetchFromMCSAndStore(hyper, req))
+        .tap(this._injectDeprecationHeaders.bind(this))
         .tap(this._injectCacheControl.bind(this));
     }
 

@@ -69,12 +69,12 @@ paths:
       - path: v1/pcs/stored_endpoint.js
         options:
           name: media-list
-          response_cache_control: '{{options.purged_cache_control}}'
+          response_cache_control: '{{options.mobileapps.cache_control}}'
           host: '{{options.mobileapps.host}}'
       - path: v1/pcs/stored_endpoint.js
         options:
           name: mobile-html
-          response_cache_control: '{{options.purged_cache_control}}'
+          response_cache_control: '{{options.mobileapps.cache_control}}'
           host: '{{options.mobileapps.host}}'
       - path: v1/pcs/mobile-html-offline-resources.yaml
         options:

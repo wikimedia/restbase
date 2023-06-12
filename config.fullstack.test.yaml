@@ -18,8 +18,9 @@ default_project: &default_project
                     cache-control: s-maxage=864000, max-age=86400
                   mobileapps:
                     host: https://mobileapps.wmcloud.org
+                    cache_control: test_mobileapps_cache_control
                   wikifeeds:
-                    host: https://wikifeeds.wmflabs.org
+                    host: https://wikifeeds-beta.wmflabs.org
                   summary:
                     protocol: https
                     implementation: mcs
@@ -32,7 +33,7 @@ default_project: &default_project
                   # Cache control for purged endpoints allowing short-term client caching
                   purged_cache_control_client_cache: test_purged_cache_control_with_client_caching
                   pdf:
-                    # Cache PDF for 5 minutes since it's not purged
+                    # Cache PDF for 10 minutes since it's not purged
                     cache_control: s-maxage=600, max-age=600
                     uri: https://proton-beta.wmflabs.org
                   transform:

@@ -519,7 +519,7 @@ paths:
       description: |
         Given a project and a date range, returns a timeseries of unique devices counts.
         You need to specify a project, and can filter by accessed site (mobile or desktop).
-        You can choose between daily and hourly granularity as well.
+        You can choose between daily and monthly granularity as well.
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
         - Rate limit: 100 req/s
@@ -531,6 +531,8 @@ paths:
           description: |
             If you want to filter by project, use the domain of any Wikimedia project,
             for example 'en.wikipedia.org', 'www.mediawiki.org' or 'commons.wikimedia.org'.
+            For data grouped by project family, use all-[family]-projects
+            (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -722,8 +724,9 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off.  For projects like commons without language codes, use commons.wikimedia.
             For projects like www.mediawiki.org, you can use that full string, or just use
-            mediawiki or mediawiki.org. If you're interested in the aggregation of all
-            projects, use all-projects.
+            mediawiki or mediawiki.org. For data from all projects, use all-projects. For
+            data grouped by project family, use all-[family]-projects (for example:
+            all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -959,7 +962,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -1067,7 +1071,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -1175,7 +1180,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -1415,7 +1421,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -1511,7 +1518,7 @@ paths:
         editors by net bytes-difference. You can filter by editor-type (all-editor-types, anonymous,
         group-bot, name-bot, user) or page-type (all-page-types, content or non-content). The
         user_text returned is either the mediawiki user_text if the user is registered, or
-        "Anonymous Editor" if user is anonymous.
+        null if user is anonymous.
 
         - Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
         - Rate limit: 25 req/s
@@ -1525,7 +1532,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -1635,7 +1643,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -1748,8 +1757,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off.  For projects like commons without language codes, use commons.wikimedia.
             For projects like www.mediawiki.org, you can use that full string, or just use
-            mediawiki or mediawiki.org. If you're interested in the aggregation of
-            all projects, use all-projects.
+            mediawiki or mediawiki.org. For data from all projects, use all-projects. For data
+            grouped by project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -2062,8 +2071,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off.  For projects like commons without language codes, use commons.wikimedia.
             For projects like www.mediawiki.org, you can use that full string, or just use
-            mediawiki or mediawiki.org. If you're interested in the aggregation of
-            all projects, use all.
+            mediawiki or mediawiki.org. For data from all projects, use all-projects. For data
+            grouped by project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -2148,8 +2157,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org. If you're interested in the aggregation of all projects, use
-            all-projects.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -2463,8 +2472,8 @@ paths:
             for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
             off. For projects like commons without language codes, use commons.wikimedia. For
             projects like www.mediawiki.org, you can use that full string, or just use mediawiki
-            or mediawiki.org. If you're interested in the aggregation of all projects, use
-            all-projects.
+            or mediawiki.org. For data from all projects, use all-projects. For data grouped by
+            project family, use all-[family]-projects (for example: all-wikipedia-projects).
           required: true
           schema:
             type: string
@@ -3308,6 +3317,12 @@ components:
                 # the daily timestamp will be stored as YYYYMMDD
                 type: string
               devices:
+                type: integer
+                format: int64
+              offset:
+                type: integer
+                format: int64
+              underestimate:
                 type: integer
                 format: int64
 
