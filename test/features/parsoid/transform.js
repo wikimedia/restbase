@@ -170,64 +170,6 @@ describe('transform api', function() {
         });
     });
 
-    it('supports stashing content', () => {
-        return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}/${testPage.revision}`,
-            body: {
-                wikitext: '== ABCDEF ==',
-                stash: true
-            }
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            const etag = res.headers.etag;
-            assert.deepEqual(/\/stash"$/.test(etag), true);
-            return preq.post({
-                uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
-                headers: {
-                    'if-match': etag
-                },
-                body: {
-                    html: res.body.replace('>ABCDEF<', '>FECDBA<')
-                }
-            });
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.body, '== FECDBA ==');
-        });
-    });
-
-    it('substitutes 0 as revision if not provided for stashing', () => {
-        return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html/${testPage.title}`,
-            body: {
-                wikitext: '== ABCDEF ==',
-                stash: true
-            }
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            const etag = res.headers.etag;
-            assert.deepEqual(/^"0\/[^\/]+\/stash"$/.test(etag), true);
-        });
-    });
-
-    it('does not allow stashing without title', () => {
-        return preq.post({
-            uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/wikitext/to/html`,
-            body: {
-                wikitext: '== ABCDEF ==',
-                stash: true
-            }
-        })
-        .then(() => {
-            throw new Error('Error should be thrown');
-        }, (e) => {
-            assert.deepEqual(e.status, 400);
-        });
-    });
-
     it('does not allow to transform html with no tid', () => {
         return preq.post({
             uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,

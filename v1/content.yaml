@@ -177,12 +177,6 @@ paths:
           schema:
             type: boolean
           required: false
-        - name: stash
-          in: query
-          description: |
-            Whether to temporary stash data-parsoid in order to support transforming the
-            modified content later. If this parameter is set, requests are rate-limited on
-            a per-client basis (max 5 requests per second per client)
           schema:
             type: boolean
         - name: Accept-Language
@@ -261,8 +255,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-              query:
-                stash: '{{stash}}'
       x-monitor: true
       x-amples:
         # FIXME: This depends on our 'no change' detection optimization to
@@ -321,12 +313,6 @@ paths:
             To get a 200 response instead, supply `false` to the `redirect` parameter.
           schema:
             type: boolean
-        - name: stash
-          in: query
-          description: |
-            Whether to temporary stash data-parsoid in order to support transforming the
-            modified content later. If this parameter is set, requests are rate-limited on
-            a per-client basis (max 5 requests per second per client)
           schema:
             type: boolean
         - name: Accept-Language
@@ -417,8 +403,6 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
                 x-restbase-mode: '{{x-restbase-mode}}'
                 x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
-              query:
-                stash: '{{stash}}'
       x-monitor: false
 
   /data-parsoid/{title}/{revision}/{tid}:

@@ -209,11 +209,10 @@ paths:
         - Transforms
       summary: Transform Wikitext to HTML
       description: |
-        Transform wikitext to HTML. Note that if you set `stash: true`, you
-        also need to supply the title.
+        Transform wikitext to HTML.
 
         - Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
-        - Rate limit: 25 req/s (5 req/s when `stash: true`)
+        - Rate limit: 25 req/s
       requestBody:
         content:
           multipart/form-data:
@@ -228,9 +227,6 @@ paths:
                 body_only:
                   type: boolean
                   description: Return only `body.innerHTML`
-                stash:
-                  type: boolean
-                  description: Whether to temporarily stash the result of the transformation
         required: true
       responses:
         200:
@@ -286,7 +282,6 @@ paths:
               body:
                 wikitext: '{{wikitext}}'
                 body_only: '{{body_only}}'
-                stash: '{{stash}}'
       x-monitor: false
 
   /wikitext/to/html/{title}:
@@ -313,9 +308,6 @@ paths:
                 body_only:
                   type: boolean
                   description: Return only `body.innerHTML`
-                stash:
-                  type: boolean
-                  description: Whether to temporarily stash the result of the transformation
         required: true
       x-request-handler:
         - get_from_backend:
@@ -324,7 +316,6 @@ paths:
               body:
                 wikitext: '{{wikitext}}'
                 body_only: '{{body_only}}'
-                stash: '{{stash}}'
       x-monitor: true
       x-amples:
         - title: Transform wikitext to html
@@ -371,9 +362,6 @@ paths:
                 body_only:
                   type: boolean
                   description: Return only `body.innerHTML`
-                stash:
-                  type: boolean
-                  description: Whether to temporarily stash the result of the transformation
         required: true
       x-request-handler:
         - get_from_backend:
@@ -382,7 +370,6 @@ paths:
               body:
                 wikitext: '{{wikitext}}'
                 body_only: '{{body_only}}'
-                stash: '{{stash}}'
 
   /wikitext/to/lint:
     post: &wikitext_to_lint_post_spec
