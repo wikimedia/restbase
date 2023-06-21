@@ -120,7 +120,6 @@ class ParsoidService {
     _initOpts(opts = {}) {
         this.options = opts;
         this.parsoidUri = opts.host || opts.parsoidHost;
-        this.options.stash_ratelimit = opts.stash_ratelimit || 5;
         delete this.options.parsoidHost;
         this._blacklist = compileReRenderBlacklist(opts.rerenderBlacklist);
         if (!this.parsoidUri) {
@@ -129,35 +128,6 @@ class ParsoidService {
         // remove the trailing slash, if any
         if (this.parsoidUri.slice(-1) === '/') {
             this.parsoidUri = this.parsoidUri.slice(0, -1);
-        }
-    }
-
-    _checkStashRate(hyper, req) {
-        if (!hyper.ratelimiter) {
-            return;
-        }
-        if (hyper._rootReq.headers['x-request-class'] !== 'external') {
-            return;
-        }
-        if (!((req.query && req.query.stash) || (req.body && req.body.stash))) {
-            return;
-        }
-        const key = `${hyper.config.service_name}.parsoid_stash|` +
-            `${hyper._rootReq.headers['x-client-ip']}`;
-        if (hyper.ratelimiter.isAboveLimit(key, this.options.stash_ratelimit)) {
-            hyper.logger.log('warn/parsoid/stashlimit', {
-                key,
-                rate_limit_per_second: this.options.stash_ratelimit,
-                message: 'Stashing rate limit exceeded'
-            });
-            throw new HTTPError({
-                status: 429,
-                body: {
-                    type: 'request_rate_exceeded',
-                    title: 'Stashing rate limit exceeded',
-                    rate_limit_per_second: this.options.stash_ratelimit
-                }
-            });
         }
     }
 
@@ -191,22 +161,6 @@ class ParsoidService {
         ]);
     }
 
-    /**
-     * Gets the URI of a bucket for stashing Parsoid content. Used both for stashing
-     * original HTML/Data-Parsoid for normal edits as well as for stashing transforms
-     *
-     * @param {string} domain the domain name
-     * @param {string} title the article title
-     * @param {number} revision the revision of the article
-     * @param {string} tid the TID of the content
-     * @return {HyperSwitch.URI}
-     */
-    _getStashBucketURI(domain, title, revision, tid) {
-        return new URI([
-            domain, 'sys', 'key_value', 'parsoidphp-stash', `${title}:${revision}:${tid}`
-        ]);
-    }
-
     getFormatAndCheck(format, hyper, req) {
         return this.getFormat(format, hyper, req)
             .tap((res) => {
@@ -220,50 +174,6 @@ class ParsoidService {
                 res.headers.vary = res.headers.vary || 'Accept';
                 // END TEMP
             });
-    }
-
-    /**
-     * Get full content from the stash bucket.
-     * @param {HyperSwitch} hyper the hyper object to route requests
-     * @param {string} domain the domain name
-     * @param {string} title the article title
-     * @param {number} revision the article revision
-     * @param {string} tid the render TID
-     * @return {Promise<Object>} the promise resolving to full stashed Parsoid
-     * response or a stashed transform
-     * @private
-     */
-    _getStashedContent(hyper, domain, title, revision, tid) {
-        return hyper.get({
-            uri: this._getStashBucketURI(domain, title, revision, tid)
-        })
-            .then((res) => {
-                res = res.body;
-                res.revid = revision;
-                return res;
-            });
-    }
-
-    _saveParsoidResultToFallback(hyper, req, parsoidResp) {
-        const rp = req.params;
-        const dataParsoidResponse = parsoidResp.body['data-parsoid'];
-        const htmlResponse = parsoidResp.body.html;
-        const etag = mwUtil.parseETag(parsoidResp.headers.etag);
-        return hyper.put({
-            uri: this._getStashBucketURI(rp.domain, rp.title, etag.rev, etag.tid),
-            // Note. The headers we are storing here are for the whole pagebundle response.
-            // The individual components of the pagebundle contain their own headers that
-            // which are used to generate actual responses.
-            headers: {
-                'x-store-etag': parsoidResp.headers.etag,
-                'content-type': 'application/octet-stream',
-                'x-store-content-type': 'application/json'
-            },
-            body: Buffer.from(JSON.stringify({
-                'data-parsoid': dataParsoidResponse,
-                html: htmlResponse
-            }))
-        });
     }
 
     /**
@@ -312,58 +222,22 @@ class ParsoidService {
             }));
     }
 
-    stashTransform(hyper, req, transformPromise) {
-        // A stash has been requested. We need to store the wikitext sent by
-        // the client together with the page bundle returned by Parsoid, so it
-        // can be later reused when transforming back from HTML to wikitext
-        // cf https://phabricator.wikimedia.org/T114548
-        const rp = req.params;
-        const tid = uuidv1();
-        const etag = mwUtil.makeETag(rp.revision, tid, 'stash');
-        const wtType = req.original && req.original.headers['content-type'] || 'text/plain';
-        return transformPromise.then((original) => hyper.put({
-            uri: this._getStashBucketURI(rp.domain, rp.title, rp.revision, tid),
-            headers: {
-                'x-store-etag': etag,
-                'content-type': 'application/octet-stream',
-                'x-store-content-type': 'application/json'
-            },
-            body: Buffer.from(JSON.stringify({
-                'data-parsoid': original.body['data-parsoid'],
-                wikitext: {
-                    headers: { 'content-type': wtType },
-                    body: req.body.wikitext
-                },
-                html: original.body.html
-            }))
-        })
-        // Add the ETag to the original response so it can be propagated back to the client
-            .then(() => {
-                original.body.html.headers.etag = etag;
-                return original;
-            }));
-    }
-
     /**
-     * Returns the content with fallback to the stash. Revision and TID are optional.
+     * Returns stored content. Revision and TID are optional.
      * If only 'title' is provided, only 'latest' bucket is checked.
      * If 'title' and 'revision' are provided, first the 'latest' bucket is checked.
-     *  Then, the stored revision is compared, if they do not equal, 404 is returned
-     *  as we can not check the stash with no tid provided.
-     *  If all the 'title', 'revision' and 'tid' are provided,
-     *  we check the latest bucket first, and then the stash bucket.
+     *  Then, the stored revision is compared, if they do not equal, 404 is returned.
      * @param {HyperSwitch} hyper the hyper object to rout requests
      * @param {string} domain the domain name
      * @param {string} title the article title
      * @param {number} [revision] the article revision
-     * @param {string} [tid] the render TID
-     * @return {Promise<Object>} the promise that resolves to full stashed Parsoid response
+     * @return {Promise<Object>} the promise that resolves to full stored Parsoid response
      * @private
      */
-    _getContentWithFallback(hyper, domain, title, revision, tid) {
-        if (!revision && !tid) {
+    _getContent(hyper, domain, title, revision) {
+        if (!revision) {
             return hyper.get({ uri: this._getLatestBucketURI(domain, title) });
-        } else if (!tid) {
+        } else {
             return hyper.get({ uri: this._getLatestBucketURI(domain, title) })
                 .then((res) => {
                     const resEtag = mwUtil.parseETag(res.headers.etag);
@@ -372,20 +246,6 @@ class ParsoidService {
                     }
                     return res;
                 });
-        } else {
-            return hyper.get({
-                uri: this._getStashBucketURI(domain, title, revision, tid)
-            })
-                .catch({ status: 404 }, () =>
-                    hyper.get({ uri: this._getLatestBucketURI(domain, title) })
-                        .then((res) => {
-                            const resEtag = mwUtil.parseETag(res.headers.etag);
-                            if (revision !== resEtag.rev || tid !== resEtag.tid) {
-                                throw new HTTPError({ status: 404 });
-                            }
-                            return res;
-                        })
-                );
         }
     }
 
@@ -516,11 +376,8 @@ class ParsoidService {
                 });
         }
 
-        // check the rate limit for stashing requests
-        this._checkStashRate(hyper, req);
-
         let contentReq =
-            this._getContentWithFallback(hyper, rp.domain, rp.title, rp.revision, rp.tid);
+            this._getContent(hyper, rp.domain, rp.title, rp.revision, rp.tid);
 
         if (mwUtil.isNoCacheRequest(req)) {
             // Check content generation either way
@@ -561,10 +418,6 @@ class ParsoidService {
                         }
                     });
                 }
-                if (req.query.stash) {
-                    return this._saveParsoidResultToFallback(hyper, req, res)
-                        .thenReturn(res);
-                }
                 return res;
             })
             .then((res) => {
@@ -574,13 +427,7 @@ class ParsoidService {
                 res.headers = res.headers || {};
                 res.headers.etag = etag;
                 mwUtil.normalizeContentType(res);
-                if (req.query.stash) {
-                    // The stash is used by clients that want further support
-                    // for transforming the content. If the content is stored in caches,
-                    // subsequent requests might not even reach RESTBase and the stash
-                    // will expire, thus no-cache.
-                    res.headers['cache-control'] = 'no-cache';
-                } else if (this.options.response_cache_control) {
+                if (this.options.response_cache_control) {
                     res.headers['cache-control'] = this.options.response_cache_control;
                 }
 
@@ -639,29 +486,7 @@ class ParsoidService {
             // reject with 404. In this case we would just not provide it.
             contentPromise = P.resolve(undefined);
         } else {
-            if (etag && etag.suffix === 'stash' && from === 'html' && to === 'wikitext') {
-                // T235465: RB should trust its own ETag over the client-supplied revision, but
-                // allow for the client to be right, so provide their revision as a fall-back
-                const revMismatch = etag.rev !== rp.revision;
-                if (revMismatch) {
-                    // the ETag and URI parameter do not agree, log this (for now?)
-                    hyper.logger.log('warn/parsoid/etag_rev', {
-                        msg: 'The revisions in If-Match and URI differ'
-                    });
-                }
-                contentPromise = this._getStashedContent(hyper, rp.domain,
-                    rp.title, etag.rev, etag.tid)
-                    .catch({ status: 404 }, (e) => {
-                        if (!revMismatch) {
-                            // the revisions match, so this is a genuine 404
-                            throw e;
-                        }
-                        return this._getStashedContent(
-                            hyper, rp.domain, rp.title, rp.revision, tid);
-                    });
-            } else {
-                contentPromise = this._getOriginalContent(hyper, req, rp.revision, tid);
-            }
+            contentPromise = this._getOriginalContent(hyper, req, rp.revision, tid);
             contentPromise = contentPromise
                 .tap((original) => {
                     // Check if parsoid metadata is present as it's required by parsoid.
@@ -697,8 +522,7 @@ class ParsoidService {
                     original,
                     [from]: req.body[from],
                     scrub_wikitext: req.body.scrub_wikitext,
-                    body_only: req.body.body_only,
-                    stash: req.body.stash
+                    body_only: req.body.body_only
                 }
             };
             return this.callParsoidTransform(hyper, newReq, from, to);
@@ -749,9 +573,6 @@ class ParsoidService {
         );
 
         const transformPromise = hyper.post(parsoidReq);
-        if (req.body.stash && from === 'wikitext' && to === 'html') {
-            return this.stashTransform(hyper, req, transformPromise);
-        }
         return transformPromise;
 
     }
@@ -792,23 +613,6 @@ class ParsoidService {
                         description: `Missing request parameter: ${from}`
                     }
                 });
-            }
-            // check if we have all the info for stashing
-            if (req.body.stash) {
-                if (!rp.title) {
-                    throw new HTTPError({
-                        status: 400,
-                        body: {
-                            type: 'bad_request',
-                            description: 'Data can be stashed only for a specific title.'
-                        }
-                    });
-                }
-                if (!rp.revision) {
-                    rp.revision = '0';
-                }
-                // check the rate limit for stashing requests
-                this._checkStashRate(hyper, req);
             }
 
             let transform;
@@ -874,7 +678,7 @@ class ParsoidService {
 
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
-        return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
+        return this._getContent(hyper, rp.domain, rp.title, revision, tid)
             .then((res) => {
                 res = res.body;
                 res.revid = revision;
@@ -897,16 +701,6 @@ module.exports = (options = {}) => {
                 },
                 body: {
                     valueType: 'blob'
-                }
-            },
-            {
-                uri: '/{domain}/sys/key_value/parsoidphp-stash',
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: {
-                    valueType: 'blob',
-                    default_time_to_live: options.grace_ttl || 86400
                 }
             }
         ]

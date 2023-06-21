@@ -80,15 +80,6 @@ describe('item requests', function() {
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
-    it('should not allow to frontend cache HTML if requested a stash', () => {
-        return preq.get({
-            uri: `${server.config.bucketURL()}/html/${title}?stash=true`,
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-        });
-    });
 
     it('should request page lints. no revision', () => {
         return preq.get({
@@ -113,7 +104,7 @@ describe('item requests', function() {
     let rev2Etag;
     it(`should transparently create data-parsoid with id ${prevRevisions[1]}, rev 2`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[1]}?stash=true`
+            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[1]}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
@@ -134,7 +125,7 @@ describe('item requests', function() {
 
     it(`should return HTML and data-parsoid just created by revision ${prevRevisions[2]}`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[2]}?stash=true`
+            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[2]}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
