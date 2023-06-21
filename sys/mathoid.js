@@ -287,6 +287,15 @@ module.exports = (options) => {
                     keyType: 'string',
                     valueType: 'string'
                 }
+            }, {
+                uri: '/{domain}/sys/key_value/mathoid_ng.png',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: {
+                    keyType: 'string',
+                    valueType: 'string'
+                }
             }
         ]
     };
