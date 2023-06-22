@@ -177,8 +177,6 @@ paths:
           schema:
             type: boolean
           required: false
-          schema:
-            type: boolean
         - name: Accept-Language
           in: header
           description: |
@@ -311,8 +309,6 @@ paths:
           description: |
             Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
             To get a 200 response instead, supply `false` to the `redirect` parameter.
-          schema:
-            type: boolean
           schema:
             type: boolean
         - name: Accept-Language
