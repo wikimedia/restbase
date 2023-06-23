@@ -143,6 +143,156 @@ paths:
                 if-unmodified-since: '{{if-unmodified-since}}'
       x-monitor: false
 
+  /html/{title}:
+    x-route-filters:
+      - path: ./lib/access_check_filter.js
+        options:
+          redirect_cache_control: '{{options.response_cache_control}}'
+          attach_body_to_redirect: true
+      - path: lib/security_response_header_filter.js
+        options:
+          allowInlineStyles: true
+      - path: lib/content_negotiation_filter.js
+    get:
+      x-route-filters:
+        - path: lib/ensure_content_type.js
+        - path: ./lib/language_variants_filter.js
+      tags:
+        - Page content
+      summary: Get latest HTML for a title.
+      description: |
+        Stability: [stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+      parameters:
+        - name: title
+          in: path
+          description: 'Page title. Use underscores instead of spaces. Use percent-encoding. Example: `Main_Page`.'
+          required: true
+          schema:
+            type: string
+        - name: redirect
+          in: query
+          description: |
+            Requests for [redirect pages](https://www.mediawiki.org/wiki/Help:Redirects) return HTTP 302 with a redirect target in `Location` header and content in the body.
+            To get a 200 response instead, supply `false` to the `redirect` parameter.
+          schema:
+            type: boolean
+          required: false
+        - name: stash
+          in: query
+          description: |
+            Whether to temporary stash data-parsoid in order to support transforming the
+            modified content later. If this parameter is set, requests are rate-limited on
+            a per-client basis (max 5 requests per second per client)
+          schema:
+            type: boolean
+        - name: Accept-Language
+          in: header
+          description: |
+            The desired language variant code for wikis where LanguageConverter is enabled. Example: `sr-el` for Latin transcription of the Serbian language.
+          schema:
+            type: string
+      responses:
+        200:
+          description: |
+            The latest HTML for the given page title.
+
+            See [the MediaWiki DOM
+            spec](https://www.mediawiki.org/wiki/Parsoid/MediaWiki_DOM_spec) for a
+            description of the MediaWiki-specific semantic markup in this HTML.
+            Note that additional metadata is available in the HTML head.
+          headers:
+            ETag:
+              description: |
+                ETag header indicating the revision and render timeuuid
+                separated by a slash:
+                "701384379/154d7bca-c264-11e5-8c2f-1b51b33b59fc"
+                This ETag can be passed to the HTML save end point (as
+                `base_etag` POST parameter), and can also be used to retrieve
+                the exact corresponding data-parsoid metadata, by requesting
+                the specific `revision` and `tid` indicated by the `ETag`.
+              schema:
+                type: string
+          content:
+            text/html; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/HTML/2.1.0":
+              schema:
+                type: string
+
+            application/json:
+              schema:
+                type: object
+        301:
+          description: |
+            A permanent redirect is returned if the supplied article title was not in the normalized form.
+            To avoid this kind of redirect, you can use the [mediawiki-title](https://github.com/wikimedia/mediawiki-title) library to perform
+            title normalization client-side.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        302:
+          description: |
+            The page is a [redirect page](https://www.mediawiki.org/wiki/Help:Redirects).
+            The `location` header points to the redirect target, and the body contains the actual page contents as HTML.
+            If you would like to avoid automatically following redirect pages, set the `redirect=false` query parameter.
+
+            Beware that redirected pre-flighted cross-origin requests (such as those sending custom request headers like `Api-User-Agent`)
+            will fail in most current browsers [due to a spec bug](https://github.com/whatwg/fetch/issues/204).
+        404:
+          description: Unknown page title
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-request-handler:
+        - get_from_backend:
+            request:
+              # Directly return the latest HTML. Alternatively, we could also try
+              # relative redirects. A relative location header of 'foo/bar' seems to
+              # work in current Chrome and Firefox.
+              # See also http://tools.ietf.org/html/rfc7231#section-7.1.2
+              uri: /{domain}/sys/parsoid/html/{title}
+              headers:
+                cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
+                x-restbase-mode: '{{x-restbase-mode}}'
+                x-restbase-parentrevision: '{{x-restbase-parentrevision}}'
+              query:
+                stash: '{{stash}}'
+      x-monitor: true
+      x-amples:
+        # FIXME: This depends on our 'no change' detection optimization to
+        # avoid filling up storage with re-renders. We have plenty of data on
+        # Parsoid backend requests, so there shouldn't be a need to test this
+        # per-instance.
+        #- title: Get html by title from Parsoid
+        #  request:
+        #    params:
+        #      title: Foobar
+        #    headers:
+        #      cache-control: no-cache
+        #  response:
+        #    status: 200
+        #    headers:
+        #      etag: /.+/
+        #      content-type: /^text\/html.+/
+        #    body: /^<!DOCTYPE html>.*/
+        - title: Get html by title from storage
+          request:
+            params:
+              domain: en.wikipedia.org
+              title: User:BSitzmann_(WMF)/MCS/Test/Frankenstein
+          response:
+            status: 200
+            headers:
+              etag: /.+/
+              content-type: /^text\/html.+/
+            body: /^<!DOCTYPE html>.*/
+
   /html/{title}/{revision}:
     get: &html_title_revision_get_spec
       tags:
