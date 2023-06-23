@@ -243,15 +243,20 @@ class ParsoidService {
      * @param {string} domain the domain name
      * @param {string} title the article title
      * @param {number} [revision] the article revision
+     * @param {string} [tid] the render TID
      * @return {Promise<Object>} the promise that resolves to full stored Parsoid response
      * @private
      */
-    _getContent(hyper, domain, title, revision) {
+    _getContentFromStorage(hyper, domain, title, revision, tid) {
         if (!revision) {
             return hyper.get({ uri: this._getLatestBucketURI(domain, title) });
         } else {
             return hyper.get({ uri: this._getLatestBucketURI(domain, title) })
                 .then((res) => {
+                    if (tid && tid !== res.headers.etag) {
+                        throw new HTTPError({ status: 404 });
+                    }
+
                     const resEtag = mwUtil.parseETag(res.headers.etag);
                     if (revision !== resEtag.rev) {
                         throw new HTTPError({ status: 404 });
@@ -277,6 +282,13 @@ class ParsoidService {
     }
 
     _getPageBundleFromParsoid(hyper, req) {
+        const headers = {};
+
+        // If a specific tid is requested, pass this constraint to Parsoid
+        if (req.params.revision && req.params.tid) {
+            headers['if-match'] = mwUtil.makeETag(req.params.revision, req.params.tid);
+        }
+
         const rp = req.params;
         let path = `page/pagebundle/${encodeURIComponent(rp.title)}`;
 
@@ -286,15 +298,11 @@ class ParsoidService {
 
         const parsoidReq = this._getParsoidReq(
             req,
-            path
-        );
+            `page/pagebundle/${encodeURIComponent(rp.title)}/${rp.revision}`,
+            headers
+        ));
 
-        return hyper.get(parsoidReq)
-          .then((resp) => {
-              return resp;
-          }, (error) => {
-              throw error;
-          });
+        return hyper.get(parsoidReq);
     }
 
     /**
@@ -314,8 +322,13 @@ class ParsoidService {
             })
             .then(() => P.join(this._getPageBundleFromParsoid(hyper, req), currentContentRes)
                 .spread((res, currentContentRes) => {
-                    const tid = uuidv1();
+                    // Use the tid from the etag received from Parsoid if present.
+                    const tid = res.headers.etag
+                      ? mwUtil.parseETag(res.headers.etag).tid
+                      : uuidv1();
+
                     const etag = mwUtil.makeETag(rp.revision, tid);
+
                     res.body.html.body = insertTidMeta(res.body.html.body, tid);
                     res.body.html.headers.etag = res.headers.etag = etag;
 
@@ -420,7 +433,7 @@ class ParsoidService {
         }
 
         let contentReq =
-            this._getContent(hyper, rp.domain, rp.title, rp.revision, rp.tid);
+            this._getContentFromStorage(hyper, rp.domain, rp.title, rp.revision, rp.tid);
 
         const disabledStorage = this._isStorageDisabled(req.params.domain);
 
@@ -755,7 +768,7 @@ class ParsoidService {
 
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
-        return this._getContent(hyper, rp.domain, rp.title, revision, tid)
+        return this._getContentFromStorage(hyper, rp.domain, rp.title, revision, tid)
             .then((res) => {
                 res = res.body;
                 res.revid = revision;
