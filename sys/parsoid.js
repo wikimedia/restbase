@@ -323,9 +323,9 @@ class ParsoidService {
             .then(() => P.join(this._getPageBundleFromParsoid(hyper, req), currentContentRes)
                 .spread((res, currentContentRes) => {
                     // Use the tid from the etag received from Parsoid if present.
-                    const tid = res.headers.etag
-                      ? mwUtil.parseETag(res.headers.etag).tid
-                      : uuidv1();
+                    const tid = res.headers.etag ?
+                        mwUtil.parseETag(res.headers.etag).tid :
+                        uuidv1();
 
                     const etag = mwUtil.makeETag(rp.revision, tid);
 
