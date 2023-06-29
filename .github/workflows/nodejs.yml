@@ -18,7 +18,7 @@ jobs:
       max-parallel: 2
       matrix:
         node-version: [10.x, 12.x, 14.x, 16.x]
-        cassandra-version: [3.11.4]
+        cassandra-version: [4.1.1]
         test-target: [sqlite, cassandra]
         test-mode: [fs]
         # test-mode: [fs, fefs, febe] - fefs and febe are not used in prod and likely never will be
@@ -40,9 +40,9 @@ jobs:
         wget https://archive.apache.org/dist/cassandra/${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz -P ../
         tar -xzf ../apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz -C ../
         mkdir -p ../apache-cassandra-${{ matrix.cassandra-version }}/logs
-        echo "-Xms256m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
-        echo "-Xmx512m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
-        sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm.options
+        echo "-Xms256m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm-server.options
+        echo "-Xmx512m" >> ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm-server.options
+        sed -i -e 's/^-XX:+UseNUMA/#-XX:+UseNUMA/' ../apache-cassandra-${{ matrix.cassandra-version }}/conf/jvm-server.options
         export PATH=${PATH}:../apache-cassandra-${{ matrix.cassandra-version }}/bin
         cassandra
     - run: npm install
