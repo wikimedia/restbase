@@ -104,14 +104,14 @@ class MathoidService {
                         body: checkRes.body
                     }),
                     indirectionP,
-                    this._invalidateCache.bind(this, hyper, hash),
+                    this._invalidateCache.bind(this, hyper, req, hash),
                     () => checkRes
                 );
             }));
 
     }
 
-    _storeRenders(hyper, domain, hash, completeBody) {
+    _storeRenders(hyper, req, domain, hash, completeBody) {
         let idx;
         const len = FORMATS.length;
         const reqs = new Array(len);
@@ -146,7 +146,7 @@ class MathoidService {
         }
 
         // invalidate the cache
-        reqs.push(this._invalidateCache(hyper, hash));
+        reqs.push(this._invalidateCache(hyper, req, hash));
 
         // now do them all
         return P.all(reqs).then(() => completeBody);
@@ -166,7 +166,7 @@ class MathoidService {
             headers: { 'content-type': 'application/json' },
             body: req.body
         }).then((res) => // now store all of the renders
-            this._storeRenders(hyper, rp.domain, hash, res.body)).then((res) => {
+            this._storeRenders(hyper, req, rp.domain, hash, res.body)).then((res) => {
             // and return a proper response
             const ret = res[rp.format];
             ret.status = 200;
@@ -176,26 +176,30 @@ class MathoidService {
 
     }
 
-    _invalidateCache(hyper, hash) {
+    _invalidateCache(hyper, req, hash) {
 
         const routes = [];
-        const uri = '//wikimedia.org/api/rest_v1/media/math/';
 
-        routes.push(`${uri}formula/${hash}`);
+        return mwUtil.getSiteInfo(hyper, req)
+            .then((siteInfo) => {
+                const baseUri = siteInfo.baseUri.replace(/^https?:/, '');
+                const uri = `${baseUri}/api/rest_v1/media/math/`;
 
-        FORMATS.forEach((fmt) => {
-            routes.push(`${uri}render/${fmt}/${hash}`);
-        });
+                routes.push(`${uri}formula/${hash}`);
 
-        return hyper.post({
-            uri: new URI(['wikimedia.org', 'sys', 'events', '']),
-            body: routes.map((route) => ({
-                meta: { uri: route }
-            }))
-        }).catch((e) => {
-            hyper.logger.log('warn/bg-updates', e);
-        });
+                FORMATS.forEach((fmt) => {
+                    routes.push(`${uri}render/${fmt}/${hash}`);
+                });
 
+                return hyper.post({
+                    uri: new URI([this.options.host, 'sys', 'events', '']),
+                    body: routes.map((route) => ({
+                        meta: { uri: route }
+                    }))
+                }).catch((e) => {
+                    hyper.logger.log('warn/bg-updates', e);
+                });
+            });
     }
 
     getFormula(hyper, req) {
