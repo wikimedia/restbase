@@ -7,6 +7,7 @@ const DEFAULT_DOMAIN = 'en.wikipedia.beta.wmflabs.org';
 class TestRestbase {
     constructor() {
         const testMode = process.env.TEST_MODE || 'fs';
+
         switch (testMode) {
             case 'fs':
                 this._frontendServer = new TestRunner(`${__dirname}/../../config.fullstack.test.yaml`);
@@ -48,7 +49,8 @@ class TestRestbase {
             apiBase,
             apiPath,
             apiURL,
-            parsoidURI: 'http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php',
+            // NOTE: You may need NODE_TLS_REJECT_UNAUTHORIZED=0 to make this work!
+            parsoidURI: 'https://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php',
             conf
         }
     }

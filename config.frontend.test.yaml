@@ -8,7 +8,8 @@ default_project: &default_project
               - path: projects/v1/default.wmf.yaml
                 options: &default_options
                   parsoid:
-                    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
+                    # NOTE: You may need NODE_TLS_REJECT_UNAUTHORIZED=0 to make this work!
+                    host: https://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
                     grace_ttl: 1000000
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
