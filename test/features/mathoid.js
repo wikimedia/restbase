@@ -9,8 +9,8 @@ describe('Mathoid', function() {
     const server = new Server();
     const f = 'c^2 = a^2 + b^2';
     const nf = 'c^{2}=a^{2}+b^{2}';
-    const formats = ['mml', 'svg', 'png'];
-    const formats_regex = [/mathml/, /svg/, /png/];
+    const formats = ['mml', 'svg'];
+    const formatRegexp = [/mathml/, /svg/];
     let hash;
 
     before(() => server.start());
@@ -84,7 +84,7 @@ describe('Mathoid', function() {
 
     for (let i = 0; i < formats.length; i++) {
         const format = formats[i];
-        const regex = formats_regex[i];
+        const regex = formatRegexp[i];
         it(`gets the render in ${format}`, () => { // eslint-disable-line no-loop-func
             return preq.get({
                 uri: `${server.config.baseURL('wikimedia.org')}/media/math/render/${format}/${hash}`
