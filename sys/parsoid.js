@@ -241,11 +241,11 @@ class ParsoidService {
         } else {
             return hyper.get({ uri: this._getLatestBucketURI(domain, title) })
                 .then((res) => {
-                    if (tid && tid !== res.headers.etag) {
+                    const resEtag = mwUtil.parseETag(res.headers.etag);
+                    if (tid && tid !== resEtag.tid) {
                         throw new HTTPError({ status: 404 });
                     }
 
-                    const resEtag = mwUtil.parseETag(res.headers.etag);
                     if (revision !== resEtag.rev) {
                         throw new HTTPError({ status: 404 });
                     }
