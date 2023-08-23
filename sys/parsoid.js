@@ -130,6 +130,19 @@ class ParsoidService {
         if (this.parsoidUri.slice(-1) === '/') {
             this.parsoidUri = this.parsoidUri.slice(0, -1);
         }
+
+        this.cacheableDomainPattern = new RegExp(this.options.cacheableDomainPattern || '^.*$' )
+        this.uncacheableDomainPattern = new RegExp(this.options.uncacheableDomainPattern || '^$' )
+    }
+
+    _isCacheableDomain(domain) {
+        if ( !this.cacheableDomainPattern.test(domain) ) {
+            return false;
+        }
+        if ( this.uncacheableDomainPattern.test(domain) ) {
+            return false;
+        }
+        return true;
     }
 
     _checkStashRate(hyper, req) {
@@ -391,10 +404,24 @@ class ParsoidService {
 
     _getPageBundleFromParsoid(hyper, req) {
         const rp = req.params;
-        return hyper.get(this._getParsoidReq(
-            req,
-            `page/pagebundle/${encodeURIComponent(rp.title)}/${rp.revision}`
-        ));
+        let path = `page/pagebundle/${encodeURIComponent(rp.title)}`;
+
+        if ( rp.revision ) {
+            path += `/${rp.revision}`;
+        }
+
+        const parsoidReq = this._getParsoidReq(
+          req,
+          path,
+          headers
+        );
+
+        return hyper.get(parsoidReq)
+          .then( (resp) => {
+              return resp;
+          }, (resp) => {
+              return resp;
+          });
     }
 
     /**
@@ -522,24 +549,33 @@ class ParsoidService {
         let contentReq =
             this._getContentWithFallback(hyper, rp.domain, rp.title, rp.revision, rp.tid);
 
-        if (mwUtil.isNoCacheRequest(req)) {
-            // Check content generation either way
-            contentReq = contentReq.then((res) => {
-                if (isModifiedSince(req, res)) { // Already up to date, nothing to do.
-                    throw new HTTPError({
-                        status: 412,
-                        body: {
-                            type: 'precondition_failed',
-                            detail: 'The precondition failed'
-                        }
-                    });
-                }
-                return generateContent(res);
-            }, generateContent);
+        let contentReq;
+
+        if ( isCacheable ) {
+            contentReq = this._getContentFromStorage(hyper, rp.domain, rp.title, rp.revision, rp.tid);
+
+            if (mwUtil.isNoCacheRequest(req)) {
+                // Check content generation either way
+                contentReq = contentReq.then((res) => {
+                    if (isModifiedSince(req, res)) { // Already up to date, nothing to do.
+                        throw new HTTPError({
+                            status: 412,
+                            body: {
+                                type: 'precondition_failed',
+                                detail: 'The precondition failed'
+                            }
+                        });
+                    }
+                    return generateContent(res);
+                }, generateContent);
+            } else {
+                // Only (possibly) generate content if there was an error
+                contentReq = contentReq.catch(generateContent);
+            }
         } else {
-            // Only (possibly) generate content if there was an error
-            contentReq = contentReq.catch(generateContent);
+            contentReq = this._getPageBundleFromParsoid(hyper, req);
         }
+
         return contentReq
             .then((res) => {
                 res.headers = res.headers || {};
@@ -547,19 +583,25 @@ class ParsoidService {
                     res.headers.etag = res.body.html.headers && res.body.html.headers.etag;
                 }
                 if (!res.headers.etag || /^null$/.test(res.headers.etag)) {
-                    // if there is no ETag, we *could* create one here, but this
-                    // would mean at least cache pollution, and would hide the
-                    // fact that we have incomplete data in storage, so error out
-                    hyper.logger.log('error/parsoid/response_etag_missing', {
-                        msg: 'Detected a null etag in the response!'
-                    });
-                    throw new HTTPError({
-                        status: 500,
-                        body: {
-                            title: 'no_etag',
-                            description: 'No ETag has been provided in the response'
-                        }
-                    });
+                    if ( !isCacheable ) {
+                        // Generate an ETag, for consistency
+                        const uuid = uuidv1();
+                        res.headers.etag = `"${uuid}"`;
+                    } else {
+                        // if there is no ETag, we *could* create one here, but this
+                        // would mean at least cache pollution, and would hide the
+                        // fact that we have incomplete data in storage, so error out
+                        hyper.logger.log('error/parsoid/response_etag_missing', {
+                            msg: 'Detected a null etag in the response!'
+                        });
+                        throw new HTTPError({
+                            status: 500,
+                            body: {
+                                title: 'no_etag',
+                                description: 'No ETag has been provided in the response'
+                            }
+                        });
+                    }
                 }
                 if (req.query.stash) {
                     return this._saveParsoidResultToFallback(hyper, req, res)
@@ -874,7 +916,7 @@ class ParsoidService {
 
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
-        return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
+        return this._getContentFromStorage(hyper, rp.domain, rp.title, revision, tid)
             .then((res) => {
                 res = res.body;
                 res.revid = revision;
