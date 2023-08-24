@@ -419,8 +419,8 @@ class ParsoidService {
         return hyper.get(parsoidReq)
           .then( (resp) => {
               return resp;
-          }, (resp) => {
-              return resp;
+          }, (error) => {
+              throw error;
           });
     }
 
