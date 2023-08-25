@@ -588,7 +588,7 @@ class ParsoidService {
                     if (!isCacheable) {
                         // Generate an ETag, for consistency
                         const uuid = uuidv1();
-                        res.headers.etag = `"${uuid}"`;
+                        res.headers.etag = mwUtil.makeETag(res.headers["content-revision-id"] || '0', uuid);
                     } else {
                         // if there is no ETag, we *could* create one here, but this
                         // would mean at least cache pollution, and would hide the
