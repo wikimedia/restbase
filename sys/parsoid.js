@@ -131,15 +131,15 @@ class ParsoidService {
             this.parsoidUri = this.parsoidUri.slice(0, -1);
         }
 
-        this.cacheableDomainPattern = new RegExp(this.options.cacheableDomainPattern || '^.*$' )
-        this.uncacheableDomainPattern = new RegExp(this.options.uncacheableDomainPattern || '^$' )
+        this.cacheableDomainPattern = new RegExp(this.options.cacheableDomainPattern || '^.*$');
+        this.uncacheableDomainPattern = new RegExp(this.options.uncacheableDomainPattern || '^$');
     }
 
     _isCacheableDomain(domain) {
-        if ( !this.cacheableDomainPattern.test(domain) ) {
+        if (!this.cacheableDomainPattern.test(domain)) {
             return false;
         }
-        if ( this.uncacheableDomainPattern.test(domain) ) {
+        if (this.uncacheableDomainPattern.test(domain)) {
             return false;
         }
         return true;
@@ -406,18 +406,18 @@ class ParsoidService {
         const rp = req.params;
         let path = `page/pagebundle/${encodeURIComponent(rp.title)}`;
 
-        if ( rp.revision ) {
+        if (rp.revision) {
             path += `/${rp.revision}`;
         }
 
         const parsoidReq = this._getParsoidReq(
-          req,
-          path,
-          headers
+            req,
+            path,
+            headers
         );
 
         return hyper.get(parsoidReq)
-          .then( (resp) => {
+          .then((resp) => {
               return resp;
           }, (error) => {
               throw error;
@@ -551,8 +551,10 @@ class ParsoidService {
 
         let contentReq;
 
-        if ( isCacheable ) {
-            contentReq = this._getContentFromStorage(hyper, rp.domain, rp.title, rp.revision, rp.tid);
+        if (isCacheable) {
+            contentReq = this._getContentFromStorage(
+                hyper, rp.domain, rp.title, rp.revision, rp.tid
+            );
 
             if (mwUtil.isNoCacheRequest(req)) {
                 // Check content generation either way
@@ -583,7 +585,7 @@ class ParsoidService {
                     res.headers.etag = res.body.html.headers && res.body.html.headers.etag;
                 }
                 if (!res.headers.etag || /^null$/.test(res.headers.etag)) {
-                    if ( !isCacheable ) {
+                    if (!isCacheable) {
                         // Generate an ETag, for consistency
                         const uuid = uuidv1();
                         res.headers.etag = `"${uuid}"`;
