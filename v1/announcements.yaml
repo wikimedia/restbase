@@ -26,7 +26,7 @@ paths:
               status: '{{get_announcements_from_mcs.status}}'
               headers: '{{merge(get_announcements_from_mcs.headers, { "cache-control": options.announcement_cache_control})}}'
               body: '{{get_announcements_from_mcs.body}}'
-      x-monitor: true
+      x-monitor: false
       x-amples:
         - title: Retrieve announcements
           request:
