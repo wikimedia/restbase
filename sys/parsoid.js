@@ -130,19 +130,6 @@ class ParsoidService {
         if (this.parsoidUri.slice(-1) === '/') {
             this.parsoidUri = this.parsoidUri.slice(0, -1);
         }
-
-        this.cacheableDomainPattern = new RegExp(this.options.cacheableDomainPattern || '^.*$');
-        this.uncacheableDomainPattern = new RegExp(this.options.uncacheableDomainPattern || '^$');
-    }
-
-    _isCacheableDomain(domain) {
-        if (!this.cacheableDomainPattern.test(domain)) {
-            return false;
-        }
-        if (this.uncacheableDomainPattern.test(domain)) {
-            return false;
-        }
-        return true;
     }
 
     _checkStashRate(hyper, req) {
@@ -549,9 +536,10 @@ class ParsoidService {
         let contentReq =
             this._getContentWithFallback(hyper, rp.domain, rp.title, rp.revision, rp.tid);
 
+        const disabled_storage = this.options.disabled_storage || false;
         let contentReq;
 
-        if (isCacheable) {
+        if (!disabled_storage) {
             contentReq = this._getContentFromStorage(
                 hyper, rp.domain, rp.title, rp.revision, rp.tid
             );
@@ -585,7 +573,7 @@ class ParsoidService {
                     res.headers.etag = res.body.html.headers && res.body.html.headers.etag;
                 }
                 if (!res.headers.etag || /^null$/.test(res.headers.etag)) {
-                    if (!isCacheable) {
+                    if (disabled_storage) {
                         // Generate an ETag, for consistency
                         const uuid = uuidv1();
                         res.headers.etag = mwUtil.makeETag(res.headers["content-revision-id"] || '0', uuid);

@@ -7,8 +7,9 @@ default_project: &default_project
               - path: projects/v1/default.wmf.yaml
                 options: &default_options
                   parsoid:
-                    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
-                    grace_ttl: 1000000
+                    host: https://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
+                    # disabled_storage: true
+                    grace_ttl: 1000007
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
                     baseUriTemplate: "{{'https://{domain}/api/rest_v1'}}"

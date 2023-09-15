@@ -23,7 +23,7 @@ describe('item requests', function() {
     const deniedTitle = 'User:Pchelolo/Restricted Revision';
     const deniedRev = '409440';
 
-    function contentURI(format) {
+    function deniedContentUri(format) {
         return [server.config.bucketURL(), format, encodeURIComponent(deniedTitle), deniedRev].join('/');
     }
     const assertCORS = (res) => {
@@ -252,19 +252,19 @@ describe('item requests', function() {
     });
 
     it('should deny access to the HTML of a restricted revision', () => {
-        return preq.get({ uri: contentURI('html') }).then((res) => {
-            throw new Error(`Expected status 403, but gotten ${res.status}`);
+        return preq.get({ uri: deniedContentUri('html') }).then((res) => {
+            assert.fail(`Expected status 403, but gotten ${res.status}`);
         }, (res) => {
             assert.deepEqual(res.status, 403);
         });
     });
 
-    it('should deny access to the same HTML even after re-fetching it', () => {
+    it('should deny access to restricted revision even after re-fetching it', () => {
         return preq.get({
-            uri: contentURI('html'),
+            uri: deniedContentUri('html'),
             headers: { 'cache-control': 'no-cache' }
         }).then((res) => {
-            throw new Error(`Expected status 403, but gotten ${res.status}`);
+            assert.fail(`Expected status 403, but gotten ${res.status}`);
         }, (res) => {
             assert.deepEqual(res.status, 403);
         });
