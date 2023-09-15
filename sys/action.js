@@ -71,6 +71,7 @@ const errCodes = {
     /* 401 - unauthorised */
     'cantcreate-anon': errDefs['401'],
     confirmemail: errDefs['401'],
+    'noedit-anon': errDefs['401'],
     'noimageredirect-anon': errDefs['401'],
     notloggedin: errDefs['401'],
     protectedpage: errDefs['401'],
@@ -86,6 +87,7 @@ const errCodes = {
     emptypage: errDefs['403'],
     filtered: errDefs['403'],
     hookaborted: errDefs['403'],
+    noedit: errDefs['403'],
     noimageredirect: errDefs['403'],
     permissiondenied: errDefs['403'],
     protectednamespace: errDefs['403'],
@@ -96,6 +98,7 @@ const errCodes = {
     writeapidenied: errDefs['403'],
     /* 409 - conflict */
     cascadeprotected: errDefs['409'],
+    editconflict: errDefs['409'],
     pagedeleted: errDefs['409'],
     spamdetected: errDefs['409'],
     /* 413 - body too large */
