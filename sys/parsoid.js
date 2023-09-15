@@ -399,8 +399,7 @@ class ParsoidService {
 
         const parsoidReq = this._getParsoidReq(
             req,
-            path,
-            headers
+            path
         );
 
         return hyper.get(parsoidReq)
@@ -533,14 +532,12 @@ class ParsoidService {
         // check the rate limit for stashing requests
         this._checkStashRate(hyper, req);
 
-        let contentReq =
-            this._getContentWithFallback(hyper, rp.domain, rp.title, rp.revision, rp.tid);
-
-        const disabled_storage = this.options.disabled_storage || false;
         let contentReq;
 
-        if (!disabled_storage) {
-            contentReq = this._getContentFromStorage(
+        const disabledStorage = this.options.disabled_storage || false;
+
+        if (!disabledStorage) {
+            contentReq = this._getContentWithFallback(
                 hyper, rp.domain, rp.title, rp.revision, rp.tid
             );
 
@@ -573,10 +570,10 @@ class ParsoidService {
                     res.headers.etag = res.body.html.headers && res.body.html.headers.etag;
                 }
                 if (!res.headers.etag || /^null$/.test(res.headers.etag)) {
-                    if (disabled_storage) {
+                    if (disabledStorage) {
                         // Generate an ETag, for consistency
                         const uuid = uuidv1();
-                        res.headers.etag = mwUtil.makeETag(res.headers["content-revision-id"] || '0', uuid);
+                        res.headers.etag = mwUtil.makeETag(res.headers['content-revision-id'] || '0', uuid);
                     } else {
                         // if there is no ETag, we *could* create one here, but this
                         // would mean at least cache pollution, and would hide the
