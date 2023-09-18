@@ -903,7 +903,7 @@ class ParsoidService {
 
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
-        return this._getContentFromStorage(hyper, rp.domain, rp.title, revision, tid)
+        return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
             .then((res) => {
                 res = res.body;
                 res.revid = revision;
