@@ -158,7 +158,7 @@ describe('Language variants', function() {
             assert.deepEqual(res.headers['content-language'], 'de');
             assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
-            assert.deepEqual('Das ist eine testseite.', res.body.extract);
+            assert.deepEqual(res.body.extract, 'Das ist eine testseite');
         })
     });
 
