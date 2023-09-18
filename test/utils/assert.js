@@ -59,6 +59,7 @@ function findRequests(predicate) {
 
 function isDeepEqual(result, expected, message) {
     try {
+        message = message || `expected: ${expected}; actual: ${result}`;
         if (typeof expected === 'string') {
             assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)), message);
         } else {
@@ -73,7 +74,8 @@ function isDeepEqual(result, expected, message) {
 function deepEqual(result, expected, message) {
     try {
         if (typeof expected === 'string') {
-            assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)));
+            message = message || `expected: ${expected}; actual: ${result}`;
+            assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)), message);
         } else {
             assert.deepEqual(result, expected, message);
         }
