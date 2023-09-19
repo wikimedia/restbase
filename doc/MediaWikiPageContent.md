@@ -114,37 +114,7 @@ Get tid range for revid from revision table
         - save the revision info to the rev table
         - return the requested property
     - else: return error
-
-# Saving modified page content
-
-## `POST /{name}`
-Regular save API.
-
-**Vars**: 
-
-- `html` & `data-mw`, or `wikitext`.
-- oldid the edit is based on
-
-### Short-term implementation
-- For HTML: convert to wikitext using Parsoid
-- Try to save wikitext through the PHP API, forward cookies
-    - on success: 
-        - save back new revision with returned oldid
-        - kick off request for new revision
-    - else: return failure message
-
-### Longer term implementation
-- Validate HTML & data-mw using separate service
-- HTTP transaction:
-    - CAS on revision table -- need this to be structured per-page
-        - using tid, doesn't necessarily need to fill in oldid yet (but
-          simpler if it does)
-    - *then*: save individual properties (idempotent as all versioned)
-
-
-## Simple save API: `PUT /{name}/{html|wikitext}`
-Touching only HTML or wikitext. Flow very similar as above.
-
+    
 ## New revision request flow
 - edit conflicts *per name/page* can be detected on the page bucket
   ({name}/mw-revision)

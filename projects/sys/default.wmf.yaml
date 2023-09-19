@@ -6,9 +6,6 @@ paths:
   /post_data:
     x-modules:
       - path: sys/post_data.js
-  /page_save:
-    x-modules:
-      - path: sys/page_save.js
   /parsoid:
     x-modules:
       - path: sys/parsoid.js
