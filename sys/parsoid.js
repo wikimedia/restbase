@@ -132,6 +132,18 @@ class ParsoidService {
         }
     }
 
+    _isStorageDisabled(domain) {
+        if (!this.options.disabled_storage) {
+            return false;
+        }
+
+        if (this.options.disabled_storage === true) {
+            return true;
+        }
+
+        return this.options.disabled_storage[domain] || this.options.disabled_storage.default;
+    }
+
     _checkStashRate(hyper, req) {
         if (!hyper.ratelimiter) {
             return;
@@ -534,7 +546,7 @@ class ParsoidService {
 
         let contentReq;
 
-        const disabledStorage = this.options.disabled_storage || false;
+        const disabledStorage = this._isStorageDisabled(req.params.domain);
 
         if (!disabledStorage) {
             contentReq = this._getContentWithFallback(
