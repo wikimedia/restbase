@@ -443,6 +443,7 @@ class ParsoidService {
                     const etag = mwUtil.makeETag(rp.revision, tid);
                     res.body.html.body = insertTidMeta(res.body.html.body, tid);
                     res.body.html.headers.etag = res.headers.etag = etag;
+                    res.headers['x-restbase-cache-hit'] = 'yes';
 
                     if (currentContentRes &&
                         currentContentRes.status === 200 &&
@@ -584,8 +585,12 @@ class ParsoidService {
                 if (!res.headers.etag || /^null$/.test(res.headers.etag)) {
                     if (disabledStorage) {
                         // Generate an ETag, for consistency
-                        const uuid = uuidv1();
-                        res.headers.etag = mwUtil.makeETag(res.headers['content-revision-id'] || '0', uuid);
+                        const tid = uuidv1();
+                        const revid = res.headers['content-revision-id'] || '0';
+                        const etag = mwUtil.makeETag(revid, tid);
+                        res.body.html.body = insertTidMeta(res.body.html.body, tid);
+                        res.body.html.headers.etag = res.headers.etag = etag;
+                        res.headers['x-restbase-cache-disabled'] = 'yes';
                     } else {
                         // if there is no ETag, we *could* create one here, but this
                         // would mean at least cache pollution, and would hide the
