@@ -62,14 +62,27 @@ describe('item requests', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
+            assert.deepEqual(res.headers['x-restbase-cache-disabled'], undefined);
+
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`
             });
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['x-restbase-cache-hit'], 'yes');
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
+    });
+    it('should not cache HTML for Main_Page', () => {
+        return preq.get({
+            uri: `${server.config.bucketURL()}/html/Main_Page`,
+        })
+          .then((res) => {
+              assert.deepEqual(res.status, 200);
+              assert.deepEqual(res.headers['x-restbase-cache-hit'], undefined);
+              assert.deepEqual(res.headers['x-restbase-cache-disabled'], 'yes');
+          })
     });
     it(`should transparently create a new HTML revision with id ${prevRevisions[0]}`, () => {
         return preq.get({
