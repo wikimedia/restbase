@@ -9,6 +9,7 @@ describe('item requests', function() {
     this.timeout(20000);
     let pagingToken = '';
     let contentTypes;
+    let disabledStorage;
     const title = 'Earth';
     const revision = '358126';
     const prevRevisions = ['358125', '214592', '214591']
@@ -17,6 +18,7 @@ describe('item requests', function() {
     before(() => server.start()
     .then(() => {
         contentTypes = server.config.conf.test.content_types;
+        disabledStorage = false; // FIXME: get from config
     }));
     after(() => server.stop());
 
@@ -55,14 +57,19 @@ describe('item requests', function() {
         });
     });
 
-    it('should transparently create a new HTML revision for Main_Page', () => {
+    it('should transparently create a new HTML revision for Main_Page', function () {
+        if ( disabledStorage ) {
+            this.skip();
+        }
+
+        // FIXME: first make sure that the page isn't in the cache!
         return preq.get({
             uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
-            assert.deepEqual(res.headers['x-restbase-cache-disabled'], undefined);
+            assert.deepEqual(res.headers['x-restbase-cache'], 'miss');
 
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`
@@ -70,18 +77,21 @@ describe('item requests', function() {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['x-restbase-cache-hit'], 'yes');
+            assert.deepEqual(res.headers['x-restbase-cache'], 'hit');
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
-    it('should not cache HTML for Main_Page', () => {
+    it('should not cache HTML for Main_Page when storage is disabled', function () {
+        if ( !disabledStorage ) {
+            this.skip();
+        }
+
         return preq.get({
             uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
           .then((res) => {
               assert.deepEqual(res.status, 200);
-              assert.deepEqual(res.headers['x-restbase-cache-hit'], undefined);
-              assert.deepEqual(res.headers['x-restbase-cache-disabled'], 'yes');
+              assert.deepEqual(res.headers['x-restbase-cache'], 'disabled');
           })
     });
     it(`should transparently create a new HTML revision with id ${prevRevisions[0]}`, () => {

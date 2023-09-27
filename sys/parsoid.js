@@ -395,6 +395,7 @@ class ParsoidService {
                             if (revision !== resEtag.rev || tid !== resEtag.tid) {
                                 throw new HTTPError({ status: 404 });
                             }
+                            res.headers['x-restbase-cache'] = 'miss';
                             return res;
                         })
                 );
@@ -443,7 +444,6 @@ class ParsoidService {
                     const etag = mwUtil.makeETag(rp.revision, tid);
                     res.body.html.body = insertTidMeta(res.body.html.body, tid);
                     res.body.html.headers.etag = res.headers.etag = etag;
-                    res.headers['x-restbase-cache-hit'] = 'yes';
 
                     if (currentContentRes &&
                         currentContentRes.status === 200 &&
@@ -521,7 +521,10 @@ class ParsoidService {
         const rp = req.params;
         const generateContent = (storageRes) => {
             if (!rp.tid && (storageRes.status === 404 || storageRes.status === 200)) {
-                return this.generateAndSave(hyper, req, storageRes);
+                return this.generateAndSave(hyper, req, storageRes).then((res) => {
+                    res.headers['x-restbase-cache'] = 'miss';
+                    return res;
+                });
             } else {
                 // Don't generate content if there's some other error.
                 throw storageRes;
@@ -552,9 +555,14 @@ class ParsoidService {
         if (!disabledStorage) {
             contentReq = this._getContentWithFallback(
                 hyper, rp.domain, rp.title, rp.revision, rp.tid
-            );
+            ).then((res) => {
+                res.headers['x-restbase-cache'] = res.headers['x-restbase-cache'] || 'hit'; // FIXME: miss?
+                return res;
+            });
 
             if (mwUtil.isNoCacheRequest(req)) {
+                res.headers['x-restbase-cache'] = 'nocache';
+
                 // Check content generation either way
                 contentReq = contentReq.then((res) => {
                     if (isModifiedSince(req, res)) { // Already up to date, nothing to do.
@@ -590,7 +598,7 @@ class ParsoidService {
                         const etag = mwUtil.makeETag(revid, tid);
                         res.body.html.body = insertTidMeta(res.body.html.body, tid);
                         res.body.html.headers.etag = res.headers.etag = etag;
-                        res.headers['x-restbase-cache-disabled'] = 'yes';
+                        res.headers['x-restbase-cache'] = 'disabled';
                     } else {
                         // if there is no ETag, we *could* create one here, but this
                         // would mean at least cache pollution, and would hide the
@@ -615,10 +623,17 @@ class ParsoidService {
             })
             .then((res) => {
                 const etag = res.headers.etag;
+                const cacheInfo = res.headers['x-restbase-cache'];
+
                 // Chop off the correct format to return.
                 res = Object.assign({ status: res.status }, res.body[format]);
                 res.headers = res.headers || {};
                 res.headers.etag = etag;
+
+                if (cacheInfo) {
+                    res.headers['x-restbase-cache'] = cacheInfo;
+                }
+
                 mwUtil.normalizeContentType(res);
                 if (req.query.stash) {
                     // The stash is used by clients that want further support
