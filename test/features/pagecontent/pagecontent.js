@@ -18,7 +18,7 @@ describe('item requests', function() {
     before(() => server.start()
     .then(() => {
         contentTypes = server.config.conf.test.content_types;
-        disabledStorage = false; // FIXME: get from config
+        disabledStorage = server.config.conf.test.parsoid.disabled_storage;
     }));
     after(() => server.stop());
 
@@ -62,14 +62,15 @@ describe('item requests', function() {
             this.skip();
         }
 
-        // FIXME: first make sure that the page isn't in the cache!
         return preq.get({
             uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
-            assert.deepEqual(res.headers['x-restbase-cache'], 'miss');
+
+            // NOTE: We have to accept "hit" here, because the test setup has a persistent cache.
+            assert.deepEqual(res.headers['x-restbase-cache'], 'hit|miss');
 
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`
