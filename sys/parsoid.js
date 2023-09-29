@@ -561,10 +561,11 @@ class ParsoidService {
             });
 
             if (mwUtil.isNoCacheRequest(req)) {
-                res.headers['x-restbase-cache'] = 'nocache';
 
                 // Check content generation either way
                 contentReq = contentReq.then((res) => {
+                    res.headers['x-restbase-cache'] = 'nocache';
+
                     if (isModifiedSince(req, res)) { // Already up to date, nothing to do.
                         throw new HTTPError({
                             status: 412,
