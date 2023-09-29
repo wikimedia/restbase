@@ -1,7 +1,8 @@
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   parsoid: &parsoid_test_options
-             disabled_storage: false
+    disabled_storage: false
+    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
   content_types:
     html: '/^text\/html; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/HTML\/[\d.]+"$/'
     data-parsoid: '/^application\/json; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/data-parsoid/[\d.]+"$/'
@@ -18,7 +19,6 @@ default_project: &default_project
                 options: &default_options
                   parsoid:
                     <<: *parsoid_test_options
-                    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
                     grace_ttl: 1000000
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
