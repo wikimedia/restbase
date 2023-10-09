@@ -171,21 +171,6 @@ function buildQueryResponse(apiReq, res) {
     }
 }
 
-function buildEditResponse(apiReq, res) {
-    if (res.status !== 200) {
-        throw apiError({
-            info: `Unexpected response status (${res.status}) from the PHP action API.`
-        });
-    } else if (!res.body || res.body.error) {
-        throw apiError((res.body || {}).error);
-    }
-    res.body = res.body.edit;
-    if (res.body && !res.body.nochange) {
-        res.status = 201;
-    }
-    return res;
-}
-
 function findSharedRepoDomain(siteInfoRes) {
     const sharedRepo = (siteInfoRes.body.query.repos || []).find((repo) => repo.name === 'shared');
     if (sharedRepo) {
@@ -266,15 +251,6 @@ class ActionService {
             format: 'json',
             formatversion: 2
         }, checkQueryResponse)
-        .tapCatch(logError.bind(null, hyper));
-    }
-
-    edit(hyper, req) {
-        return this._doRequest(hyper, req, {
-            action: 'edit',
-            format: 'json',
-            formatversion: 2
-        }, buildEditResponse)
         .tapCatch(logError.bind(null, hyper));
     }
 
@@ -380,18 +356,12 @@ module.exports = (options) => {
                     all: {
                         operationId: 'mwApiSiteInfo'
                     }
-                },
-                '/edit': {
-                    post: {
-                        operationId: 'mwApiEdit'
-                    }
                 }
             }
         },
         operations: {
             mwApiQuery: actionService.query.bind(actionService),
             mwRawApiQuery: actionService.rawQuery.bind(actionService),
-            mwApiEdit: actionService.edit.bind(actionService),
             mwApiSiteInfo: actionService.siteinfo.bind(actionService)
         }
     };

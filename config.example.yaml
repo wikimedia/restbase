@@ -102,9 +102,6 @@ services:
                             apiUriTemplate: http://localhost/w/api.php
                             # XXX Check the base RESTBase URI
                             baseUriTemplate: "{{'http://{domain}:7231/{domain}/v1'}}"
-                    /page_save:
-                      x-modules:
-                        - path: sys/page_save.js
                     /parsoid:
                       x-modules:
                         - path: sys/parsoid.js
