@@ -58,10 +58,6 @@ describe('item requests', function() {
     });
 
     it('should transparently create a new HTML revision for Main_Page', function () {
-        if ( disabledStorage ) {
-            this.skip();
-        }
-
         return preq.get({
             uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
@@ -83,12 +79,8 @@ describe('item requests', function() {
         });
     });
     it('should not cache HTML for Main_Page when storage is disabled', function () {
-        if ( !disabledStorage ) {
-            this.skip();
-        }
-
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/Main_Page`,
+            uri: `${server.config.bucketURL("es.wikipedia.beta.wmflabs.org")}/html/Página_principal`,
         })
           .then((res) => {
               assert.deepEqual(res.status, 200);

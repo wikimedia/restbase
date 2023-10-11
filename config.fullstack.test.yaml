@@ -1,7 +1,10 @@
 # Hacky way to parametrize RESTBase tests. TODO: Move to config?
 test:
   parsoid: &parsoid_test_options
-    disabled_storage: false
+    disabled_storage:
+      default: false
+      # eswiki beta has parsoid storage disabled for testing purposes
+      es.wikipedia.beta.wmflabs.org: true
     host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
   content_types:
     html: '/^text\/html; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/HTML\/[\d.]+"$/'
@@ -231,6 +234,8 @@ spec_root: &spec_root
     # The order is important for tests.
     # Redirect tests require en.wiki being not the first wiki in the list.
     /{domain:en.wikipedia.beta.wmflabs.org}: *wikipedia_project
+    # Used for testing parsoid storage flag
+    /{domain:es.wikipedia.beta.wmflabs.org}: *wikipedia_project
     # For testing purpose lets run de-beta with storage disabled
     /{domain:de.wikipedia.beta.wmflabs.org}: *wikipedia_project_no_storage
     /{domain:zh.wikipedia.beta.wmflabs.org}: *wikipedia_project
