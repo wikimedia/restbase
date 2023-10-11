@@ -11,8 +11,13 @@ function getTid(etag) {
 
 describe('page re-rendering', function() {
     this.timeout(20000);
+    let disabledStorage;
+
     const server = new Server();
-    before(() =>  server.start());
+    before(() =>  server.start()
+    .then(() => {
+        disabledStorage = server.config.conf.test.parsoid.disabled_storage;
+    }));
     after(() =>  server.stop());
 
     // A test page that includes the current date, so that it changes if
@@ -24,7 +29,11 @@ describe('page re-rendering', function() {
         assert.contentType(res, server.config.conf.test.content_types.html);
     }
 
-    it('should render & re-render independent revisions', () => {
+    it('should render & re-render independent revisions', function () {
+        if ( disabledStorage ) {
+            this.skip();
+        }
+
         let r1etag1;
         let r1etag2;
         let r2etag1;
@@ -79,7 +88,11 @@ describe('page re-rendering', function() {
         });
     });
 
-    it('should render & re-render independent revisions, if-unmodified-since support', () => {
+    it('should render & re-render independent revisions, if-unmodified-since support', function () {
+        if ( disabledStorage ) {
+            this.skip();
+        }
+
         return preq.get({
             uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`,
             headers: {
@@ -99,7 +112,11 @@ describe('page re-rendering', function() {
     const static1 = '/html/User:Pchelolo%2fStatic/275852';
     const static2 = '/html/User:Pchelolo%2fStatic/275853';
 
-    it('should render & re-render independent revisions, but not update unchanged content', () => {
+    it('should render & re-render independent revisions, but not update unchanged content', function () {
+        if ( disabledStorage ) {
+            this.skip();
+        }
+
         let r1etag1;
         let r1etag2;
         let r2etag1;

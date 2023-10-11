@@ -1,3 +1,13 @@
+# Hacky way to parametrize RESTBase tests. TODO: Move to config?
+test:
+  parsoid: &parsoid_test_options
+    disabled_storage: false
+    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
+  content_types:
+    html: '/^text\/html; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/HTML\/[\d.]+"$/'
+    data-parsoid: '/^application\/json; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/data-parsoid/[\d.]+"$/'
+    wikitext: '/^text\/plain; charset=utf-8; profile="https:\/\/www.mediawiki.org\/wiki\/Specs\/wikitext\/[\d.]+"$/'
+
 default_project: &default_project
   x-modules:
     - spec:
@@ -8,7 +18,7 @@ default_project: &default_project
               - path: projects/v1/default.wmf.yaml
                 options: &default_options
                   parsoid:
-                    host: http://parsoid-external-ci-access.beta.wmflabs.org/w/rest.php
+                    <<: *parsoid_test_options
                     grace_ttl: 1000000
                   action:
                     apiUriTemplate: "{{'https://{domain}/w/api.php'}}"
@@ -142,14 +152,6 @@ testing_project: &testing_project
                     stream: resource_change
                     transcludes_stream: change-prop.transcludes.resource-change
           /{api:sys}: *default_sys
-
-# Hacky way to parametrize RESTBase tests. TODO: Move to config?
-test:
-  content_types:
-    html: '/^text\/html; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/HTML\/[\d.]+"$/'
-    data-parsoid: '/^application\/json; charset=utf-8; profile="https:\/\/www\.mediawiki\.org\/wiki\/Specs\/data-parsoid/[\d.]+"$/'
-    wikitext: '/^text\/plain; charset=utf-8; profile="https:\/\/www.mediawiki.org\/wiki\/Specs\/wikitext\/[\d.]+"$/'
-
 
 # The root of the spec tree. Domains tend to share specs by referencing them
 # using YAML references.

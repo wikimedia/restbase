@@ -9,6 +9,7 @@ describe('item requests', function() {
     this.timeout(20000);
     let pagingToken = '';
     let contentTypes;
+    let disabledStorage;
     const title = 'Earth';
     const revision = '358126';
     const prevRevisions = ['358125', '214592', '214591']
@@ -17,13 +18,14 @@ describe('item requests', function() {
     before(() => server.start()
     .then(() => {
         contentTypes = server.config.conf.test.content_types;
+        disabledStorage = server.config.conf.test.parsoid.disabled_storage;
     }));
     after(() => server.stop());
 
     const deniedTitle = 'User:Pchelolo/Restricted Revision';
     const deniedRev = '409440';
 
-    function contentURI(format) {
+    function deniedContentUri(format) {
         return [server.config.bucketURL(), format, encodeURIComponent(deniedTitle), deniedRev].join('/');
     }
     const assertCORS = (res) => {
@@ -55,21 +57,43 @@ describe('item requests', function() {
         });
     });
 
-    it('should transparently create a new HTML revision for Main_Page', () => {
+    it('should transparently create a new HTML revision for Main_Page', function () {
+        if ( disabledStorage ) {
+            this.skip();
+        }
+
         return preq.get({
             uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
+
+            // NOTE: We have to accept "hit" here, because the test setup has a persistent cache.
+            assert.deepEqual(res.headers['x-restbase-cache'], 'hit|miss');
+
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`
             });
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['x-restbase-cache'], 'hit');
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
+    });
+    it('should not cache HTML for Main_Page when storage is disabled', function () {
+        if ( !disabledStorage ) {
+            this.skip();
+        }
+
+        return preq.get({
+            uri: `${server.config.bucketURL()}/html/Main_Page`,
+        })
+          .then((res) => {
+              assert.deepEqual(res.status, 200);
+              assert.deepEqual(res.headers['x-restbase-cache'], 'disabled');
+          })
     });
     it(`should transparently create a new HTML revision with id ${prevRevisions[0]}`, () => {
         return preq.get({
@@ -252,19 +276,19 @@ describe('item requests', function() {
     });
 
     it('should deny access to the HTML of a restricted revision', () => {
-        return preq.get({ uri: contentURI('html') }).then((res) => {
-            throw new Error(`Expected status 403, but gotten ${res.status}`);
+        return preq.get({ uri: deniedContentUri('html') }).then((res) => {
+            assert.fail(`Expected status 403, but gotten ${res.status}`);
         }, (res) => {
             assert.deepEqual(res.status, 403);
         });
     });
 
-    it('should deny access to the same HTML even after re-fetching it', () => {
+    it('should deny access to restricted revision even after re-fetching it', () => {
         return preq.get({
-            uri: contentURI('html'),
+            uri: deniedContentUri('html'),
             headers: { 'cache-control': 'no-cache' }
         }).then((res) => {
-            throw new Error(`Expected status 403, but gotten ${res.status}`);
+            assert.fail(`Expected status 403, but gotten ${res.status}`);
         }, (res) => {
             assert.deepEqual(res.status, 403);
         });
