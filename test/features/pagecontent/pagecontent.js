@@ -9,16 +9,17 @@ describe('item requests', function() {
     this.timeout(20000);
     let pagingToken = '';
     let contentTypes;
-    let disabledStorage;
+    let hostPort;
     const title = 'Earth';
     const revision = '358126';
     const prevRevisions = ['358125', '214592', '214591']
+    const domainWithStorageDisabled = "es.wikipedia.beta.wmflabs.org";
 
     const server = new Server();
     before(() => server.start()
     .then(() => {
+        hostPort = server.config.hostPort;
         contentTypes = server.config.conf.test.content_types;
-        disabledStorage = server.config.conf.test.parsoid.disabled_storage;
     }));
     after(() => server.stop());
 
@@ -28,6 +29,15 @@ describe('item requests', function() {
     function deniedContentUri(format) {
         return [server.config.bucketURL(), format, encodeURIComponent(deniedTitle), deniedRev].join('/');
     }
+
+    const sysURL = (domain = server.config.defaultDomain) => `${hostPort}/${domain}/sys_passthrough`;
+
+    const sysGet = (path, opt = {}) => {
+        const domain = opt.domain || Server.DEFAULT_DOMAIN;
+        const uri = `${sysURL(domain)}/${path}`;
+        return preq.get( { uri, ...opt } );
+    };
+
     const assertCORS = (res) => {
         assert.deepEqual(res.headers['access-control-allow-origin'], '*');
         assert.deepEqual(res.headers['access-control-allow-methods'], 'GET,HEAD');
@@ -80,11 +90,35 @@ describe('item requests', function() {
     });
     it('should not cache HTML for Main_Page when storage is disabled', function () {
         return preq.get({
-            uri: `${server.config.bucketURL("es.wikipedia.beta.wmflabs.org")}/html/Página_principal`,
+            uri: `${server.config.bucketURL(domainWithStorageDisabled)}/html/Página_principal`,
+        })
+        .then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.deepEqual(res.headers['x-restbase-cache'], 'disabled');
+
+            // should still not be cached
+            return sysGet( `key_value/parsoidphp/Página_principal`, { domain: domainWithStorageDisabled } );
+        }).then((res) => {
+            // if this mails, make sure you are resetting the database between tests
+            assert.deepEqual(res.status, 404);
+        }).catch((res) => {
+            assert.deepEqual(res.status, 404);
+        })
+    });
+    it('should cache HTML for Main_Page even when storage is disabled (cache-control: no-cache)', function () {
+        return preq.get({
+            uri: `${server.config.bucketURL(domainWithStorageDisabled)}/html/Página_principal`,
+            headers: {
+                'cache-control': 'no-cache'
+            }
         })
           .then((res) => {
               assert.deepEqual(res.status, 200);
-              assert.deepEqual(res.headers['x-restbase-cache'], 'disabled');
+
+              // should now be cached
+              return sysGet( `key_value/parsoidphp/Página_principal`, { domain: domainWithStorageDisabled } );
+          }).then((res) => {
+              assert.deepEqual(res.status, 200);
           })
     });
     it(`should transparently create a new HTML revision with id ${prevRevisions[0]}`, () => {

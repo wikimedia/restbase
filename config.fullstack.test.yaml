@@ -137,6 +137,17 @@ wikipedia_project: &wikipedia_project
               - path: projects/proxy.yaml
                 options: *proxy_options
           /{api:sys}: *default_sys
+          /sys_passthrough/{+syspath}:
+            get:
+              x-request-handler:
+                - passthrough_sys:
+                    request:
+                      method: get
+                      uri: /{domain}/sys/{+syspath}
+                    return:
+                      status: 200
+                      headers: '{{passthrough_sys.headers}}'
+                      body: '{{passthrough_sys.body}}'
 
 wikipedia_project_no_storage: &wikipedia_project_no_storage
   x-modules:
