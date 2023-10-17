@@ -209,7 +209,7 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.contentType(res, 'application/json');
             assert.deepEqual(res.body, {
-                items: ['v1' ]
+                items: ['sys_passthrough', 'v1']
             });
         });
     });
