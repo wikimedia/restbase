@@ -30,10 +30,12 @@ describe('item requests', function() {
         return [server.config.bucketURL(), format, encodeURIComponent(deniedTitle), deniedRev].join('/');
     }
 
-    const sysURL = (domain = server.config.defaultDomain) => `${hostPort}/${domain}/sys_passthrough`;
+    const sysURL = (domain) => {
+        domain = domain || server.config.defaultDomain;
+        return `${hostPort}/${domain}/sys_passthrough`;
+    };
 
-    const sysGet = (path, opt = {}) => {
-        const domain = opt.domain || Server.DEFAULT_DOMAIN;
+    const sysGet = (domain, path, opt = {}) => {
         const uri = `${sysURL(domain)}/${path}`;
         return preq.get( { uri, ...opt } );
     };
@@ -97,7 +99,7 @@ describe('item requests', function() {
             assert.deepEqual(res.headers['x-restbase-cache'], 'disabled');
 
             // should still not be cached
-            return sysGet( `key_value/parsoidphp/Página_principal`, { domain: domainWithStorageDisabled } );
+            return sysGet( domainWithStorageDisabled, `key_value/parsoidphp/Página_principal` );
         }).then((res) => {
             // if this mails, make sure you are resetting the database between tests
             assert.deepEqual(res.status, 404);
@@ -116,7 +118,7 @@ describe('item requests', function() {
               assert.deepEqual(res.status, 200);
 
               // should now be cached
-              return sysGet( `key_value/parsoidphp/Página_principal`, { domain: domainWithStorageDisabled } );
+              return sysGet( domainWithStorageDisabled, `key_value/parsoidphp/Página_principal` );
           }).then((res) => {
               assert.deepEqual(res.status, 200);
           })
