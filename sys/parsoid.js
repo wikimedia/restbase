@@ -551,8 +551,11 @@ class ParsoidService {
         let contentReq;
 
         const disabledStorage = this._isStorageDisabled(req.params.domain);
+        const isNoCacheRequest = mwUtil.isNoCacheRequest(req);
 
-        if (!disabledStorage) {
+        if (disabledStorage && !isNoCacheRequest) {
+            contentReq = this._getPageBundleFromParsoid(hyper, req);
+        } else {
             contentReq = this._getContentWithFallback(
                 hyper, rp.domain, rp.title, rp.revision, rp.tid
             ).then((res) => {
@@ -560,8 +563,7 @@ class ParsoidService {
                 return res;
             });
 
-            if (mwUtil.isNoCacheRequest(req)) {
-
+            if (isNoCacheRequest) {
                 // Check content generation either way
                 contentReq = contentReq.then((res) => {
                     res.headers['x-restbase-cache'] = 'nocache';
@@ -581,8 +583,6 @@ class ParsoidService {
                 // Only (possibly) generate content if there was an error
                 contentReq = contentReq.catch(generateContent);
             }
-        } else {
-            contentReq = this._getPageBundleFromParsoid(hyper, req);
         }
 
         return contentReq
