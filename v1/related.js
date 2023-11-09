@@ -57,7 +57,7 @@ class Related {
                 delete rh['cache-control'];
             }
 
-            return hyper.post({
+            return hyper.get({
                 uri: new URI([rp.domain, 'sys', 'action', 'query']),
                 body: {
                     format: 'json',
