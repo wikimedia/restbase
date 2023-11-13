@@ -936,12 +936,21 @@ class ParsoidService {
 
     _getOriginalContent(hyper, req, revision, tid) {
         const rp = req.params;
-        return this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid)
-            .then((res) => {
-                res = res.body;
-                res.revid = revision;
-                return res;
-            });
+
+        const disabledStorage = this._isStorageDisabled(req.params.domain);
+        let contentReq;
+
+        if (disabledStorage) {
+            contentReq = this._getPageBundleFromParsoid(hyper, req);
+        } else {
+            contentReq = this._getContentWithFallback(hyper, rp.domain, rp.title, revision, tid);
+        }
+
+        return contentReq.then((res) => {
+              res = res.body;
+              res.revid = revision;
+              return res;
+          });
     }
 }
 
