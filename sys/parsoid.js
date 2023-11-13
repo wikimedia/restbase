@@ -947,10 +947,10 @@ class ParsoidService {
         }
 
         return contentReq.then((res) => {
-              res = res.body;
-              res.revid = revision;
-              return res;
-          });
+            res = res.body;
+            res.revid = revision;
+            return res;
+        });
     }
 }
 
