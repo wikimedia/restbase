@@ -72,8 +72,13 @@ function isDeepEqual(result, expected, message) {
 
 function deepEqual(result, expected, message) {
     try {
-        if (typeof expected === 'string') {
-            assert.ok(result === expected || (new RegExp('^' + expected + '$').test(result)));
+        if ( expected === result ) {
+            return;
+        } else if (typeof expected === 'string') {
+            assert.ok(
+              new RegExp('^' + expected + '$').test(result),
+              `Expected: ${expected}; Result: ${result}`
+            );
         } else {
             assert.deepEqual(result, expected, message);
         }
