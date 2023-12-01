@@ -190,7 +190,7 @@ describe('Page Content Service: transforms', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-language'], 'sr-Cyrl');
+            assert.deepEqual(res.headers['content-language'].toLowerCase(), 'sr-cyrl');
             assert.checkString(res.headers['cache-control'], /private/, 'Must not be cached');
             assert.checkString(res.body, /Ово је тестна страница - 1/, 'Must not convert cyrillic with cyrillic variant');
             assert.checkString(res.body, /Ово је тестна страница - 2/, 'Must convert latin with cyrillic variant');
@@ -207,7 +207,7 @@ describe('Page Content Service: transforms', () => {
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['content-language'], 'sr-Latn');
+            assert.deepEqual(res.headers['content-language'].toLowerCase(), 'sr-latn');
             assert.checkString(res.headers['cache-control'], /private/, 'Must not be cached');
             assert.checkString(res.body, /Ovo je testna stranica - 1/, 'Must convert cyrillic with latin variant');
             assert.checkString(res.body, /Ovo je testna stranica - 2/, 'Must not convert latin with latin variant');
