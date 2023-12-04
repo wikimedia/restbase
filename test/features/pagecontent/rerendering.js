@@ -33,7 +33,7 @@ describe('page re-rendering', function() {
         let r1etag1;
         let r1etag2;
         let r2etag1;
-        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}?stash=true`})
+        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`})
         .then(async (res) => {
             assert.deepEqual(res.status, 200);
             r1etag1 = res.headers.etag;
@@ -49,7 +49,7 @@ describe('page re-rendering', function() {
             return P.delay(3000)
             .then(() => {
                 return preq.get({
-                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}?stash=true`,
+                    uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic2}`,
                     headers: { 'cache-control': 'no-cache' }
                 });
             });
@@ -67,7 +67,7 @@ describe('page re-rendering', function() {
             assert.deepEqual(res.headers.etag, r1etag2);
             hasTextContentType(res);
             return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}?stash=true`,
+                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${dynamic1}`,
                 headers: { 'cache-control': 'no-cache' }
             });
         })
@@ -97,67 +97,6 @@ describe('page re-rendering', function() {
         },
         (res) => {
             assert.deepEqual(res.status, 412);
-        });
-    });
-
-    // A static test page
-    const static1 = '/html/User:Pchelolo%2fStatic/275852';
-    const static2 = '/html/User:Pchelolo%2fStatic/275853';
-
-    it('should render & re-render independent revisions, but not update unchanged content', function () {
-        let r1etag1;
-        let r1etag2;
-        let r2etag1;
-        let tid;
-        return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}?stash=true`})
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            r1etag1 = res.headers.etag;
-            hasTextContentType(res);
-
-            return preq.get({
-                uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}?stash=true`,
-                headers: { 'cache-control': 'no-cache' }
-            });
-        })
-        .then((res) => {
-            // Since this is a static page which should render the same each
-            // time, the tid should not change.
-            r1etag2 = res.headers.etag;
-            assert.deepEqual(r1etag2, r1etag1);
-            assert.notDeepEqual(r1etag2, undefined);
-            hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`});
-        })
-        .then((res) => {
-            assert.deepEqual(res.headers.etag, r1etag1);
-            hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`});
-        })
-        .then((res) => {
-            assert.deepEqual(res.headers.etag, r1etag2);
-            hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static1}`});
-        })
-        .then((res) => {
-            assert.deepEqual(res.headers.etag, r1etag2);
-            hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static2}?stash=true`});
-        })
-        .then((res) => {
-            r2etag1 = res.headers.etag;
-            assert.deepEqual(res.status, 200);
-            hasTextContentType(res);
-
-            return preq.get({uri: `${server.config.bucketURL('en.wikipedia.beta.wmflabs.org')}${static2}`});
-        })
-        .then((res) => {
-            assert.deepEqual(res.headers.etag, r2etag1);
-            hasTextContentType(res);
         });
     });
 
