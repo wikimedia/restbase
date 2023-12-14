@@ -130,7 +130,6 @@ describe('transform api', function() {
             assert.contentType(res, contentTypes.html);
             const etag = res.headers.etag;
             const revid = res.headers.etag.match(/^"(.*?)\//)[1];
-            console.log( 'REV-ID', revid );
             return preq.post({
                 uri: `${server.config.baseURL('es.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/P%C3%A1gina_principal/${revid}`,
                 headers: {
