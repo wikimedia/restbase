@@ -122,6 +122,30 @@ describe('transform api', function() {
         });
     });
 
+    it('html2wt, disabled-storage', () => {
+        preq.get({
+            uri: `${server.config.baseURL('es.wikipedia.beta.wmflabs.org')}/page/html/P%C3%A1gina_principal`
+        }).then((res) => {
+            assert.deepEqual(res.status, 200);
+            assert.contentType(res, contentTypes.html);
+            const etag = res.headers.etag;
+            const revid = res.headers.etag.match(/^"(.*?)\//)[1];
+            return preq.post({
+                uri: `${server.config.baseURL('es.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/P%C3%A1gina_principal/${revid}`,
+                headers: {
+                    'if-match': etag
+                },
+                body: {
+                    html: '<body>The modified HTML</body>'
+                }
+            });
+        }).then((res) => {
+              assert.deepEqual(res.status, 200);
+              assert.deepEqual(res.body, 'The modified HTML');
+              assert.contentType(res, contentTypes.wikitext);
+          });
+    });
+
     it('html2wt, selser', () => {
         return preq.post({
             uri: `${server.config.baseURL('en.wikipedia.beta.wmflabs.org')}/transform/html/to/wikitext/${testPage.title}/${testPage.revision}`,
