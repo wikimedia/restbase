@@ -69,7 +69,7 @@ describe('item requests', function() {
         });
     });
 
-    it('should transparently create a new HTML revision for Main_Page', function () {
+    it('should fetch for Main_Page', function () {
         return preq.get({
             uri: `${server.config.bucketURL()}/html/Main_Page`,
         })
@@ -77,53 +77,12 @@ describe('item requests', function() {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
 
-            // NOTE: We have to accept "hit" here, because the test setup has a persistent cache.
-            assert.deepEqual(res.headers['x-restbase-cache'], 'hit|miss');
-
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`
             });
         })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['x-restbase-cache'], 'hit');
-            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
-        });
     });
-    it('should not cache HTML for Main_Page when storage is disabled', function () {
-        return preq.get({
-            uri: `${server.config.bucketURL(domainWithStorageDisabled)}/html/Página_principal`,
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['x-restbase-cache'], 'disabled');
-
-            // should still not be cached
-            return sysGet( domainWithStorageDisabled, `key_value/parsoidphp/Página_principal` );
-        }).then((res) => {
-            // if this mails, make sure you are resetting the database between tests
-            assert.deepEqual(res.status, 404);
-        }).catch((res) => {
-            assert.deepEqual(res.status, 404);
-        })
-    });
-    it('should cache HTML for Main_Page even when storage is disabled (cache-control: no-cache)', function () {
-        return preq.get({
-            uri: `${server.config.bucketURL(domainWithStorageDisabled)}/html/Página_principal`,
-            headers: {
-                'cache-control': 'no-cache'
-            }
-        })
-          .then((res) => {
-              assert.deepEqual(res.status, 200);
-
-              // should now be cached
-              return sysGet( domainWithStorageDisabled, `key_value/parsoidphp/Página_principal` );
-          }).then((res) => {
-              assert.deepEqual(res.status, 200);
-          })
-    });
-    it(`should transparently create a new HTML revision with id ${prevRevisions[0]}`, () => {
+    it(`should fetch HTML revision with id ${prevRevisions[0]}`, () => {
         return preq.get({
             uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[0]}`,
         })
@@ -132,17 +91,8 @@ describe('item requests', function() {
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
         });
     });
-    it('should not allow to frontend cache HTML if requested a stash', () => {
-        return preq.get({
-            uri: `${server.config.bucketURL()}/html/${title}?stash=true`,
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.deepEqual(res.headers['cache-control'], 'no-cache');
-        });
-    });
 
-    it('should request page lints. no revision', () => {
+    it('should fetch page lints. no revision', () => {
         return preq.get({
             uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest`
         })
@@ -152,7 +102,7 @@ describe('item requests', function() {
         });
     });
 
-    it('should request page lints. with revision', () => {
+    it('should fetch page lints. with revision', () => {
         return preq.get({
             uri: `${server.config.bucketURL()}/lint/User%3APchelolo%2FLintTest/409437`
         })
@@ -162,44 +112,13 @@ describe('item requests', function() {
         });
     });
 
-    let rev2Etag;
-    it(`should transparently create data-parsoid with id ${prevRevisions[1]}, rev 2`, () => {
+    it(`should return data-parsoid with id ${prevRevisions[1]}, rev 2`, () => {
         return preq.get({
-            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[1]}?stash=true`
+            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[1]}`
         })
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
-            rev2Etag = res.headers.etag.replace(/^"(.*)"$/, '$1');
-        });
-    });
-
-    it(`should return data-parsoid just created with revision ${rev2Etag}, rev 2`, () => {
-        return preq.get({
-            uri: `${server.config.bucketURL()}/data-parsoid/${title}/${rev2Etag}`
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes['data-parsoid']);
-        });
-    });
-
-    it(`should return HTML and data-parsoid just created by revision ${prevRevisions[2]}`, () => {
-        return preq.get({
-            uri: `${server.config.bucketURL()}/html/${title}/${prevRevisions[2]}?stash=true`
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes.html);
-            assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: [''] });
-            return preq.get({
-                uri: `${server.config.bucketURL()}/data-parsoid/${title}/${
-                    res.headers.etag.replace(/^"(.*)"$/, '$1')}`
-            });
-        })
-        .then((res) => {
-            assert.deepEqual(res.status, 200);
-            assert.contentType(res, contentTypes['data-parsoid']);
         });
     });
 
