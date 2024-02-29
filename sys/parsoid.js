@@ -6,19 +6,10 @@ const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
 const uuidv1 = require('uuid').v1;
-const uuidUtils = require('../lib/uuidUtils');
 
 const mwUtil = require('../lib/mwUtil');
 
 const spec = HyperSwitch.utils.loadSpec(`${__dirname}/parsoid.yaml`);
-
-// Temporary work-around for Parsoid issue
-// https://phabricator.wikimedia.org/T93715
-function normalizeHtml(html) {
-    return html && html.toString &&
-        html.toString()
-            .replace(/ about="[^"]+"(?=[/> ])|<meta property="mw:TimeUuid"[^>]{0,128}>/g, '');
-}
 
 /**
  * Makes sure we have a meta tag for the tid in our output
@@ -40,26 +31,6 @@ function extractTidMeta(html) {
         'property="mw:TimeUuid"(?:\\s+content="([^"]+)")?\\s*\\/?>')
         .exec(html);
     return tidMatch && (tidMatch[1] || tidMatch[2]);
-}
-
-/**
- *  Checks whether the content has been modified since the timestamp
- *  in `if-unmodified-since` header of the request
- * @param  {Object} req the request
- * @param  {Object} res the response
- * @return {boolean}    true if content has beed modified
- */
-function isModifiedSince(req, res) {
-    try {
-        if (req.headers['if-unmodified-since']) {
-            const jobTime = Date.parse(req.headers['if-unmodified-since']);
-            const revInfo = mwUtil.parseETag(res.headers.etag);
-            return revInfo && uuidUtils.getDate(revInfo.tid) >= jobTime;
-        }
-    } catch (e) {
-        // Ignore errors from date parsing
-    }
-    return false;
 }
 
 /** HTML resource_change event emission
@@ -173,8 +144,6 @@ class ParsoidService {
     }
 
     getFormat(format, hyper, req) {
-        const rp = req.params;
-
         const contentReq = this._getPageBundleFromParsoid(hyper, req);
 
         return contentReq
@@ -295,7 +264,7 @@ class ParsoidService {
                     original,
                     [from]: req.body[from],
                     scrub_wikitext: req.body.scrub_wikitext,
-                    body_only: req.body.body_only,
+                    body_only: req.body.body_only
                 }
             };
             return this.callParsoidTransform(hyper, newReq, from, to);
@@ -462,6 +431,6 @@ module.exports = (options = {}) => {
     const ps = new ParsoidService(options);
     return {
         spec,
-        operations: ps.operations,
+        operations: ps.operations
     };
 };
