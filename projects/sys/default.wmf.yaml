@@ -12,7 +12,9 @@ paths:
         options:
           host: '{{options.parsoid.host}}'
           disabled_storage: '{{options.parsoid.disabled_storage}}'
-          response_cache_control: '{{options.purged_cache_control}}'
+          # response_cache_control: '{{options.purged_cache_control}}'
+          # T365630: See if we can lower this to 60s and remove active purging.
+          response_cache_control: 's-maxage=60, max-age=0, must-revalidate'
           grace_ttl: '{{default(options.parsoid.grace_ttl, 86400)}}'
           # A list of pages that we don't want to re-render on each edit.
           # The list is empty per T316914. Parsoid perf improvements and

@@ -79,6 +79,7 @@ describe('item requests', function() {
 
             // NOTE: We have to accept "hit" here, because the test setup has a persistent cache.
             assert.deepEqual(res.headers['x-restbase-cache'], 'hit|miss');
+            assert.deepEqual(res.headers['cache-control'], 's-maxage=60, max-age=0, must-revalidate');
 
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`

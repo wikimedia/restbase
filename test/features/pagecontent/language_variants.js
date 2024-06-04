@@ -35,6 +35,8 @@ describe('Language variants', function() {
     this.timeout(20000);
     const server = new Server();
 
+    const parsoid_purged_cache_control = 's-maxage=60, max-age=0, must-revalidate';
+
     before(async () => {
         // Cleaning require cache because of side-effects
         // on the way modules are instantiated in hyperswitch
@@ -54,7 +56,7 @@ describe('Language variants', function() {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept'], disallow: ['Accept-Language'] });
             assert.deepEqual(res.headers['content-language'], 'en');
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], parsoid_purged_cache_control);
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
         });
     });
@@ -67,7 +69,7 @@ describe('Language variants', function() {
             storedEtag = res.headers.etag;
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], parsoid_purged_cache_control);
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
             assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
@@ -85,7 +87,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], parsoid_purged_cache_control);
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
             assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
@@ -103,7 +105,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], parsoid_purged_cache_control);
             assert.deepEqual(res.headers['content-language'], 'sr');
             assert.deepEqual(res.headers.etag, storedEtag);
             assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
@@ -121,7 +123,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], parsoid_purged_cache_control);
             assert.deepEqual(res.headers['content-language'], 'sr-Cyrl');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
             assert.deepEqual(/1\. Ово је тестна страница/.test(res.body), true);
@@ -139,7 +141,7 @@ describe('Language variants', function() {
         .then((res) => {
             assert.deepEqual(res.status, 200);
             assert.validateListHeader(res.headers.vary,  { require: ['Accept', 'Accept-Language'] });
-            assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
+            assert.deepEqual(res.headers['cache-control'], parsoid_purged_cache_control);
             assert.deepEqual(res.headers['content-language'], 'sr-Latn');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
             assert.deepEqual(/1\. Ovo je testna stranica/.test(res.body), true);
@@ -158,7 +160,7 @@ describe('Language variants', function() {
             assert.deepEqual(res.headers['content-language'], 'de');
             assert.deepEqual(res.headers['x-restbase-sunset'] || null, 'true');
             assert.checkString(res.headers.etag, /^"\d+\/[a-f0-9-]+"$/);
-            assert.deepEqual(res.body.extract, 'Das ist eine testseite');
+            assert.deepEqual(res.body.extract, 'Das ist eine testseite.*');
         })
     });
 
