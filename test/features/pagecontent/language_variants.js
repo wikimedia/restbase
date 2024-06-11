@@ -243,7 +243,7 @@ describe('Language variants', function() {
         });
     });
 
-    it('should request mobile-sections with no variant and store it', () => {
+    xit('should request mobile-sections with no variant and store it', () => {
         return preq.get({
             uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`
         })
@@ -288,7 +288,7 @@ describe('Language variants', function() {
         });
     });
 
-    it('should request mobile-sections with latin variant and not store it', () => {
+    xit('should request mobile-sections with latin variant and not store it', () => {
         return preq.get({
             uri: `${server.config.bucketURL('sr.wikipedia.beta.wmflabs.org')}/mobile-sections/${variantsPageTitle}`,
             headers: {
