@@ -3140,6 +3140,90 @@ paths:
       x-monitor: false
 
 
+  ########################################
+  # Knowledge Gaps
+  ########################################
+  /knowledge-gap/per-category/{project}/{content_gap}/{category}/{start}/{end}:
+    get:
+      tags:
+        - Content gap by category data
+      summary: Get content gap data for a category with given metrics
+      description: |
+        Given a Mediawiki project, content gap, category and date range, returns
+        a series of metrics and their values. These metrics are:
+        article_count, pageviews_mean, pageviews_sum, quality_score, standard_quality, standard_quality_count.
+        Stability: [experimental](https://www.mediawiki.org/wiki/API_versioning#Experimental)
+
+        Link to documentation: [click here](https://meta.wikimedia.org/wiki/Research:Knowledge_Gaps_Index/API)
+      parameters:
+        - name: project
+          in: path
+          description: |
+            The name of any Wikimedia project formatted like {language code}.{project name},
+            for example en.wikipedia. You may pass en.wikipedia.org and the .org will be stripped
+            off. For projects like commons without language codes, use commons.wikimedia. For
+            projects like www.mediawiki.org, use mediawiki or mediawiki.org.
+          type: string
+          required: true
+        - name: content_gap
+          in: path
+          description: |
+            The content gap super catergory.
+            These categories are:
+            gender, time, multimedia_illustration, geography_cultural_region,...
+            geography_wmf_region, geography_continent, geography_country
+          type: string
+          # enum: ["fill in content gaps"]
+          required: true
+        - name: category
+          in: path
+          description: |
+            Specific category within content gap data to filter for.
+            For example, categories in the geography_cultural_region are actual country names...
+            like Madagascar, Sweden etc. For time: 14th century, 21st century etc
+          type: string
+          required: true
+        - name: start
+          in: path
+          description: Date to begin data retrieval. Has the format YYYYMM01
+          type: string
+          required: true
+        - name: end
+          in: path
+          description: Date to end data retrieval. Has the format YYYYMM01
+          type: string
+          required: true
+      responses:
+        200:
+          description: The content gap data for a given category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/knowledge-gap'
+        default:
+          description: Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+      x-route-filters:
+        - type: default
+          name: ratelimit_route
+          options:
+            limits:
+              internal: 100
+              external: 100
+      x-request-handler:
+        - get_from_backend:
+            request:
+              uri: '{{options.host}}/knowledge-gap/per-category/{project}/{content_gap}/{category}/{start}/{end}'
+              headers:
+                x-client-ip: '{{x-client-ip}}'
+              agentOptions:
+                keepAlive: true
+      x-monitor: false
+
+
 ########################################
 # Components
 ########################################
@@ -4024,3 +4108,22 @@ components:
                     editors-ceil:
                       type: integer
                       format: int64
+
+    # Knowledge Gaps
+    knowledge-gap:
+      properties:
+        items:
+          type: array
+          items:
+            properties:
+              project:
+                type: string
+              content_gap:
+                type: string
+              category:
+                type: string
+              metric:
+                type: string
+              value:
+                type: number
+                format: double
