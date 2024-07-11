@@ -35,22 +35,23 @@ class PCSEndpoint {
             });
         }
 
-        if (mwUtils.isNoCacheRequest(req)) {
-            return this._fetchFromPCSAndStore(hyper, req)
-            .tap((res) => {
-                this._injectCacheControl.bind(this)(res);
-                hyper.metrics.endTiming([
-                    'pcs_getContent_latency',
-                    'pcs_getContent_latency_no_cache',
-                    `pcs_getContent_latency_${rp.domain}`
-                ], startTime);
-            });
-        }
-
         return hyper.get({
             uri: new URI([rp.domain, 'sys', 'key_value', this._options.name, rp.title])
         })
         .then((res) => {
+            if (mwUtils.isNoCacheRequest(req)) {
+                if (!mwUtils.isUnmodifiedSince(req, res)) {
+                    throw new HyperSwitch.HTTPError({
+                        status: 412,
+                        body: {
+                            type: 'precondition_failed',
+                            detail: 'The precondition failed'
+                        }
+                    });
+                }
+                return this._fetchFromPCSAndStore(hyper, req);
+            }
+
             if (!rp.revision ||
                 `${mwUtils.parseETag(res.headers.etag).rev}` === `${rp.revision}`) {
                 return res;

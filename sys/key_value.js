@@ -57,7 +57,10 @@ class KVBucket {
     }
 
     getRevision(hyper, req) {
-        if (mwUtil.isNoCacheRequest(req)) {
+        const isNoCacheRequest = mwUtil.isNoCacheRequest(req);
+        const isUnmodifiedSinceRequest = mwUtil.isUnmodifiedSinceRequest(req);
+
+        if (isNoCacheRequest && !isUnmodifiedSinceRequest) {
             throw new HTTPError({ status: 404 });
         }
 
@@ -75,11 +78,22 @@ class KVBucket {
         return hyper.get(storeReq).then((dbResult) => {
             if (dbResult.body && dbResult.body.items && dbResult.body.items.length) {
                 const row = dbResult.body.items[0];
-                return {
+                const result = {
                     status: 200,
                     headers: row.headers,
                     body: row.value
                 };
+
+                if (isNoCacheRequest && !mwUtil.isUnmodifiedSince(result)) {
+                    throw new HTTPError({
+                        status: 412,
+                        body: {
+                            type: 'precondition_failed',
+                            detail: 'The precondition failed'
+                        }
+                    });
+                }
+                return result;
             } else {
                 throw new HTTPError({
                     status: 404,

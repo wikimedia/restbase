@@ -6,7 +6,6 @@ const URI = HyperSwitch.URI;
 const HTTPError = HyperSwitch.HTTPError;
 
 const uuidv1 = require('uuid').v1;
-const uuidUtils = require('../lib/uuidUtils');
 
 const mwUtil = require('../lib/mwUtil');
 
@@ -43,26 +42,6 @@ function extractTidMeta(html) {
         'property="mw:TimeUuid"(?:\\s+content="([^"]+)")?\\s*\\/?>')
         .exec(html);
     return tidMatch && (tidMatch[1] || tidMatch[2]);
-}
-
-/**
- *  Checks whether the content has been modified since the timestamp
- *  in `if-unmodified-since` header of the request
- * @param  {Object} req the request
- * @param  {Object} res the response
- * @return {boolean}    true if content has beed modified
- */
-function isModifiedSince(req, res) {
-    try {
-        if (req.headers['if-unmodified-since']) {
-            const jobTime = Date.parse(req.headers['if-unmodified-since']);
-            const revInfo = mwUtil.parseETag(res.headers.etag);
-            return revInfo && uuidUtils.getDate(revInfo.tid) >= jobTime;
-        }
-    } catch (e) {
-        // Ignore errors from date parsing
-    }
-    return false;
 }
 
 /** HTML resource_change event emission
@@ -568,7 +547,7 @@ class ParsoidService {
                 contentReq = contentReq.then((res) => {
                     res.headers['x-restbase-cache'] = 'nocache';
 
-                    if (isModifiedSince(req, res)) { // Already up to date, nothing to do.
+                    if (!mwUtil.isUnmodifiedSince(req, res)) { // Already up to date, nothing to do.
                         throw new HTTPError({
                             status: 412,
                             body: {
