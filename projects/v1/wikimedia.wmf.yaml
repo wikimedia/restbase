@@ -35,6 +35,13 @@ info:
         change policy, according to
         [our API version policy](https://www.mediawiki.org/wiki/API_versioning).
       - Endpoint specific usage limits.
+      
+      ### Metrics endpoints
+
+      For documentation for `/metrics` endpoints, including pageviews, unique
+      devices, edited pages, editors, edits, registered users, bytes difference,
+      and mediarequests data, see the
+      [Wikimedia Analytics API documentation](https://doc.wikimedia.org/analytics-api).
 
   termsOfService: https://wikimediafoundation.org/wiki/Terms_of_Use
   contact:
