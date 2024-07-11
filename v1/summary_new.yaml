@@ -107,6 +107,7 @@ paths:
               method: get
               headers:
                 cache-control: '{{cache-control}}'
+                if-unmodified-since: '{{if-unmodified-since}}'
               uri: /{domain}/sys/key_value/page_summary/{request.params.title}
             catch:
               status: 404
