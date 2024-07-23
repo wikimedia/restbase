@@ -67,8 +67,6 @@ wikimedia_project: &wikimedia_project
               - path: projects/v1/wikimedia.wmf.yaml
                 options:
                   <<: *default_options
-                  pageviews:
-                    host: https://wikimedia.org/api/rest_v1/metrics
           /{api:sys}:
             x-modules:
               - path: projects/proxy.yaml
