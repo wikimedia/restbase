@@ -84,7 +84,7 @@ class KVBucket {
                     body: row.value
                 };
 
-                if (isNoCacheRequest && !mwUtil.isUnmodifiedSince(result)) {
+                if (isNoCacheRequest && !mwUtil.isUnmodifiedSince(req, result)) {
                     throw new HTTPError({
                         status: 412,
                         body: {
