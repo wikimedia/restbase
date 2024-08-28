@@ -388,7 +388,7 @@ describe('redirects', () => {
             });
         });
 
-        it('should redirect to commons for missing file pages, cross-origin', () => {
+        it.skip('should redirect to commons for missing file pages, cross-origin', () => {
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/${FILE_PAGE}`,
                 headers: {

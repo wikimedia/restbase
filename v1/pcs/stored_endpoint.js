@@ -8,6 +8,7 @@ class PCSEndpoint {
     constructor(options) {
         this._options = options;
         this._disabled_storage = options.disabled_storage || false;
+        this.user_agent = 'RESTBase/WMF';
     }
 
     _injectCacheControl(res) {
@@ -110,7 +111,8 @@ class PCSEndpoint {
         return hyper.get({
             uri: new URI(serviceURI),
             headers: {
-                'accept-language': req.headers['accept-language']
+                'accept-language': req.headers['accept-language'],
+                'user-agent': this.user_agent
             }
         }).tap(() => hyper.metrics.endTiming([
             'pcs_fetch_latency',

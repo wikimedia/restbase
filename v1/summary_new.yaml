@@ -130,6 +130,7 @@ paths:
               method: get
               headers:
                 accept-language: '{{accept-language}}'
+                user-agent: 'RESTBase/WMF'
               uri: '{{options.host}}/{domain}/v1/page/summary/{title}'
             response:
               status: '{{extract.status}}'
