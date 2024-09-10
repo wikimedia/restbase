@@ -61,9 +61,6 @@ paths:
         options:
           response_cache_control: '{{options.purged_cache_control}}'
           cx_host: '{{options.transform.cx_host}}'
-      - path: v1/mobileapps.js
-        options: '{{merge({"response_cache_control": options.purged_cache_control},
-                      options.mobileapps)}}'
       - path: v1/summary.js
         options: '{{merge({"response_cache_control": options.purged_cache_control_client_cache,
                            "disabled_storage": options.disabled_storage}, options.summary)}}'
