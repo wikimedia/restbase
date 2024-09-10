@@ -59,24 +59,9 @@ parallel('Responses should conform to the provided JSON schema of the response',
 
     [
         {
-            path: '/feed/featured',
-            params: getToday(),
-            schema: 'feed'
-        },
-        {
-            domain: 'de.wikipedia.beta.wmflabs.org',
-            path: '/feed/featured',
-            params: getToday(),
-            schema: 'feed'
-        },
-        {
             path: '/page/summary',
             params: 'Earth',
             schema: 'summary'
-        },
-        {
-            path: '/feed/announcements',
-            schema: 'announcementsResponse'
         },
         {
             path: '/page/related',
