@@ -61,8 +61,6 @@ paths:
         options:
           response_cache_control: '{{options.purged_cache_control}}'
           cx_host: '{{options.transform.cx_host}}'
-      - path: v1/random.yaml
-        options: '{{options.wikifeeds}}'
       - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
   /transform:
     x-modules:
