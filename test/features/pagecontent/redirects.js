@@ -303,45 +303,6 @@ describe('redirects', () => {
             });
         });
 
-        it('should return 302 for redirect pages mobile-sections', () => {
-            return preq.get({
-                uri: `${server.config.bucketURL()}/mobile-sections/User:Pchelolo%2fRedirect_Test`,
-                followRedirect: false
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 302);
-                assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
-                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-                assert.deepEqual(res.body.length, 0);
-            });
-        });
-
-        it('should return 302 for redirect pages mobile-sections-lead', () => {
-            return preq.get({
-                uri: `${server.config.bucketURL()}/mobile-sections-lead/User:Pchelolo%2fRedirect_Test`,
-                followRedirect: false
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 302);
-                assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
-                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-                assert.deepEqual(res.body.length, 0);
-            });
-        });
-
-        it('should return 302 for redirect pages mobile-sections-remaining', () => {
-            return preq.get({
-                uri: `${server.config.bucketURL()}/mobile-sections-remaining/User:Pchelolo%2fRedirect_Test`,
-                followRedirect: false
-            })
-            .then((res) => {
-                assert.deepEqual(res.status, 302);
-                assert.deepEqual(res.headers.location, 'User%3APchelolo%2FRedirect_Target_%25');
-                assert.deepEqual(res.headers['cache-control'], 'test_purged_cache_control');
-                assert.deepEqual(res.body.length, 0);
-            });
-        });
-
         it('should attach correct content-location', () => {
             return preq.get({
                 uri: `${server.config.bucketURL()}/html/Main_Page`
