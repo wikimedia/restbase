@@ -59,10 +59,6 @@ paths:
       - path: v1/content.yaml
         options:
           response_cache_control: '{{options.purged_cache_control}}'
-      - path: v1/content_segments.yaml
-        options:
-          response_cache_control: '{{options.purged_cache_control}}'
-          cx_host: '{{options.transform.cx_host}}'
       - path: v1/pcs/stored_endpoint.js
         options:
           name: media-list
@@ -87,8 +83,6 @@ paths:
       - path: v1/pcs/transform.js
         options:
           mobileapps_host: '{{options.mobileapps.host}}'
-      - path: v1/transform-lang.js
-        options: '{{options.transform}}'
   /media:
     x-modules:
       - path: v1/mathoid.yaml

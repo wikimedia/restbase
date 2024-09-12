@@ -57,16 +57,10 @@ paths:
       - path: v1/content.yaml
         options:
           response_cache_control: '{{options.purged_cache_control}}'
-      - path: v1/content_segments.yaml
-        options:
-          response_cache_control: '{{options.purged_cache_control}}'
-          cx_host: '{{options.transform.cx_host}}'
       - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
   /transform:
     x-modules:
       - path: v1/transform.yaml
-      - path: v1/transform-lang.js
-        options: '{{options.transform}}'
   /media:
     x-modules:
       - path: v1/mathoid.yaml

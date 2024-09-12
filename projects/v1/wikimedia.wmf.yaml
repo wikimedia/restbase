@@ -68,7 +68,3 @@ paths:
       - path: v1/mathoid.yaml
         options: '{{options.mathoid}}'
       - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
-  /transform:
-    x-modules:
-      - path: v1/transform-global.yaml
-        options: '{{options.transform}}'
