@@ -60,8 +60,6 @@ paths:
       - path: v1/summary.js
         options: '{{merge({"response_cache_control": options.purged_cache_control_client_cache},
                       options.summary)}}'
-      - path: v1/related.js
-        options: '{{options.related}}'
       - path: v1/common_schemas.yaml # Doesn't really matter where to mount it.
   /transform:
     x-modules:

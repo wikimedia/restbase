@@ -64,11 +64,6 @@ parallel('Responses should conform to the provided JSON schema of the response',
             schema: 'summary'
         },
         {
-            path: '/page/related',
-            params: 'San_Francisco',
-            schema: 'related'
-        },
-        {
             path: '/page/media-list',
             params: 'San_Francisco',
             schema: 'media_list'
