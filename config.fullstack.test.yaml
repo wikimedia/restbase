@@ -226,6 +226,9 @@ spec_root: &spec_root
   title: "The RESTBase root"
   # Some more general RESTBase info
   x-request-filters:
+    - path: lib/redirect_filter.js
+      options:
+        ar.wikipedia.beta.wmflabs.org: en.wikipedia.beta.wmflabs.org
     - path: lib/security_response_header_filter.js
 
   x-sub-request-filters:
