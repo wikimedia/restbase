@@ -116,3 +116,8 @@ info:
 logging:
   name: restbase
   level: info
+
+metrics:
+  - type: statsd
+    host: localhost
+    port: 8125
