@@ -21,9 +21,14 @@ paths:
         - Citation
       summary: Get citation data given an article identifier.
       description: |
-        Generates citation data given a URL, DOI, PMID, or PMCID.
+        Generates citation data given a URL, DOI, ISBN, PMID, or PMCID.
 
-        Automated requests can be made at a rate of 1 request per second (rps).
+        This service is intended to be used for user initiated requests.
+
+        Many websites probibit bot access, so if a bot uses this service on a website which
+        prohibits bots, this may cause the website to block this service for all users.
+
+        Users requesting at a rate greater than 1 request per second (rps) may be blocked.
 
         See more at [Citoid service documentation](https://www.mediawiki.org/wiki/Citoid)
 
@@ -53,7 +58,7 @@ paths:
         - name: query
           in: path
           description: |
-            URL of an article, DOI, PMCID or PMID in the URL-encoded format. Note that on the Swagger-UI doc page you don't need to URI-encode the parameter manually, it will be done by the docs engine.
+            URL of an article, DOI, ISBN, PMCID or PMID in the URL-encoded format. Note that on the Swagger-UI doc page you don't need to URI-encode the parameter manually, it will be done by the docs engine.
           required: true
           schema:
             type: string
@@ -74,7 +79,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/result'
         404:
-          description: Citation data was not found.
+          description: Citation data was not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/problem'
+        415:
+          description: Could not get citation data from unsupported media type
           content:
             application/problem+json:
               schema:
