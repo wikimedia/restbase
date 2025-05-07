@@ -442,7 +442,7 @@ paths:
         For this reason, you need to supply the exact `revision` and `tid` as
         provided in the `ETag` header of the HTML response.
 
-        Stability: [Stable](https://www.mediawiki.org/wiki/API_versioning#Stable)
+        Stability: [Deprecated](https://www.mediawiki.org/wiki/API_versioning#Deprecated)
       parameters:
         - name: title
           in: path
