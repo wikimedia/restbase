@@ -1,17 +1,12 @@
-pipelines:
-  test:
-    blubberfile: blubber.yaml
-    stages:
-      - name: test
-        build: test
-        run: true
-  publish:
-    blubberfile: blubber.yaml
-    stages:
-      - name: test
-        build: test
-        run: true
-      - name: production
-        build: production
-        publish:
-          image: true
+general:
+  buildTool: mta
+  deployMode: direct
+  cloudService: cpi
+
+steps:
+  cpiDeploy:
+    host: 'https://dev-sa-wm0yvk1u.integrationsuite-trial01.cfapps.us10-001.hana.ondemand.com'
+    username: 'praymohanty@teksystems.com'
+    password: 'Vitiksha*098Chunu'
+    integrationFlowId: 'Demotest'
+    integrationPackageId: 'xml_TO_csv'
