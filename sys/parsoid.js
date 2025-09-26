@@ -394,6 +394,9 @@ class ParsoidService {
             path
         );
 
+        // HACK: T359509
+        parsoidReq.body = '{}';
+
         return hyper.get(parsoidReq)
           .then((resp) => {
               return resp;
